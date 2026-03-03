@@ -83,7 +83,7 @@ export default function Navbar() {
             {user?.role === "student" && (
               <>
                 <NavLink
-                  to="/feed"
+                  to="/notifications"
                   label="Announcements"
                   active={isActive("/feed")}
                 />
@@ -215,15 +215,35 @@ export default function Navbar() {
                 />
 
                 {/* Immediate access to Dashboard in dropdown for non-students */}
-                {user?.role !== "student" && (
+                {isLoggedIn && (
                   <DropdownItem
                     to={
                       user.role === "admin"
                         ? "/admin/dashboard"
-                        : "/hod/dashboard"
+                        : user.role === "principal"
+                          ? "/principal/dashboard"
+                          : user.role === "dean"
+                            ? "/dashboard/dean"
+                            : user.role === "hod"
+                              ? "/hod/dashboard"
+                              : user.role === "lecturer"
+                                ? "/lecturer/console"
+                                : "/feed"
                     }
-                    icon={<ShieldAlert size={14} />}
-                    label="Admin Panel"
+                    icon={
+                      ["student", "guild_president"].includes(user.role) ? (
+                        <LayoutDashboard size={14} />
+                      ) : (
+                        <ShieldAlert size={14} />
+                      )
+                    }
+                    label={
+                      user.role === "student"
+                        ? "Student Dashboard"
+                        : user.role === "guild_president"
+                          ? "Guild Portal"
+                          : "Admin Console"
+                    }
                   />
                 )}
 

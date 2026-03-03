@@ -15,11 +15,11 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
-import { useTheme } from "../../../context/ThemeContext";
-import adminService from "../../../services/adminService";
-import StatusBadge from "../../../components/ui/StatusBadge";
-import Navbar from "../../../layouts/Navbar";
-import Footer from "../../../layouts/Footer";
+import { useTheme } from "../../../../context/ThemeContext";
+import adminService from "../../../../services/adminService";
+import StatusBadge from "../../../../components/ui/StatusBadge";
+import Navbar from "../../../../layouts/Navbar";
+import Footer from "../../../../layouts/Footer";
 
 const ROLES = ["student", "guild_president", "lecturer", "hod", "admin"];
 

@@ -9,7 +9,7 @@ export default function NotFound() {
       </h2>
       <p className="text-neutral-500 mb-8 max-w-sm">
         The page you are looking for has been moved or doesn't exist in our AI
-        database.
+        database.( Ibyo bintu byihorere ntayo wari wakoraa )
       </p>
       <Link
         to="/"

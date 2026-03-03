@@ -1,3 +1,4 @@
+// models/Event.js
 import mongoose from 'mongoose';
 
 const EventSchema = new mongoose.Schema({
@@ -7,14 +8,28 @@ const EventSchema = new mongoose.Schema({
     targetSchool: String,
     targetDept: String,
     targetLevel: Number,
-    tags: [String], // Used by ML to match with User interestWeights
+    tags: [String],
     priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
-    // AI Layer: Track student feedback
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    
+    // --- GOVERNANCE FIELDS ---
+    status: { 
+        type: String, 
+        enum: ['pending', 'approved', 'rejected'], 
+        default: 'pending' 
+    },
+    approvalLevel: { 
+        type: String, 
+        enum: ['department', 'school', 'college', 'none'], // none = auto-approved
+        default: 'none'
+    },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectionReason: String,
+    
     ratings: [{
         studentId: mongoose.Schema.Types.ObjectId,
         rating: { type: Number, min: 1, max: 5 }
-    }],
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }]
 }, { timestamps: true });
 
 export default mongoose.model('Event', EventSchema);

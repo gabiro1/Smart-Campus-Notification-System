@@ -4,93 +4,206 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import StudentLayout from "../layouts/StudentLayout";
 
-// Public / Marketing Pages
+// Public Pages
 import Landing from "../pages/home/landing/pages/Landing";
 import Features from "../pages/home/features/Features";
 import HowItWorks from "../pages/home/howitworks/HowItWorks";
 import About from "../pages/home/about/About";
-// import Pricing from "../pages/home/landing/pages/Pricing";
-
-// Auth Pages
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 
-// Student Features
-import StudentFeed from "../pages/student/pages/Home";
-import Profile from "../pages/student/pages/Profile";
-import AISummary from "../pages/student/pages/AISummary";
-import Reminders from "../pages/student/pages/Reminders";
-import Departments from "../pages/student/pages/Departments";
-import Settings from "../pages/student/pages/Settings";
-import SearchResults from "../pages/student/pages/SearchResults";
-// import Notifications from "../pages/student/component/";
+// Student Pages
+import TimeTable from "../pages/dashboards/student/component/TimeTable";
+import StudentFeed from "../pages/dashboards/student/pages/StudentDashboard";
+import Profile from "../pages/dashboards/student/profile/Profile";
+import AISummary from "../pages/dashboards/student/pages/AISummary";
+import Reminders from "../pages/dashboards/student/reminder/Reminders";
+import Settings from "../pages/dashboards/student/profile/Settings";
+import Messages from "../pages/dashboards/student/message/Messages";
+import EventFeedGrid from "../pages/dashboards/student/Events/EventFeedGrid";
 
-// Professional Portals (Staff/Committee)
-import AdminDashboard from "../pages/admin/pages/Dashboard";
-import UserManagement from "../pages/admin/pages/UserManagement";
-import BroadcastHistory from "../pages/admin/pages/BroadcastHistory";
-import HoDDashboard from "../pages/hod/pages/HoDDashboard";
-import LecturerDashboard from "../pages/lecturer/pages/LecturerDashboard";
-import CommitteePortal from "../pages/studcommittee/pages/CommitteePortal";
-import CreateEvent from "../pages/admin/pages/CreateEvent";
-import Analytics from "../pages/admin/pages/Analytics";
-
-// Error Pages
+// Admin & Staff Pages
+import AdminDashboard from "../pages/dashboards/admin/pages/Dashboard";
+import UserManagement from "../pages/dashboards/admin/pages/UserManagement";
+import HoDDashboard from "../pages/dashboards/hod/pages/HoDDashboard";
+import LecturerDashboard from "../pages/dashboards/lecturer/pages/LecturerDashboard";
+import CommitteePortal from "../pages/dashboards/studcommittee/pages/CommitteePortal";
+import DeanDashboard from "../pages/dashboards/dean/pages/DeanDashboard";
 import NotFound from "../pages/error/NotFound";
 
-export default function AppRoutes() {
-  // Mock user - Logic: This should come from a useAuth() hook
-  const user = { role: "StudCommittee", sub_role: "Speaker" };
+/* ---------------- PROTECTED ROUTE ---------------- */
 
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const token = localStorage.getItem("authToken");
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
+    const roleRedirects = {
+      admin: "/admin/dashboard",
+      dean: "/dashboard/dean",
+      hod: "/hod/dashboard",
+      lecturer: "/lecturer/console",
+      student: "/feed",
+      guild_president: "/feed",
+    };
+
+    return <Navigate to={roleRedirects[user.role] || "/feed"} replace />;
+  }
+
+  return children;
+};
+
+/* ---------------- ROUTES ---------------- */
+
+export default function AppRoutes() {
   return (
     <Routes>
-      {/* --- PUBLIC MARKETING ROUTES --- */}
+      {/* -------- PUBLIC ROUTES -------- */}
       <Route path="/" element={<Landing />} />
       <Route path="/features" element={<Features />} />
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path="/about" element={<About />} />
-      {/* <Route path="/pricing" element={<Pricing />} /> */}
-
-      {/* --- AUTHENTICATION --- */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* --- STUDENT ECOSYSTEM (Mobile-First / Bottom Nav) --- */}
+      {/* -------- STUDENT LAYOUT (ONLY ONE) -------- */}
       <Route element={<StudentLayout />}>
-        <Route path="/feed" element={<StudentFeed />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/ai-summary" element={<AISummary />} />
-        <Route path="/reminders" element={<Reminders />} />
-        <Route path="/departments" element={<Departments />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/search" element={<SearchResults />} />
-        {/* <Route path="/notifications" element={<Notifications />} /> */}
-      </Route>
-
-      {/* --- STAFF & COMMITTEE ECOSYSTEM (Desktop / Sidebar) --- */}
-      <Route element={<AdminLayout />}>
-        {/* System Admin */}
-
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<UserManagement />} />
-        <Route path="/admin/history" element={<BroadcastHistory />} />
-        <Route path="/admin/create" element={<CreateEvent />} />
-        <Route path="/admin/analytics" element={<Analytics />} />
-
-        {/* Academic Management (HoD) */}
-        <Route path="/hod/dashboard" element={<HoDDashboard />} />
-
-        {/* Faculty (Lecturer) */}
-        <Route path="/lecturer/console" element={<LecturerDashboard />} />
-
-        {/* Student Committee (Speaker/President/Ministers) */}
         <Route
-          path="/committee/portal"
-          element={<CommitteePortal user={user} />}
+          path="/feed"
+          element={
+            <ProtectedRoute allowedRoles={["student", "guild_president"]}>
+              <StudentFeed />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/timetable"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <TimeTable />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute allowedRoles={["student", "guild_president"]}>
+              <Messages />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute
+              allowedRoles={["student", "guild_president", "admin"]}
+            >
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/ai-summary"
+          element={
+            <ProtectedRoute allowedRoles={["student", "guild_president"]}>
+              <AISummary />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute allowedRoles={["student", "guild_president"]}>
+              <EventFeedGrid />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reminders"
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <Reminders />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={["student", "guild_president"]}>
+              <Settings />
+            </ProtectedRoute>
+          }
         />
       </Route>
 
-      {/* --- 404 CATCH-ALL --- */}
+      {/* -------- ADMIN / STAFF LAYOUT -------- */}
+      <Route element={<AdminLayout />}>
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/dean"
+          element={
+            <ProtectedRoute allowedRoles={["dean", "admin"]}>
+              <DeanDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hod/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["hod", "admin"]}>
+              <HoDDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/lecturer/console"
+          element={
+            <ProtectedRoute allowedRoles={["lecturer", "admin"]}>
+              <LecturerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/committee/portal"
+          element={
+            <ProtectedRoute allowedRoles={["guild_president"]}>
+              <CommitteePortal />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      {/* -------- FALLBACK -------- */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

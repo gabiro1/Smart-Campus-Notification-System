@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import AdminSidebar from "../pages/admin/components/AdminSidebar";
+import AdminSidebar from "../pages/dashboards/admin/components/AdminSidebar";
 import { motion } from "framer-motion";
 
 export default function AdminLayout() {

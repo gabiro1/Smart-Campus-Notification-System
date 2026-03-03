@@ -11,7 +11,7 @@ import {
   AlertCircle,
   Loader,
 } from "lucide-react";
-import { useEvents } from "../../../hooks";
+import { useEvents } from "../../../../hooks";
 import { motion } from "framer-motion";
 
 export default function EventDetails() {
