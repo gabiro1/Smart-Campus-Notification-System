@@ -14,12 +14,11 @@ import Register from "../pages/auth/Register";
 
 // Student Pages
 import TimeTable from "../pages/dashboards/student/component/TimeTable";
-import StudentFeed from "../pages/dashboards/student/pages/StudentDashboard";
-import Profile from "../pages/dashboards/student/profile/Profile";
-import AISummary from "../pages/dashboards/student/pages/AISummary";
-import Reminders from "../pages/dashboards/student/reminder/Reminders";
-import Settings from "../pages/dashboards/student/profile/Settings";
-import Messages from "../pages/dashboards/student/message/Messages";
+import EnhancedStudentDashboard from "../pages/dashboards/student/pages/Dashboard/EnhancedStudentDashboard";
+import Profile from "../pages/dashboards/student/pages/Profile/Profile";
+// import Reminders from "../pages/dashboards/student/pages/Reminder/Reminders";
+import Settings from "../pages/dashboards/student/pages/Profile/Settings";
+import Messages from "../pages/dashboards/student/pages/Message/Messages";
 import EventFeedGrid from "../pages/dashboards/student/Events/EventFeedGrid";
 
 // Admin & Staff Pages
@@ -30,6 +29,8 @@ import LecturerDashboard from "../pages/dashboards/lecturer/pages/LecturerDashbo
 import CommitteePortal from "../pages/dashboards/studcommittee/pages/CommitteePortal";
 import DeanDashboard from "../pages/dashboards/dean/pages/DeanDashboard";
 import NotFound from "../pages/error/NotFound";
+import { NotificationsTab } from "@/pages/dashboards/student/pages/Notifications/NotificationsTab";
+// import { RemindersTab } from "@/pages/dashboards/student/pages/Reminder/RemindersTab";
 
 /* ---------------- PROTECTED ROUTE ---------------- */
 
@@ -76,10 +77,12 @@ export default function AppRoutes() {
           path="/feed"
           element={
             <ProtectedRoute allowedRoles={["student", "guild_president"]}>
-              <StudentFeed />
+              <EnhancedStudentDashboard />
             </ProtectedRoute>
           }
         />
+
+        <Route path="/notifications" element={<ProtectedRoute allowedRoles={["student"]}> <NotificationsTab/></ProtectedRoute>}/> 
 
         <Route
           path="/timetable"
@@ -110,14 +113,14 @@ export default function AppRoutes() {
           }
         />
 
-        <Route
+        {/* <Route
           path="/ai-summary"
           element={
             <ProtectedRoute allowedRoles={["student", "guild_president"]}>
               <AISummary />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/events"
           element={
@@ -127,14 +130,14 @@ export default function AppRoutes() {
           }
         />
 
-        <Route
+        {/* <Route
           path="/reminders"
           element={
             <ProtectedRoute allowedRoles={["student"]}>
-              <Reminders />
+              <RemindersTab />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         <Route
           path="/settings"

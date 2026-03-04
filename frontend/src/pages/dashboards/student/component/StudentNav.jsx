@@ -17,8 +17,8 @@ const studentItems = [
   { icon: Calendar, label: "Time Table", path: "/timetable" },
   { icon: MessageSquare, label: "Messages", path: "/messages" },
   { icon: Sparkles, label: "Events", path: "/events" },
-  { icon: Clock, label: "Reminders", path: "/reminders" },
   { icon: Bell, label: "Notifications", path: "/notifications" },
+  { icon: Clock, label: "Reminders", path: "/reminders" },
 ];
 
 export default function StudentSidebar() {

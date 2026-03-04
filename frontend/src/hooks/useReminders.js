@@ -1,100 +1,76 @@
-import { useState, useCallback } from 'react';
-import reminderService from '../services/reminderService';
+import { useState, useCallback } from "react";
+import { api } from "../api/client";
+import { MOCK_REMINDERS } from "../constants/mockData";
 
-export const useReminders = () => {
+export function useReminders(token) {
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const getReminders = useCallback(async (page = 1, limit = 20) => {
+  const fetchReminders = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
-      const data = await reminderService.getReminders(page, limit);
-      setReminders(data.reminders);
-    } catch (err) {
-      setError(err.message);
-      console.error('Error fetching reminders:', err);
+      const data = await api("/reminders", {}, token);
+      setReminders(data.reminders || data.data || data || MOCK_REMINDERS);
+    } catch {
+      setReminders(MOCK_REMINDERS);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
-  const createReminder = useCallback(async (reminderData) => {
-    setLoading(true);
-    setError(null);
+  const createReminder = async (form) => {
     try {
-      const data = await reminderService.createReminder(reminderData);
-      setReminders([data, ...reminders]);
-      return data;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
+      const data = await api(
+        "/reminders",
+        { method: "POST", body: JSON.stringify(form) },
+        token
+      );
+      setReminders((p) => [data.reminder || data.data || { ...form, _id: Date.now().toString(), completed: false }, ...p]);
+    } catch {
+      setReminders((p) => [{ ...form, _id: Date.now().toString(), completed: false }, ...p]);
     }
-  }, [reminders]);
+  };
 
-  const updateReminder = useCallback(async (reminderId, reminderData) => {
-    setLoading(true);
-    setError(null);
+  const updateReminder = async (reminder) => {
     try {
-      const updated = await reminderService.updateReminder(reminderId, reminderData);
-      setReminders(reminders.map((r) => (r._id === reminderId ? updated : r)));
-      return updated;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [reminders]);
+      await api(
+        `/reminders/${reminder._id}`,
+        { method: "PUT", body: JSON.stringify(reminder) },
+        token
+      );
+    } catch {}
+    setReminders((p) => p.map((x) => (x._id === reminder._id ? reminder : x)));
+  };
 
-  const deleteReminder = useCallback(async (reminderId) => {
-    setLoading(true);
-    setError(null);
+  const deleteReminder = async (id) => {
     try {
-      await reminderService.deleteReminder(reminderId);
-      setReminders(reminders.filter((r) => r._id !== reminderId));
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [reminders]);
+      await api(`/reminders/${id}`, { method: "DELETE" }, token);
+    } catch {}
+    setReminders((p) => p.filter((x) => x._id !== id));
+  };
 
-  const completeReminder = useCallback(async (reminderId) => {
+  const toggleComplete = async (r) => {
+    const endpoint = r.completed
+      ? `/reminders/${r._id}/uncomplete`
+      : `/reminders/${r._id}/complete`;
     try {
-      const updated = await reminderService.completeReminder(reminderId);
-      setReminders(reminders.map((r) => (r._id === reminderId ? { ...r, completed: true } : r)));
-      return updated;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  }, [reminders]);
+      await api(endpoint, { method: "POST" }, token);
+    } catch {}
+    setReminders((p) =>
+      p.map((x) => (x._id === r._id ? { ...x, completed: !x.completed } : x))
+    );
+  };
 
-  const uncompleteReminder = useCallback(async (reminderId) => {
-    try {
-      const updated = await reminderService.uncompleteReminder(reminderId);
-      setReminders(reminders.map((r) => (r._id === reminderId ? { ...r, completed: false } : r)));
-      return updated;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  }, [reminders]);
+  const pendingCount = reminders.filter((r) => !r.completed).length;
 
   return {
     reminders,
     loading,
-    error,
-    getReminders,
+    pendingCount,
+    fetchReminders,
     createReminder,
     updateReminder,
     deleteReminder,
-    completeReminder,
-    uncompleteReminder,
+    toggleComplete,
   };
-};
+}

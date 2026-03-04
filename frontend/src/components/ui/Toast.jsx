@@ -1,37 +1,51 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, AlertCircle, X } from "lucide-react";
-
-export default function Toast({
-  message,
-  type = "success",
-  isVisible,
-  onClose,
-}) {
+export default function Toast({ toasts, removeToast }) {
+  const colors = { error: "#ef4444", success: "#10b981", info: "#3b82f6" };
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-          className="fixed bottom-28 left-0 right-0 z-[200] flex justify-center px-6 pointer-events-none"
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 9999,
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+      }}
+    >
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          style={{
+            background: colors[t.type] || colors.info,
+            color: "#fff",
+            padding: "12px 18px",
+            borderRadius: 10,
+            fontSize: 13,
+            fontWeight: 600,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+            maxWidth: 300,
+            animation: "slideIn 0.3s ease",
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+          }}
         >
-          <div className="glass px-6 py-4 rounded-2xl border border-white/10 flex items-center gap-3 shadow-2xl pointer-events-auto">
-            {type === "success" ? (
-              <CheckCircle className="text-green-400" size={20} />
-            ) : (
-              <AlertCircle className="text-red-400" size={20} />
-            )}
-            <span className="text-sm font-medium text-white">{message}</span>
-            <button
-              onClick={onClose}
-              className="ml-4 text-neutral-500 hover:text-white"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <span style={{ flex: 1 }}>{t.msg}</span>
+          <button
+            onClick={() => removeToast(t.id)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#fff",
+              cursor: "pointer",
+              fontSize: 18,
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }

@@ -44,7 +44,10 @@ export default function ApprovalQueue() {
     if (processingId === pulseId) return;
     setProcessingId(pulseId);
 
-    const [loadingVerb, successVerb] = actionVerbs[action] || ["Processing", "Done"];
+    const [loadingVerb, successVerb] = actionVerbs[action] || [
+      "Processing",
+      "Done",
+    ];
     const toastId = toast.loading(`${loadingVerb} pulse...`);
     try {
       await apiClient.post(`/events/approvals/${pulseId}`, { action }); //

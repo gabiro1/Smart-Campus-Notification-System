@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import StudentSidebar from "../component/StudentNav";
+import StudentSidebar from "../../component/StudentNav";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -13,7 +13,7 @@ import {
   MessageSquare,
   ChevronRight,
 } from "lucide-react";
-import { useEvents } from "../../../../hooks";
+import { useEvents } from "../../../../../hooks";
 
 // --- FALLBACK DATA: Keeps the UI beautiful even if the database is empty ---
 const fallbackEvents = [
