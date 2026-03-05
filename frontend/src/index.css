@@ -29,7 +29,7 @@
 
 .dark {
   /* THE DASHBOARD LOOK: Deep Blacks & Subtle Contrast */
-  --background: oklch(0.12 0 0);
+  --background: #000000;
   /* #0a0a0a - Deepest Black */
   --foreground: oklch(0.98 0 0);
   /* Pure White text */
@@ -68,6 +68,7 @@
 
 @layer base {
   body {
+    background-color: #000000;
     font-family: var(--site-font);
   }
 }
