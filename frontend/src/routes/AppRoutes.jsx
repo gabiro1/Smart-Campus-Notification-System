@@ -16,7 +16,7 @@ import Register from "../pages/auth/Register";
 import TimeTable from "../pages/dashboards/student/component/TimeTable";
 import EnhancedStudentDashboard from "../pages/dashboards/student/pages/Dashboard/EnhancedStudentDashboard";
 import Profile from "../pages/dashboards/student/pages/Profile/Profile";
-// import Reminders from "../pages/dashboards/student/pages/Reminder/Reminders";
+import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
 import Settings from "../pages/dashboards/student/pages/Profile/Settings";
 import Messages from "../pages/dashboards/student/pages/Message/Messages";
 import EventFeedGrid from "../pages/dashboards/student/Events/EventFeedGrid";
@@ -130,14 +130,14 @@ export default function AppRoutes() {
           }
         />
 
-        {/* <Route
+        <Route
           path="/reminders"
           element={
             <ProtectedRoute allowedRoles={["student"]}>
               <RemindersTab />
             </ProtectedRoute>
           }
-        /> */}
+        />
 
         <Route
           path="/settings"

@@ -1,239 +1,166 @@
 import Reminder from "../models/Reminder.js";
 
-// @desc    Get all reminders for a student
+/**
+ * @desc    Get all reminders for the authenticated student
+ * @route   GET /api/reminders
+ */
 export const getReminders = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 50 } = req.query;
     const skip = (page - 1) * limit;
 
+    // We only fetch reminders belonging to the logged-in user (req.user.id)
     const reminders = await Reminder.find({ studentId: req.user.id })
-      .sort({ deadline: 1 })
+      .sort({ dueDate: 1 }) // Closest deadlines first
       .skip(skip)
       .limit(parseInt(limit));
 
     const total = await Reminder.countDocuments({ studentId: req.user.id });
 
-    res.json({
+    res.status(200).json({
+      success: true,
       reminders,
       pagination: {
         total,
         pages: Math.ceil(total / limit),
-        currentPage: page
-      }
+        currentPage: parseInt(page),
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error while fetching tasks", error: error.message });
   }
 };
 
-// @desc    Get a single reminder
-export const getReminderDetails = async (req, res) => {
-  try {
-    const reminder = await Reminder.findById(req.params.id);
-
-    if (!reminder) {
-      return res.status(404).json({ message: "Reminder not found" });
-    }
-
-    // Ensure user can only view their own reminders
-    if (reminder.studentId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    res.json(reminder);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Create a new reminder
+/**
+ * @desc    Create a new reminder
+ * @route   POST /api/reminders
+ */
 export const createReminder = async (req, res) => {
   try {
-    const { title, description, deadline, priority, category } = req.body;
+    const { title, note, dueDate, priority, category } = req.body;
 
-    // Validate required fields
-    if (!title || !deadline) {
-      return res.status(400).json({
-        message: "Title and deadline are required"
-      });
+    // Basic Validation
+    if (!title || !dueDate) {
+      return res.status(400).json({ message: "Title and due date are required" });
     }
 
     const reminder = new Reminder({
-      studentId: req.user.id,
+      studentId: req.user.id, // Linked to the authenticated user
       title,
-      description,
-      deadline: new Date(deadline),
-      priority: priority || "medium",
-      category: category || "general"
+      note,
+      dueDate: new Date(dueDate),
+      priority: priority || "Low",
+      category: category || "General",
     });
 
     await reminder.save();
 
     res.status(201).json({
       success: true,
-      message: "Reminder created successfully",
-      reminder
+      message: "Task created successfully",
+      reminder,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error creating task", error: error.message });
   }
 };
 
-// @desc    Update a reminder
+/**
+ * @desc    Update a reminder (Handles priority shifts and content edits)
+ * @route   PUT /api/reminders/:id
+ */
 export const updateReminder = async (req, res) => {
   try {
-    const reminder = await Reminder.findById(req.params.id);
+    const { id } = req.params;
+
+    // Verify ownership before updating
+    const reminder = await Reminder.findOne({ _id: id, studentId: req.user.id });
 
     if (!reminder) {
-      return res.status(404).json({ message: "Reminder not found" });
+      return res.status(404).json({ message: "Task not found or unauthorized access" });
     }
 
-    // Ensure user can only update their own reminders
-    if (reminder.studentId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized" });
+    // Handle Date conversion if dueDate is being updated
+    if (req.body.dueDate) {
+      req.body.dueDate = new Date(req.body.dueDate);
     }
 
-    // Update fields
-    if (req.body.title) reminder.title = req.body.title;
-    if (req.body.description) reminder.description = req.body.description;
-    if (req.body.deadline) reminder.deadline = new Date(req.body.deadline);
-    if (req.body.priority) reminder.priority = req.body.priority;
-    if (req.body.category) reminder.category = req.body.category;
+    const updatedReminder = await Reminder.findByIdAndUpdate(
+      id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
 
-    await reminder.save();
-
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Reminder updated successfully",
-      reminder
+      message: "Task updated successfully",
+      reminder: updatedReminder,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error updating task", error: error.message });
   }
 };
 
-// @desc    Delete a reminder
+/**
+ * @desc    Delete a reminder
+ * @route   DELETE /api/reminders/:id
+ */
 export const deleteReminder = async (req, res) => {
   try {
-    const reminder = await Reminder.findById(req.params.id);
+    const { id } = req.params;
+
+    // Verify ownership before deletion
+    const reminder = await Reminder.findOne({ _id: id, studentId: req.user.id });
 
     if (!reminder) {
-      return res.status(404).json({ message: "Reminder not found" });
+      return res.status(404).json({ message: "Task not found or unauthorized" });
     }
 
-    // Ensure user can only delete their own reminders
-    if (reminder.studentId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
+    await Reminder.findByIdAndDelete(id);
 
-    await Reminder.findByIdAndDelete(req.params.id);
-
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Reminder deleted successfully"
+      message: "Task removed from database",
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error deleting task", error: error.message });
   }
 };
 
-// @desc    Mark reminder as complete
+/**
+ * @desc    Mark reminder as complete
+ * @route   POST /api/reminders/:id/complete
+ */
 export const completeReminder = async (req, res) => {
   try {
-    const reminder = await Reminder.findById(req.params.id);
+    const reminder = await Reminder.findOneAndUpdate(
+      { _id: req.params.id, studentId: req.user.id },
+      { completed: true },
+      { new: true }
+    );
 
-    if (!reminder) {
-      return res.status(404).json({ message: "Reminder not found" });
-    }
+    if (!reminder) return res.status(404).json({ message: "Task not found" });
 
-    // Ensure user can only update their own reminders
-    if (reminder.studentId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    reminder.completed = true;
-    reminder.completedAt = new Date();
-
-    await reminder.save();
-
-    res.json({
-      success: true,
-      message: "Reminder marked as complete",
-      reminder
-    });
+    res.status(200).json({ success: true, reminder });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Mark reminder as incomplete
-export const uncompleteReminder = async (req, res) => {
-  try {
-    const reminder = await Reminder.findById(req.params.id);
-
-    if (!reminder) {
-      return res.status(404).json({ message: "Reminder not found" });
-    }
-
-    // Ensure user can only update their own reminders
-    if (reminder.studentId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    reminder.completed = false;
-    reminder.completedAt = null;
-
-    await reminder.save();
-
-    res.json({
-      success: true,
-      message: "Reminder marked as incomplete",
-      reminder
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get all due reminders for a student
+/**
+ * @desc    Fetch tasks that are currently overdue
+ * @route   GET /api/reminders/due
+ */
 export const getDueReminders = async (req, res) => {
   try {
     const now = new Date();
-
     const reminders = await Reminder.find({
       studentId: req.user.id,
       completed: false,
-      deadline: { $lte: now }
-    }).sort({ deadline: 1 });
+      dueDate: { $lte: now },
+    }).sort({ dueDate: 1 });
 
-    res.json({
-      count: reminders.length,
-      reminders
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Get upcoming reminders for a student (next 7 days)
-export const getUpcomingReminders = async (req, res) => {
-  try {
-    const now = new Date();
-    const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    const reminders = await Reminder.find({
-      studentId: req.user.id,
-      completed: false,
-      deadline: {
-        $gte: now,
-        $lte: sevenDaysLater
-      }
-    }).sort({ deadline: 1 });
-
-    res.json({
-      count: reminders.length,
-      reminders
-    });
+    res.status(200).json({ count: reminders.length, reminders });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

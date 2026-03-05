@@ -11,14 +11,19 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@fontsource/inter": "^5.2.8",
+    "@hello-pangea/dnd": "^18.0.1",
     "@iconify/react": "^6.0.2",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.34.0",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.35.0",
     "lucide-react": "^0.564.0",
     "path": "^0.12.7",
     "radix-ui": "^1.4.3",
@@ -27,7 +32,7 @@
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.13.0",
     "recharts": "^3.7.0",
-    "tailwind-merge": "^3.4.1",
+    "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {

@@ -1,214 +1,550 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Toaster, toast } from "react-hot-toast";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import reminderService from "../../../../../services/reminderService"; // Adjust path as needed
 
-export const RemindersTab = ({
-  reminders = [], // Defaults to an empty array so .filter() doesn't crash
-  loading = {}, // Defaults to empty object so loading.reminders doesn't crash
-  S,
-  icons,
-  setNewReminder,
-  setReminderModal,
-  toggleComplete,
-  deleteReminder,
-  fmt,
-  Icon,
-  Skeleton,
-  PriorityDot,
-  Badge,
-}) => {
-  const pending = reminders.filter((r) => !r.completed);
-  const done = reminders.filter((r) => r.completed);
+// ─── Design Tokens ──────────────────────────────────────────────────────────
+const PRIORITY_CONFIG = {
+  High: {
+    label: "High Priority",
+    dot: "bg-red-500",
+    glow: "shadow-red-500/20",
+    border: "border-red-500/20",
+    badge: "bg-red-500/10 text-red-400 ring-1 ring-red-500/20",
+    ambient: "from-red-500/5",
+  },
+  Medium: {
+    label: "Medium Priority",
+    dot: "bg-amber-400",
+    glow: "shadow-amber-400/20",
+    border: "border-amber-400/20",
+    badge: "bg-amber-400/10 text-amber-400 ring-1 ring-amber-400/20",
+    ambient: "from-amber-400/5",
+  },
+  Low: {
+    label: "Low Priority",
+    dot: "bg-emerald-400",
+    glow: "shadow-emerald-400/20",
+    border: "border-emerald-400/20",
+    badge: "bg-emerald-400/10 text-emerald-400 ring-1 ring-emerald-400/20",
+    ambient: "from-emerald-400/5",
+  },
+};
+
+// ─── Shared Components ──────────────────────────────────────────────────────
+const GlassCard = ({ children, className = "", glow = "" }) => (
+  <div
+    className={`relative rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl shadow-xl ${glow} ${className}`}
+  >
+    {children}
+  </div>
+);
+
+const TaskCard = ({ item, priorityKey, index, onDelete, onEdit }) => {
+  const config = PRIORITY_CONFIG[priorityKey];
+  const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   return (
-    <div style={S.content}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 24,
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
-        <div>
-          <h2
-            style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: "#f1f5f9",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Reminders
-          </h2>
-          <p style={{ color: "#4b5563", fontSize: 13, marginTop: 4 }}>
-            {pending.length} pending · {done.length} done
-          </p>
-        </div>
-        <button
-          style={S.btn}
-          onClick={() => {
-            setNewReminder({
-              title: "",
-              note: "",
-              dueDate: "",
-              priority: "medium",
-            });
-            setReminderModal("new");
-          }}
+    <Draggable key={item._id} draggableId={item._id} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
         >
-          <Icon d={icons.plus} size={15} /> New Reminder
-        </button>
-      </div>
-
-      {loading.reminders ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} style={S.card}>
-              <Skeleton h={16} w="50%" />
-            </div>
-          ))}
-        </div>
-      ) : reminders.length === 0 ? (
-        <div style={{ ...S.card, textAlign: "center", padding: 48 }}>
-          <Icon
-            d={icons.reminder}
-            size={36}
-            style={{
-              color: "#374151",
-              margin: "0 auto 12px",
-              display: "block",
-            }}
-          />
-          <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 16 }}>
-            No reminders yet
-          </p>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[...pending, ...done].map((r) => (
-            <div
-              key={r._id}
-              style={{
-                ...S.card,
-                opacity: r.completed ? 0.6 : 1,
-                transition: "all 0.2s",
-              }}
+          <motion.div
+            layout
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+          >
+            <GlassCard
+              glow={snapshot.isDragging ? `shadow-xs ${config.glow}` : ""}
+              className="p-4 group cursor-grab active:cursor-grabbing transition-all hover:bg-white/[0.05]"
             >
               <div
-                style={{ display: "flex", alignItems: "flex-start", gap: 12 }}
-              >
-                <button
-                  onClick={() => toggleComplete(r)}
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
-                    border: `2px solid ${r.completed ? "#10b981" : "#374151"}`,
-                    background: r.completed ? "#10b981" : "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                    marginTop: 1,
-                  }}
-                >
-                  {r.completed && (
-                    <Icon d={icons.check} size={11} stroke="#fff" />
-                  )}
-                </button>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 4,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <PriorityDot p={r.priority} />
-                    <span
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        color: "#f1f5f9",
-                        textDecoration: r.completed ? "line-through" : "none",
-                      }}
-                    >
-                      {r.title}
-                    </span>
-                    <Badge
-                      label={r.priority}
-                      color={
-                        r.priority === "high"
-                          ? "#ef4444"
-                          : r.priority === "medium"
-                            ? "#f59e0b"
-                            : "#10b981"
-                      }
-                    />
-                  </div>
-                  {r.note && (
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: "#6b7280",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {r.note}
-                    </p>
-                  )}
-                  {r.dueDate && (
-                    <span
-                      style={{
-                        fontSize: 11,
-                        color:
-                          new Date(r.dueDate) < new Date() && !r.completed
-                            ? "#ef4444"
-                            : "#4b5563",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <Icon d={icons.calendar} size={11} /> Due {fmt(r.dueDate)}
-                    </span>
-                  )}
+                className={`absolute -top-6 -left-6 w-24 h-24 rounded-sm bg-gradient-radial ${config.ambient} to-transparent blur-2xl opacity-60 pointer-events-none`}
+              />
+
+              <div className="flex  items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className={`flex-shrink-0 w-1.5 h-1.5 rounded-full ${config.dot}`}
+                  />
+                  <h3 className="text-sm font-medium text-zinc-100 truncate">
+                    {item.title}
+                  </h3>
                 </div>
-                <div style={{ display: "flex", gap: 6 }}>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                  {/* Edit Button */}
                   <button
-                    onClick={() => setReminderModal({ ...r })}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#6b7280",
-                      padding: 4,
-                    }}
+                    onClick={() => onEdit(item)}
+                    className="p-1 text-zinc-600 hover:text-blue-400"
                   >
-                    <Icon d={icons.edit} size={14} />
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
                   </button>
+                  {/* Delete Button */}
                   <button
-                    onClick={() => deleteReminder(r._id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#6b7280",
-                      padding: 4,
-                    }}
+                    onClick={() => onDelete(priorityKey, item._id)}
+                    className="p-1 text-zinc-600 hover:text-red-400"
                   >
-                    <Icon d={icons.trash} size={14} />
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
+
+              {item.note && (
+                <p className="text-xs text-zinc-500 line-clamp-2 mb-3 pl-4">
+                  {item.note}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between pl-4 gap-2">
+                <span className="text-[10px] text-zinc-700">
+                  {formatDateTime(item.createdAt)}
+                </span>
+                {item.dueDate && (
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full ${isOverdue ? "bg-red-500/10 text-red-400 ring-1 ring-red-500/20" : "bg-white/[0.04] text-zinc-500"}`}
+                  >
+                    {isOverdue ? "⚠ " : ""}Due {formatDateTime(item.dueDate)}
+                  </span>
+                )}
+              </div>
+            </GlassCard>
+          </motion.div>
         </div>
       )}
+    </Draggable>
+  );
+};
+
+// ─── Main Tab Component ─────────────────────────────────────────────────────
+const RemindersTab = () => {
+  const [columns, setColumns] = useState({ High: [], Medium: [], Low: [] });
+  const [loading, setLoading] = useState(true);
+
+  // Modal States
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [newReminder, setNewReminder] = useState({
+    title: "",
+    note: "",
+    dueDate: "",
+    priority: "Low",
+  });
+
+  const [editingTask, setEditingTask] = useState(null);
+
+  // Load Data
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const data = await reminderService.getReminders();
+      const organized = { High: [], Medium: [], Low: [] };
+      data.reminders.forEach((rem) => {
+        if (organized[rem.priority]) organized[rem.priority].push(rem);
+      });
+      setColumns(organized);
+    } catch (err) {
+      toast.error("Error connecting to server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  // Drag and Drop Logic
+  const onDragEnd = async (result) => {
+    if (!result.destination) return;
+    const { source, destination, draggableId } = result;
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    )
+      return;
+
+    const newCols = { ...columns };
+    const [removed] = newCols[source.droppableId].splice(source.index, 1);
+    removed.priority = destination.droppableId;
+    newCols[destination.droppableId].splice(destination.index, 0, removed);
+    setColumns(newCols);
+
+    try {
+      await reminderService.updateReminder(draggableId, {
+        priority: destination.droppableId,
+      });
+      if (source.droppableId !== destination.droppableId)
+        toast.success(`Moved to ${destination.droppableId}`);
+    } catch (err) {
+      toast.error("Failed to update database");
+      fetchTasks();
+    }
+  };
+
+  // Add Task
+  const handleAddReminder = async (e) => {
+    e.preventDefault();
+    if (!newReminder.title || !newReminder.dueDate)
+      return toast.error("Title and Date are required");
+
+    try {
+      const response = await reminderService.createReminder(newReminder);
+      const savedTask = response.reminder;
+      setColumns((prev) => ({
+        ...prev,
+        [savedTask.priority]: [savedTask, ...prev[savedTask.priority]],
+      }));
+      setIsModalOpen(false);
+      setNewReminder({ title: "", note: "", dueDate: "", priority: "Low" });
+      toast.success("Task Created");
+    } catch (err) {
+      toast.error("Failed to save task");
+    }
+  };
+
+  // Update Task
+  const handleUpdateReminder = async (e) => {
+    e.preventDefault();
+    try {
+      await reminderService.updateReminder(editingTask._id, editingTask);
+      toast.success("Task Updated");
+      setIsEditModalOpen(false);
+      fetchTasks(); // Refresh list to ensure correct ordering/columns
+    } catch (err) {
+      toast.error("Update failed");
+    }
+  };
+
+  const deleteReminder = async (col, id) => {
+    try {
+      await reminderService.deleteReminder(id);
+      setColumns((prev) => ({
+        ...prev,
+        [col]: prev[col].filter((r) => r._id !== id),
+      }));
+      toast.success("Task Deleted");
+    } catch (err) {
+      toast.error("Could not delete from server");
+    }
+  };
+
+  const openEditModal = (task) => {
+    // Format date for datetime-local input (YYYY-MM-DDThh:mm)
+    const formattedDate = task.dueDate
+      ? new Date(task.dueDate).toISOString().slice(0, 16)
+      : "";
+    setEditingTask({ ...task, dueDate: formattedDate });
+    setIsEditModalOpen(true);
+  };
+
+  if (loading)
+    return (
+      <div className="ml-70 p-8 text-zinc-500 animate-pulse">
+        Synchronizing with database...
+      </div>
+    );
+
+  return (
+    <div className="relative min-h-screen bg-[#000000] text-white ml-70 overflow-hidden">
+      <Toaster position="bottom-right" />
+
+      {/* Background Ambience */}
+      {/* <div className="pointer-events-none fixed inset-0">
+        <div className="absolute top-[-10%] left-[10%] w-[500px] h-[500px] rounded-full bg-violet-600/[0.03] blur-[120px]" />
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
+          }}
+        />
+      </div> */}
+
+      <div className="relative z-10 p-8 max-w-6xl">
+        <div className="flex justify-between items-center mb-10">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Reminders</h1>
+            <p className="text-sm text-zinc-600 mt-0.5">
+              Real-time synchronization ensures your reminders stay up to date.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-sm text-sm font-medium bg-white text-black hover:bg-zinc-100 transition-all shadow-lg shadow-white/10"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New Task
+          </button>
+        </div>
+
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {Object.keys(columns).map((priorityKey) => (
+              <div key={priorityKey} className="flex flex-col gap-3">
+                <GlassCard className="px-4 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`w-2 h-2 rounded-full ${PRIORITY_CONFIG[priorityKey].dot}`}
+                    />
+                    <span className="text-xs font-semibold text-zinc-300">
+                      {PRIORITY_CONFIG[priorityKey].label}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${PRIORITY_CONFIG[priorityKey].badge}`}
+                  >
+                    {columns[priorityKey].length}
+                  </span>
+                </GlassCard>
+
+                <Droppable droppableId={priorityKey}>
+                  {(provided, snapshot) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className={`min-h-[500px] space-y-2.5 p-2 rounded-xl border transition-all ${snapshot.isDraggingOver ? "border-white/10 bg-white/[0.02]" : "border-transparent"}`}
+                    >
+                      <AnimatePresence>
+                        {columns[priorityKey].map((item, index) => (
+                          <TaskCard
+                            key={item._id}
+                            item={item}
+                            priorityKey={priorityKey}
+                            index={index}
+                            onDelete={deleteReminder}
+                            onEdit={openEditModal}
+                          />
+                        ))}
+                      </AnimatePresence>
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </div>
+            ))}
+          </div>
+        </DragDropContext>
+      </div>
+
+      {/* New Task Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 ml-70 bg-black/70 backdrop-blur-sm"
+            onClick={(e) =>
+              e.target === e.currentTarget && setIsModalOpen(false)
+            }
+          >
+            <motion.div
+              initial={{ scale: 0.96, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.96, y: 16, opacity: 0 }}
+            >
+              <GlassCard className="w-full max-w-md p-6 bg-[#0a0a0a]/90">
+                <h2 className="text-base font-semibold mb-6">New Task</h2>
+                <form onSubmit={handleAddReminder} className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Task title"
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-sm px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all"
+                    value={newReminder.title}
+                    onChange={(e) =>
+                      setNewReminder({ ...newReminder, title: e.target.value })
+                    }
+                  />
+                  <textarea
+                    placeholder="Add notes..."
+                    rows={3}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-sm px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all resize-none"
+                    value={newReminder.note}
+                    onChange={(e) =>
+                      setNewReminder({ ...newReminder, note: e.target.value })
+                    }
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="datetime-local"
+                      className="bg-white/[0.03] border border-white/[0.08] rounded-sm px-3 py-2.5 text-sm [color-scheme:dark]"
+                      value={newReminder.dueDate}
+                      onChange={(e) =>
+                        setNewReminder({
+                          ...newReminder,
+                          dueDate: e.target.value,
+                        })
+                      }
+                    />
+                    <select
+                      className="bg-white/[0.03] border border-white/[0.08] rounded-sm px-3 py-2.5 text-sm [color-scheme:dark]"
+                      value={newReminder.priority}
+                      onChange={(e) =>
+                        setNewReminder({
+                          ...newReminder,
+                          priority: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2.5 pt-2">
+                    <button
+                      type="submit"
+                      className="flex-1 bg-white text-black py-2.5 rounded-sm text-sm font-semibold hover:bg-zinc-100 transition-all"
+                    >
+                      Create Task
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="flex-1 border border-white/[0.08] text-zinc-400 py-2.5 rounded-sm text-sm hover:text-white transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Update Task Modal */}
+      <AnimatePresence>
+        {isEditModalOpen && editingTask && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 ml-70 bg-black/70 backdrop-blur-sm"
+            onClick={(e) =>
+              e.target === e.currentTarget && setIsEditModalOpen(false)
+            }
+          >
+            <motion.div
+              initial={{ scale: 0.96, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.96, y: 16, opacity: 0 }}
+            >
+              <GlassCard className="w-full max-w-md p-6 bg-[#0a0a0a]/90">
+                <h2 className="text-base font-semibold mb-6">Update Task</h2>
+                <form onSubmit={handleUpdateReminder} className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Task title"
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-sm px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all"
+                    value={editingTask.title}
+                    onChange={(e) =>
+                      setEditingTask({ ...editingTask, title: e.target.value })
+                    }
+                  />
+                  <textarea
+                    placeholder="Add notes..."
+                    rows={3}
+                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-sm px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all resize-none"
+                    value={editingTask.note}
+                    onChange={(e) =>
+                      setEditingTask({ ...editingTask, note: e.target.value })
+                    }
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="datetime-local"
+                      className="bg-white/[0.03] border border-white/[0.08] rounded-sm px-3 py-2.5 text-sm [color-scheme:dark]"
+                      value={editingTask.dueDate}
+                      onChange={(e) =>
+                        setEditingTask({
+                          ...editingTask,
+                          dueDate: e.target.value,
+                        })
+                      }
+                    />
+                    <select
+                      className="bg-white/[0.03] border border-white/[0.08] rounded-sm px-3 py-2.5 text-sm [color-scheme:dark]"
+                      value={editingTask.priority}
+                      onChange={(e) =>
+                        setEditingTask({
+                          ...editingTask,
+                          priority: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2.5 pt-2">
+                    <button
+                      type="submit"
+                      className="flex-1 bg-white text-black py-2.5 rounded-sm text-sm font-semibold hover:bg-zinc-100 transition-all"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditModalOpen(false)}
+                      className="flex-1 border border-white/[0.08] text-zinc-400 py-2.5 rounded-sm text-sm hover:text-white transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
+
+export default RemindersTab;
