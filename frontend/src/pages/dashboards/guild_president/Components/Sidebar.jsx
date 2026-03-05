@@ -66,7 +66,7 @@ export default function Sidebar() {
       {/* 3. Bottom Actions */}
       <div className="p-4 border-t border-white/5 space-y-2 bg-transparent">
         <Link
-          to="/guild/settings"
+          to="/guild /settings"
           className="flex items-center justify-center md:justify-start md:gap-3 p-3 md:p-2 md:pl-4 text-neutral-500 hover:text-white w-full transition-colors rounded-xl hover:bg-white/[0.03]"
         >
           <Settings size={20} />

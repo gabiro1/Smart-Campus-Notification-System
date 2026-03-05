@@ -5,6 +5,7 @@ import {
   BarChart3,
   Settings,
   Bell,
+  Plus,
   LogOut,
   ArrowUpRight,
   ChevronUp,
@@ -17,7 +18,7 @@ import { Link, useLocation } from "react-router-dom";
 const managementItems = [
   { icon: Search, label: "Search", path: "/admin/search" },
   { icon: LayoutDashboard, label: "Overview", path: "/admin/dashboard" },
-  { icon: PlusCircle, label: "Create Event", path: "/admin/create" },
+  { icon: Plus, label: "Create Event", path: "/admin/create" },
   { icon: Users, label: "User Management", path: "/admin/users", badge: "New" },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics" },
 ];

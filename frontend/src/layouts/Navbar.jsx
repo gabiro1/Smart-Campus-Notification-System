@@ -227,7 +227,7 @@ export default function Navbar() {
                             : user.role === "hod"
                               ? "/hod/dashboard"
                               : user.role === "lecturer"
-                                ? "/lecturer/console"
+                                ? "/lecturer"
                                 : "/feed"
                     }
                     icon={
@@ -242,7 +242,7 @@ export default function Navbar() {
                         ? "Student Dashboard"
                         : user.role === "guild_president"
                           ? "Guild Portal"
-                          : "Admin Console"
+                          : "Admin Portal"
                     }
                   />
                 )}
