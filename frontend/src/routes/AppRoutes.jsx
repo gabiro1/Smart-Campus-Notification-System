@@ -23,6 +23,27 @@ import LecturerClasses from "../pages/dashboards/lecturer/pages/MyClasses";
 import LecturerAnalytics from "../pages/dashboards/lecturer/pages/Analytics";
 import LecturerSettings from "../pages/dashboards/lecturer/Settings";
 
+// --- NEW: HoD Layout & Pages ---
+import HodLayout from "../pages/dashboards/hod/components/DashboardLayout";
+import DepartmentOverview from "../pages/dashboards/hod/pages/DepartmentOverview";
+import Approvals from "../pages/dashboards/hod/pages/Approvals";
+import DepartmentBroadcast from "../pages/dashboards/hod/pages/DepartmentBroadcast";
+import AllAnnouncements from "../pages/dashboards/hod/pages/AllAnnouncements";
+import ManageStaff from "../pages/dashboards/hod/pages/ManageStaff";
+import DepartmentReports from "../pages/dashboards/hod/pages/DepartmentReports";
+import DepartmentSettings from "../pages/dashboards/hod/pages/DepartmentSettings";
+
+// --- NEW: Dean Layout & Pages ---
+import DeanLayout from "../pages/dashboards/dean/components/DashboardLayout";
+import DeanOverview from "../pages/dashboards/dean/pages/CollegeOverview";
+import DeanApprovals from "../pages/dashboards/dean/pages/HoDApprovals";
+import DeanBroadcast from "../pages/dashboards/dean/pages/CollegeBroadcast";
+import DeanAnalytics from "../pages/dashboards/dean/pages/Analytics";
+import DeanRoles from "../pages/dashboards/dean/pages/RoleManagement";
+import DeanAnnouncements from "../pages/dashboards/dean/pages/AllAnnouncements";
+import DeanReports from "../pages/dashboards/dean/pages/Reports";
+import DeanSettings from "../pages/dashboards/dean/pages/CollegeSettings";
+
 // Public Pages
 import Landing from "../pages/home/landing/pages/Landing";
 import Features from "../pages/home/features/Features";
@@ -44,9 +65,6 @@ import { NotificationsTab } from "@/pages/dashboards/student/pages/Notifications
 // Admin & Staff Pages
 import AdminDashboard from "../pages/dashboards/admin/pages/Dashboard";
 import UserManagement from "../pages/dashboards/admin/pages/UserManagement";
-import HoDDashboard from "../pages/dashboards/hod/pages/HoDDashboard";
-import CommitteePortal from "../pages/dashboards/studcommittee/pages/CommitteePortal";
-import DeanDashboard from "../pages/dashboards/dean/pages/DeanDashboard";
 import NotFound from "../pages/error/NotFound";
 
 /* ---------------- PROTECTED ROUTE ---------------- */
@@ -62,9 +80,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (!allowedRoles.includes(user.role)) {
     const roleRedirects = {
       admin: "/admin/dashboard",
-      dean: "/dashboard/dean",
-      hod: "/hod/dashboard",
-      lecturer: "/lecturer", // <-- Updated redirect to new dashboard root
+      dean: "/dean", // <-- Updated redirect to new Dean dashboard root
+      hod: "/hod",
+      lecturer: "/lecturer",
       student: "/feed",
       guild_president: "/guild/overview",
     };
@@ -205,6 +223,138 @@ export default function AppRoutes() {
       </Route>
 
       {/* ========================================================= */}
+      {/* -------- NEW: HOD LAYOUT & ROUTES ----------------------- */}
+      {/* ========================================================= */}
+      <Route element={<HodLayout />}>
+        <Route
+          path="/hod"
+          element={
+            <ProtectedRoute allowedRoles={["hod"]}>
+              <DepartmentOverview />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hod/approvals"
+          element={
+            <ProtectedRoute allowedRoles={["hod"]}>
+              <Approvals />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hod/broadcast"
+          element={
+            <ProtectedRoute allowedRoles={["hod"]}>
+              <DepartmentBroadcast />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hod/announcements"
+          element={
+            <ProtectedRoute allowedRoles={["hod"]}>
+              <AllAnnouncements />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hod/staff"
+          element={
+            <ProtectedRoute allowedRoles={["hod"]}>
+              <ManageStaff />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hod/reports"
+          element={
+            <ProtectedRoute allowedRoles={["hod"]}>
+              <DepartmentReports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hod/settings"
+          element={
+            <ProtectedRoute allowedRoles={["hod"]}>
+              <DepartmentSettings />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      {/* ========================================================= */}
+      {/* -------- NEW: DEAN LAYOUT & ROUTES ---------------------- */}
+      {/* ========================================================= */}
+      <Route element={<DeanLayout />}>
+        <Route
+          path="/dean"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanOverview />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dean/approvals"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanApprovals />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dean/broadcast"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanBroadcast />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dean/analytics"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanAnalytics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dean/roles"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanRoles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dean/announcements"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanAnnouncements />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dean/reports"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanReports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dean/settings"
+          element={
+            <ProtectedRoute allowedRoles={["dean"]}>
+              <DeanSettings />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
+      {/* ========================================================= */}
       {/* -------- STUDENT LAYOUT (ONLY ONE) ---------------------- */}
       {/* ========================================================= */}
       <Route element={<StudentLayout />}>
@@ -303,32 +453,7 @@ export default function AppRoutes() {
           }
         />
 
-        <Route
-          path="/dashboard/dean"
-          element={
-            <ProtectedRoute allowedRoles={["dean", "admin"]}>
-              <DeanDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/hod/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["hod", "admin"]}>
-              <HoDDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/committee/portal"
-          element={
-            <ProtectedRoute allowedRoles={["guild_president"]}>
-              <CommitteePortal />
-            </ProtectedRoute>
-          }
-        />
+        
       </Route>
 
       {/* -------- FALLBACK -------- */}

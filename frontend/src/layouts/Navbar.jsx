@@ -225,7 +225,7 @@ export default function Navbar() {
                           : user.role === "dean"
                             ? "/dashboard/dean"
                             : user.role === "hod"
-                              ? "/hod/dashboard"
+                              ? "/hod"
                               : user.role === "lecturer"
                                 ? "/lecturer"
                                 : "/feed"
