@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function CollegeBroadcast() {
+export default function SchoolBroadcast() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [targetDept, setTargetDept] = useState("All Departments");
@@ -37,7 +37,7 @@ export default function CollegeBroadcast() {
     <div className="space-y-6">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-white tracking-tight">
-          College Broadcast
+          School Broadcast
         </h1>
         <p className="text-neutral-400 text-sm mt-1">
           Send executive announcements across all or specific departments.

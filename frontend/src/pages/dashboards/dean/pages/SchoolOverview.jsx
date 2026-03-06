@@ -25,12 +25,12 @@ const deptData = [
   { name: "Biology", sent: 94, openRate: 89 },
 ];
 
-export default function CollegeOverview() {
+export default function SchoolOverview() {
   return (
     <div className="space-y-6">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-white tracking-tight">
-          College Overview
+          School Overview
         </h1>
         <p className="text-neutral-400 text-sm mt-1">
           Cross-departmental insights and communication metrics.

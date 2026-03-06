@@ -35,14 +35,14 @@ import DepartmentSettings from "../pages/dashboards/hod/pages/DepartmentSettings
 
 // --- NEW: Dean Layout & Pages ---
 import DeanLayout from "../pages/dashboards/dean/components/DashboardLayout";
-import DeanOverview from "../pages/dashboards/dean/pages/CollegeOverview";
+import DeanOverview from "../pages/dashboards/dean/pages/SchoolOverview";
 import DeanApprovals from "../pages/dashboards/dean/pages/HoDApprovals";
-import DeanBroadcast from "../pages/dashboards/dean/pages/CollegeBroadcast";
+import DeanBroadcast from "../pages/dashboards/dean/pages/SchoolBroadcast";
 import DeanAnalytics from "../pages/dashboards/dean/pages/Analytics";
 import DeanRoles from "../pages/dashboards/dean/pages/RoleManagement";
 import DeanAnnouncements from "../pages/dashboards/dean/pages/AllAnnouncements";
 import DeanReports from "../pages/dashboards/dean/pages/Reports";
-import DeanSettings from "../pages/dashboards/dean/pages/CollegeSettings";
+import DeanSettings from "../pages/dashboards/dean/pages/SchoolSettings";
 
 // Public Pages
 import Landing from "../pages/home/landing/pages/Landing";
