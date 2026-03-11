@@ -16,7 +16,8 @@ export const register = async (req, res) => {
       school,
       department,
       level,
-      interests
+      interests,
+      profilePicture // <-- ADDED THIS
     } = req.body;
 
     // Validate required fields
@@ -41,7 +42,8 @@ export const register = async (req, res) => {
       department,
       level,
       interests: interests || [],
-      role: allowedRoles.includes(role) ? role : "student"
+      role: allowedRoles.includes(role) ? role : "student",
+      profilePicture: profilePicture || "" // <-- ADDED THIS
     });
 
     const token = jwt.sign(
@@ -62,7 +64,8 @@ export const register = async (req, res) => {
         department: user.department,
         level: user.level,
         interests: user.interests,
-        phoneNumber: user.phoneNumber
+        phoneNumber: user.phoneNumber,
+        profilePicture: user.profilePicture // <-- ADDED THIS
       }
     });
 
@@ -89,7 +92,8 @@ export const login = async (req, res) => {
                 department: user.department,
                 level: user.level,
                 interests: user.interests,
-                phoneNumber: user.phoneNumber
+                phoneNumber: user.phoneNumber,
+                profilePicture: user.profilePicture // <-- ADDED THIS
             }
         });
     } else {
@@ -107,7 +111,7 @@ export const getProfile = async (req, res) => {
     }
 };
 
-// @desc    Update profile (e.g., Student moves to Level 4 or changes interests)
+// @desc    Update profile (e.g., Student moves to Level 4 or changes interests/picture)
 export const updateProfile = async (req, res) => {
     const user = await User.findById(req.user.id);
 
@@ -115,15 +119,29 @@ export const updateProfile = async (req, res) => {
         user.name = req.body.name || user.name;
         user.phoneNumber = req.body.phoneNumber || user.phoneNumber;
         user.level = req.body.level || user.level;
-        user.interests = req.body.interests || user.interests; // AI updates here
-        user.fcmToken = req.body.fcmToken || user.fcmToken; // Update device token
+        user.interests = req.body.interests || user.interests; 
+        user.fcmToken = req.body.fcmToken || user.fcmToken; 
+        user.profilePicture = req.body.profilePicture || user.profilePicture; // <-- ADDED THIS
 
         if (req.body.password) {
             user.password = await bcrypt.hash(req.body.password, 10);
         }
 
         const updatedUser = await user.save();
-        res.json(updatedUser);
+        
+        // Return user without password
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            school: updatedUser.school,
+            department: updatedUser.department,
+            level: updatedUser.level,
+            interests: updatedUser.interests,
+            phoneNumber: updatedUser.phoneNumber,
+            profilePicture: updatedUser.profilePicture // <-- ADDED THIS
+        });
     } else {
         res.status(404).json({ message: "User not found" });
     }

@@ -16,6 +16,7 @@ import {
     getEngagementByDepartment
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
+import { getAcademicHierarchy } from '../controllers/adminController.js';
 
 // All admin routes require authentication and admin role
 router.use(protect, authorize('admin'));
@@ -105,5 +106,7 @@ router.get('/departments-stats', getDepartmentStats);
 router.get('/engagement', getEngagementByDepartment);
 
 router.post('/users', createUser);
+
+router.get('/hierarchy', getAcademicHierarchy);
 
 export default router;

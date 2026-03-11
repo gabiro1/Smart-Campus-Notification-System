@@ -17,8 +17,9 @@ admin.initializeApp({
 });
 
 /**
- * Send a push notification via Firebase Cloud Messaging
- * @param {string} token - Device FCM token
+ * Send a push notification to a SINGLE device
+ * Best for: Approvals, password resets, personal reminders
+ * * @param {string} token - Device FCM token
  * @param {string} title - Notification title
  * @param {string} body - Notification body
  */
@@ -38,4 +39,61 @@ const sendPushNotification = async (token, title, body) => {
   }
 };
 
-export { sendPushNotification };
+/**
+ * Send a push notification to MULTIPLE devices at once (Highly efficient)
+ * Best for: Department broadcasts, campus-wide alerts, new events
+ * Features: Automatically splits tokens into batches of 500 to respect Firebase limits.
+ * * @param {Array<string>} tokens - Array of device FCM tokens
+ * @param {string} title - Notification title
+ * @param {string} body - Notification body
+ */
+const sendMulticastNotification = async (tokens, title, body) => {
+  if (!tokens || tokens.length === 0) {
+    console.log("No FCM tokens provided. Skipping push notification.");
+    return null;
+  }
+
+  // Firebase limits multicast to 500 tokens per request.
+  // We chunk the array into batches of 500 to handle massive campus broadcasts.
+  const BATCH_SIZE = 500;
+  const batches = [];
+  
+  for (let i = 0; i < tokens.length; i += BATCH_SIZE) {
+    batches.push(tokens.slice(i, i + BATCH_SIZE));
+  }
+
+  let totalSuccess = 0;
+  let totalFailure = 0;
+
+  console.log(`Sending multicast notification to ${tokens.length} devices in ${batches.length} batch(es)...`);
+
+  for (const batch of batches) {
+    const message = {
+      notification: { title, body },
+      tokens: batch, // Array of up to 500 tokens
+    };
+
+    try {
+      // Use sendEachForMulticast (the modern Firebase v11+ method)
+      const response = await admin.messaging().sendEachForMulticast(message);
+      totalSuccess += response.successCount;
+      totalFailure += response.failureCount;
+
+      // Optional: Log failed tokens if you want to clean up your database later
+      if (response.failureCount > 0) {
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            console.error(`Failed to send to token ${batch[idx]}:`, resp.error.message);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error sending multicast batch:', error);
+    }
+  }
+
+  console.log(`Broadcast Complete! Success: ${totalSuccess}, Failed: ${totalFailure}`);
+  return { totalSuccess, totalFailure };
+};
+
+export { sendPushNotification, sendMulticastNotification };

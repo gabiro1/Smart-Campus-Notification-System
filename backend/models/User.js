@@ -4,11 +4,18 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  
+  // ADDED: Profile picture URL (Cloudinary/Firebase storage link)
+  profilePicture: { type: String, default: "" },
 
   phoneNumber: String,
+  
+  // ACADEMIC HIERARCHY
+  college: String, // ADDED: Needed for top-level campus targeting (e.g., CST, CBE)
   school: String,
   department: String,
   level: String,
+  
   interests: [String],
 
   // AI System: Track weighted interests for personalized ranking
@@ -23,7 +30,8 @@ const userSchema = new mongoose.Schema({
 
   role: {
     type: String,
-    enum: ["student", "lecturer", "hod", "guild_president", "admin", "dean", "principal", "guild_president"],
+    // FIXED: Removed the duplicate "guild_president"
+    enum: ["student", "lecturer", "hod", "guild_president", "admin", "dean", "principal"],
     default: "student"
   },
 

@@ -3,6 +3,7 @@ import Event from '../models/Event.js';
 import NotificationLog from '../models/NotificationLog.js';
 import Reminder from '../models/Reminder.js';
 import AuditLog from '../models/AuditLog.js';
+import { College, School, Department } from '../models/Hierarchy.js'; // Ensure these are imported if you use them in getAcademicHierarchy
 
 // Helper function to log admin actions
 const logAuditAction = async (adminId, action, targetId, targetType, description, changes = {}) => {
@@ -21,21 +22,63 @@ const logAuditAction = async (adminId, action, targetId, targetType, description
     }
 };
 
+/**
+ * @desc    Get full academic hierarchy for cascading dropdowns
+ * @route   GET /api/admin/hierarchy
+ */
+export const getAcademicHierarchy = async (req, res) => {
+  try {
+    // Fetch all records as plain JavaScript objects for fast processing
+    const colleges = await College.find().lean();
+    const schools = await School.find().lean();
+    const departments = await Department.find().lean();
+
+    const formattedStructure = {};
+
+    // Assemble the nested object
+    colleges.forEach(college => {
+      formattedStructure[college.name] = {};
+      
+      // Find schools belonging to this college
+      const collegeSchools = schools.filter(s => String(s.college) === String(college._id));
+
+      collegeSchools.forEach(school => {
+        // Find departments belonging to this school
+        const schoolDepts = departments.filter(d => String(d.school) === String(school._id));
+        
+        // Map to an array of department names
+        formattedStructure[college.name][school.name] = schoolDepts.map(d => d.name);
+      });
+    });
+
+    res.status(200).json(formattedStructure);
+  } catch (error) {
+    console.error("Error fetching hierarchy:", error);
+    res.status(500).json({ message: 'Failed to fetch academic structure' });
+  }
+};
+
 // @desc    Create new user (Admin only)
 export const createUser = async (req, res) => {
     try {
-        const { name, email, password, role, school, department } = req.body;
+        // ADDED college
+        const { name, email, password, role, college, school, department } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         }
 
+        // Validate role to prevent bad data
+        const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president', 'dean', 'principal'];
+        const userRole = role && allowedRoles.includes(role) ? role : 'student';
+
         const user = await User.create({
             name,
             email,
             password,
-            role: role || 'student',
+            role: userRole,
+            college, // <-- Added
             school,
             department
         });
@@ -57,7 +100,6 @@ export const createUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
 
 // @desc    Get dashboard metrics
 export const getDashboardMetrics = async (req, res) => {
@@ -168,7 +210,8 @@ export const getUser = async (req, res) => {
 // @desc    Update user details
 export const updateUser = async (req, res) => {
     try {
-        const { name, email, phoneNumber, school, department, level, notificationPreferences } = req.body;
+        // ADDED college and profilePicture
+        const { name, email, phoneNumber, role, college, school, department, level, profilePicture, notificationPreferences } = req.body;
 
         const user = await User.findById(req.params.userId);
         if (!user) {
@@ -180,9 +223,20 @@ export const updateUser = async (req, res) => {
         if (name) user.name = name;
         if (email) user.email = email;
         if (phoneNumber) user.phoneNumber = phoneNumber;
+        
+        // Allowed admin to change role during full edit
+        if (role) {
+            const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president', 'dean', 'principal'];
+            if (allowedRoles.includes(role)) {
+                user.role = role;
+            }
+        }
+        
+        if (college) user.college = college; // <-- Added
         if (school) user.school = school;
         if (department) user.department = department;
         if (level) user.level = level;
+        if (profilePicture) user.profilePicture = profilePicture; // <-- Added
         if (notificationPreferences) user.notificationPreferences = notificationPreferences;
 
         const updatedUser = await user.save();
@@ -196,9 +250,13 @@ export const updateUser = async (req, res) => {
             { before, after: updatedUser._doc }
         );
 
+        // Remove password from response
+        const userResponse = updatedUser.toObject({ virtuals: true });
+        delete userResponse.password;
+
         res.json({
             message: "User updated successfully",
-            user: updatedUser.toObject({ virtuals: true })
+            user: userResponse
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -238,11 +296,15 @@ export const deleteUser = async (req, res) => {
     }
 };
 
-// @desc    Promote user role
+// @desc    Promote user role (Inline Table Action)
 export const promoteUser = async (req, res) => {
     try {
         const { role } = req.body;
-        const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president'];
+        
+        // ---------------------------------------------------------
+        // THE FIX: Added 'dean' and 'principal' to the allowed array
+        // ---------------------------------------------------------
+        const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president', 'dean', 'principal'];
 
         if (!role || !allowedRoles.includes(role)) {
             return res.status(400).json({ message: "Invalid role" });

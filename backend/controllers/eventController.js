@@ -8,6 +8,7 @@ import Tesseract from "tesseract.js";
 import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
+import { sendMulticastNotification } from "../config/firebaseAdmin.js";
 
 /* =========================================================
    AI FLYER PARSING
@@ -136,28 +137,6 @@ ${extractedText}
   }
 };
 
-/* =========================================================
-   BROADCAST HELPER (REUSABLE)
-========================================================= */
-export const broadcastEvent = async (event, isUpdate = false) => {
-  try {
-    const recipients = await getTargetedUsers(event);
-    for (const student of recipients) {
-      if (!student.fcmToken) continue;
-      await sendPushNotification(
-        student.fcmToken,
-        isUpdate ? `⚠️ UPDATED: ${event.title}` : event.title,
-        event.description,
-      );
-      await NotificationLog.create({
-        eventId: event._id,
-        studentId: student._id,
-      });
-    }
-  } catch (error) {
-    console.error("Broadcast Helper Error:", error);
-  }
-};
 
 /* =========================================================
    CREATE EVENT (WITH APPROVAL WORKFLOW)
@@ -517,5 +496,56 @@ export const processApproval = async (req, res) => {
     res.status(400).json({ message: "Invalid action." });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+/* =========================================================
+   BROADCAST HELPER (REUSABLE & HIGH PERFORMANCE)
+========================================================= */
+export const broadcastEvent = async (event, isUpdate = false) => {
+  try {
+    const recipients = await getTargetedUsers(event);
+    
+    if (!recipients || recipients.length === 0) {
+      console.log("No recipients found for this broadcast.");
+      return;
+    }
+
+    const notifTitle = isUpdate ? `⚠️ UPDATED: ${event.title}` : `📅 New Event: ${event.title}`;
+    
+    // Fallback format just in case event.date or event.time are missing
+    const notifMessage = event.location 
+      ? `${event.location} | ${new Date(event.date).toLocaleDateString()} at ${event.time}`
+      : event.description;
+
+    // 1. Prepare bulk notifications for the In-App Bell Icon
+    const notificationDocs = recipients.map(student => ({
+      eventId: event._id,
+      studentId: student._id,
+      title: notifTitle,
+      message: notifMessage,
+      type: 'event',
+      status: 'unread'
+    }));
+
+    // Bulk Insert into MongoDB (1 write instead of 5,000 writes!)
+    await NotificationLog.insertMany(notificationDocs);
+
+    // 2. Extract valid FCM tokens for Mobile Push Notifications
+    const validFcmTokens = recipients
+      .map(student => student.fcmToken)
+      .filter(token => token !== undefined && token !== null && token.trim() !== "");
+
+    if (validFcmTokens.length > 0) {
+      // Send to Firebase (which will handle batching them in chunks of 500)
+      await sendMulticastNotification(
+        validFcmTokens,
+        notifTitle,
+        event.description
+      );
+    }
+    
+  } catch (error) {
+    console.error("Broadcast Helper Error:", error);
   }
 };
