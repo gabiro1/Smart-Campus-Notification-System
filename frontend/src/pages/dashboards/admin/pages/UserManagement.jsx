@@ -1,398 +1,844 @@
-import { useState, useEffect } from "react";
-import {
-  ShieldCheck,
-  Search,
-  Filter,
-  Download,
-  Plus,
-  Moon,
-  Sun,
-  Loader2,
-  Trash2,
-  X,
-  UserPlus,
-  CheckCircle2,
-} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  X,
+  Edit3,
+  User as UserIcon,
+  Mail,
+  Building,
+  GraduationCap,
+  Save,
+  Camera,
+} from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { useTheme } from "../../../../context/ThemeContext";
 import adminService from "../../../../services/adminService";
-import StatusBadge from "../../../../components/ui/StatusBadge";
-import Navbar from "../../../../layouts/Navbar";
-import Footer from "../../../../layouts/Footer";
-
-const ROLES = ["student", "guild_president", "lecturer", "hod", "admin"];
 
 export default function UserManagement() {
-  const { isDarkMode, toggleTheme } = useTheme();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // New User Form State
-  const [newUser, setNewUser] = useState({
+  // Pagination & Filters
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+
+  // Create Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     role: "student",
-    department: "",
+    college: "",
     school: "",
+    department: "",
   });
 
-  // 1. FETCH DATA FROM DATABASE
+  // View/Edit Drawer State
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const fileInputRef = useRef(null);
+
+  // Fetch users from backend
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await adminService.getUsers();
-      setUsers(Array.isArray(data) ? data : data.users || []);
+      const filters = {};
+      if (search) filters.search = search;
+      if (roleFilter) filters.role = roleFilter;
+
+      const data = await adminService.getUsers(page, 10, filters);
+      setUsers(data.users || []);
+      setTotalPages(data.pagination?.pages || 1);
     } catch (error) {
-      toast.error("Failed to load users from database");
+      toast.error(error.response?.data?.message || "Failed to fetch users");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      fetchUsers();
+    }, 300);
+    return () => clearTimeout(delayDebounceFn);
+  }, [page, search, roleFilter]);
 
-  // 2. CREATE NEW USER
-  const handleAddUser = async (e) => {
+  // Handle Form Submission for New User
+  const handleCreateUser = async (e) => {
     e.preventDefault();
-
+    setIsSubmitting(true);
     try {
-      await toast.promise(adminService.createUser(newUser), {
-        loading: "Creating user...",
-        success: (data) => {
-          setUsers([data.user, ...users]);
-          setIsModalOpen(false);
-          setNewUser({
-            name: "",
-            email: "",
-            password: "",
-            role: "student",
-            department: "",
-            school: "",
-          });
-          return "User added successfully!";
-        },
-        error: (err) => err.response?.data?.message || "Failed to create user",
+      await adminService.createUser(formData);
+      toast.success("User registered successfully");
+      setIsModalOpen(false);
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "student",
+        college: "",
+        school: "",
+        department: "",
       });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // 3. EXPORT TO CSV
-  const handleExport = () => {
-    const headers = ["Name,Email,Role,Department,School,JoinedDate"];
-    const rows = users.map(
-      (u) =>
-        `${u.name},${u.email},${u.role},${u.department || "N/A"},${u.school || "N/A"},${u.createdAt || ""}`,
-    );
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `uninotify_users_${new Date().toLocaleDateString()}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    toast.success("Exporting user database...");
-  };
-
-  // 4. ROLE UPDATE & DELETE
-  const handleRoleUpdate = async (userId, newRole) => {
-    try {
-      await adminService.promoteUser(userId, newRole);
-      setUsers(
-        users.map((u) => (u._id === userId ? { ...u, role: newRole } : u)),
-      );
-      toast.success(`Access level changed to ${newRole}`);
+      fetchUsers();
     } catch (error) {
-      toast.error("Permission update failed");
+      toast.error(error.response?.data?.message || "Failed to create user");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm("Permanent Action: Delete this user from database?"))
+  // Handle User Deletion
+  const handleDelete = async (id, name, e) => {
+    if (e) e.stopPropagation();
+    if (
+      !window.confirm(
+        `CRITICAL ACTION: Are you sure you want to permanently delete ${name}? All their associated data will be purged.`,
+      )
+    )
       return;
     try {
-      await adminService.deleteUser(userId);
-      setUsers(users.filter((u) => u._id !== userId));
-      toast.success("User purged from system");
+      await adminService.deleteUser(id);
+      toast.success("User and associated data purged");
+      if (selectedUser && selectedUser._id === id) closeDrawer();
+      fetchUsers();
     } catch (error) {
-      toast.error("Delete operation failed");
+      toast.error(error.response?.data?.message || "Delete failed");
     }
   };
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name?.toLowerCase().includes(search.toLowerCase()) ||
-      u.email?.toLowerCase().includes(search.toLowerCase()),
-  );
+  // Handle Inline Role Promotion
+  const handleRoleChange = async (id, newRole, e) => {
+    if (e) e.stopPropagation();
+    try {
+      await adminService.promoteUser(id, newRole);
+      toast.success(
+        `Role successfully updated to ${newRole.replace("_", " ")}`,
+      );
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Role update failed");
+    }
+  };
+
+  // Open the Right Side Drawer (Added initialEditMode parameter)
+  const openDrawer = (user, initialEditMode = false) => {
+    setSelectedUser(user);
+    setEditFormData({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      college: user.college || "",
+      school: user.school || "",
+      department: user.department || "",
+      profilePicture: user.profilePicture || "",
+    });
+    setImagePreview(user.profilePicture || null);
+    setIsEditMode(initialEditMode);
+  };
+
+  const closeDrawer = () => {
+    setSelectedUser(null);
+    setIsEditMode(false);
+    setImagePreview(null);
+  };
+
+  // Handle Profile Picture Selection (Preview)
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      reader.onload = () =>
+        setEditFormData({ ...editFormData, profilePicture: reader.result });
+    }
+  };
+
+  // Handle Update User from Drawer (Now connected to database)
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    try {
+      // ACTUAL API CALL to update user in the database
+      // Make sure adminService.updateUser is defined and calls PUT /api/admin/users/:id
+      await adminService.updateUser(selectedUser._id, editFormData);
+
+      toast.success("User profile updated successfully");
+      fetchUsers(); // Refresh the table behind the drawer
+      setSelectedUser({ ...selectedUser, ...editFormData }); // Update local drawer state
+      setIsEditMode(false); // Switch back to view mode
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update user");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors duration-500 flex flex-col">
-      <Toaster />
+    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12 relative overflow-hidden w-full">
+      <Toaster theme="dark" position="top-right" />
 
-      <main className="flex-1 p-6 md:p-12 pt-32 max-w-10xl mx-auto w-full space-y-5">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight">
-              Access control
-            </h1>
-            {/* <p className="text-neutral-500 font-medium">
-                Managing {users.length} institutional accounts from MongoDB
-              </p> */}
-          </div>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <h1 className="text-4xl font-black tracking-tight">Access Control</h1>
+          <p className="text-neutral-500 mt-1">
+            Manage institutional accounts, roles, and permissions.
+          </p>
+        </motion.div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className="p-3 glass dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-xl text-neutral-600 dark:text-neutral-400 hover:scale-105 transition-all"
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-white text-black px-6 py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center gap-2 hover:scale-105"
-            >
-              <UserPlus size={18} /> Add user
-            </button>
-          </div>
+        <motion.button
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20"
+        >
+          <Plus size={18} /> Add User
+        </motion.button>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1 max-w-md">
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+            size={18}
+          />
+          <input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search by name or email..."
+            className="w-full bg-[#0D0D0D] border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-[#111] outline-none transition-all text-sm shadow-xl"
+          />
         </div>
-
-        {/* Toolbar */}
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-center   p-4 ">
-          <div className="relative w-full md:max-w-md">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400"
-              size={18}
-            />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-neutral-100 dark:bg-white/5 py-3 pl-12 pr-4 rounded-[10px] outline-none transition-all"
-              placeholder="Search by name or email..."
-            />
-          </div>
-          <div className="flex gap-2">
-            <button className="p-3 glass dark:bg-white/5 border border-neutral-200 hover:text-white dark:border-white/10 rounded-xl text-neutral-500  transition-colors">
-              <Filter size={18} />
-            </button>
-            <button
-              onClick={handleExport}
-              className="p-3 glass dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-[10px] text-neutral-500 hover:text-white transition-colors flex items-center"
-            >
-              <Download size={18} />{" "}
-              <span className="text-xs font-bold uppercase"></span>
-            </button>
-          </div>
+        <div className="relative">
+          <Filter
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+            size={18}
+          />
+          <select
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setPage(1);
+            }}
+            className="w-full md:w-48 bg-[#0D0D0D] border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer shadow-xl"
+          >
+            <option value="">All Roles</option>
+            <option value="student">Student</option>
+            <option value="guild_president">Guild President</option>
+            <option value="lecturer">Lecturer</option>
+            <option value="hod">Head of Dept</option>
+            <option value="dean">Dean</option>
+            <option value="principal">Principal</option>
+            <option value="admin">System Admin</option>
+          </select>
         </div>
+      </div>
 
-        {/* Database Table */}
-        <div className="bg-white dark:bg-neutral-900 rounded-[10px] overflow-hidden border border-neutral-200 dark:border-white/5 shadow-2xl">
-          {loading ? (
-            <div className="h-64 flex flex-col items-center justify-center gap-4 text-center">
-              <Loader2 className="animate-spin text-blue-600" size={40} />
-              <p className="text-neutral-500 font-bold uppercase text-xs tracking-widest px-10">
-                Synchronizing with UniNotify Cloud Database...
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-neutral-50 dark:bg-white/[0.02] text-neutral-400 text-[10px] uppercase font-bold tracking-[0.2em] border-b border-neutral-200 dark:border-white/5">
-                  <tr>
-                    <th className="p-6 text-center w-16 italic text-blue-500">
-                      #
-                    </th>
-                    <th className="p-6">User profile</th>
-                    <th className="p-6">Department</th>
-                    <th className="p-6">Role</th>
-                    <th className="p-6 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-100 dark:divide-white/5">
-                  <AnimatePresence>
-                    {filteredUsers.map((user, index) => (
+      {/* Data Table */}
+      <div className="bg-[#0D0D0D] border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+        {loading ? (
+          <div className="h-64 flex flex-col items-center justify-center gap-4">
+            <Activity className="animate-spin text-blue-500" size={32} />
+            <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+              Querying Database...
+            </span>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-neutral-500 tracking-widest border-b border-white/5">
+                <tr>
+                  <th className="p-6">User Profile</th>
+                  <th className="p-6">Role & Permissions</th>
+                  <th className="p-6">Academic Unit</th>
+                  <th className="p-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                <AnimatePresence>
+                  {users.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="p-12 text-center text-neutral-500 font-bold uppercase tracking-widest"
+                      >
+                        No users found matching your criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    users.map((user) => (
                       <motion.tr
                         layout
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         key={user._id}
-                        className="hover:bg-neutral-50 dark:hover:bg-white/[0.01] transition-colors group"
+                        onClick={() => openDrawer(user, false)}
+                        className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
                       >
-                        <td className="p-6 text-center text-neutral-400 font-mono text-xs">
-                          {index + 1}
-                        </td>
                         <td className="p-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center font-black text-blue-600 text-xs">
-                              {user.name?.charAt(0)}
+                            {/* DYNAMIC AVATAR */}
+                            <div className="w-10 h-10 rounded-full bg-blue-600/20 text-blue-500 flex items-center justify-center font-black shrink-0 overflow-hidden border border-blue-500/20">
+                              {user.profilePicture ? (
+                                <img
+                                  src={user.profilePicture}
+                                  alt={user.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                user.name.charAt(0).toUpperCase()
+                              )}
                             </div>
                             <div>
-                              <div className="font-bold text-neutral-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                              <div className="font-bold text-white group-hover:text-blue-400 transition-colors">
                                 {user.name}
                               </div>
-                              <div className="text-xs text-neutral-500">
+                              <div className="text-xs text-neutral-500 mt-0.5">
                                 {user.email}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="p-6">
-                          <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+                          <select
+                            value={user.role}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) =>
+                              handleRoleChange(user._id, e.target.value, e)
+                            }
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider outline-none cursor-pointer appearance-none border ${
+                              user.role === "admin"
+                                ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                                : user.role === "principal"
+                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                  : user.role === "dean"
+                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                    : user.role === "hod" ||
+                                        user.role === "lecturer"
+                                      ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                      : "bg-neutral-800 text-neutral-400 border-neutral-700 hover:bg-neutral-700"
+                            }`}
+                          >
+                            <option value="student">Student</option>
+                            <option value="guild_president">
+                              Guild President
+                            </option>
+                            <option value="lecturer">Lecturer</option>
+                            <option value="hod">HoD</option>
+                            <option value="dean">Dean</option>
+                            <option value="principal">Principal</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </td>
+                        <td className="p-6">
+                          <div className="text-sm text-neutral-300 font-medium">
                             {user.department || "N/A"}
-                          </span>
-                          <div className="text-[10px] text-neutral-400 uppercase font-bold">
+                          </div>
+                          <div className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider mt-1">
+                            {user.college ? `${user.college} - ` : ""}{" "}
                             {user.school || "No School"}
                           </div>
                         </td>
                         <td className="p-6">
-                          <StatusBadge
-                            currentRole={user.role}
-                            options={ROLES}
-                            onUpdate={(role) =>
-                              handleRoleUpdate(user._id, role)
-                            }
-                          />
-                        </td>
-                        <td className="p-6 text-right">
-                          <button
-                            onClick={() => handleDeleteUser(user._id)}
-                            className="p-3 text-neutral-400 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          <div className="flex justify-end gap-2">
+                            {/* EDIT BUTTON */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDrawer(user, true);
+                              }}
+                              className="p-2.5 text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
+                              title="Edit User"
+                            >
+                              <Edit3 size={18} />
+                            </button>
+                            {/* DELETE BUTTON */}
+                            <button
+                              onClick={(e) =>
+                                handleDelete(user._id, user.name, e)
+                              }
+                              className="p-2.5 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                              title="Purge User"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </td>
                       </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </tbody>
-              </table>
+                    ))
+                  )}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && totalPages > 1 && (
+          <div className="p-4 border-t border-white/5 flex items-center justify-between bg-white/[0.01]">
+            <span className="text-xs font-bold uppercase text-neutral-500 tracking-wider pl-4">
+              Page {page} of {totalPages}
+            </span>
+            <div className="flex gap-2 pr-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
-          )}
-        </div>
-
-        {/* Security Policy Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          className="p-8 glass dark:bg-blue-600/5 border border-blue-500/20 rounded-[10px] flex gap-6 items-center"
-        >
-          <div className="w-16 h-16 bg-blue-600/10 rounded-3xl flex items-center justify-center text-blue-500 shrink-0">
-            <ShieldCheck size={32} />
           </div>
-          <div>
-            <h4 className="text-blue-600 dark:text-blue-400 font-black text-lg uppercase tracking-tighter">
-              Security protocol
-            </h4>
-            <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1 leading-relaxed max-w-2xl">
-              Elevating roles to <strong>HoD</strong> or{" "}
-              <strong>Lecturer</strong> enables broadcasting privileges. These
-              changes are logged in the system audit trail and tied to your
-              administrator ID.
-            </p>
-          </div>
-        </motion.div>
-      </main>
+        )}
+      </div>
 
-      {/* --- ADD USER MODAL --- */}
+      {/* ========================================= */}
+      {/* 1. RIGHT-SIDE SLIDE OVER DRAWER (VIEW/EDIT) */}
+      {/* ========================================= */}
+      <AnimatePresence>
+        {selectedUser && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeDrawer}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            />
+
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a] border-l border-white/10 z-50 shadow-2xl flex flex-col"
+            >
+              {/* Drawer Header */}
+              <div className="p-8 border-b border-white/5 relative bg-[#111]">
+                <button
+                  onClick={closeDrawer}
+                  className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-neutral-400 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+
+                <div className="flex flex-col items-center mt-4 text-center">
+                  {/* EDITABLE AVATAR */}
+                  <div className="relative group mb-4">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-black text-white text-3xl shadow-xl shadow-blue-500/20 overflow-hidden border-2 border-[#111]">
+                      {imagePreview ? (
+                        <img
+                          src={imagePreview}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        selectedUser.name.charAt(0).toUpperCase()
+                      )}
+                    </div>
+
+                    {/* Camera Overlay (Only visible in edit mode) */}
+                    {isEditMode && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      >
+                        <Camera size={24} className="text-white" />
+                      </button>
+                    )}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageSelect}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                  </div>
+
+                  <h2 className="text-xl font-black text-white">
+                    {selectedUser.name}
+                  </h2>
+                  <span className="inline-block mt-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
+                    {selectedUser.role.replace("_", " ")}
+                  </span>
+                </div>
+              </div>
+
+              {/* Drawer Body */}
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                {/* Toggle View/Edit */}
+                <div className="flex bg-[#111] p-1 rounded-xl mb-6 border border-white/5">
+                  <button
+                    onClick={() => setIsEditMode(false)}
+                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${!isEditMode ? "bg-[#222] text-white shadow-md" : "text-neutral-500 hover:text-neutral-300"}`}
+                  >
+                    Profile Details
+                  </button>
+                  <button
+                    onClick={() => setIsEditMode(true)}
+                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${isEditMode ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-neutral-500 hover:text-neutral-300"}`}
+                  >
+                    <Edit3 size={14} /> Edit User
+                  </button>
+                </div>
+
+                {!isEditMode ? (
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="text-[10px] uppercase font-black tracking-widest text-neutral-500">
+                        Contact Information
+                      </h3>
+                      <InfoRow
+                        icon={<UserIcon size={16} />}
+                        label="Full Name"
+                        value={selectedUser.name}
+                      />
+                      <InfoRow
+                        icon={<Mail size={16} />}
+                        label="Email Address"
+                        value={selectedUser.email}
+                      />
+                    </div>
+                    <hr className="border-white/5" />
+                    <div className="space-y-4">
+                      <h3 className="text-[10px] uppercase font-black tracking-widest text-neutral-500">
+                        Academic Placement
+                      </h3>
+                      <InfoRow
+                        icon={<Building size={16} />}
+                        label="College"
+                        value={selectedUser.college || "Not Assigned"}
+                      />
+                      <InfoRow
+                        icon={<Building size={16} />}
+                        label="School"
+                        value={selectedUser.school || "Not Assigned"}
+                      />
+                      <InfoRow
+                        icon={<GraduationCap size={16} />}
+                        label="Department"
+                        value={selectedUser.department || "Not Assigned"}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleUpdateUser} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                        Full Name
+                      </label>
+                      <input
+                        required
+                        value={editFormData.name}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            name: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                        Email Address
+                      </label>
+                      <input
+                        required
+                        type="email"
+                        value={editFormData.email}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            email: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                        System Role
+                      </label>
+                      <select
+                        value={editFormData.role}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            role: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer text-white"
+                      >
+                        <option value="student">Student</option>
+                        <option value="guild_president">Guild President</option>
+                        <option value="lecturer">Lecturer</option>
+                        <option value="hod">Head of Dept</option>
+                        <option value="dean">Dean</option>
+                        <option value="principal">Principal</option>
+                        <option value="admin">System Admin</option>
+                      </select>
+                    </div>
+                    <hr className="border-white/5 my-4" />
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                        College
+                      </label>
+                      <input
+                        placeholder="e.g. CST"
+                        value={editFormData.college}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            college: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                        School
+                      </label>
+                      <input
+                        placeholder="e.g. School of ICT"
+                        value={editFormData.school}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            school: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                        Department
+                      </label>
+                      <input
+                        placeholder="e.g. Information Technology"
+                        value={editFormData.department}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            department: e.target.value,
+                          })
+                        }
+                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isUpdating}
+                      className="w-full bg-blue-600 text-white p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-6 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-blue-900/20"
+                    >
+                      {isUpdating ? (
+                        <Activity className="animate-spin" size={18} />
+                      ) : (
+                        <Save size={18} />
+                      )}
+                      {isUpdating ? "Saving..." : "Save Changes"}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================= */}
+      {/* 2. CREATE NEW USER MODAL (Centered) */}
+      {/* ========================================= */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="glass dark:bg-neutral-900 p-8 rounded-[10px] border border-white/10 w-full max-w-lg relative shadow-2xl"
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#0D0D0D] p-8 rounded-[24px] border border-white/10 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-6 right-6 text-neutral-500 hover:text-white transition-colors"
+                className="absolute top-6 right-6 text-neutral-500 hover:text-white"
               >
                 <X size={24} />
               </button>
-
-              <h2 className="text-2xl font-bold mb-2">Create New Account</h2>
-              <p className="text-neutral-500 text-sm mb-8">
-                Register a user directly into the system database.
+              <h2 className="text-2xl font-black mb-2 tracking-tight">
+                Register User
+              </h2>
+              <p className="text-sm text-neutral-500 mb-8">
+                Add a new institutional account directly to the database.
               </p>
 
-              <form onSubmit={handleAddUser} className="space-y-4">
+              <form onSubmit={handleCreateUser} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <input
                     required
                     placeholder="Full Name"
-                    className="bg-white/5 border border-white/10 p-4 rounded-[10px] outline-none focus:border-blue-500 transition-all text-sm"
+                    value={formData.name}
                     onChange={(e) =>
-                      setNewUser({ ...newUser, name: e.target.value })
+                      setFormData({ ...formData, name: e.target.value })
                     }
+                    className="bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
                   />
                   <input
                     required
                     type="email"
                     placeholder="Institutional Email"
-                    className="bg-white/5 border border-white/10 p-4 rounded-[10px] outline-none focus:border-blue-500 transition-all text-sm"
+                    value={formData.email}
                     onChange={(e) =>
-                      setNewUser({ ...newUser, email: e.target.value })
+                      setFormData({ ...formData, email: e.target.value })
                     }
+                    className="bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
                   />
                 </div>
 
                 <input
                   required
                   type="password"
-                  placeholder="Initial Password"
-                  className="w-full bg-white/5 border border-white/10 p-4 rounded-[10px] outline-none focus:border-blue-500 transition-all text-sm"
+                  placeholder="Temporary Password"
+                  value={formData.password}
                   onChange={(e) =>
-                    setNewUser({ ...newUser, password: e.target.value })
+                    setFormData({ ...formData, password: e.target.value })
                   }
+                  className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                    Initial Role
+                  </label>
                   <select
-                    className="bg-neutral-800 border border-white/10 p-4 rounded-[10px] outline-none text-sm appearance-none"
+                    value={formData.role}
                     onChange={(e) =>
-                      setNewUser({ ...newUser, role: e.target.value })
+                      setFormData({ ...formData, role: e.target.value })
                     }
+                    className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
                   >
-                    {ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
+                    <option value="student">Student</option>
+                    <option value="guild_president">Guild President</option>
+                    <option value="lecturer">Lecturer</option>
+                    <option value="hod">Head of Dept</option>
+                    <option value="dean">Dean</option>
+                    <option value="principal">Principal</option>
+                    <option value="admin">System Admin</option>
                   </select>
+                </div>
+
+                <hr className="border-white/5 my-4" />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      College
+                    </label>
+                    <input
+                      placeholder="e.g. CST"
+                      value={formData.college}
+                      onChange={(e) =>
+                        setFormData({ ...formData, college: e.target.value })
+                      }
+                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      School
+                    </label>
+                    <input
+                      placeholder="e.g. School of ICT"
+                      value={formData.school}
+                      onChange={(e) =>
+                        setFormData({ ...formData, school: e.target.value })
+                      }
+                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                    Department
+                  </label>
                   <input
-                    placeholder="Department (e.g., IT)"
-                    className="bg-white/5 border border-white/10 p-4 rounded-[10px] outline-none focus:border-blue-500 transition-all text-sm"
+                    placeholder="e.g. Information Technology"
+                    value={formData.department}
                     onChange={(e) =>
-                      setNewUser({ ...newUser, department: e.target.value })
+                      setFormData({ ...formData, department: e.target.value })
                     }
+                    className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
                   />
                 </div>
 
-                <button className="w-full bg-white text-black py-5 rounded-[10px] shadow-lg transition-all flex items-center justify-center gap-2 mt-4 group">
-                  Confirm & Save{" "}
-                  <CheckCircle2
-                    size={18}
-                    className="group-hover:scale-110 transition-transform"
-                  />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-600 text-white p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-4 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center"
+                >
+                  {isSubmitting ? (
+                    <Activity className="animate-spin" size={20} />
+                  ) : (
+                    "Save User Record"
+                  )}
                 </button>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// Sub-component for Drawer Display Data
+function InfoRow({ icon, label, value }) {
+  return (
+    <div className="flex items-start gap-4 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-colors">
+      <div className="text-neutral-500 mt-0.5">{icon}</div>
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+          {label}
+        </p>
+        <p className="text-sm font-medium text-white mt-0.5">{value}</p>
+      </div>
     </div>
   );
 }

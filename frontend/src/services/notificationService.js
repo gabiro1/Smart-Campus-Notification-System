@@ -15,15 +15,15 @@ const notificationService = {
     return response.data;
   },
 
-  // Mark notification as read
-  markAsRead: async (eventId) => {
-    const response = await apiClient.put(`/notifications/read/${eventId}`);
+  // Mark notification as read (FIXED: Uses notificationId, not eventId)
+  markAsRead: async (notificationId) => {
+    const response = await apiClient.put(`/notifications/${notificationId}/read`);
     return response.data;
   },
 
-  // Mark all as read
+  // Mark all as read (FIXED: Matched URL to backend)
   markAllAsRead: async () => {
-    const response = await apiClient.put('/notifications/read-all');
+    const response = await apiClient.put('/notifications/mark-all-read');
     return response.data;
   },
 

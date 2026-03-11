@@ -113,13 +113,13 @@ export default function Navbar() {
             {/* {user?.role === "admin" && (
               <>
                 <NavLink
-                  to="/admin/dashboard"
+                  to="/admin/overview"
                   label={
                     <span className="flex items-center gap-1">
                       <LayoutDashboard size={14} /> Dashboard
                     </span>
                   }
-                  active={isActive("/admin/dashboard")}
+                  active={isActive("/admin/overview")}
                 />
                 <NavLink
                   to="/admin/users"
@@ -219,11 +219,11 @@ export default function Navbar() {
                   <DropdownItem
                     to={
                       user.role === "admin"
-                        ? "/admin/dashboard"
+                        ? "/admin/overview"
                         : user.role === "principal"
                           ? "/principal/dashboard"
                           : user.role === "dean"
-                            ? "/dashboard/dean"
+                            ? "/dean/dashboard"
                             : user.role === "hod"
                               ? "/hod"
                               : user.role === "lecturer"
@@ -294,7 +294,7 @@ export default function Navbar() {
             )}
             {isLoggedIn && user?.role === "admin" && (
               <MobileLink
-                to="/admin/dashboard"
+                to="/admin/overview"
                 label="Admin Dashboard"
                 close={setIsMobileMenuOpen}
               />

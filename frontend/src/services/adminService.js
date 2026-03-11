@@ -104,6 +104,89 @@ createUser: async (userData) => {
     const response = await apiClient.get('/admin/sms-quota');
     return response.data;
   },
+
+  // Upload flyer for AI OCR parsing
+  parseFlyer: async (file) => {
+    const formData = new FormData();
+    formData.append('image', file); // Make sure your multer setup looks for 'image' or 'file' matching this
+    const response = await apiClient.post('/events/parse-flyer', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Create a new event/broadcast
+  createEvent: async (eventData) => {
+    // Note: Adjust the URL to match where you mounted your event routes
+    const response = await apiClient.post('/events', eventData); 
+    return response.data;
+  },
+  // Fetch system logs
+  getSystemLogs: async (filter = 'all') => {
+    const response = await apiClient.get('/admin/logs', { params: { filter } });
+    return response.data;
+  },
+
+  // Run system diagnostics
+  runSystemTests: async () => {
+    const response = await apiClient.post('/admin/tests/run');
+    return response.data;
+  },
+
+  // Get list of previous backups
+  getBackups: async () => {
+    // const response = await apiClient.get('/admin/backups');
+    // return response.data;
+    
+    // Returning dummy data for UI testing until backend route is built
+    return [
+      { id: "bk-001", type: "Database", size: "142 MB", date: new Date(Date.now() - 1000 * 3600 * 24).toISOString(), status: "Completed" },
+      { id: "bk-002", type: "Media Assets", size: "1.2 GB", date: new Date(Date.now() - 1000 * 3600 * 48).toISOString(), status: "Completed" },
+      { id: "bk-003", type: "Full System", size: "1.4 GB", date: new Date(Date.now() - 1000 * 3600 * 168).toISOString(), status: "Completed" },
+    ];
+  },
+
+  // Trigger a new backup
+  createBackup: async (type) => {
+    // const response = await apiClient.post('/admin/backups/create', { type });
+    // return response.data;
+    await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate delay
+    return { success: true, message: `${type} backup created successfully.` };
+  },
+
+  // Restore a previous backup
+  restoreBackup: async (backupId) => {
+    // const response = await apiClient.post('/admin/backups/restore', { backupId });
+    // return response.data;
+    await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate delay
+    return { success: true, message: "System restored successfully." };
+  },
+
+  // Get dynamic academic structure
+  getHierarchy: async () => {
+    const response = await apiClient.get('/admin/hierarchy');
+    return response.data;
+  },
+
+  // Fetch all events with pagination and filters
+  getAllEvents: async (page = 1, limit = 10, filters = {}) => {
+    const response = await apiClient.get('/events', {
+      params: { page, limit, ...filters }
+    });
+    return response.data;
+  },
+
+  // Delete an event
+  deleteEvent: async (eventId) => {
+    const response = await apiClient.delete(`/events/${eventId}`);
+    return response.data;
+  },
+  updateEvent: async (eventId, data) => {
+    const response = await apiClient.put(`/events/${eventId}`, data);
+    return response.data;
+  },
+
+ 
 };
 
 export default adminService;

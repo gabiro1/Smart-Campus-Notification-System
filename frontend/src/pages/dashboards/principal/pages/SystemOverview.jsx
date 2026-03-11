@@ -34,7 +34,7 @@ const roleData = [
   { role: "Deans", active: 8 },
 ];
 
-export default function SystemOverview() {
+export default function PrincipalOverview() {
   return (
     <div className="space-y-6">
       <header className="mb-8">

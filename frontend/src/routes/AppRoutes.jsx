@@ -47,6 +47,8 @@ import DeanAnnouncements from "../pages/dashboards/dean/pages/AllAnnouncements";
 import DeanReports from "../pages/dashboards/dean/pages/Reports";
 import DeanSettings from "../pages/dashboards/dean/pages/SchoolSettings";
 
+// --- NEW: Elite Admin Layout & Pages ---
+
 // Public Pages
 import Landing from "../pages/home/landing/pages/Landing";
 import Features from "../pages/home/features/Features";
@@ -65,9 +67,17 @@ import Messages from "../pages/dashboards/student/pages/Message/Messages";
 import EventFeedGrid from "../pages/dashboards/student/Events/EventFeedGrid";
 import { NotificationsTab } from "@/pages/dashboards/student/pages/Notifications/NotificationsTab";
 
-// Admin & Staff Pages
-import AdminDashboard from "../pages/dashboards/admin/pages/Dashboard";
-import UserManagement from "../pages/dashboards/admin/pages/UserManagement";
+// --- NEW: Elite Enterprise Admin Pages ---
+import SystemOverview from "../pages/dashboards/Admin/pages/SystemOverview";
+import UserManagement from "../pages/dashboards/Admin/pages/UserManagement";
+import ComposeBroadcastModal from "../pages/dashboards/Admin/pages/CreateEventPage";
+import FullAnalytics from "../pages/dashboards/Admin/pages/FullAnalytics";
+import UserDirectory from "../pages/dashboards/Admin/pages/UserDirectory";
+import CoreSettings from "../pages/dashboards/Admin/pages/CoreSettings";
+import Maintenance from "../pages/dashboards/Admin/pages/Maintenance";
+import Backups from "../pages/dashboards/Admin/pages/Backups";
+import EventsDashboard from "../pages/dashboards/Admin/pages/EventsDashboard";
+import EditEventPage from "../pages/dashboards/Admin/pages/EditEventPage";
 import NotFound from "../pages/error/NotFound";
 
 /* ---------------- PROTECTED ROUTE ---------------- */
@@ -81,8 +91,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!allowedRoles.includes(user.role)) {
+    // Updated admin redirect to point to the new overview page
     const roleRedirects = {
-      admin: "/admin/dashboard",
+      admin: "/admin/overview",
       dean: "/dean",
       hod: "/hod",
       lecturer: "/lecturer",
@@ -111,7 +122,7 @@ export default function AppRoutes() {
         <Route path="/register" element={<Register />} />
 
         {/* ========================================================= */}
-        {/* -------- NEW: GUILD PRESIDENT LAYOUT & ROUTES ----------- */}
+        {/* -------- GUILD PRESIDENT LAYOUT & ROUTES ----------- */}
         {/* ========================================================= */}
         <Route element={<GuildLayout />}>
           <Route
@@ -165,7 +176,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* ========================================================= */}
-        {/* -------- NEW: LECTURER LAYOUT & ROUTES ------------------ */}
+        {/* -------- LECTURER LAYOUT & ROUTES ------------------ */}
         {/* ========================================================= */}
         <Route element={<LecturerLayout />}>
           <Route
@@ -227,7 +238,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* ========================================================= */}
-        {/* -------- NEW: HOD LAYOUT & ROUTES ----------------------- */}
+        {/* -------- HOD LAYOUT & ROUTES ----------------------- */}
         {/* ========================================================= */}
         <Route element={<HodLayout />}>
           <Route
@@ -289,17 +300,18 @@ export default function AppRoutes() {
         </Route>
 
         {/* ========================================================= */}
-        {/* -------- NEW: DEAN LAYOUT & ROUTES ---------------------- */}
+        {/* -------- DEAN LAYOUT & ROUTES ---------------------- */}
         {/* ========================================================= */}
         <Route element={<DeanLayout />}>
           <Route
-            path="/dean"
+            path="/dean/dashboard"
             element={
               <ProtectedRoute allowedRoles={["dean"]}>
                 <DeanOverview />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/dean/approvals"
             element={
@@ -370,7 +382,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/notifications"
             element={
@@ -379,7 +390,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/timetable"
             element={
@@ -388,7 +398,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/messages"
             element={
@@ -397,7 +406,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/profile"
             element={
@@ -406,7 +414,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/events"
             element={
@@ -415,7 +422,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/reminders"
             element={
@@ -424,7 +430,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/settings"
             element={
@@ -436,23 +441,92 @@ export default function AppRoutes() {
         </Route>
 
         {/* ========================================================= */}
-        {/* -------- ADMIN / STAFF LAYOUT --------------------------- */}
+        {/* -------- ELITE ADMIN LAYOUT & ROUTES -------------------- */}
         {/* ========================================================= */}
         <Route element={<AdminLayout />}>
+          {/* Base redirect so navigating to /admin safely pushes to overview */}
           <Route
-            path="/admin/dashboard"
+            path="/admin"
+            element={<Navigate to="/admin/overview" replace />}
+          />
+
+          <Route
+            path="/admin/overview"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
+                <SystemOverview />
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="admin/events"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EventsDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/events/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditEventPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/users"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <UserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/events/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ComposeBroadcastModal />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/analytics"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <FullAnalytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/directory"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <UserDirectory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <CoreSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/maintenance"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Maintenance />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/backups"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Backups />
               </ProtectedRoute>
             }
           />

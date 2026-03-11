@@ -14,7 +14,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 const routes = [
-  { path: "/dean", name: "College Overview", icon: Globe },
+  { path: "/dean/dashboard", name: "College Overview", icon: Globe },
   {
     path: "/dean/approvals",
     name: "HoD Approvals",
