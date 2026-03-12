@@ -7,12 +7,13 @@ importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-comp
 // Initialize the Firebase app in the service worker by passing in the messagingSenderId.
 // Paste your config values here again (it runs in a separate background thread)
 firebase.initializeApp({
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyDWA0trlWcC2drKMJfTWQxCmfbTr1ysjKc",
+  authDomain: "smart-campus-notification.firebaseapp.com",
+  projectId: "smart-campus-notification",
+  storageBucket: "smart-campus-notification.firebasestorage.app",
+  messagingSenderId: "345617696590",
+  appId: "1:345617696590:web:a16cd0327034c67146801f",
+  measurementId: "G-73RG2WJSCC"
 });
 
 // Retrieve an instance of Firebase Messaging so that it can handle background messages.

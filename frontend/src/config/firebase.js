@@ -3,13 +3,13 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
- apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  
+  apiKey: "AIzaSyDWA0trlWcC2drKMJfTWQxCmfbTr1ysjKc",
+  authDomain: "smart-campus-notification.firebaseapp.com",
+  projectId: "smart-campus-notification",
+  storageBucket: "smart-campus-notification.firebasestorage.app",
+  messagingSenderId: "345617696590",
+  appId: "1:345617696590:web:a16cd0327034c67146801f",
+  measurementId: "G-73RG2WJSCC"
 };
 
 // Initialize Firebase
@@ -24,7 +24,7 @@ export const requestForToken = async () => {
     const currentToken = await getToken(messaging, { 
       // GET THIS VAPID KEY FROM FIREBASE CONSOLE:
       // Project Settings -> Cloud Messaging -> Web Push certificates -> Generate Key Pair
-      vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY, 
+      vapidKey: "BN3T4wSQdQRkeWOThW3WjDzoW_1H01rrUUaSEc358Aac2u8g3Wcoft1u0ARJLZxRQCzdEUesJaGoMv34vbJf03Y" 
     });
     
     if (currentToken) {

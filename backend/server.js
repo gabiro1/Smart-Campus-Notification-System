@@ -7,6 +7,7 @@ import eventRoutes from './routes/eventRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import reminderRoutes from './routes/reminderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import { startReminderCron } from './services/reminderCron.js'; // Import the cron job for reminders
 
 // 1. CONFIGURATION
 dotenv.config();
@@ -23,6 +24,10 @@ mongoose.connect(process.env.MONGO_URI)
         console.error("MongoDB Connection Error:", err.message);
         process.exit(1); // Stop server if DB fails
     });
+
+//
+
+startReminderCron();
 
 // 4. ROUTES
 app.use('/api/users', userRoutes);
