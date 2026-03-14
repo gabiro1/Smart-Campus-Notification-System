@@ -18,10 +18,10 @@ import {
     getPendingApprovals,
     processApproval,
     parseFlyer // Make sure this is exported from eventController.js
-} from '../controllers/eventController.js';
+} from '../controller/eventController.js';
 
-import { protect, authorize } from '../middleware/authMiddleware.js';
-import { validateEvent } from '../middleware/validateEvent.js';
+import { protect, authorize } from '../../../middleware/authMiddleware.js';
+import { validateEvent } from '../../../middleware/validateEvent.js';
 
 /* ================= MULTER UPLOAD CONFIGURATION ================= */
 const storage = multer.diskStorage({

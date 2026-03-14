@@ -14,9 +14,9 @@ import {
     getEventMonitor,
     getDepartmentStats,
     getEngagementByDepartment
-} from '../controllers/adminController.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
-import { getAcademicHierarchy } from '../controllers/adminController.js';
+} from '../controller/adminController.js';
+import { protect, authorize } from '../../../middleware/authMiddleware.js';
+import { getAcademicHierarchy } from '../controller/adminController.js';
 
 // All admin routes require authentication and admin role
 router.use(protect, authorize('admin'));

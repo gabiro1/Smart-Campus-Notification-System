@@ -1,9 +1,9 @@
-import User from '../models/User.js';
-import Event from '../models/Event.js';
-import NotificationLog from '../models/NotificationLog.js';
-import Reminder from '../models/Reminder.js';
-import AuditLog from '../models/AuditLog.js';
-import { College, School, Department } from '../models/Hierarchy.js'; // Ensure these are imported if you use them in getAcademicHierarchy
+import User from "../../user/model/User.js";
+import Event from '../../event/model/Event.js';
+import NotificationLog from '../../notification/models/NotificationLog.js';
+import Reminder from '../../reminder/model/Reminder.js';
+import AuditLog from '../../../models/AuditLog.js';
+import { College, School, Department } from '../../../models/Hierarchy.js'; // Ensure these are imported if you use them in getAcademicHierarchy
 
 // Helper function to log admin actions
 const logAuditAction = async (adminId, action, targetId, targetType, description, changes = {}) => {

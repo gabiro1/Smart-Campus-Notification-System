@@ -1,6 +1,6 @@
 import cron from 'node-cron';
-import Reminder from '../models/Reminder.js';
-import User from '../models/User.js'; 
+import Reminder from '../modules/reminder/model/Reminder.js';
+import User from '../modules/user/model/User.js'; 
 // 1. Import your custom wrapper function instead of 'admin'
 import { sendPushNotification } from '../config/firebaseAdmin.js'; 
 

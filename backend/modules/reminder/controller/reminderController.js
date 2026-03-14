@@ -1,4 +1,4 @@
-import Reminder from "../models/Reminder.js";
+import Reminder from "../model/Reminder.js";
 
 /**
  * @desc    Get all reminders for the authenticated student

@@ -1,4 +1,4 @@
-import User from '../models/User.js';
+import User from "../modules/user/model/User.js";
 
 export const getTargetedUsers = async (event) => {
     // Basic Targeted Logic

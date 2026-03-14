@@ -7,8 +7,8 @@ import {
   deleteReminder,
   getDueReminders,
 
-} from '../controllers/reminderController.js';
-import { protect } from '../middleware/authMiddleware.js';
+} from '../controller/reminderController.js';
+import { protect } from '../../../middleware/authMiddleware.js';
 
 /**
  * @route   GET /api/reminders

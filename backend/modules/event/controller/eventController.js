@@ -1,14 +1,13 @@
-import Event from "../models/Event.js";
-import User from "../models/User.js";
-import NotificationLog from "../models/NotificationLog.js";
-import { getTargetedUsers } from "../utils/notificationEngine.js";
-import { sendPushNotification } from "../config/firebaseAdmin.js";
-import { calculateMatchScore } from "../utils/mlEngine.js";
+import Event from "../model/Event.js";
+import User from "../../user/model/User.js";
+import { getTargetedUsers } from "../../../utils/notificationEngine.js";
+import { sendPushNotification } from "../../../config/firebaseAdmin.js";
+import { calculateMatchScore } from "../../../utils/mlEngine.js";
 import Tesseract from "tesseract.js";
 import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
-import { sendMulticastNotification } from "../config/firebaseAdmin.js";
+import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
 
 /* =========================================================
    AI FLYER PARSING

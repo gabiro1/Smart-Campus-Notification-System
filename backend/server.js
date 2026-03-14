@@ -2,12 +2,15 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors'; // Added for Frontend connectivity
-import userRoutes from './routes/userRoutes.js';
-import eventRoutes from './routes/eventRoutes.js';
-import notificationRoutes from './routes/notificationRoutes.js';
-import reminderRoutes from './routes/reminderRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
+import userRoutes from './modules/user/routes/userRoutes.js';
+import eventRoutes from './modules/event/routes/eventRoutes.js';
+import notificationRoutes from './modules/notification/routes/notificationRoutes.js';
+import reminderRoutes from './modules/reminder/routes/reminderRoutes.js';
+import adminRoutes from './modules/admin/routes/adminRoutes.js';
+import messageRoutes from './modules/message/routes/messageRoutes.js'; // For the new messaging system
 import { startReminderCron } from './services/reminderCron.js'; // Import the cron job for reminders
+import classRoutes from "./modules/class/routes/classRoutes.js"; // For the new HoD dashboard features
+import announcementRoutes from "./modules/announcement/routes/announcementRoutes.js"; // For class announcements
 
 // 1. CONFIGURATION
 dotenv.config();
@@ -35,6 +38,9 @@ app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes); // Added for Read Receipts/Analytics
 app.use('/api/reminders', reminderRoutes); // Reminder system routes
 app.use('/api/admin', adminRoutes); // Admin system routes
+app.use('/api/messages', messageRoutes);
+app.use("/api/hod", classRoutes);
+app.use("/api/announcements", announcementRoutes);
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {

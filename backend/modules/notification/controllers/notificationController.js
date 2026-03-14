@@ -1,23 +1,75 @@
-import NotificationLog from '../models/NotificationLog.js';
-import User from '../models/User.js';
+import User from "../../user/model/User.js";
+import mongoose from 'mongoose';
 
-// @desc    Mark notification as Read
-// This tells the AI that the student saw the event
+
+// @desc    Get all notifications for current user (Powers the Bell Icon)
+export const getNotifications = async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+        const skip = (page - 1) * limit;
+
+        // Fetch user's notifications (both events and system alerts)
+        const notifications = await NotificationLog.find({ studentId: req.user.id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .populate('eventId', 'title description date time location'); // Only populates if eventId exists
+
+        const total = await NotificationLog.countDocuments({ studentId: req.user.id });
+        const unreadCount = await NotificationLog.countDocuments({ studentId: req.user.id, status: 'unread' });
+
+        res.json({
+            notifications,
+            unreadCount, // Added to instantly tell the frontend how many red dots to show
+            pagination: {
+                total,
+                pages: Math.ceil(total / limit),
+                currentPage: parseInt(page)
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Mark a specific notification as Read
 export const markAsRead = async (req, res) => {
     try {
+        // FIXED: Now queries by the specific Notification _id instead of eventId
         const log = await NotificationLog.findOneAndUpdate(
-            { eventId: req.params.eventId, studentId: req.user.id },
-            { status: 'read', receivedAt: Date.now() },
+            { _id: req.params.id, studentId: req.user.id },
+            { status: 'read', readAt: Date.now() },
             { new: true }
         );
+
+        if (!log) {
+            return res.status(404).json({ message: "Notification not found" });
+        }
+
         res.json({ success: true, log });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
+// @desc    Mark all notifications as read for current user
+export const markAllAsRead = async (req, res) => {
+    try {
+        const result = await NotificationLog.updateMany(
+            { studentId: req.user.id, status: 'unread' },
+            { status: 'read', readAt: Date.now() }
+        );
+
+        res.json({
+            success: true,
+            message: `Marked ${result.modifiedCount} notifications as read`
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Get Stats for Admin (The "Read Receipts" Dashboard)
-// Shows the Dean: "60% of Level 4 IT read this message"
 export const getEventStats = async (req, res) => {
     try {
         const totalSent = await NotificationLog.countDocuments({ eventId: req.params.eventId });
@@ -40,7 +92,6 @@ export const getEventStats = async (req, res) => {
 };
 
 // @desc    Get AI Insights (Most active interests)
-// Used to suggest what forums the school should host next
 export const getAIInsights = async (req, res) => {
     try {
         // Aggregates interests from all students in a specific department
@@ -51,33 +102,6 @@ export const getAIInsights = async (req, res) => {
             { $sort: { count: -1 } }
         ]);
         res.json(insights);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Get all notifications for current user
-export const getNotifications = async (req, res) => {
-    try {
-        const { page = 1, limit = 20 } = req.query;
-        const skip = (page - 1) * limit;
-
-        const notifications = await NotificationLog.find({ studentId: req.user.id })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .populate('eventId', 'title description');
-
-        const total = await NotificationLog.countDocuments({ studentId: req.user.id });
-
-        res.json({
-            notifications,
-            pagination: {
-                total,
-                pages: Math.ceil(total / limit),
-                currentPage: parseInt(page)
-            }
-        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -100,23 +124,6 @@ export const getNotificationDetails = async (req, res) => {
         }
 
         res.json(notification);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Mark all notifications as read for current user
-export const markAllAsRead = async (req, res) => {
-    try {
-        const result = await NotificationLog.updateMany(
-            { studentId: req.user.id, status: 'unread' },
-            { status: 'read', readAt: Date.now() }
-        );
-
-        res.json({
-            success: true,
-            message: `Marked ${result.modifiedCount} notifications as read`
-        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -155,7 +162,7 @@ export const getNotificationSummary = async (req, res) => {
 
         // Get summary by event
         const byEvent = await NotificationLog.aggregate([
-            { $match: { studentId: require('mongoose').Types.ObjectId(userId) } },
+            { $match: { studentId: new mongoose.Types.ObjectId(userId) } }, // Fixed mongoose ObjectId instantiation
             { $group: {
                 _id: '$eventId',
                 count: { $sum: 1 },
