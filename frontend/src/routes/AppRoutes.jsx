@@ -3,6 +3,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // --- GLOBAL PROVIDERS ---
 import { ToastProvider } from "../components/ui/ToastContext";
 
+// --- SHARED COMPONENTS ---
+import MessagesTab from "../pages/Message/MessagesTab"; // <-- The new universal messaging component
+
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
 import StudentLayout from "../layouts/StudentLayout";
@@ -35,6 +38,7 @@ import AllAnnouncements from "../pages/dashboards/hod/pages/AllAnnouncements";
 import ManageStaff from "../pages/dashboards/hod/pages/ManageStaff";
 import DepartmentReports from "../pages/dashboards/hod/pages/DepartmentReports";
 import DepartmentSettings from "../pages/dashboards/hod/pages/DepartmentSettings";
+import LecturerManagement from "../pages/dashboards/hod/pages/LecturerManagement"; // <-- NEW LECTURER MANAGEMENT IMPORT
 
 // --- NEW: Dean Layout & Pages ---
 import DeanLayout from "../pages/dashboards/dean/components/DashboardLayout";
@@ -63,7 +67,7 @@ import EnhancedStudentDashboard from "../pages/dashboards/student/pages/Dashboar
 import Profile from "../pages/dashboards/student/pages/Profile/Profile";
 import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
 import Settings from "../pages/dashboards/student/pages/Profile/Settings";
-import Messages from "../pages/dashboards/student/pages/Message/Messages";
+import Messages from "../pages/dashboards/student/pages/Message/Messages"; // Kept your original import just in case
 import EventFeedGrid from "../pages/dashboards/student/Events/EventFeedGrid";
 import { NotificationsTab } from "@/pages/dashboards/student/pages/Notifications/NotificationsTab";
 
@@ -173,6 +177,15 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          {/* NEW: Guild Messages */}
+          <Route
+            path="/guild/messages"
+            element={
+              <ProtectedRoute allowedRoles={["guild_president"]}>
+                <MessagesTab />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         {/* ========================================================= */}
@@ -235,6 +248,15 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          {/* NEW: Lecturer Messages */}
+          <Route
+            path="/lecturer/messages"
+            element={
+              <ProtectedRoute allowedRoles={["lecturer"]}>
+                <MessagesTab />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         {/* ========================================================= */}
@@ -281,6 +303,15 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          {/* NEW: Lecturer Management Route for HoD */}
+          <Route
+            path="/hod/lecturers"
+            element={
+              <ProtectedRoute allowedRoles={["hod"]}>
+                <LecturerManagement />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/hod/reports"
             element={
@@ -294,6 +325,15 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["hod"]}>
                 <DepartmentSettings />
+              </ProtectedRoute>
+            }
+          />
+          {/* NEW: HoD Messages */}
+          <Route
+            path="/hod/messages"
+            element={
+              <ProtectedRoute allowedRoles={["hod"]}>
+                <MessagesTab />
               </ProtectedRoute>
             }
           />
@@ -311,7 +351,6 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/dean/approvals"
             element={
@@ -368,6 +407,15 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          {/* NEW: Dean Messages */}
+          <Route
+            path="/dean/messages"
+            element={
+              <ProtectedRoute allowedRoles={["dean"]}>
+                <MessagesTab />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         {/* ========================================================= */}
@@ -402,7 +450,8 @@ export default function AppRoutes() {
             path="/messages"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
-                <Messages />
+                {/* Replaced with the new shared MessagesTab */}
+                <MessagesTab />
               </ProtectedRoute>
             }
           />
@@ -527,6 +576,15 @@ export default function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <Backups />
+              </ProtectedRoute>
+            }
+          />
+          {/* NEW: Admin Messages */}
+          <Route
+            path="/admin/messages"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <MessagesTab />
               </ProtectedRoute>
             }
           />

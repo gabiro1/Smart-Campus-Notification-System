@@ -1,39 +1,42 @@
-import express from "express";
+import express from 'express';
 import { 
+  createClass, 
+  getClasses, 
   assignLecturers, 
-  getClasses,
   getLecturers,
   assignClassToLecturer,
   removeClassFromLecturer,
-  updateLecturerInfo
-} from "../controller/classController.js";
-import { protect, authorize } from "../../../middleware/authMiddleware.js";
+  updateLecturerInfo,
+  getMyClasses 
+} from '../controller/classController.js';
+
+// Assuming you have an auth middleware to protect these routes
+// import { protect, authorize } from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// ==========================================
-// YOUR ORIGINAL ROUTES
-// ==========================================
-// Get all classes for admin/HoD view
-router.get("/", protect, getClasses); 
+// --- GENERAL / MIXED ROUTES ---
+router.route('/')
+  .get(getClasses)   // GET /api/classes
+  .post(createClass); // POST /api/classes
 
-// Bulk assign multiple lecturers to a single class at once
-router.put("/:classId/assignLecturers", protect, authorize("hod"), assignLecturers);
+// --- LECTURER DASHBOARD ---
+// This route should come BEFORE /:id routes to avoid being treated as an ID
+router.get('/my-classes', getMyClasses); 
 
+// --- HOD DASHBOARD / STAFF MANAGEMENT ---
+router.get('/lecturers', getLecturers);
 
-// ==========================================
-// NEW DASHBOARD ROUTES (HOD Only)
-// ==========================================
-// Get all lecturers in the department and the classes they teach
-router.get("/lecturers", protect, authorize("hod"), getLecturers);
+router.route('/lecturer/:id')
+  .put(updateLecturerInfo); // Update specific lecturer details
 
-// Assign a single class to a specific lecturer (from the modal)
-router.post("/lecturers/:lecturerId/assign", protect, authorize("hod"), assignClassToLecturer);
+router.route('/assign/:lecturerId')
+  .post(assignClassToLecturer); // Link a class to a lecturer
 
-// Remove a single class from a specific lecturer (the trash can icon)
-router.delete("/lecturers/:lecturerId/remove/:classId", protect, authorize("hod"), removeClassFromLecturer);
+router.route('/remove/:lecturerId/:classId')
+  .delete(removeClassFromLecturer); // Unlink a lecturer from a class
 
-// Update lecturer contact information (the edit modal)
-router.put("/lecturers/:id", protect, authorize("hod"), updateLecturerInfo);
+router.route('/:classId/assign-multiple')
+  .put(assignLecturers); // Bulk assign lecturers to a class
 
 export default router;

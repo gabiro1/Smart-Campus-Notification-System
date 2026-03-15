@@ -1,3 +1,4 @@
+import Icon from "@/components/ui/Icon";
 import {
   LayoutDashboard,
   PenTool,
@@ -6,6 +7,8 @@ import {
   Users,
   BarChart3,
   Settings,
+  MessageSquare,
+  Mail,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -17,6 +20,7 @@ const routes = [
     label: "My Announcements",
     path: "/lecturer/announcements",
   },
+  { icon: Mail, label: "Messages", path: "/lecturer/messages" },
   { icon: Bell, label: "Notifications", path: "/lecturer/notifications" },
   { icon: Users, label: "My Classes", path: "/lecturer/classes" },
   { icon: BarChart3, label: "Analytics", path: "/lecturer/analytics" },

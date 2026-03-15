@@ -16,6 +16,7 @@ const routes = [
   { path: "/hod/approvals", name: "Approvals", icon: CheckSquare, badge: 3 },
   { path: "/hod/broadcast", name: "Broadcast", icon: Radio },
   { path: "/hod/announcements", name: "All Announcements", icon: Files },
+  { path: "/hod/lecturers", name: "Lecturer Management", icon: Users },
   { path: "/hod/staff", name: "Manage Staff", icon: Users },
   { path: "/hod/reports", name: "Reports", icon: BarChart3 },
 ];

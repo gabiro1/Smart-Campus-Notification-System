@@ -2,17 +2,22 @@ import express from "express";
 import { 
   createAnnouncement, 
   getClassAnnouncements, 
-  addComment 
+  addComment,
+  markAsViewed
 } from "../controller/announcementController.js";
 import { protect, authorize } from "../../../middleware/authMiddleware.js";
+import upload from "../../../middleware/uploadMiddleware.js"; // Your memoryStorage multer config
 
 const router = express.Router();
 
-// Lecturer routes
-router.post("/create", protect, authorize("lecturer"), createAnnouncement);
+// Lecturer Actions
+router.post("/create", protect, authorize("lecturer"), upload.array("attachments", 5), createAnnouncement);
 
-// Shared routes (Students and Lecturers can view and comment)
+// Shared Q&A Feed Actions (Students & Lecturers)
 router.get("/class/:classId", protect, getClassAnnouncements);
 router.post("/:id/comment", protect, addComment);
+
+// Student Tracking Action
+router.post("/:id/view", protect, markAsViewed);
 
 export default router;

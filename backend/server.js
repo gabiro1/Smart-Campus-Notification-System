@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
 import cors from 'cors'; // Added for Frontend connectivity
 import userRoutes from './modules/user/routes/userRoutes.js';
 import eventRoutes from './modules/event/routes/eventRoutes.js';
@@ -11,6 +12,9 @@ import messageRoutes from './modules/message/routes/messageRoutes.js'; // For th
 import { startReminderCron } from './services/reminderCron.js'; // Import the cron job for reminders
 import classRoutes from "./modules/class/routes/classRoutes.js"; // For the new HoD dashboard features
 import announcementRoutes from "./modules/announcement/routes/announcementRoutes.js"; // For class announcements
+import collegeRoutes from './modules/college/route/collegeRoutes.js';
+import schoolRoutes from './modules/school/route/schoolRoutes.js';
+import departmentRoutes from './modules/department/route/departmentRoutes.js';
 
 // 1. CONFIGURATION
 dotenv.config();
@@ -19,6 +23,8 @@ const app = express();
 // 2. MIDDLEWARE
 app.use(cors()); // Allows your React/React Native apps to connect
 app.use(express.json()); // Parses incoming JSON requests
+
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // 3. DATABASE CONNECTION
 mongoose.connect(process.env.MONGO_URI)
@@ -39,8 +45,11 @@ app.use('/api/notifications', notificationRoutes); // Added for Read Receipts/An
 app.use('/api/reminders', reminderRoutes); // Reminder system routes
 app.use('/api/admin', adminRoutes); // Admin system routes
 app.use('/api/messages', messageRoutes);
-app.use("/api/hod", classRoutes);
+app.use("/api/classes", classRoutes);
 app.use("/api/announcements", announcementRoutes);
+app.use('/api/colleges', collegeRoutes);
+app.use('/api/schools', schoolRoutes);
+app.use('/api/departments', departmentRoutes);
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {
