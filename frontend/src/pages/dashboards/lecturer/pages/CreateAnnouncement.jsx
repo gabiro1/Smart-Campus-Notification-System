@@ -4,7 +4,7 @@ import {
   Send,
   Type,
   AlignLeft,
-  Users,
+  Book,
   Tag,
   Loader2,
   BellRing,
@@ -21,42 +21,41 @@ import announcementService from "../../../../services/announcementService";
 
 const LecturerCreateAnnouncement = () => {
   // --- FORM STATE ---
+  // CHANGED: targetClass is now courseId
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    targetClass: "",
+    courseId: "",
     type: "General",
   });
 
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
 
-  const [myClasses, setMyClasses] = useState([]);
-  const [loadingClasses, setLoadingClasses] = useState(true);
+  // CHANGED: myClasses is now myCourses
+  const [myCourses, setMyCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- FETCH LECTURER'S CLASSES ---
+  // --- FETCH LECTURER'S COURSES ---
   useEffect(() => {
-    const fetchMyClasses = async () => {
+    const fetchMyCourses = async () => {
       try {
-        const data = await announcementService.getMyClasses();
-
-        // REFINED LOGIC: Handle if the API returns an array directly OR wrapped in an object
-        // Many controllers return { success: true, classes: [...] }
-        const finalData = Array.isArray(data) ? data : data.classes || [];
-        setMyClasses(finalData);
+        const data = await announcementService.getMyCourses();
+        const finalData = Array.isArray(data) ? data : data.courses || [];
+        setMyCourses(finalData);
 
         if (finalData.length === 0) {
-          console.warn("No classes found for this lecturer.");
+          console.warn("No courses found for this lecturer.");
         }
       } catch (error) {
         console.error("Mounting Error:", error);
-        toast.error("Failed to load your assigned classes.");
+        toast.error("Failed to load your assigned courses.");
       } finally {
-        setLoadingClasses(false);
+        setLoadingCourses(false);
       }
     };
-    fetchMyClasses();
+    fetchMyCourses();
   }, []);
 
   // --- HANDLE INPUT CHANGES ---
@@ -89,7 +88,7 @@ const LecturerCreateAnnouncement = () => {
   // --- SUBMIT ANNOUNCEMENT ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.content || !formData.targetClass) {
+    if (!formData.title || !formData.content || !formData.courseId) {
       return toast.error("Please fill in all required fields.");
     }
 
@@ -98,7 +97,7 @@ const LecturerCreateAnnouncement = () => {
       const submitData = new FormData();
       submitData.append("title", formData.title);
       submitData.append("content", formData.content);
-      submitData.append("targetClass", formData.targetClass);
+      submitData.append("courseId", formData.courseId); // SENDING THE COURSE ID
       submitData.append("type", formData.type);
 
       attachments.forEach((file) => {
@@ -110,7 +109,7 @@ const LecturerCreateAnnouncement = () => {
       toast.success("Announcement broadcasted successfully!");
 
       // Reset form
-      setFormData({ title: "", content: "", targetClass: "", type: "General" });
+      setFormData({ title: "", content: "", courseId: "", type: "General" });
       setAttachments([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
@@ -157,6 +156,9 @@ const LecturerCreateAnnouncement = () => {
 
   const previewStyles = getTypeStyles(formData.type);
 
+  // Helper to find the selected course name for the preview
+  const selectedCourse = myCourses.find((c) => c._id === formData.courseId);
+
   return (
     <div className="w-full min-h-screen bg-[#0A0A0A] text-white p-4 md:p-8 font-sans">
       <Toaster
@@ -180,29 +182,31 @@ const LecturerCreateAnnouncement = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        {/* FORM SECTION */}
         <div className="lg:col-span-3 bg-[#141414] border border-white/10 rounded-2xl p-6 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                  <Users size={16} className="text-neutral-500" /> Target Class
+                  <Book size={16} className="text-neutral-500" /> Target Course
                 </label>
                 <select
-                  name="targetClass"
-                  value={formData.targetClass}
+                  name="courseId"
+                  value={formData.courseId}
                   onChange={handleChange}
-                  disabled={loadingClasses}
+                  disabled={loadingCourses}
                   className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none disabled:opacity-50"
                   required
                 >
                   <option value="" disabled>
-                    {loadingClasses
-                      ? "Loading classes..."
-                      : "Select a class..."}
+                    {loadingCourses
+                      ? "Loading courses..."
+                      : "Select a course..."}
                   </option>
-                  {myClasses.map((cls) => (
-                    <option key={cls.id || cls._id} value={cls.id || cls._id}>
-                      {cls.name} {cls.level ? `- ${cls.level}` : ""}
+                  {myCourses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.code}: {course.name} (
+                      {course.class?.name || "No Class"})
                     </option>
                   ))}
                 </select>
@@ -319,7 +323,7 @@ const LecturerCreateAnnouncement = () => {
             <div className="pt-4 border-t border-white/5 flex justify-end">
               <button
                 type="submit"
-                disabled={isSubmitting || !formData.targetClass}
+                disabled={isSubmitting || !formData.courseId}
                 className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20 hover:-translate-y-0.5"
               >
                 {isSubmitting ? (
@@ -327,12 +331,13 @@ const LecturerCreateAnnouncement = () => {
                 ) : (
                   <Send size={18} />
                 )}
-                {isSubmitting ? "Broadcasting..." : "Broadcast to Class"}
+                {isSubmitting ? "Broadcasting..." : "Broadcast Update"}
               </button>
             </div>
           </form>
         </div>
 
+        {/* PREVIEW SECTION */}
         <div className="lg:col-span-2">
           <div className="sticky top-8">
             <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -349,7 +354,9 @@ const LecturerCreateAnnouncement = () => {
                   {previewStyles.icon}
                   {formData.type}
                 </div>
-                <span className="text-xs text-neutral-500">Just now</span>
+                <span className="text-xs font-bold text-neutral-500">
+                  {selectedCourse ? selectedCourse.code : "Course Code"}
+                </span>
               </div>
 
               <h4 className="text-lg font-bold text-white mb-2 break-words">

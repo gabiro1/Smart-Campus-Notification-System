@@ -20,4 +20,6 @@ router.post("/:id/comment", protect, addComment);
 // Student Tracking Action
 router.post("/:id/view", protect, markAsViewed);
 
+router.post('/create', protect, upload.array('attachments', 5), createAnnouncement);
+
 export default router;

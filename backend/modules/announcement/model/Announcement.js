@@ -32,6 +32,14 @@ const announcementSchema = new mongoose.Schema({
     ref: "User", 
     required: true 
   },
+  
+  // ---> THE MISSING PIECE WE JUST ADDED <---
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course",
+    required: true
+  },
+  
   targetClass: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: "Class", 
@@ -49,7 +57,7 @@ const announcementSchema = new mongoose.Schema({
   viewedBy: [{ 
     type: mongoose.Schema.Types.ObjectId, 
     ref: "User" 
-  }] // Tracks which students actually read it! (Panelists will love this)
+  }] // Tracks which students actually read it!
 }, { timestamps: true });
 
 const Announcement = mongoose.model("Announcement", announcementSchema);

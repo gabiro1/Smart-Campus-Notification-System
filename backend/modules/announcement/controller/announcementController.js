@@ -1,19 +1,30 @@
 import Announcement from "../model/Announcement.js";
-import Class from "../../class/model/Class.js"; 
+import Course from "../../course/model/Course.js"; // UPGRADED: Import Course, not just Class
 import fs from "fs/promises";
 import path from "path";
 
-// 1. Create Announcement (with file handling)
+// 1. Create Announcement (Advanced: Course-Aware with File Handling)
 export const createAnnouncement = async (req, res) => {
   try {
-    const { title, content, targetClass, type } = req.body;
+    // UPGRADED: We expect courseId from the frontend now
+    const { title, content, courseId, type } = req.body;
     const lecturerId = req.user._id; 
 
-    const classExists = await Class.findById(targetClass);
-    if (!classExists) {
-      return res.status(404).json({ message: "Class not found" });
+    // --- ADVANCED LOGIC: Find Course and Infer Class ---
+    const course = await Course.findById(courseId).populate('class');
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
     }
 
+    // Security Check: Ensure this lecturer actually teaches this specific course
+    if (course.lecturer.toString() !== lecturerId.toString()) {
+      return res.status(403).json({ message: "You are not authorized to post in this course" });
+    }
+
+    // Auto-extract the class target so the lecturer doesn't have to
+    const targetClass = course.class._id; 
+
+    // --- FILE UPLOAD LOGIC (Your excellent code) ---
     const attachedFileUrls = [];
     if (req.files && req.files.length > 0) {
       const uploadDir = path.join(process.cwd(), "uploads");
@@ -31,20 +42,27 @@ export const createAnnouncement = async (req, res) => {
         const filePath = path.join(uploadDir, filename);
 
         await fs.writeFile(filePath, file.buffer);
+        // Note: For production (Render/Heroku), local files get wiped on restart. 
+        // You'll eventually swap this block with a Firebase/Cloudinary upload.
         attachedFileUrls.push(`/uploads/${filename}`); 
       }
     }
 
+    // --- SAVE TO DB ---
     const newAnnouncement = new Announcement({
       title,
       content,
-      lecturer: lecturerId,
-      targetClass,
+      lecturer: lecturerId, // Assuming your schema uses 'lecturer' instead of 'author'
+      course: courseId,     // Tag the specific subject!
+      targetClass: targetClass, // Target the whole cohort!
       type,
       attachments: attachedFileUrls
     });
 
     await newAnnouncement.save();
+    
+    // Populate for the immediate UI response
+    await newAnnouncement.populate('course', 'name code');
     
     res.status(201).json({ message: "Announcement broadcasted successfully", announcement: newAnnouncement });
   } catch (error) {
@@ -53,13 +71,14 @@ export const createAnnouncement = async (req, res) => {
   }
 };
 
-// 2. Get Feed
+// 2. Get Feed (Upgraded to show Subject Name)
 export const getClassAnnouncements = async (req, res) => {
   try {
     const { classId } = req.params;
 
     const announcements = await Announcement.find({ targetClass: classId })
       .populate("lecturer", "name profilePicture")
+      .populate("course", "name code") // UPGRADED: Tell the student WHICH subject this is for!
       .populate("comments.user", "name role profilePicture") 
       .sort({ createdAt: -1 }); 
 
@@ -69,7 +88,7 @@ export const getClassAnnouncements = async (req, res) => {
   }
 };
 
-// 3. Q&A Comments
+// 3. Q&A Comments (Perfect as is)
 export const addComment = async (req, res) => {
   try {
     const { id } = req.params; 
@@ -92,13 +111,12 @@ export const addComment = async (req, res) => {
   }
 };
 
-// 4. Enterprise Read Receipt Logic (Silent Tracker)
+// 4. Enterprise Read Receipt Logic (Perfect as is)
 export const markAsViewed = async (req, res) => {
   try {
     const { id } = req.params; 
     const userId = req.user._id; 
 
-    // $addToSet ensures we only count the student once, no matter how many times they view it
     await Announcement.findByIdAndUpdate(
       id,
       { $addToSet: { viewedBy: userId } } 

@@ -1,30 +1,36 @@
 import apiClient from './apiClient';
 
 const announcementService = {
-  // Lecturer: Create Announcement (Handles text + files)
+  // 1. Lecturer: Create Announcement 
   createAnnouncement: async (formData) => {
     const response = await apiClient.post('/announcements/create', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'multipart/form-data', 
       },
     });
     return response.data;
   },
 
-  // Lecturer: Get assigned classes for the dropdown
-  getMyClasses: async () => {
-    // UPDATED: Pointing to the correct route in the classes module
-    const response = await apiClient.get('/classes'); 
+  // 2. Lecturer: Delete Announcement (The "Oops" Button)
+  deleteAnnouncement: async (announcementId) => {
+    const response = await apiClient.delete(`/announcements/${announcementId}`);
     return response.data;
   },
 
-  // Shared: Get Announcements for a specific class
-  getClassAnnouncements: async (classId) => {
-    const response = await apiClient.get(`/announcements/class/${classId}`);
+  // 3. Lecturer: Get assigned courses for the dropdown
+  getMyCourses: async () => {
+    const response = await apiClient.get('/courses/my-courses'); 
     return response.data;
   },
 
-  // Shared: Add Q&A Reply
+  // 4. Shared: Get Announcements for a specific class (Now with Pagination ready!)
+  // Example usage: getClassAnnouncements(classId, 1, 10)
+  getClassAnnouncements: async (classId, page = 1, limit = 20) => {
+    const response = await apiClient.get(`/announcements/class/${classId}?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  // 5. Shared: Add Q&A Reply
   addComment: async (announcementId, content) => {
     const response = await apiClient.post(`/announcements/${announcementId}/comment`, {
       content,
@@ -32,7 +38,13 @@ const announcementService = {
     return response.data;
   },
 
-  // Student: Tracker
+  // 6. Lecturer: Delete a specific comment
+  deleteComment: async (announcementId, commentId) => {
+    const response = await apiClient.delete(`/announcements/${announcementId}/comment/${commentId}`);
+    return response.data;
+  },
+
+  // 7. Student: Silent Tracker
   markAsViewed: async (announcementId) => {
     const response = await apiClient.post(`/announcements/${announcementId}/view`);
     return response.data;

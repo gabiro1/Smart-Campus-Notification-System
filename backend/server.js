@@ -15,6 +15,7 @@ import announcementRoutes from "./modules/announcement/routes/announcementRoutes
 import collegeRoutes from './modules/college/route/collegeRoutes.js';
 import schoolRoutes from './modules/school/route/schoolRoutes.js';
 import departmentRoutes from './modules/department/route/departmentRoutes.js';
+import courseRoutes from './modules/course/routes/courseRoutes.js'; // For course management features
 
 // 1. CONFIGURATION
 dotenv.config();
@@ -50,6 +51,7 @@ app.use("/api/announcements", announcementRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/courses', courseRoutes); 
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {
