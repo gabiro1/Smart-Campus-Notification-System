@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom"; // navigate is now handled by Context!
 import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+
+// --- CUSTOM IMPORTS ---
 import Navbar from "../../layouts/Navbar";
 import Footer from "../../layouts/Footer";
-import apiClient from "../../services/apiClient";
+import authService from "../../services/authService"; // The Muscle
+import { useAuth } from "../../context/AuthContext"; // The Brain
 
 export default function Login() {
-  const navigate = useNavigate();
+  const { login: startSession } = useAuth(); // Destructure login as startSession to avoid name conflict
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,43 +24,20 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Endpoint matches your backend: app.use('/api/users', userRoutes) + router.post('/login')
-      const { data } = await apiClient.post("/users/login", formData);
+      // 1. USE THE SERVICE (The Muscle)
+      // This keeps our component clean of Axios logic
+      const data = await authService.login(formData.email, formData.password);
 
       if (data.success) {
-        toast.success(`Welcome back, ${data.user.name}!`, {
-          duration: 3000,
-          position: "top-center",
-          style: {
-            background: "#171717",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.1)",
-            backdropFilter: "blur(10px)",
-          },
-        });
+        toast.success(`Welcome back, ${data.user.name}!`);
 
-        // Store Token and User info as required by your apiClient interceptors
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        // Redirect based on role (optional logic)
-        setTimeout(() => {
-          if (data.user.role === "admin") navigate("/admin/overview");
-          else navigate("/");
-        }, 1500);
+        // 2. USE THE CONTEXT (The Brain)
+        // This handles localStorage AND redirects based on role automatically
+        startSession(data.user, data.token);
       }
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.message ||
-        "Invalid credentials. Please try again.";
-      toast.error(errorMsg, {
-        duration: 4000,
-        style: {
-          background: "#171717",
-          color: "#ff4b4b",
-          border: "1px solid rgba(255,75,75,0.2)",
-        },
-      });
+      // authService already formats the error message for us!
+      toast.error(error.message || "Invalid credentials.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +66,7 @@ export default function Login() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass p-10 rounded-[40px] border border-white/10 w-full max-w-md shadow-2xl relative overflow-hidden"
+          className="bg-white/[0.03] backdrop-blur-xl p-10 rounded-[40px] border border-white/10 w-full max-w-md shadow-2xl relative overflow-hidden"
         >
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-bold text-white tracking-tight">
@@ -101,7 +78,6 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
             <div className="relative group">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-blue-500 transition-colors">
                 <Mail size={20} />
@@ -116,7 +92,6 @@ export default function Login() {
               />
             </div>
 
-            {/* Password Field */}
             <div className="relative group">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-blue-500 transition-colors">
                 <Lock size={20} />

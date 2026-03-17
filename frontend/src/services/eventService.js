@@ -1,94 +1,77 @@
 import apiClient from './apiClient';
 
 const eventService = {
-  // Get all events with pagination
-  getEvents: async (page = 1, limit = 10) => {
-    const response = await apiClient.get('/events/feed', {
-      params: { page, limit },
-    });
-    return response.data;
+  // --- READ METHODS ---
+
+  // Aligned with Dashboard: Get AI-ranked feed
+  getFeed: async (page = 1, limit = 10) => {
+    try {
+      const response = await apiClient.get('/events/feed', {
+        params: { page, limit },
+      });
+      // We return exactly what the UI needs: the array of events
+      return response.data.events || response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Couldn't load your feed.");
+    }
   },
 
-  // Get single event details
-  getEventDetails: async (eventId) => {
-    const response = await apiClient.get(`/events/${eventId}`);
-    return response.data;
-  },
-
-  // Search events
+  // Search through campus events
   searchEvents: async (query) => {
-    const response = await apiClient.get('/events/search', {
-      params: { q: query },
-    });
-    return response.data;
+    try {
+      const response = await apiClient.get('/events/search', { params: { q: query } });
+      return response.data;
+    } catch (error) {
+      throw new Error("Search failed.");
+    }
   },
 
-  // Get events by department
-  getEventsByDepartment: async (department, page = 1) => {
-    const response = await apiClient.get('/events/department', {
-      params: { department, page, limit: 10 },
-    });
-    return response.data;
+  // --- ACTION METHODS ---
+
+  // Bookmark an event
+  toggleInterest: async (eventId) => {
+    try {
+      const response = await apiClient.post(`/events/${eventId}/interest`);
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to save event.");
+    }
   },
 
-  // Create event
-  createEvent: async (eventData) => {
-    const response = await apiClient.post('/events/create', eventData);
-    return response.data;
-  },
-
-  // Update event
-  updateEvent: async (eventId, eventData) => {
-    const response = await apiClient.put(`/events/${eventId}`, eventData);
-    return response.data;
-  },
-
-  // Delete event
-  deleteEvent: async (eventId) => {
-    const response = await apiClient.delete(`/events/${eventId}`);
-    return response.data;
-  },
-
-  // Mark event as interested
-  markInterested: async (eventId) => {
-    const response = await apiClient.post(`/events/${eventId}/interest`);
-    return response.data;
-  },
-
-  // Rate event
+  // Submit AI Training Data (Rating)
   rateEvent: async (eventId, rating) => {
-    const response = await apiClient.post(`/events/${eventId}/rate`, {
-      rating,
-    });
-    return response.data;
+    try {
+      const response = await apiClient.post(`/events/${eventId}/rate`, { rating });
+      return response.data;
+    } catch (error) {
+      throw new Error("Failed to submit rating.");
+    }
   },
 
-  // Get event statistics
-  getEventStats: async (eventId) => {
-    const response = await apiClient.get(`/events/${eventId}/stats`);
-    return response.data;
-  },
+  // --- STAFF/ADMIN METHODS ---
 
-  // Get departments
-  getDepartments: async () => {
-    const response = await apiClient.get('/events/departments');
-    return response.data;
-  },
-
-  // ==========================================
-  // NEW: AI Flyer Parsing Method
-  // ==========================================
+  // The AI "Magic" feature: Extracting data from an image
   parseFlyer: async (file) => {
-    const formData = new FormData();
-    formData.append('flyer', file);
-    
-    // Use multipart/form-data specifically for this request
-    const response = await apiClient.post('/events/parse-flyer', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      const formData = new FormData();
+      formData.append('flyer', file);
+      
+      const response = await apiClient.post('/events/parse-flyer', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data; // Should return { title, date, location, etc }
+    } catch (error) {
+      throw new Error("AI failed to read the flyer. Please enter details manually.");
+    }
+  },
+
+  createEvent: async (eventData) => {
+    try {
+      const response = await apiClient.post('/events/create', eventData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to create event.");
+    }
   }
 };
 

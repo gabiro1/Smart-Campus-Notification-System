@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,60 +8,48 @@ import {
   LogOut,
   Menu,
   X,
-  Sparkles,
   Settings,
   LayoutDashboard,
   ShieldAlert,
 } from "lucide-react";
 
-export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+// The Brain: Importing the global authentication state
+import { useAuth } from "../context/AuthContext";
 
+export default function Navbar() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const storedUser = localStorage.getItem("user");
+  // Consuming the Context (No more manual localStorage parsing!)
+  const { user, logout } = useAuth();
+  const isLoggedIn = !!user;
 
-    setIsLoggedIn(!!token);
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
+  // Helper to highlight active routes
   const isActive = (path) => location.pathname.startsWith(path);
 
+  // Generate dynamic initials for the avatar (e.g., "Gabiro Jovial" -> "GJ")
   const initials = user?.name
     ?.split(" ")
     .map((word) => word[0])
     .join("")
-    .toUpperCase();
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    setIsLoggedIn(false);
-    setUser(null);
-    navigate("/login");
-  };
+    .toUpperCase()
+    .slice(0, 2); // Ensure it's never more than 2 letters
 
   return (
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-white/5 bg-[#050505]"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-white/5 bg-[#050505]/95 backdrop-blur-md"
     >
-      {/* LOGO */}
+      {/* 1. BRAND LOGO */}
       <Link to="/" className="flex items-center gap-2">
         <span className="text-xl font-bold tracking-tighter text-white">
           UniNotify <span className="text-blue-500">AI</span>
         </span>
       </Link>
 
-      {/* DESKTOP LINKS - CONDITIONALLY RENDERED BY ROLE */}
+      {/* 2. DESKTOP NAVIGATION - STRICTLY ROLE BASED */}
       <div className="hidden lg:flex items-center gap-8">
         {!isLoggedIn ? (
           <>
@@ -80,62 +68,33 @@ export default function Navbar() {
         ) : (
           <>
             {/* --- STUDENT ONLY LINKS --- */}
-            {user?.role === "student" && (
+            {user.role === "student" && (
               <>
                 <NavLink
-                  to="/notifications"
-                  label="Announcements"
-                  active={isActive("/feed")}
+                  to="/student/dashboard"
+                  label="Overview"
+                  active={isActive("/student/dashboard")}
                 />
                 <NavLink
-                  to="/ai-summary"
-                  label={
-                    <span className="flex items-center">
-                      <Sparkles size={14} className="mr-1" /> AI Summary
-                    </span>
-                  }
-                  active={isActive("/ai-summary")}
+                  to="/student/announcements"
+                  label="Noticeboard"
+                  active={isActive("/student/announcements")}
                 />
                 <NavLink
-                  to="/departments"
-                  label="Departments"
-                  active={isActive("/departments")}
+                  to="/student/events"
+                  label="Events Catalog"
+                  active={isActive("/student/events")}
                 />
                 <NavLink
-                  to="/reminders"
+                  to="/student/reminders"
                   label="Reminders"
-                  active={isActive("/reminders")}
+                  active={isActive("/student/reminders")}
                 />
               </>
             )}
 
-            {/* --- ADMIN ONLY LINKS --- */}
-            {/* {user?.role === "admin" && (
-              <>
-                <NavLink
-                  to="/admin/overview"
-                  label={
-                    <span className="flex items-center gap-1">
-                      <LayoutDashboard size={14} /> Dashboard
-                    </span>
-                  }
-                  active={isActive("/admin/overview")}
-                />
-                <NavLink
-                  to="/admin/users"
-                  label="Access Control"
-                  active={isActive("/admin/users")}
-                />
-                <NavLink
-                  to="/admin/history"
-                  label="Broadcast Audit"
-                  active={isActive("/admin/history")}
-                />
-              </>
-            )} */}
-
             {/* --- HOD / LECTURER LINKS --- */}
-            {(user?.role === "hod" || user?.role === "lecturer") && (
+            {(user.role === "hod" || user.role === "lecturer") && (
               <>
                 <NavLink
                   to={
@@ -151,29 +110,46 @@ export default function Navbar() {
                 />
               </>
             )}
+
+            {/* --- ADMIN LINKS --- */}
+            {user.role === "admin" && (
+              <>
+                <NavLink
+                  to="/admin/overview"
+                  label="Admin Dashboard"
+                  active={isActive("/admin/overview")}
+                />
+                <NavLink
+                  to="/admin/users"
+                  label="Access Control"
+                  active={isActive("/admin/users")}
+                />
+              </>
+            )}
           </>
         )}
       </div>
 
-      {/* RIGHT SIDE */}
+      {/* 3. RIGHT SIDE CONTROLS */}
       <div className="flex items-center gap-4">
         {!isLoggedIn ? (
           <div className="flex items-center gap-4">
             <Link
               to="/login"
-              className="text-sm font-bold text-neutral-400 hover:text-white"
+              className="text-sm font-bold text-neutral-400 hover:text-white transition-colors"
             >
               Login
             </Link>
             <Link
               to="/register"
-              className="px-5 py-2 rounded-xl text-sm font-bold bg-white text-black hover:bg-neutral-200 transition-colors"
+              className="px-5 py-2 rounded-xl text-sm font-bold bg-white text-black hover:bg-neutral-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)]"
             >
               Register
             </Link>
           </div>
         ) : (
           <div className="flex items-center gap-3">
+            {/* Search Icon */}
             <button
               onClick={() => navigate("/search")}
               className="p-2 hover:bg-white/5 rounded-full text-neutral-400 transition-colors"
@@ -181,28 +157,42 @@ export default function Navbar() {
               <Search size={20} />
             </button>
 
+            {/* Notification Bell (This will connect to WebSockets later) */}
             <button
-              onClick={() => navigate("/notifications")}
-              className="p-2 hover:bg-white/5 rounded-full text-neutral-400 relative transition-colors"
+              onClick={() => navigate("/student/reminders")}
+              className="p-2 hover:bg-white/5 rounded-full text-neutral-400 relative transition-colors group"
             >
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-black" />
+              <Bell
+                size={20}
+                className="group-hover:text-white transition-colors"
+              />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#050505]" />
             </button>
 
             {/* Profile Dropdown */}
-            <div className="group relative">
-              <div className="w-10 h-10 rounded-full border border-white/10 p-0.5 cursor-pointer">
+            <div className="group relative ml-2">
+              <div className="w-10 h-10 rounded-full border border-white/10 p-0.5 cursor-pointer hover:border-blue-500/50 transition-colors">
                 <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center text-sm font-bold text-blue-400">
                   {initials || "U"}
                 </div>
               </div>
 
-              {/* Tooltip Label for Role */}
-              <div className="absolute top-11 left-1/2 -translate-x-1/2 px-2 py-1 bg-blue-600 text-[10px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                {user?.role}
+              {/* Role Tooltip */}
+              <div className="absolute top-11 left-1/2 -translate-x-1/2 px-2 py-1 bg-blue-600/20 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                {user.role}
               </div>
 
-              <div className="absolute right-0 top-12 w-48 border border-white/10 rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 bg-neutral-900 shadow-2xl z-50">
+              {/* Dropdown Menu */}
+              <div className="absolute right-0 top-12 w-56 border border-white/10 rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 bg-[#0A0A0A] shadow-2xl z-50">
+                <div className="px-3 py-2 mb-2 border-b border-white/5">
+                  <p className="text-sm font-bold text-white truncate">
+                    {user.name}
+                  </p>
+                  <p className="text-[10px] text-neutral-500 truncate">
+                    {user.email}
+                  </p>
+                </div>
+
                 <DropdownItem
                   to="/profile"
                   icon={<User size={14} />}
@@ -214,45 +204,17 @@ export default function Navbar() {
                   label="Settings"
                 />
 
-                {/* Immediate access to Dashboard in dropdown for non-students */}
-                {isLoggedIn && (
-                  <DropdownItem
-                    to={
-                      user.role === "admin"
-                        ? "/admin/overview"
-                        : user.role === "principal"
-                          ? "/principal/dashboard"
-                          : user.role === "dean"
-                            ? "/dean/dashboard"
-                            : user.role === "hod"
-                              ? "/hod"
-                              : user.role === "lecturer"
-                                ? "/lecturer"
-                                : "/feed"
-                    }
-                    icon={
-                      ["student", "guild_president"].includes(user.role) ? (
-                        <LayoutDashboard size={14} />
-                      ) : (
-                        <ShieldAlert size={14} />
-                      )
-                    }
-                    label={
-                      user.role === "student"
-                        ? "Student Dashboard"
-                        : user.role === "guild_president"
-                          ? "Guild Portal"
-                          : "Admin Portal"
-                    }
-                  />
-                )}
-
                 <hr className="my-2 border-white/5" />
+
+                {/* Global Logout Action */}
                 <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 p-2 text-xs text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  onClick={() => {
+                    logout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                 >
-                  <LogOut size={14} /> Logout
+                  <LogOut size={14} /> Sign Out
                 </button>
               </div>
             </div>
@@ -261,50 +223,96 @@ export default function Navbar() {
 
         {/* Mobile Toggle */}
         <button
-          className="lg:hidden p-2 text-white"
+          className="lg:hidden p-2 text-white ml-2"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* MOBILE MENU (Updated similarly for roles) */}
+      {/* 4. MOBILE MENU OVERLAY */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
-            className="fixed inset-0 bg-neutral-950 z-[60] flex flex-col p-8 pt-24 space-y-6 lg:hidden"
+            className="fixed inset-0 bg-[#050505] z-[60] flex flex-col p-8 pt-24 space-y-6 lg:hidden overflow-y-auto"
           >
-            {/* Same role-based logic should be applied here for mobile links */}
-            {isLoggedIn && user?.role === "student" && (
+            {/* Close button inside mobile menu for safety */}
+            <button
+              className="absolute top-6 right-6 p-2 text-white"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X size={28} />
+            </button>
+
+            {isLoggedIn ? (
+              <>
+                <div className="mb-4 pb-4 border-b border-white/10">
+                  <p className="text-sm text-blue-400 font-black uppercase tracking-widest mb-1">
+                    {user.role}
+                  </p>
+                  <p className="text-2xl font-bold text-white">{user.name}</p>
+                </div>
+
+                {user.role === "student" && (
+                  <>
+                    <MobileLink
+                      to="/student/dashboard"
+                      label="Overview"
+                      close={setIsMobileMenuOpen}
+                    />
+                    <MobileLink
+                      to="/student/announcements"
+                      label="Noticeboard"
+                      close={setIsMobileMenuOpen}
+                    />
+                    <MobileLink
+                      to="/student/events"
+                      label="Events Catalog"
+                      close={setIsMobileMenuOpen}
+                    />
+                    <MobileLink
+                      to="/student/reminders"
+                      label="My Reminders"
+                      close={setIsMobileMenuOpen}
+                    />
+                  </>
+                )}
+                {user.role === "hod" && (
+                  <MobileLink
+                    to="/hod/dashboard"
+                    label="HOD Console"
+                    close={setIsMobileMenuOpen}
+                  />
+                )}
+
+                <div className="mt-auto pt-8">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 text-red-400 font-bold text-lg"
+                  >
+                    <LogOut size={20} /> Sign Out
+                  </button>
+                </div>
+              </>
+            ) : (
               <>
                 <MobileLink
-                  to="/feed"
-                  label="Announcements"
+                  to="/login"
+                  label="Login"
                   close={setIsMobileMenuOpen}
                 />
                 <MobileLink
-                  to="/ai-summary"
-                  label="AI Summary"
+                  to="/register"
+                  label="Register"
                   close={setIsMobileMenuOpen}
                 />
               </>
-            )}
-            {isLoggedIn && user?.role === "admin" && (
-              <MobileLink
-                to="/admin/overview"
-                label="Admin Dashboard"
-                close={setIsMobileMenuOpen}
-              />
-            )}
-            {!isLoggedIn && (
-              <MobileLink
-                to="/login"
-                label="Login"
-                close={setIsMobileMenuOpen}
-              />
             )}
           </motion.div>
         )}
@@ -313,22 +321,21 @@ export default function Navbar() {
   );
 }
 
-/* Subcomponents */
+/* --- SUBCOMPONENTS --- */
+
 function NavLink({ to, label, active }) {
   return (
-    <Link to={to} className="relative group">
+    <Link to={to} className="relative group flex flex-col items-center">
       <motion.span
         whileHover={{ y: -2 }}
-        className={`text-[13px] font-medium tracking-wider uppercase transition-colors ${
-          active ? "text-white" : "text-neutral-500 group-hover:text-white"
-        }`}
+        className={`text-[12px] font-bold tracking-widest uppercase transition-colors ${active ? "text-white" : "text-neutral-500 group-hover:text-white"}`}
       >
         {label}
       </motion.span>
       {active && (
         <motion.div
           layoutId="nav-underline"
-          className="absolute -bottom-1 left-0 right-0 h-0.5 bg-blue-500 rounded-full"
+          className="absolute -bottom-2 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.6)]"
         />
       )}
     </Link>
@@ -340,7 +347,7 @@ function MobileLink({ to, label, close }) {
     <Link
       to={to}
       onClick={() => close(false)}
-      className="text-2xl font-bold text-white tracking-tight"
+      className="text-2xl font-bold text-neutral-400 hover:text-white tracking-tight transition-colors"
     >
       {label}
     </Link>
@@ -351,7 +358,7 @@ function DropdownItem({ to, icon, label }) {
   return (
     <Link
       to={to}
-      className="flex items-center gap-3 p-3 text-xs text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+      className="flex items-center gap-3 p-2.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
     >
       {icon} {label}
     </Link>

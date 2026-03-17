@@ -13,12 +13,12 @@ import {
 import { Link, useLocation } from "react-router-dom";
 
 const studentItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/feed" },
-  { icon: Calendar, label: "Time Table", path: "/timetable" },
-  { icon: MessageSquare, label: "Messages", path: "/messages" },
-  { icon: Sparkles, label: "Events", path: "/events" },
-  { icon: Bell, label: "Notifications", path: "/notifications" },
-  { icon: Clock, label: "Reminders", path: "/reminders" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard" },
+  { icon: Calendar, label: "Time Table", path: "/student/timetable" },
+  { icon: MessageSquare, label: "Messages", path: "/student/messages" },
+  { icon: Sparkles, label: "Events", path: "/student/events" },
+  { icon: Bell, label: "Notifications", path: "/student/notifications" },
+  { icon: Clock, label: "Reminders", path: "/student/reminders" },
 ];
 
 export default function StudentSidebar() {

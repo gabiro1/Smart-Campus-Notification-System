@@ -81,7 +81,7 @@ export default function EventFeedGrid({
   // Adjusted to match the responsive sidebar and grid
   if (loading && (!events || events.length === 0)) {
     return (
-      <div className="ml-20 md:ml-72 p-4 sm:p-6 md:p-8 transition-all duration-300 min-h-screen">
+      <div className="p-4 sm:p-6 md:p-8 transition-all duration-300 min-h-screen">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-12">
             {[1, 2, 3, 4, 5, 6].map((n) => (

@@ -1,47 +1,40 @@
-import { useEffect } from "react";
-import { BrowserRouter } from "react-router-dom";
-import AppRoutes from "./routes/AppRoutes";
-
-// --- NEW: Firebase & Notifications Imports ---
-import { requestForToken, onMessageListener } from "./config/firebase"; // Make sure this path points to your new firebase.js file
+import { useEffect, useRef } from "react";
+import { useAuth } from "./context/AuthContext"; // Use your context!
+import { requestForToken, onMessageListener } from "./config/firebase";
 import toast, { Toaster } from "react-hot-toast";
-import apiClient from "./services/apiClient"; // Adjust this path to wherever your Axios apiClient is
+import apiClient from "./services/apiClient";
+import AppRoutes from "./routes/main/AppRoutes";
 
-/**
- * @main App
- * @description The root of the application.
- * Manages global providers, routing, and background push notifications.
- */
 function App() {
+  const { user } = useAuth();
+  const stopDoubleFire = useRef(false); // Fix for StrictMode
+
   useEffect(() => {
-    // 1. Check if user is logged in (using the same key from your ProtectedRoute)
-    const token = localStorage.getItem("authToken");
-    if (!token) return;
+    // 1. Only run if user is logged in AND we haven't initialized yet
+    if (!user || stopDoubleFire.current) return;
 
-    // 2. Ask for Notification Permission & Get FCM Token
+    stopDoubleFire.current = true; // Lock the execution
+
     const setupNotifications = async () => {
-      const fcmToken = await requestForToken();
-
-      if (fcmToken) {
-        // 3. Send the token to your backend to save in the User's profile
-        try {
-          // Note: Adjust this URL to match your backend profile update endpoint
-          await apiClient.put("/users/profile", { fcmToken: fcmToken });
-          console.log("FCM Token saved to database successfully!");
-        } catch (error) {
-          console.error("Failed to save FCM token to DB", error);
+      try {
+        const fcmToken = await requestForToken();
+        if (fcmToken) {
+          // 2. Sync token with backend
+          await apiClient.put("/users/profile", { fcmToken });
+          console.log("FCM Token synced successfully.");
         }
+      } catch (error) {
+        console.error("FCM Setup Error:", error);
+        stopDoubleFire.current = false; // Allow retry if it failed
       }
     };
 
-    setupNotifications();
-
-    // 4. Listen for incoming messages while the user is actively using the app
-    const listenForMessages = async () => {
+    const startListener = async () => {
       try {
+        // Use a standard non-recursive approach
+        // or ensure onMessageListener returns a clean payload
         const payload = await onMessageListener();
 
-        // Show a beautiful custom toast notification when a message arrives!
         toast.custom(
           (t) => (
             <div
@@ -51,7 +44,7 @@ function App() {
                 <div className="flex items-start">
                   <div className="ml-3 flex-1">
                     <p className="text-sm font-bold text-white">
-                      {payload?.notification?.title || "New Notification"}
+                      {payload?.notification?.title || "New Message"}
                     </p>
                     <p className="mt-1 text-sm text-neutral-400">
                       {payload?.notification?.body}
@@ -62,7 +55,7 @@ function App() {
               <div className="flex border-l border-white/10">
                 <button
                   onClick={() => toast.dismiss(t.id)}
-                  className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-blue-500 hover:text-blue-400 focus:outline-none transition-colors"
+                  className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-blue-500 hover:text-blue-400 focus:outline-none"
                 >
                   Close
                 </button>
@@ -70,26 +63,24 @@ function App() {
             </div>
           ),
           { duration: 6000 },
-        ); // Stays on screen for 6 seconds
+        );
 
-        // Loop the listener so it catches the next message too
-        listenForMessages();
+        // Re-initiate listener only after receiving a message
+        startListener();
       } catch (err) {
-        console.log("Message listener failed: ", err);
+        console.error("Listener died:", err);
       }
     };
 
-    listenForMessages();
-  }, []); // Empty dependency array means this runs exactly once when the app opens
+    setupNotifications();
+    startListener();
+  }, [user]); // Re-run setup when the user logs in
 
   return (
-    <BrowserRouter>
-      {/* Global Toaster for Push Notifications */}
+    <>
       <Toaster position="top-right" reverseOrder={false} />
-
-      {/* Your Routing System */}
       <AppRoutes />
-    </BrowserRouter>
+    </>
   );
 }
 

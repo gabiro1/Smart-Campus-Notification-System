@@ -16,6 +16,7 @@ import collegeRoutes from './modules/college/route/collegeRoutes.js';
 import schoolRoutes from './modules/school/route/schoolRoutes.js';
 import departmentRoutes from './modules/department/route/departmentRoutes.js';
 import courseRoutes from './modules/course/routes/courseRoutes.js'; // For course management features
+import studentRoutes from './modules/student/routes/studentRoutes.js';
 
 // 1. CONFIGURATION
 dotenv.config();
@@ -45,6 +46,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes); // Added for Read Receipts/Analytics
 app.use('/api/reminders', reminderRoutes); // Reminder system routes
 app.use('/api/admin', adminRoutes); // Admin system routes
+app.use('/api/student', studentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/announcements", announcementRoutes);

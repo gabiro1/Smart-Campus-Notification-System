@@ -286,7 +286,7 @@ const RemindersTab = () => {
     );
 
   return (
-    <div className="relative min-h-screen bg-[#000000] text-white ml-20 md:ml-72 transition-all duration-300 overflow-hidden">
+    <div className="relative min-h-screen bg-[#000000] text-white transition-all duration-300 overflow-hidden">
       <Toaster position="bottom-right" />
 
       <div className="relative z-10 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">

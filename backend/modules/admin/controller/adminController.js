@@ -2,7 +2,8 @@ import User from "../../user/model/User.js";
 import Event from '../../event/model/Event.js';
 import NotificationLog from '../../notification/models/NotificationLog.js';
 import Reminder from '../../reminder/model/Reminder.js';
-import AuditLog from '../../../models/AuditLog.js';
+import AuditLog from '../../audit/models/AuditLog.js';
+
 
 
 // Helper function to log admin actions
