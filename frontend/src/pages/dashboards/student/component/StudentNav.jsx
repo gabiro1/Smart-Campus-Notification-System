@@ -9,16 +9,20 @@ import {
   ChevronUp,
   ChevronDown,
   Headset,
+  Megaphone, // ✅ IMPORTED NEW ICON
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
+// ✅ FIXED: Updated paths to match the actual routes
 const studentItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard" },
+  { icon: Megaphone, label: "Announcements", path: "/student/announcements" }, // <-- MOUNTED HERE
   { icon: Calendar, label: "Time Table", path: "/student/timetable" },
   { icon: MessageSquare, label: "Messages", path: "/student/messages" },
   { icon: Sparkles, label: "Events", path: "/student/events" },
-  { icon: Bell, label: "Notifications", path: "/student/notifications" },
   { icon: Clock, label: "Reminders", path: "/student/reminders" },
+  // If you want Notifications as a separate tab, you can keep it:
+  // { icon: Bell, label: "Notifications", path: "/student/notifications" },
 ];
 
 export default function StudentSidebar() {
@@ -68,7 +72,7 @@ export default function StudentSidebar() {
       {/* 3. Bottom Actions */}
       <div className="p-4 border-t border-white/5 space-y-2 bg-[#0D0D0D]">
         <Link
-          to="/settings"
+          to="/settings" // Make sure you don't need /student/settings here depending on your parent router!
           className="flex items-center justify-center md:justify-start md:gap-3 p-3 md:p-2 md:pl-4 text-neutral-500 hover:text-white w-full transition-colors rounded-xl hover:bg-white/[0.03]"
         >
           <Settings size={20} />

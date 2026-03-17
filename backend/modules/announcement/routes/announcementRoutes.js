@@ -3,7 +3,8 @@ import {
   createAnnouncement, 
   getClassAnnouncements, 
   addComment,
-  markAsViewed
+  markAsViewed,
+  getMyAnnouncements
 } from "../controller/announcementController.js";
 import { protect, authorize } from "../../../middleware/authMiddleware.js";
 import upload from "../../../middleware/uploadMiddleware.js"; // Your memoryStorage multer config
@@ -21,5 +22,7 @@ router.post("/:id/comment", protect, addComment);
 router.post("/:id/view", protect, markAsViewed);
 
 router.post('/create', protect, upload.array('attachments', 5), createAnnouncement);
+
+router.get('/my-feed', protect, getMyAnnouncements);
 
 export default router;

@@ -48,6 +48,16 @@ const announcementService = {
   markAsViewed: async (announcementId) => {
     const response = await apiClient.post(`/announcements/${announcementId}/view`);
     return response.data;
+  }, 
+
+  getAllAnnouncements: async () => {
+    try {
+      const response = await apiClient.get('/announcements/my-feed');
+      return response.data.data; // Returning the array directly
+    } catch (error) {
+      console.error("Failed to fetch all announcements:", error);
+      throw error;
+    }
   }
 };
 

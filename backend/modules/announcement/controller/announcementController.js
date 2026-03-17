@@ -1,12 +1,12 @@
 import Announcement from "../model/Announcement.js";
-import Course from "../../course/model/Course.js"; // UPGRADED: Import Course, not just Class
+import Course from "../../course/model/Course.js";
+import User from "../../user/model/User.js"; // ✅ THE FIX: The missing User model
 import fs from "fs/promises";
 import path from "path";
 
 // 1. Create Announcement (Advanced: Course-Aware with File Handling)
 export const createAnnouncement = async (req, res) => {
   try {
-    // UPGRADED: We expect courseId from the frontend now
     const { title, content, courseId, type } = req.body;
     const lecturerId = req.user._id; 
 
@@ -24,7 +24,7 @@ export const createAnnouncement = async (req, res) => {
     // Auto-extract the class target so the lecturer doesn't have to
     const targetClass = course.class._id; 
 
-    // --- FILE UPLOAD LOGIC (Your excellent code) ---
+    // --- FILE UPLOAD LOGIC ---
     const attachedFileUrls = [];
     if (req.files && req.files.length > 0) {
       const uploadDir = path.join(process.cwd(), "uploads");
@@ -42,8 +42,6 @@ export const createAnnouncement = async (req, res) => {
         const filePath = path.join(uploadDir, filename);
 
         await fs.writeFile(filePath, file.buffer);
-        // Note: For production (Render/Heroku), local files get wiped on restart. 
-        // You'll eventually swap this block with a Firebase/Cloudinary upload.
         attachedFileUrls.push(`/uploads/${filename}`); 
       }
     }
@@ -52,9 +50,9 @@ export const createAnnouncement = async (req, res) => {
     const newAnnouncement = new Announcement({
       title,
       content,
-      lecturer: lecturerId, // Assuming your schema uses 'lecturer' instead of 'author'
-      course: courseId,     // Tag the specific subject!
-      targetClass: targetClass, // Target the whole cohort!
+      lecturer: lecturerId, 
+      course: courseId,     
+      targetClass: targetClass, 
       type,
       attachments: attachedFileUrls
     });
@@ -78,7 +76,7 @@ export const getClassAnnouncements = async (req, res) => {
 
     const announcements = await Announcement.find({ targetClass: classId })
       .populate("lecturer", "name profilePicture")
-      .populate("course", "name code") // UPGRADED: Tell the student WHICH subject this is for!
+      .populate("course", "name code") 
       .populate("comments.user", "name role profilePicture") 
       .sort({ createdAt: -1 }); 
 
@@ -126,5 +124,30 @@ export const markAsViewed = async (req, res) => {
   } catch (error) {
     console.error("Mark Viewed Error:", error);
     res.status(500).json({ message: "Failed to update view count" });
+  }
+};
+
+// 5. Notice Board (Dashboard Full Feed)
+// @desc    Get all announcements for the logged-in student's class
+// @route   GET /api/announcements/my-feed
+export const getMyAnnouncements = async (req, res) => {
+  try {
+    // We now have the User model imported, so this won't crash!
+    const student = await User.findById(req.user.id);
+
+    if (!student || !student.classId) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    // Fetch ALL announcements for their specific class
+    const announcements = await Announcement.find({ targetClass: student.classId })
+      .populate("lecturer", "name profilePicture") 
+      .populate("course", "name code") 
+      .sort({ createdAt: -1 }); 
+
+    res.status(200).json({ success: true, data: announcements });
+  } catch (error) {
+    console.error("Fetch Announcements Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };

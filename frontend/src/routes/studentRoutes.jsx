@@ -1,8 +1,10 @@
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 
-// --- STUDENT IMPORTS ONLY ---
+// --- STUDENT IMPORTS ---
 import EnhancedStudentDashboard from "../pages/dashboards/student/pages/Dashboard/EnhancedStudentDashboard";
+// ✅ IMPORT THE NEW PAGE HERE (Adjust the folder path to match where you saved it)
+import AnnouncementsPage from "../pages/dashboards/student/pages/announcement/AnnouncementsPage";
 import { NotificationsTab } from "../pages/dashboards/student/pages/Notifications/NotificationsTab";
 import EventFeedGrid from "../pages/dashboards/student/Events/EventFeedGrid";
 import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
@@ -22,9 +24,20 @@ export const studentRoutes = [
       </ProtectedRoute>
     }
   />,
+  // ✅ FIX: Now 'announcements' loads the actual AnnouncementsPage
   <Route
     key="announcements"
     path="announcements"
+    element={
+      <ProtectedRoute allowedRoles={["student"]}>
+        <AnnouncementsPage />
+      </ProtectedRoute>
+    }
+  />,
+  // OPTIONAL: If you still want a separate Notifications page, define it correctly
+  <Route
+    key="notifications"
+    path="notifications"
     element={
       <ProtectedRoute allowedRoles={["student"]}>
         <NotificationsTab />
