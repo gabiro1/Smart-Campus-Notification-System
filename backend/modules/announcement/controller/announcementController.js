@@ -101,7 +101,7 @@ export const markAsViewed = async (req, res) => {
     const updatedDoc = await Announcement.findByIdAndUpdate(
       id,
       { $addToSet: { viewedBy: userId } },
-      { returnDocument: 'after' } // Replaced { new: true } to clear the terminal warning
+      { returnDocument: 'after' } 
     );
 
     res.status(200).json({ 
@@ -180,7 +180,6 @@ export const addComment = async (req, res) => {
   }
 };
 
-
 // 6. Delete a Comment
 export const deleteComment = async (req, res) => {
   try {
@@ -221,5 +220,128 @@ export const deleteComment = async (req, res) => {
   } catch (error) {
     console.error("Delete Comment Error:", error);
     res.status(500).json({ message: "Failed to delete comment" });
+  }
+};
+
+// 7. Lecturer: Manage My Announcements (FIXED: Returns ALL data for the tabs to filter)
+export const getLecturerAnnouncements = async (req, res) => {
+  try {
+    const lecturerId = req.user._id;
+
+    const announcements = await Announcement.find({ lecturer: lecturerId })
+      .populate("course", "name code")
+      .populate("targetClass", "name")
+      .populate("comments.user", "name role profilePicture")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, data: announcements });
+  } catch (error) {
+    console.error("Fetch Lecturer Announcements Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+// 8. Lecturer: Delete an entire Announcement (NEW: The missing piece of the CRUD puzzle)
+export const deleteAnnouncement = async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+    
+    if (!announcement) {
+      return res.status(404).json({ message: "Announcement not found" });
+    }
+    
+    // Security Check: Only the creator can delete their own broadcast
+    if (announcement.lecturer.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this broadcast" });
+    }
+
+    await announcement.deleteOne();
+    
+    res.status(200).json({ success: true, message: "Announcement deleted successfully" });
+  } catch (error) {
+    console.error("Delete Announcement Error:", error);
+    res.status(500).json({ message: "Failed to delete announcement" });
+  }
+};
+
+
+// 9. Update a Comment (Crucial for the "Update" button to work)
+export const updateComment = async (req, res) => {
+  try {
+    const { id, commentId } = req.params;
+    const { content } = req.body;
+    const userId = req.user._id;
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) return res.status(404).json({ message: "Announcement not found" });
+
+    // 1. Find the specific comment inside the array
+    const comment = announcement.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    // 2. SECURITY: Only the person who wrote the comment can edit it
+    if (comment.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "You can only edit your own comments" });
+    }
+
+    // 3. Apply the update
+    comment.content = content;
+    comment.updatedAt = Date.now(); // Mark as edited
+    
+    await announcement.save();
+
+    // 4. Return the full populated list so the UI refreshes perfectly
+    await announcement.populate("comments.user", "name role profilePicture");
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Comment updated", 
+      comments: announcement.comments 
+    });
+  } catch (error) {
+    console.error("Update Comment Error:", error);
+    res.status(500).json({ message: "Failed to update comment" });
+  }
+};
+
+// 10. Lecturer: Update the actual Broadcast (Announcement)
+export const updateAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content } = req.body;
+    const lecturerId = req.user._id;
+
+    const announcement = await Announcement.findById(id);
+
+    if (!announcement) {
+      return res.status(404).json({ message: "Announcement not found" });
+    }
+
+    // Security Check: Only the lecturer who created it can edit it
+    if (announcement.lecturer.toString() !== lecturerId.toString()) {
+      return res.status(403).json({ message: "Not authorized to edit this broadcast" });
+    }
+
+    // Apply updates
+    announcement.title = title || announcement.title;
+    announcement.content = content || announcement.content;
+    announcement.updatedAt = Date.now();
+
+    await announcement.save();
+
+    // Populate for the UI (Matches the format of getLecturerAnnouncements)
+    const updatedDoc = await Announcement.findById(id)
+      .populate("course", "name code")
+      .populate("targetClass", "name")
+      .populate("comments.user", "name role profilePicture");
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Broadcast updated successfully", 
+      data: updatedDoc 
+    });
+  } catch (error) {
+    console.error("Update Announcement Error:", error);
+    res.status(500).json({ message: "Failed to update broadcast" });
   }
 };

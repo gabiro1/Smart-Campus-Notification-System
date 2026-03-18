@@ -11,6 +11,17 @@ const announcementService = {
     return response.data;
   },
 
+  // 8. Lecturer: Get ONLY my announcements for the management table
+  getLecturerAnnouncements: async () => {
+    try {
+      const response = await apiClient.get('/announcements/lecturer-manage');
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch lecturer announcements:", error);
+      throw error;
+    }
+  },
+
   // 2. Lecturer: Delete Announcement (The "Oops" Button)
   deleteAnnouncement: async (announcementId) => {
     const response = await apiClient.delete(`/announcements/${announcementId}`);
@@ -58,7 +69,27 @@ const announcementService = {
       console.error("Failed to fetch all announcements:", error);
       throw error;
     }
+  }, 
+  // 9. NEW: Update a specific comment (THE MISSING PIECE)
+  updateComment: async (announcementId, commentId, content) => {
+    try {
+      const response = await apiClient.patch(`/announcements/${announcementId}/comment/${commentId}`, { content });
+      return response.data;
+    } catch (error) {
+      console.error("Update Service Error:", error);
+      throw error;
+    }
+  }, 
+  // 10. NEW: Update a specific Announcement/Broadcast
+updateAnnouncement: async (announcementId, updateData) => {
+  try {
+    const response = await apiClient.patch(`/announcements/${announcementId}`, updateData);
+    return response.data; // This returns { success: true, data: updatedDoc }
+  } catch (error) {
+    console.error("Update Broadcast Service Error:", error);
+    throw error;
   }
+}
 };
 
 export default announcementService;

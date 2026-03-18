@@ -14,14 +14,14 @@ export default function GlassCard({
       whileHover={
         hover
           ? {
-              y: -4,
-              scale: 1.01,
-              boxShadow:
-                "0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(59,130,246,0.05)",
+              // y: -4,
+              // scale: 1.01,
+              // boxShadow:
+              //   "0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(59,130,246,0.05)",
             }
           : {}
       }
-      className={`bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-lg overflow-hidden relative ${className}`}
+      className={`bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-sm p-6 shadow-lg overflow-hidden relative ${className}`}
     >
       {/* Liquid subtle gradient highlight */}
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />

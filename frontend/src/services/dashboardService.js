@@ -70,7 +70,21 @@ const dashboardService = {
       console.error(`Failed to delete comment ${commentId}:`, error);
       throw error;
     }
-  }
+  },
+
+  // NEW: Update an existing comment
+  updateComment: async (announcementId, commentId, content) => {
+    try {
+      const response = await apiClient.patch(
+        `/announcements/${announcementId}/comment/${commentId}`, 
+        { content }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to update comment ${commentId}:`, error);
+      throw error;
+    }
+  },
 };
 
 export default dashboardService;
