@@ -1,6 +1,6 @@
 import Announcement from "../model/Announcement.js";
 import Course from "../../course/model/Course.js";
-import User from "../../user/model/User.js"; // ✅ THE FIX: The missing User model
+import User from "../../user/model/User.js"; 
 import fs from "fs/promises";
 import path from "path";
 
@@ -86,55 +86,45 @@ export const getClassAnnouncements = async (req, res) => {
   }
 };
 
-// 3. Q&A Comments (Perfect as is)
-export const addComment = async (req, res) => {
-  try {
-    const { id } = req.params; 
-    const { content } = req.body;
-    const userId = req.user._id;
-
-    const announcement = await Announcement.findById(id);
-    if (!announcement) {
-      return res.status(404).json({ message: "Announcement not found" });
-    }
-
-    announcement.comments.push({ user: userId, content });
-    await announcement.save();
-
-    await announcement.populate("comments.user", "name role profilePicture");
-
-    res.status(201).json({ message: "Comment added", announcement });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to add comment" });
-  }
-};
-
-// 4. Enterprise Read Receipt Logic (Perfect as is)
+// 3. Enterprise Read Receipt Logic (Fixed Mongoose Warning & Null Crash)
 export const markAsViewed = async (req, res) => {
   try {
     const { id } = req.params; 
+    
+    // Safety check in case the token is stale
+    if (!req.user || !req.user._id) {
+        return res.status(401).json({ message: "Unauthorized access" });
+    }
+    
     const userId = req.user._id; 
 
-    await Announcement.findByIdAndUpdate(
+    const updatedDoc = await Announcement.findByIdAndUpdate(
       id,
-      { $addToSet: { viewedBy: userId } } 
+      { $addToSet: { viewedBy: userId } },
+      { returnDocument: 'after' } // Replaced { new: true } to clear the terminal warning
     );
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ 
+      success: true, 
+      viewCount: updatedDoc?.viewedBy?.length || 0
+    });
   } catch (error) {
     console.error("Mark Viewed Error:", error);
     res.status(500).json({ message: "Failed to update view count" });
   }
 };
 
-// 5. Notice Board (Dashboard Full Feed)
-// @desc    Get all announcements for the logged-in student's class
-// @route   GET /api/announcements/my-feed
+// 4. Notice Board (Dashboard Full Feed - Fixed Null Crash)
 export const getMyAnnouncements = async (req, res) => {
   try {
-    // We now have the User model imported, so this won't crash!
-    const student = await User.findById(req.user.id);
+    // DEFENSIVE FIX: If the user doesn't exist in the request, boot them out safely
+    if (!req.user || !req.user._id) {
+        return res.status(401).json({ success: false, message: "Ghost token detected. Please log out and log back in." });
+    }
 
+    const student = await User.findById(req.user._id);
+
+    // If the student has no assigned class, just return an empty array safely
     if (!student || !student.classId) {
       return res.status(200).json({ success: true, data: [] });
     }
@@ -143,11 +133,93 @@ export const getMyAnnouncements = async (req, res) => {
     const announcements = await Announcement.find({ targetClass: student.classId })
       .populate("lecturer", "name profilePicture") 
       .populate("course", "name code") 
+      .populate("comments.user", "name role profilePicture") 
       .sort({ createdAt: -1 }); 
 
     res.status(200).json({ success: true, data: announcements });
   } catch (error) {
     console.error("Fetch Announcements Error:", error);
     res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+// 5. Q&A Comments (Core Pipeline Only)
+export const addComment = async (req, res) => {
+  try {
+    const { id } = req.params; 
+    const { content } = req.body;
+    
+    // Safety check
+    if (!req.user || !req.user._id) {
+        return res.status(401).json({ message: "Unauthorized access" });
+    }
+    
+    const userId = req.user._id;
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) {
+      return res.status(404).json({ message: "Announcement not found" });
+    }
+
+    // 1. Push the comment into the embedded array
+    announcement.comments.push({ user: userId, content });
+    await announcement.save();
+
+    // 2. Populate the user data so the frontend knows WHO commented
+    await announcement.populate("comments.user", "name role profilePicture");
+
+    // 3. Return the updated comments array to React
+    res.status(201).json({ 
+      success: true, 
+      message: "Comment added", 
+      comments: announcement.comments 
+    });
+  } catch (error) {
+    console.error("Add Comment Error:", error);
+    res.status(500).json({ message: "Failed to add comment" });
+  }
+};
+
+
+// 6. Delete a Comment
+export const deleteComment = async (req, res) => {
+  try {
+    const { id, commentId } = req.params; 
+    const userId = req.user._id;
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) {
+      return res.status(404).json({ message: "Announcement not found" });
+    }
+
+    // 1. Find the specific comment inside the embedded array
+    const comment = announcement.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // 2. SECURITY CHECK: Ensure the user owns this comment (or is the lecturer)
+    const isCommentOwner = comment.user.toString() === userId.toString();
+    const isLecturer = announcement.lecturer.toString() === userId.toString();
+
+    if (!isCommentOwner && !isLecturer) {
+      return res.status(403).json({ message: "You are not authorized to delete this comment" });
+    }
+
+    // 3. Rip the comment out of the array using Mongoose's .pull()
+    announcement.comments.pull(commentId);
+    await announcement.save();
+
+    // 4. Return the freshly updated comments array to React
+    await announcement.populate("comments.user", "name role profilePicture");
+    
+    res.status(200).json({ 
+      success: true, 
+      message: "Comment deleted", 
+      comments: announcement.comments 
+    });
+  } catch (error) {
+    console.error("Delete Comment Error:", error);
+    res.status(500).json({ message: "Failed to delete comment" });
   }
 };

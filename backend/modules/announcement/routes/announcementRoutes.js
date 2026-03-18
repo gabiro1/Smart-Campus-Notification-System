@@ -4,6 +4,7 @@ import {
   getClassAnnouncements, 
   addComment,
   markAsViewed,
+  deleteComment,
   getMyAnnouncements
 } from "../controller/announcementController.js";
 import { protect, authorize } from "../../../middleware/authMiddleware.js";
@@ -24,5 +25,7 @@ router.post("/:id/view", protect, markAsViewed);
 router.post('/create', protect, upload.array('attachments', 5), createAnnouncement);
 
 router.get('/my-feed', protect, getMyAnnouncements);
+
+router.delete("/:id/comment/:commentId", protect, deleteComment);
 
 export default router;
