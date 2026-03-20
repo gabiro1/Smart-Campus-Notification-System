@@ -89,7 +89,12 @@ updateAnnouncement: async (announcementId, updateData) => {
     console.error("Update Broadcast Service Error:", error);
     throw error;
   }
-}
+  }, 
+
+  getDashboardStats: async () => {
+    const response = await apiClient.get('/announcements/dashboard-stats');
+    return response.data;
+  },
 };
 
 export default announcementService;

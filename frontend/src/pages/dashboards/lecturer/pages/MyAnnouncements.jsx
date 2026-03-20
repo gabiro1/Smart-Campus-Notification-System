@@ -17,6 +17,9 @@ import {
   User as UserIcon,
   Check,
   Save,
+  TriangleAlert,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import announcementService from "../../../../services/announcementService";
@@ -32,6 +35,8 @@ export default function MyAnnouncements({ user: propUser }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
+  const [deleteId, setDeleteId] = useState(null);
+
   const user = propUser || JSON.parse(localStorage.getItem("user"));
   const tabs = ["Active", "Draft", "Archived"];
 
@@ -40,9 +45,10 @@ export default function MyAnnouncements({ user: propUser }) {
   }, []);
 
   useEffect(() => {
-    if (selectedAnnouncement) document.body.style.overflow = "hidden";
+    if (selectedAnnouncement || deleteId)
+      document.body.style.overflow = "hidden";
     else document.body.style.overflow = "unset";
-  }, [selectedAnnouncement]);
+  }, [selectedAnnouncement, deleteId]);
 
   const fetchMyPosts = async () => {
     try {
@@ -58,13 +64,17 @@ export default function MyAnnouncements({ user: propUser }) {
     }
   };
 
-  const handleDelete = async (e, id) => {
-    e.stopPropagation();
-    if (!window.confirm("Delete this broadcast permanently?")) return;
+  const confirmDelete = async () => {
+    if (!deleteId) return;
     try {
+      const id = deleteId;
+      setDeleteId(null);
       setAnnouncements((prev) => prev.filter((ann) => ann._id !== id));
-      await announcementService.deleteAnnouncement(id);
-      toast.success("Broadcast deleted");
+
+      const response = await announcementService.deleteAnnouncement(id);
+      if (response.success) {
+        toast.success("Broadcast deleted permanently");
+      }
       if (selectedAnnouncement?._id === id) setSelectedAnnouncement(null);
     } catch (error) {
       toast.error("Delete failed.");
@@ -72,7 +82,28 @@ export default function MyAnnouncements({ user: propUser }) {
     }
   };
 
-  // Callback to update the list when drawer edits happen
+  const handleToggleArchive = async (e, item) => {
+    e.stopPropagation();
+    const newStatus = item.status === "Archived" ? "Active" : "Archived";
+
+    // Optimistic UI update
+    setAnnouncements((prev) =>
+      prev.map((a) => (a._id === item._id ? { ...a, status: newStatus } : a)),
+    );
+
+    try {
+      const response = await announcementService.updateAnnouncement(item._id, {
+        status: newStatus,
+      });
+      if (response && response.success) {
+        toast.success(`Broadcast moved to ${newStatus}`);
+      }
+    } catch (error) {
+      toast.error(`Failed to move broadcast to ${newStatus}`);
+      fetchMyPosts();
+    }
+  };
+
   const handleUpdateLocal = (updatedAnn) => {
     setAnnouncements((prev) =>
       prev.map((a) => (a._id === updatedAnn._id ? updatedAnn : a)),
@@ -84,7 +115,10 @@ export default function MyAnnouncements({ user: propUser }) {
     const matchesSearch =
       ann.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ann.course?.code?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch && (ann.status || "Active") === activeTab;
+
+    // Fallback to 'Active' if status is undefined in your DB
+    const currentStatus = ann.status || "Active";
+    return matchesSearch && currentStatus === activeTab;
   });
 
   return (
@@ -99,7 +133,7 @@ export default function MyAnnouncements({ user: propUser }) {
       </header>
 
       <GlassCard
-        className={`p-0 overflow-hidden flex flex-col min-h-[500px] transition-all duration-500 ${selectedAnnouncement ? "opacity-40 blur-[2px] scale-[0.99]" : ""}`}
+        className={`p-0 overflow-hidden flex flex-col min-h-[500px] transition-all duration-500 ${selectedAnnouncement ? "opacity-40 scale-[0.99]" : ""}`}
       >
         <div className="p-4 border-b border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/[0.01]">
           <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 relative w-full md:w-auto overflow-x-auto scrollbar-hide">
@@ -204,25 +238,48 @@ export default function MyAnnouncements({ user: propUser }) {
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {/* ICON ACTIONS */}
                         <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAnnouncement(item);
+                          }}
                           className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                          title="View details"
+                          title="View"
                         >
                           <Eye size={18} />
                         </button>
+
+                        <button
+                          onClick={(e) => handleToggleArchive(e, item)}
+                          className="p-2 text-neutral-400 hover:text-amber-400 hover:bg-amber-400/10 rounded-lg transition-all"
+                          title={
+                            item.status === "Archived"
+                              ? "Restore to Active"
+                              : "Archive"
+                          }
+                        >
+                          {item.status === "Archived" ? (
+                            <ArchiveRestore size={18} />
+                          ) : (
+                            <Archive size={18} />
+                          )}
+                        </button>
+
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedAnnouncement(item);
                           }}
                           className="p-2 text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all"
-                          title="Edit Broadcast"
+                          title="Edit"
                         >
                           <Edit3 size={18} />
                         </button>
                         <button
-                          onClick={(e) => handleDelete(e, item._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteId(item._id);
+                          }}
                           className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                           title="Delete"
                         >
@@ -257,15 +314,61 @@ export default function MyAnnouncements({ user: propUser }) {
           </>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {deleteId && (
+          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteId(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm bg-[#1A1A1A] border border-white/10 rounded-2xl overflow-hidden"
+            >
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                  <TriangleAlert className="text-red-500" size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Are you sure?
+                </h3>
+                <p className="text-neutral-400 text-sm leading-relaxed">
+                  This action is irreversible. The broadcast and all its
+                  comments will be permanently erased.
+                </p>
+              </div>
+              <div className="flex border-t border-white/5 bg-white/[0.02]">
+                <button
+                  onClick={() => setDeleteId(null)}
+                  className="flex-1 py-4 text-sm font-bold text-neutral-400 hover:text-white hover:bg-white/5 transition-colors border-r border-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 py-4 text-sm font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                >
+                  Delete Permanently
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 // ==========================================
-// 2. LECTURER SIDE DRAWER (WITH BROADCAST EDITING)
+// 2. LECTURER SIDE DRAWER
 // ==========================================
 function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
-  // Comment States
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -276,7 +379,6 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
   const [likedComments, setLikedComments] = useState({});
   const [activeDropdown, setActiveDropdown] = useState(null);
 
-  // --- BROADCAST EDIT STATES ---
   const [isEditingBroadcast, setIsEditingBroadcast] = useState(false);
   const [editTitle, setEditTitle] = useState(ann.title);
   const [editContent, setEditContent] = useState(ann.content);
@@ -340,7 +442,6 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
     return parts.length === 1 ? parts[0] : `${parts[0]}_${parts[1]}`;
   };
 
-  // Update whole broadcast logic
   const handleSaveBroadcast = async () => {
     try {
       setIsSavingBroadcast(true);
@@ -350,7 +451,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
       });
       if (response && response.success) {
         toast.success("Broadcast updated!");
-        onUpdate(response.data); // Update main list
+        onUpdate(response.data);
         setIsEditingBroadcast(false);
       }
     } catch (error) {
@@ -464,25 +565,23 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-lg font-bold text-white outline-none focus:border-blue-500/50"
-                placeholder="Broadcast Title"
               />
               <textarea
                 rows={6}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-[13px] text-neutral-300 outline-none focus:border-blue-500/50 resize-none"
-                placeholder="Content..."
               />
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveBroadcast}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-bold text-sm transition-all"
+                  className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-bold text-sm"
                 >
                   Save Changes
                 </button>
                 <button
                   onClick={() => setIsEditingBroadcast(false)}
-                  className="px-4 bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg font-bold text-sm transition-all"
+                  className="px-4 bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg font-bold text-sm"
                 >
                   Cancel
                 </button>
@@ -500,7 +599,6 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
           )}
         </div>
 
-        {/* REST OF DRAWER (Comments) */}
         <div className="pt-4 border-t border-white/5">
           <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-6">
             Conversation
@@ -534,6 +632,8 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
                   activeDropdown={activeDropdown}
                   setActiveDropdown={setActiveDropdown}
                 />
+
+                {/* Nested Replies */}
                 {thread.replies.length > 0 && (
                   <div className="ml-11 space-y-5">
                     <button
@@ -589,11 +689,11 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
         </div>
       </div>
 
-      {/* INPUT FOOTER */}
       <div
         className="shrink-0 border-t border-white/10 bg-[#121212] px-4 py-3 absolute bottom-0 w-full z-[60]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Emoji Picker Modal */}
         <AnimatePresence>
           {showEmojiPicker && (
             <motion.div
@@ -626,6 +726,40 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Editing/Replying Banner */}
+        {editingCommentId ? (
+          <div className="flex items-center justify-between px-1 pb-2">
+            <span className="text-[11px] text-amber-500 font-semibold uppercase tracking-widest">
+              Editing Comment
+            </span>
+            <button
+              onClick={() => {
+                setEditingCommentId(null);
+                setCommentText("");
+              }}
+              className="text-neutral-400 hover:text-white"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ) : replyingTo ? (
+          <div className="flex items-center justify-between px-1 pb-2">
+            <span className="text-[11px] text-neutral-500 font-semibold uppercase tracking-widest">
+              Replying to {replyingTo}
+            </span>
+            <button
+              onClick={() => {
+                setReplyingTo(null);
+                setCommentText("");
+              }}
+              className="text-neutral-400 hover:text-white"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ) : null}
+
         <div
           className={`flex items-center gap-3 bg-[#1A1A1A] px-3 py-2.5 border rounded-xl transition-colors ${editingCommentId ? "border-amber-500/30" : "border-white/5"}`}
         >
@@ -643,6 +777,8 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
             onKeyDown={(e) => e.key === "Enter" && handlePostOrUpdateComment()}
             className="flex-1 bg-transparent text-[13px] text-white outline-none"
           />
+
+          {/* Dynamic Button Text */}
           <button
             onClick={handlePostOrUpdateComment}
             disabled={isSubmitting || !commentText.trim()}
@@ -657,7 +793,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
 }
 
 // ==========================================
-// 3. COMMENT ITEM COMPONENT (Unchanged logic)
+// 3. COMMENT ITEM COMPONENT
 // ==========================================
 function CommentItem({
   comment,
@@ -699,6 +835,7 @@ function CommentItem({
           <img
             src={comment.user.profilePicture}
             className="h-full w-full object-cover"
+            alt=""
           />
         ) : (
           <UserIcon size={14} className="text-neutral-400" />
@@ -744,6 +881,7 @@ function CommentItem({
                 setActiveDropdown(isDropdownOpen ? null : comment._id);
               }}
             />
+
             <AnimatePresence>
               {isDropdownOpen && (
                 <motion.div

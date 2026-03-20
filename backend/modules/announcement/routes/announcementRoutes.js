@@ -7,6 +7,7 @@ import {
   markAsViewed,
   deleteComment,
   updateAnnouncement,
+  getLecturerStats,
   updateComment,
   getMyAnnouncements,
   deleteAnnouncement // <--- YOU MUST IMPORT THIS FROM YOUR CONTROLLER
@@ -22,6 +23,7 @@ const router = express.Router();
 router.get("/lecturer-manage", protect, authorize("lecturer"), getLecturerAnnouncements);
 router.post("/create", protect, authorize("lecturer"), upload.array("attachments", 5), createAnnouncement);
 router.delete("/:id", protect, authorize("lecturer"), deleteAnnouncement); // <--- ADDED THE MISSING ROUTE
+router.get("/dashboard-stats", protect, authorize("lecturer"), getLecturerStats);
 
 // ==========================================
 // STUDENT FEED ROUTES

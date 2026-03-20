@@ -14,11 +14,13 @@ export const createClass = async (req, res) => {
   try {
     const { name, code, department, lecturers, level, academicYear, semester } = req.body;
 
+    // Validate department exists
     const dept = await Department.findById(department);
     if (!dept) return res.status(404).json({ message: "Department not found" });
 
+    // Prevent duplicate classes in the same academic year
     const classExists = await Class.findOne({ code, academicYear });
-    if (classExists) return res.status(400).json({ message: "Class code already exists for this year" });
+    if (classExists) return res.status(400).json({ message: "Class code already exists for this academic year." });
 
     const newClass = await Class.create({
       name, code, department, lecturers, level, academicYear, semester
@@ -26,7 +28,8 @@ export const createClass = async (req, res) => {
 
     res.status(201).json(newClass);
   } catch (error) {
-    res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Create Class Error:", error);
+    res.status(500).json({ message: "Server Error: Failed to create class." });
   }
 };
 
@@ -46,45 +49,67 @@ export const getClasses = async (req, res) => {
           populate: { path: 'college', select: 'name' }
         }
       })
-      .populate("lecturers students", "name role profilePicture email");
+      .populate("lecturers", "name role profilePicture email")
+      // For a massive system, do NOT populate all students here. We only select the ID array to keep payloads light.
+      .select("-__v"); 
+      
     res.status(200).json(classes);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch classes" });
+    console.error("Get Classes Error:", error);
+    res.status(500).json({ message: "Failed to fetch classes." });
   }
 };
 
 /**
  * @desc    Assign multiple lecturers to a class at once
+ * @route   PUT /api/classes/:classId/assign-multiple
  */
 export const assignLecturers = async (req, res) => {
   try {
     const { classId } = req.params;
     const { lecturerIds } = req.body; 
 
+    // Verify all IDs actually belong to lecturers
     const lecturers = await User.find({ _id: { $in: lecturerIds }, role: "lecturer" });
     if (lecturers.length !== lecturerIds.length) {
-      return res.status(400).json({ message: "Some IDs are not valid lecturers" });
+      return res.status(400).json({ message: "One or more IDs do not belong to valid lecturers." });
     }
 
     const updatedClass = await Class.findByIdAndUpdate(
       classId,
       { lecturers: lecturerIds },
       { new: true }
-    ).populate("lecturers students", "name role profilePicture");
+    ).populate("lecturers", "name role profilePicture");
+
+    if (!updatedClass) return res.status(404).json({ message: "Class not found." });
 
     res.status(200).json({ message: "Lecturers assigned successfully", class: updatedClass });
   } catch (error) {
     console.error("Assign Lecturers Error:", error);
-    res.status(500).json({ message: "Failed to assign lecturers" });
+    res.status(500).json({ message: "Failed to bulk assign lecturers." });
   }
 };
 
 /**
  * @desc    Get all lecturers and their assigned classes for HOD dashboard
+ * @route   GET /api/classes/lecturers
  */
 export const getLecturers = async (req, res) => {
   try {
-    const lecturers = await User.find({ role: "lecturer" }).lean();
+    // 1. Get the logged-in HOD's department ID from the auth token
+    const hodDepartmentId = req.user.department; 
+
+    if (!hodDepartmentId) {
+      return res.status(403).json({ message: "Access denied. HOD is not assigned to a department." });
+    }
+
+    // 2. SECURE QUERY: Find ONLY lecturers in the HOD's specific department
+    const lecturers = await User.find({ 
+      role: "lecturer", 
+      department: hodDepartmentId 
+    }).select("-password").lean();
+    
+    // 3. Find classes assigned to these specific lecturers
     const classes = await Class.find({ 
       lecturers: { $in: lecturers.map(l => l._id) } 
     }).lean();
@@ -95,14 +120,16 @@ export const getLecturers = async (req, res) => {
         .map(c => ({ 
           id: c._id, 
           name: c.name,
-          level: c.level 
+          level: c.level,
+          code: c.code
         }));
 
       return {
         id: lecturer._id,
         name: lecturer.name,
         email: lecturer.email,
-        phone: lecturer.phone || "N/A",
+        // SCHEMA FIX: Your User schema uses 'phoneNumber', not 'phone'
+        phone: lecturer.phoneNumber || "N/A", 
         assignedClasses
       };
     });
@@ -110,18 +137,20 @@ export const getLecturers = async (req, res) => {
     res.status(200).json(formattedLecturers);
   } catch (error) {
     console.error("Fetch Lecturers Error:", error);
-    res.status(500).json({ message: "Failed to fetch lecturers" });
+    res.status(500).json({ message: "Failed to fetch lecturers." });
   }
 };
 
 /**
  * @desc    Assign a specific class to a specific lecturer
+ * @route   POST /api/classes/assign/:lecturerId
  */
 export const assignClassToLecturer = async (req, res) => {
   try {
     const { lecturerId } = req.params;
     const { classId } = req.body; 
 
+    // $addToSet prevents duplicate lecturer IDs in the array
     const updatedClass = await Class.findByIdAndUpdate(
       classId,
       { $addToSet: { lecturers: lecturerId } }, 
@@ -131,12 +160,14 @@ export const assignClassToLecturer = async (req, res) => {
     if (!updatedClass) return res.status(404).json({ message: "Class not found" });
     res.status(200).json({ message: "Class assigned successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to assign class" });
+    console.error("Assign Class Error:", error);
+    res.status(500).json({ message: "Failed to assign class." });
   }
 };
 
 /**
  * @desc    Remove a specific lecturer from a specific class
+ * @route   DELETE /api/classes/remove/:lecturerId/:classId
  */
 export const removeClassFromLecturer = async (req, res) => {
   try {
@@ -151,12 +182,14 @@ export const removeClassFromLecturer = async (req, res) => {
     if (!updatedClass) return res.status(404).json({ message: "Class not found" });
     res.status(200).json({ message: "Class removed successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to remove class" });
+    console.error("Remove Class Error:", error);
+    res.status(500).json({ message: "Failed to remove class." });
   }
 };
 
 /**
  * @desc    Update lecturer basic info
+ * @route   PUT /api/classes/lecturer/:id
  */
 export const updateLecturerInfo = async (req, res) => {
   try {
@@ -166,14 +199,18 @@ export const updateLecturerInfo = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { name, email, phone },
-      { new: true }
-    );
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) return res.status(404).json({ message: "Lecturer not found" });
 
     res.status(200).json({ message: "Updated successfully", lecturer: updatedUser });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update info" });
+    console.error("Update Info Error:", error);
+    res.status(500).json({ message: "Failed to update lecturer info." });
   }
 };
+
 
 // ==========================================
 // 2. LECTURER DASHBOARD FUNCTIONS
@@ -181,19 +218,53 @@ export const updateLecturerInfo = async (req, res) => {
 
 /**
  * @desc    Get classes assigned to the currently logged-in lecturer
+ * @route   GET /api/classes/my-classes
  */
 export const getMyClasses = async (req, res) => {
   try {
+    // Ensure your auth middleware attaches the user to the request!
     const lecturerId = req.user._id; 
 
     const classes = await Class.find({ lecturers: lecturerId })
-      .select("name level code department academicYear")
+      .select("name level code department academicYear students")
       .populate('department', 'name code')
       .lean();
 
-    res.status(200).json(classes);
+    // Map through to count students securely without sending the whole array
+    const formattedClasses = classes.map(cls => ({
+      ...cls,
+      studentCount: cls.students ? cls.students.length : 0,
+      students: undefined // Clean up the payload
+    }));
+
+    res.status(200).json(formattedClasses);
   } catch (error) {
     console.error("Fetch My Classes Error:", error);
-    res.status(500).json({ message: "Failed to fetch your assigned classes" });
+    res.status(500).json({ message: "Failed to fetch your assigned classes." });
+  }
+};
+
+/**
+ * @desc    Get specific student roster for a class (Security checked)
+ * @route   GET /api/classes/:classId/students
+ */
+export const getClassStudents = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const lecturerId = req.user._id;
+
+    // Security: Validate that this lecturer actually teaches this class
+    const targetClass = await Class.findOne({ _id: classId, lecturers: lecturerId })
+      .select("name code students")
+      .populate("students", "name email profilePicture"); 
+
+    if (!targetClass) {
+      return res.status(403).json({ message: "You are not authorized to view this class roster." });
+    }
+
+    res.status(200).json(targetClass.students);
+  } catch (error) {
+    console.error("Fetch Roster Error:", error);
+    res.status(500).json({ message: "Failed to fetch student roster." });
   }
 };

@@ -7,36 +7,51 @@ import {
   assignClassToLecturer,
   removeClassFromLecturer,
   updateLecturerInfo,
-  getMyClasses 
+  getMyClasses,
+  getClassStudents 
 } from '../controller/classController.js';
 
-// Assuming you have an auth middleware to protect these routes
-// import { protect, authorize } from '../../middleware/authMiddleware.js';
+// IMPORTANT: You need your auth middleware here to populate req.user 
+// and restrict access based on roles.
+import { protect, authorize } from '../../../middleware/authMiddleware.js'; 
 
 const router = express.Router();
 
-// --- GENERAL / MIXED ROUTES ---
+// ==========================================
+// STATIC ROUTES (Must come BEFORE dynamic /:id routes)
+// ==========================================
+
+// --- LECTURER ROUTES ---
+// Requires standard login (Lecturer role)
+router.get('/my-classes', protect, authorize('lecturer'), getMyClasses);
+
+// --- HOD / ADMIN ROUTES ---
+// Requires Admin/HOD privileges
+router.get('/lecturers', protect, authorize('hod', 'admin'), getLecturers);
+
+// ==========================================
+// DYNAMIC ROUTES (Containing parameters like :id)
+// ==========================================
+
+// --- MIXED/GENERAL CLASSES ROUTES ---
 router.route('/')
-  .get(getClasses)   // GET /api/classes
-  .post(createClass); // POST /api/classes
+  .get(protect, getClasses) // Maybe all logged-in users can view classes? Adjust auth as needed.
+  .post(protect, authorize('hod', 'admin'), createClass);
 
-// --- LECTURER DASHBOARD ---
-// This route should come BEFORE /:id routes to avoid being treated as an ID
-router.get('/my-classes', getMyClasses); 
+// --- LECTURER SPECIFIC DYNAMIC ROUTES ---
+router.get('/:classId/students', protect, authorize('lecturer'), getClassStudents);
 
-// --- HOD DASHBOARD / STAFF MANAGEMENT ---
-router.get('/lecturers', getLecturers);
-
+// --- HOD / STAFF MANAGEMENT ROUTES ---
 router.route('/lecturer/:id')
-  .put(updateLecturerInfo); // Update specific lecturer details
+  .put(protect, authorize('hod', 'admin'), updateLecturerInfo);
 
 router.route('/assign/:lecturerId')
-  .post(assignClassToLecturer); // Link a class to a lecturer
+  .post(protect, authorize('hod', 'admin'), assignClassToLecturer);
 
 router.route('/remove/:lecturerId/:classId')
-  .delete(removeClassFromLecturer); // Unlink a lecturer from a class
+  .delete(protect, authorize('hod', 'admin'), removeClassFromLecturer);
 
 router.route('/:classId/assign-multiple')
-  .put(assignLecturers); // Bulk assign lecturers to a class
+  .put(protect, authorize('hod', 'admin'), assignLecturers);
 
 export default router;

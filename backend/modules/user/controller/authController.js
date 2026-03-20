@@ -1,10 +1,12 @@
-// controllers/userController.js
 import User from '../model/User.js';
 import Class from '../../class/model/Class.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { generateURStudentID } from '../../../middleware/authMiddleware.js'; 
+
+// Helper function to validate ObjectIds
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // @desc    Register a new user (Self-registration)
 // @route   POST /api/users/register
@@ -15,8 +17,9 @@ export const register = async (req, res) => {
       name,
       email,
       password,
-      role, // We will strictly check this
+      role, 
       phoneNumber,
+      college,
       school,
       department,
       level,
@@ -36,29 +39,39 @@ export const register = async (req, res) => {
     }
 
     // 3. Hash password securely
-    const hashedPassword = await bcrypt.hash(password, 12); // 12 rounds is the modern standard, not 10
+    const hashedPassword = await bcrypt.hash(password, 12); 
 
     // 4. Force strict role assignment (Only allow "student" for public registration)
     const allowedRoles = ["student"];
     const assignedRole = allowedRoles.includes(role) ? role : "student";
 
-    // 5. Create user
-    const user = await User.create({
+    // 5. Build user object defensively
+    const userData = {
       name,
       email,
       password: hashedPassword,
       phoneNumber,
-      school,
-      department,
-      level,
-      interests: interests || [],
       role: assignedRole,
-      profilePicture: profilePicture || "" 
-    });
+      interests: interests || [],
+      profilePicture: profilePicture || ""
+    };
 
-    // 6. Generate JWT
+    // Only assign level if they are actually a student
+    if (assignedRole === "student" && level) {
+      userData.level = level;
+    }
+
+    // Only save hierarchy fields if they are valid ObjectIds
+    if (college && isValidId(college)) userData.college = college;
+    if (school && isValidId(school)) userData.school = school;
+    if (department && isValidId(department)) userData.department = department;
+
+    // 6. Create user
+    const user = await User.create(userData);
+
+    // 7. Generate JWT
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, department: user.department },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -71,17 +84,16 @@ export const register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        school: user.school,
         department: user.department,
         level: user.level,
         interests: user.interests,
-        phoneNumber: user.phoneNumber,
         profilePicture: user.profilePicture 
       }
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Registration Error:", error);
+    res.status(500).json({ success: false, message: "Server error during registration" });
   }
 };
 
@@ -92,10 +104,11 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // SECURITY FIX: Select password explicitly, POPULATE classId for the UI
+    // POPULATE department and classId so the frontend gets usable objects, not just IDs
     const user = await User.findOne({ email })
       .select('+password')
-      .populate('classId', 'name year'); // Assuming Class model has 'name' and 'year'
+      .populate('department', 'name code') 
+      .populate('classId', 'name code level'); 
 
     if (user && (await bcrypt.compare(password, user.password))) {
       
@@ -105,8 +118,7 @@ export const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        school: user.school,
-        department: user.department,
+        department: user.department, // Now populated! (e.g., { _id: "...", name: "Info Tech" })
         phoneNumber: user.phoneNumber,
         profilePicture: user.profilePicture
       };
@@ -116,12 +128,16 @@ export const login = async (req, res) => {
         userData.studentID = user.studentID;
         userData.level = user.level;
         userData.interests = user.interests;
-        userData.classInfo = user.classId; // Frontend gets the populated object!
+        userData.classInfo = user.classId; 
       }
 
       res.status(200).json({
         success: true,
-        token: jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' }),
+        token: jwt.sign(
+          { id: user._id, role: user.role, department: user.department?._id }, 
+          process.env.JWT_SECRET, 
+          { expiresIn: '30d' }
+        ),
         user: userData 
       });
 
@@ -129,6 +145,7 @@ export const login = async (req, res) => {
       res.status(401).json({ success: false, message: "Invalid email or password" });
     }
   } catch (error) {
+    console.error("Login Error:", error);
     res.status(500).json({ success: false, message: "Server error during login" });
   }
 };
@@ -138,8 +155,9 @@ export const login = async (req, res) => {
 // @access  Private
 export const getProfile = async (req, res) => {
   try {
-    // Populate class info so UI stays updated on refresh
-    const user = await User.findById(req.user.id).populate('classId', 'name year');
+    const user = await User.findById(req.user.id)
+      .populate('department', 'name code')
+      .populate('classId', 'name code level');
     
     if (user) {
       res.status(200).json({ success: true, data: user });
@@ -159,16 +177,16 @@ export const updateProfile = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     if (user) {
-      // SECURITY FIX: Explicitly define what can be updated.
-      // Do NOT allow updates to role, studentID, or classId here.
       user.name = req.body.name || user.name;
       user.phoneNumber = req.body.phoneNumber || user.phoneNumber;
       user.interests = req.body.interests || user.interests; 
       user.fcmToken = req.body.fcmToken || user.fcmToken; 
       user.profilePicture = req.body.profilePicture || user.profilePicture;
 
-      // Only an admin/HOD should change level, but if you allow students to do it:
-      user.level = req.body.level || user.level; 
+      // Only allow updating level if they are a student
+      if (user.role === 'student' && req.body.level) {
+        user.level = req.body.level; 
+      }
 
       if (req.body.password) {
         user.password = await bcrypt.hash(req.body.password, 12);
@@ -176,24 +194,12 @@ export const updateProfile = async (req, res) => {
 
       const updatedUser = await user.save();
       
-      // We must explicitly populate classId before returning the updated object
-      await updatedUser.populate('classId', 'name year');
+      await updatedUser.populate('department', 'name code');
+      await updatedUser.populate('classId', 'name code level');
 
       res.status(200).json({
         success: true,
-        user: {
-          _id: updatedUser._id,
-          name: updatedUser.name,
-          email: updatedUser.email,
-          role: updatedUser.role,
-          school: updatedUser.school,
-          department: updatedUser.department,
-          level: updatedUser.level,
-          interests: updatedUser.interests,
-          phoneNumber: updatedUser.phoneNumber,
-          profilePicture: updatedUser.profilePicture,
-          classInfo: updatedUser.classId 
-        }
+        user: updatedUser 
       });
     } else {
       res.status(404).json({ success: false, message: "User not found" });
@@ -238,7 +244,7 @@ export const enrollStudent = async (req, res) => {
       return res.status(400).json({ success: false, message: "Name, email, password, and classId are required" });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(classId)) {
+    if (!isValidId(classId)) {
       return res.status(400).json({ success: false, message: "Invalid class ID format" });
     }
 
@@ -247,15 +253,16 @@ export const enrollStudent = async (req, res) => {
       return res.status(409).json({ success: false, message: "Email already registered" });
     }
 
+    // SMART ENROLLMENT: We fetch the class so the student inherits its department and level!
     const targetClass = await Class.findById(classId);
     if (!targetClass) {
       return res.status(404).json({ success: false, message: "Class not found" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const newStudentID = await generateURStudentID(); // Make sure this function is rock solid
+    const newStudentID = await generateURStudentID(); 
 
-    // SCHEMA FIX: Using 'classId' everywhere consistently
+    // Create the student, inheriting the exact relational data from the Class they are joining
     const student = await User.create({
       name,
       email,
@@ -263,7 +270,9 @@ export const enrollStudent = async (req, res) => {
       phoneNumber,
       role: "student",
       studentID: newStudentID, 
-      classId: classId 
+      classId: classId,
+      department: targetClass.department, // INHERITED!
+      level: targetClass.level // INHERITED!
     });
 
     // Add student to the class array
@@ -272,8 +281,8 @@ export const enrollStudent = async (req, res) => {
       { $addToSet: { students: student._id } }
     );
 
-    // Populate the class data before returning it to the HOD's dashboard
-    await student.populate('classId', 'name year');
+    await student.populate('classId', 'name code level');
+    await student.populate('department', 'name');
 
     res.status(201).json({
       success: true,
@@ -284,6 +293,8 @@ export const enrollStudent = async (req, res) => {
         name: student.name,
         email: student.email,
         role: student.role,
+        department: student.department,
+        level: student.level,
         classInfo: student.classId 
       }
     });

@@ -5,7 +5,6 @@ const messageService = {
   getContacts: async () => {
     try {
       const response = await apiClient.get("/messages/contacts");
-      // response contains only the people the user is allowed to message
       return response.data;
     } catch (error) {
       console.error("Failed to fetch contacts:", error);
@@ -24,7 +23,7 @@ const messageService = {
     }
   },
 
-  // 3️⃣ Send a message (Text or File)
+  // 3️⃣ Send a standard direct message (Text or File)
   sendMessage: async (receiverId, content, file = null) => {
     try {
       const formData = new FormData();
@@ -46,7 +45,7 @@ const messageService = {
     }
   },
 
-  // 4️⃣ Optional: Vote on poll messages
+  // 4️⃣ Vote on poll messages
   voteOnPoll: async (messageId, optionIndex) => {
     try {
       const response = await apiClient.put(`/messages/${messageId}/vote`, { optionIndex });
@@ -55,7 +54,30 @@ const messageService = {
       console.error(`Failed to vote on poll ${messageId}:`, error);
       throw error;
     }
-  }
+  },
+
+  // 5️⃣ NEW: Send official HOD/Admin Omnichannel Notification (Email + Push + DB)
+  sendStaffNotification: async (notificationData) => {
+    try {
+      // payload expects: { targetUserId, email, name, fcmToken, message }
+      const response = await apiClient.post("/messages/notify", notificationData);
+      return response.data; // Expected output: { success: true, message: "..." }
+    } catch (error) {
+      console.error("Failed to send official staff notification:", error);
+      throw error; // Re-throw so your React component can catch and display the toast
+    }
+  },
+
+  // 6️⃣ Get Sent History for HOD
+  getSentHistory: async (page = 1) => {
+    try {
+      const response = await apiClient.get(`/messages/history?page=${page}&limit=10`);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch sent history:", error);
+      throw error;
+    }
+  },
 };
 
 export default messageService;

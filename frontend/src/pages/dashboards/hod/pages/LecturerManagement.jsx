@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
+import apiClient from "../../../../services/apiClient";
+import messageService from "../../../../services/messageService";
 import { toast, Toaster } from "react-hot-toast";
 import {
   Search,
@@ -14,33 +15,50 @@ import {
   Phone,
   X,
   Loader2,
+  MessageSquare,
+  User,
+  Activity,
+  Clock,
+  History,
+  ShieldCheck,
+  Send,
 } from "lucide-react";
 
 const LecturerManagement = () => {
-  // --- STATE ---
+  // --- CORE STATE ---
+  const [activeTab, setActiveTab] = useState("manage"); // "manage" | "history"
   const [lecturers, setLecturers] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [history, setHistory] = useState([]);
+
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 6;
 
-  // Modal States
+  // --- MODALS & PANELS ---
   const [assignModal, setAssignModal] = useState({
     isOpen: false,
     lecturerId: null,
   });
   const [selectedClassId, setSelectedClassId] = useState("");
-
   const [removeModal, setRemoveModal] = useState({
     isOpen: false,
     lecturerId: null,
     classId: null,
     className: "",
     lecturerName: "",
+  });
+  const [smsModal, setSmsModal] = useState({
+    isOpen: false,
+    lecturer: null,
+    message: "",
+  });
+  const [detailsPanel, setDetailsPanel] = useState({
+    isOpen: false,
+    lecturer: null,
   });
 
   const [processingAction, setProcessingAction] = useState(false);
@@ -50,19 +68,41 @@ const LecturerManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // Run both API calls at the same time for better performance
       const [lecturersRes, classesRes] = await Promise.all([
-        axios.get("/api/hod/lecturers"),
-        axios.get("/api/classes"),
+        apiClient.get("/classes/lecturers"),
+        apiClient.get("/classes"),
       ]);
-      setLecturers(lecturersRes.data);
-      setClasses(classesRes.data);
+
+      setLecturers(
+        Array.isArray(lecturersRes.data)
+          ? lecturersRes.data
+          : lecturersRes.data?.data || [],
+      );
+      setClasses(
+        Array.isArray(classesRes.data)
+          ? classesRes.data
+          : classesRes.data?.data || [],
+      );
     } catch (err) {
-      console.error(err);
-      setError("Failed to load department data. Please check your connection.");
-      toast.error("Failed to load department data");
+      setError(
+        err.response?.data?.message || "Failed to load department data.",
+      );
+      toast.error("Data Sync Failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      // Calling the history endpoint we discussed
+      const res = await messageService.getSentHistory(1);
+      setHistory(res.data || []);
+    } catch (err) {
+      toast.error("Could not retrieve dispatch logs.");
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -70,23 +110,24 @@ const LecturerManagement = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === "history") fetchHistory();
+  }, [activeTab]);
+
   // --- ACTIONS ---
   const handleAssignClass = async (e) => {
     e.preventDefault();
-    if (!selectedClassId) return;
-
     setProcessingAction(true);
     try {
-      await axios.post(`/api/hod/lecturers/${assignModal.lecturerId}/assign`, {
+      await apiClient.post(`/classes/assign/${assignModal.lecturerId}`, {
         classId: selectedClassId,
       });
-      // Refresh data to show changes
       await fetchData();
-      toast.success("Class assigned successfully!");
+      toast.success("Allocation updated successfully!");
       setAssignModal({ isOpen: false, lecturerId: null });
       setSelectedClassId("");
     } catch (err) {
-      toast.error("Error assigning class to lecturer.");
+      toast.error(err.response?.data?.message || "Error assigning class.");
     } finally {
       setProcessingAction(false);
     }
@@ -95,12 +136,11 @@ const LecturerManagement = () => {
   const handleRemoveClass = async () => {
     setProcessingAction(true);
     try {
-      await axios.delete(
-        `/api/hod/lecturers/${removeModal.lecturerId}/remove/${removeModal.classId}`,
+      await apiClient.delete(
+        `/classes/remove/${removeModal.lecturerId}/${removeModal.classId}`,
       );
-      // Refresh data to show changes
       await fetchData();
-      toast.success("Class removed successfully!");
+      toast.success("Allocation revoked.");
       setRemoveModal({
         isOpen: false,
         lecturerId: null,
@@ -108,8 +148,32 @@ const LecturerManagement = () => {
         className: "",
         lecturerName: "",
       });
+      if (detailsPanel.isOpen)
+        setDetailsPanel({ isOpen: false, lecturer: null });
     } catch (err) {
-      toast.error("Error removing class from lecturer.");
+      toast.error("Revoke failed.");
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    setProcessingAction(true);
+    try {
+      await messageService.sendStaffNotification({
+        targetUserId: smsModal.lecturer.id || smsModal.lecturer._id,
+        email: smsModal.lecturer.email,
+        name: smsModal.lecturer.name,
+        fcmToken: smsModal.lecturer.fcmToken,
+        message: smsModal.message,
+      });
+
+      toast.success("Omnichannel alert dispatched!");
+      setSmsModal({ isOpen: false, lecturer: null, message: "" });
+      if (activeTab === "history") fetchHistory(); // Refresh history if viewing it
+    } catch (err) {
+      toast.error("Dispatch Error: Target unreachable.");
     } finally {
       setProcessingAction(false);
     }
@@ -117,422 +181,313 @@ const LecturerManagement = () => {
 
   // --- FILTERING & PAGINATION ---
   const filteredLecturers = useMemo(() => {
-    return lecturers.filter(
+    return (lecturers || []).filter(
       (l) =>
-        l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        l.email.toLowerCase().includes(searchQuery.toLowerCase()),
+        (l?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (l?.email || "").toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [lecturers, searchQuery]);
 
-  const totalPages = Math.ceil(filteredLecturers.length / itemsPerPage);
-
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredLecturers.length / itemsPerPage),
+  );
   const paginatedLecturers = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredLecturers.slice(start, start + itemsPerPage);
   }, [filteredLecturers, currentPage]);
 
-  // Reset to page 1 when searching
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // --- UI RENDER ---
   return (
-    <div className="w-full min-h-screen bg-[#0A0A0A] text-white p-4 md:p-8 font-sans">
-      {/* Toast Notification Container */}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          style: {
-            background: "#141414",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.1)",
-          },
-          success: {
-            iconTheme: {
-              primary: "#3b82f6",
-              secondary: "#fff",
-            },
-          },
-        }}
-      />
+    <div className="w-full min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-[#050505] text-white p-4 md:p-8 font-sans relative overflow-hidden">
+      {/* Dynamic Background Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-          Department Lecturers
-        </h1>
-        <p className="text-neutral-400 mt-2 text-sm">
-          Manage class assignments and details for your department's teaching
-          staff.
-        </p>
-      </div>
+      <Toaster position="top-right" />
 
-      {/* Controls Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-        <div className="relative w-full md:w-96">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#141414] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-          />
-        </div>
-      </div>
+      <div className="relative z-10 max-w-7xl mx-auto">
+        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-black tracking-tighter text-white mb-2">
+              Staff Command
+            </h1>
+            <p className="text-neutral-500 text-sm">
+              Orchestrate department allocations and omnichannel communications.
+            </p>
+          </div>
 
-      {/* Error State */}
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl mb-6 flex items-center gap-3">
-          <AlertTriangle size={20} />
-          <p className="text-sm font-medium">{error}</p>
-          <button
-            onClick={fetchData}
-            className="ml-auto underline text-xs hover:text-red-300"
-          >
-            Retry
-          </button>
-        </div>
-      )}
+          {/* Tab Navigation System */}
+          <div className="flex p-1.5 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 w-fit">
+            <button
+              onClick={() => setActiveTab("manage")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === "manage" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-neutral-500 hover:text-white"}`}
+            >
+              <User size={14} /> DIRECTORY
+            </button>
+            <button
+              onClick={() => setActiveTab("history")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === "history" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-neutral-500 hover:text-white"}`}
+            >
+              <History size={14} /> DISPATCH LOGS
+            </button>
+          </div>
+        </header>
 
-      {/* Loading State */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <Loader2 className="animate-spin text-blue-500" size={40} />
-          <p className="text-neutral-400 font-medium animate-pulse">
-            Loading department data...
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* ---------------- DESKTOP TABLE ---------------- */}
-          <div className="hidden md:block overflow-x-auto bg-[#141414] border border-white/10 rounded-2xl shadow-xl">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-[#1A1A1A] text-neutral-400 uppercase tracking-wider text-xs font-semibold border-b border-white/10">
-                <tr>
-                  <th className="px-6 py-4">Lecturer</th>
-                  <th className="px-6 py-4">Contact</th>
-                  <th className="px-6 py-4">Assigned Classes</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {paginatedLecturers.length > 0 ? (
-                  paginatedLecturers.map((lecturer) => (
+        {activeTab === "manage" ? (
+          <>
+            {/* Search & Filter Bar */}
+            <div className="relative w-full md:w-96 mb-8 group">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-blue-400 transition-colors"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Search staff database..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all shadow-2xl"
+              />
+            </div>
+
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-32">
+                <Loader2 className="animate-spin text-blue-500" size={40} />
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedLecturers.map((lecturer) => (
+                    <div
+                      key={lecturer.id || lecturer._id}
+                      className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 hover:border-blue-500/30 transition-all hover:-translate-y-2 cursor-pointer relative overflow-hidden"
+                      onClick={() =>
+                        setDetailsPanel({ isOpen: true, lecturer })
+                      }
+                    >
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center font-black text-2xl text-blue-400">
+                          {lecturer.name?.charAt(0)}
+                        </div>
+                        <div
+                          className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${lecturer.assignedClasses?.length > 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-neutral-500/10 text-neutral-400 border-neutral-500/20"}`}
+                        >
+                          {lecturer.assignedClasses?.length > 0
+                            ? "ACTIVE"
+                            : "IDLE"}
+                        </div>
+                      </div>
+
+                      <h3 className="text-xl font-black mb-1 group-hover:text-blue-400 transition-colors">
+                        {lecturer.name}
+                      </h3>
+                      <p className="text-neutral-500 text-xs font-medium mb-6 flex items-center gap-2">
+                        <Mail size={12} /> {lecturer.email}
+                      </p>
+
+                      <div className="bg-black/40 rounded-2xl p-4 border border-white/5 mb-8">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
+                            Workload
+                          </span>
+                          <span className="text-xs font-bold text-blue-400">
+                            {lecturer.assignedClasses?.length || 0} Modules
+                          </span>
+                        </div>
+                        <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-blue-600 h-full transition-all duration-1000"
+                            style={{
+                              width: `${Math.min((lecturer.assignedClasses?.length || 0) * 25, 100)}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      <div
+                        className="flex gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() =>
+                            setSmsModal({ isOpen: true, lecturer, message: "" })
+                          }
+                          className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-[10px] font-black flex items-center justify-center gap-2 transition-all"
+                        >
+                          <MessageSquare size={14} /> NOTIFY
+                        </button>
+                        <button
+                          onClick={() =>
+                            setAssignModal({
+                              isOpen: true,
+                              lecturerId: lecturer.id || lecturer._id,
+                            })
+                          }
+                          className="flex-1 bg-blue-600 hover:bg-blue-500 rounded-xl py-3 text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20"
+                        >
+                          <Plus size={14} /> ALLOCATE
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="mt-12 flex items-center justify-center gap-4">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-3 bg-white/5 border border-white/10 rounded-2xl disabled:opacity-20 hover:bg-white/10 transition-all"
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <span className="text-xs font-black tracking-widest text-neutral-500 uppercase">
+                    Page {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="p-3 bg-white/5 border border-white/10 rounded-2xl disabled:opacity-20 hover:bg-white/10 transition-all"
+                  >
+                    <ChevronRight />
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          /* --- DISPATCH LOGS / HISTORY VIEW --- */
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4">
+            {historyLoading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="animate-spin text-blue-500" size={30} />
+              </div>
+            ) : (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-white/[0.03] text-neutral-500 uppercase text-[10px] font-black tracking-widest border-b border-white/10">
+                  <tr>
+                    <th className="px-8 py-6">Recipient</th>
+                    <th className="px-8 py-6">Message Content</th>
+                    <th className="px-8 py-6">Dispatch Date</th>
+                    <th className="px-8 py-6 text-right">Channels</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {history.map((log) => (
                     <tr
-                      key={lecturer.id}
+                      key={log._id}
                       className="hover:bg-white/[0.02] transition-colors"
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
-                            {lecturer.name.charAt(0)}
+                          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-blue-400">
+                            {log.studentId?.name?.charAt(0)}
                           </div>
                           <div>
-                            <p className="font-bold text-white">
-                              {lecturer.name}
+                            <p className="font-bold text-white text-xs">
+                              {log.studentId?.name}
                             </p>
-                            <p className="text-xs text-neutral-500">
-                              ID: {lecturer.id}
+                            <p className="text-[10px] text-neutral-500 font-medium">
+                              {log.studentId?.email}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-neutral-300">
-                            <Mail size={14} className="text-neutral-500" />{" "}
-                            {lecturer.email}
-                          </div>
-                          <div className="flex items-center gap-2 text-neutral-300">
-                            <Phone size={14} className="text-neutral-500" />{" "}
-                            {lecturer.phone}
-                          </div>
-                        </div>
+                      <td className="px-8 py-5 text-neutral-300 max-w-xs truncate italic text-xs">
+                        "{log.message}"
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-2 max-w-[300px]">
-                          {lecturer.assignedClasses?.map((cls) => (
-                            <div
-                              key={cls.id}
-                              className="group flex items-center gap-1.5 bg-blue-600/10 border border-blue-500/20 text-blue-300 px-2.5 py-1 rounded-lg text-xs font-medium"
-                            >
-                              <BookOpen size={12} />
-                              {cls.name}
-                              <button
-                                onClick={() =>
-                                  setRemoveModal({
-                                    isOpen: true,
-                                    lecturerId: lecturer.id,
-                                    classId: cls.id,
-                                    className: cls.name,
-                                    lecturerName: lecturer.name,
-                                  })
-                                }
-                                title="Remove class"
-                                className="ml-1 text-blue-400/50 hover:text-red-400 hover:bg-red-400/10 rounded-full p-0.5 transition-all"
-                              >
-                                <X size={12} />
-                              </button>
-                            </div>
-                          ))}
-                          {(!lecturer.assignedClasses ||
-                            lecturer.assignedClasses.length === 0) && (
-                            <span className="text-neutral-500 italic text-xs">
-                              No classes assigned
-                            </span>
-                          )}
-                        </div>
+                      <td className="px-8 py-5 text-neutral-500 text-xs font-medium">
+                        {new Date(log.createdAt).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() =>
-                              setAssignModal({
-                                isOpen: true,
-                                lecturerId: lecturer.id,
-                              })
-                            }
-                            className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg transition-colors text-xs font-semibold border border-white/10"
+                      <td className="px-8 py-5 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <span
+                            className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/10"
+                            title="Email dispatched"
                           >
-                            <Plus size={14} /> Assign Class
-                          </button>
-                          <button
-                            title="Edit Info"
-                            className="p-1.5 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                            <Mail size={14} />
+                          </span>
+                          <span
+                            className="p-1.5 bg-purple-500/10 text-purple-400 rounded-lg border border-purple-500/10"
+                            title="Push alert dispatched"
                           >
-                            <Edit size={16} />
-                          </button>
+                            <Activity size={14} />
+                          </span>
                         </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      className="px-6 py-8 text-center text-neutral-500"
-                    >
-                      No lecturers found matching your search.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ---------------- MOBILE CARDS ---------------- */}
-          <div className="md:hidden space-y-4">
-            {paginatedLecturers.length > 0 ? (
-              paginatedLecturers.map((lecturer) => (
-                <div
-                  key={lecturer.id}
-                  className="bg-[#141414] border border-white/10 rounded-2xl p-5 shadow-lg"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-lg">
-                        {lecturer.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white text-lg">
-                          {lecturer.name}
-                        </h3>
-                        <p className="text-xs text-neutral-500">
-                          ID: {lecturer.id}
-                        </p>
-                      </div>
-                    </div>
-                    <button className="p-2 text-neutral-400 hover:text-white bg-white/5 rounded-lg">
-                      <Edit size={16} />
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 mb-4 bg-black/50 p-3 rounded-xl border border-white/5">
-                    <div className="flex items-center gap-3 text-sm text-neutral-300">
-                      <Mail size={16} className="text-neutral-500" />{" "}
-                      {lecturer.email}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-neutral-300">
-                      <Phone size={16} className="text-neutral-500" />{" "}
-                      {lecturer.phone}
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-xs uppercase tracking-wider text-neutral-500 font-bold mb-2">
-                      Assigned Classes
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {lecturer.assignedClasses?.map((cls) => (
-                        <div
-                          key={cls.id}
-                          className="flex items-center gap-2 bg-blue-600/10 border border-blue-500/20 text-blue-300 px-3 py-1.5 rounded-lg text-sm font-medium w-full justify-between"
-                        >
-                          <div className="flex items-center gap-2">
-                            <BookOpen size={14} /> {cls.name}
-                          </div>
-                          <button
-                            onClick={() =>
-                              setRemoveModal({
-                                isOpen: true,
-                                lecturerId: lecturer.id,
-                                classId: cls.id,
-                                className: cls.name,
-                                lecturerName: lecturer.name,
-                              })
-                            }
-                            className="p-1 text-blue-400/60 hover:text-red-400 bg-black/20 hover:bg-red-400/10 rounded-md transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))}
-                      {(!lecturer.assignedClasses ||
-                        lecturer.assignedClasses.length === 0) && (
-                        <span className="text-neutral-500 italic text-sm">
-                          No classes assigned
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() =>
-                      setAssignModal({ isOpen: true, lecturerId: lecturer.id })
-                    }
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-bold transition-colors"
-                  >
-                    <Plus size={18} /> Assign New Class
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-neutral-500 bg-[#141414] rounded-2xl border border-white/10">
-                No lecturers found.
-              </div>
+                  ))}
+                  {history.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="text-center py-20 text-neutral-500 font-bold uppercase tracking-widest text-xs"
+                      >
+                        No dispatch records found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             )}
           </div>
+        )}
+      </div>
 
-          {/* ---------------- PAGINATION ---------------- */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6 bg-[#141414] p-4 rounded-xl border border-white/10">
-              <p className="text-sm text-neutral-400 hidden sm:block">
-                Showing{" "}
-                <span className="text-white font-medium">
-                  {(currentPage - 1) * itemsPerPage + 1}
-                </span>{" "}
-                to{" "}
-                <span className="text-white font-medium">
-                  {Math.min(
-                    currentPage * itemsPerPage,
-                    filteredLecturers.length,
-                  )}
-                </span>{" "}
-                of{" "}
-                <span className="text-white font-medium">
-                  {filteredLecturers.length}
-                </span>
-              </p>
+      {/* --- NOTIFY MODAL (OMNICHANNEL) --- */}
+      {smsModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-black mb-1 flex items-center gap-2 text-white">
+              <ShieldCheck className="text-blue-500" /> Dispatch Memo
+            </h3>
+            <p className="text-neutral-500 text-xs font-medium mb-8">
+              Send an official administrative alert to{" "}
+              <b>{smsModal.lecturer.name}</b> via Email & Push.
+            </p>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-white/5 transition-colors"
-                >
-                  <ChevronLeft size={16} /> Prev
-                </button>
-                <div className="flex gap-1">
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
-                        currentPage === i + 1
-                          ? "bg-blue-600 text-white"
-                          : "text-neutral-400 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+            <form onSubmit={handleSendNotification}>
+              <div className="mb-6">
+                <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">
+                  Official Message
+                </label>
+                <textarea
+                  required
+                  value={smsModal.message}
+                  onChange={(e) =>
+                    setSmsModal({ ...smsModal, message: e.target.value })
                   }
-                  disabled={currentPage === totalPages}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm font-medium hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-white/5 transition-colors"
-                >
-                  Next <ChevronRight size={16} />
-                </button>
+                  placeholder="Type the assignment or department update here..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm min-h-[160px] outline-none focus:border-blue-500 transition-all text-white custom-scrollbar shadow-inner"
+                />
               </div>
-            </div>
-          )}
-        </>
-      )}
 
-      {/* ---------------- ASSIGN CLASS MODAL ---------------- */}
-      {assignModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-white/5 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-white">
-                Assign Class to Lecturer
-              </h3>
-              <button
-                onClick={() =>
-                  setAssignModal({ isOpen: false, lecturerId: null })
-                }
-                className="text-neutral-500 hover:text-white bg-white/5 hover:bg-white/10 p-1.5 rounded-lg transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <form onSubmit={handleAssignClass} className="p-6">
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
-                Select Class
-              </label>
-              <select
-                value={selectedClassId}
-                onChange={(e) => setSelectedClassId(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
-                required
-              >
-                <option value="" disabled>
-                  -- Choose a class from the list --
-                </option>
-                {classes.map((cls) => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name} ({cls.code})
-                  </option>
-                ))}
-              </select>
-
-              <div className="mt-8 flex gap-3 justify-end">
+              <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() =>
-                    setAssignModal({ isOpen: false, lecturerId: null })
+                    setSmsModal({ isOpen: false, lecturer: null, message: "" })
                   }
-                  className="px-4 py-2 rounded-xl text-sm font-bold text-neutral-300 hover:bg-white/5 transition-colors"
+                  className="flex-1 py-4 text-xs font-black text-neutral-500 hover:text-white transition-all"
                 >
-                  Cancel
+                  CANCEL
                 </button>
                 <button
-                  type="submit"
-                  disabled={processingAction || !selectedClassId}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors shadow-lg shadow-blue-500/20"
+                  disabled={processingAction || !smsModal.message.trim()}
+                  className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-black tracking-widest shadow-lg shadow-blue-600/30 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                 >
                   {processingAction ? (
                     <Loader2 className="animate-spin" size={16} />
                   ) : (
-                    "Save Assignment"
+                    <>
+                      <Send size={14} /> DISPATCH NOW
+                    </>
                   )}
                 </button>
               </div>
@@ -541,53 +496,199 @@ const LecturerManagement = () => {
         </div>
       )}
 
-      {/* ---------------- REMOVE CONFIRMATION MODAL ---------------- */}
-      {removeModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#141414] border border-red-500/20 rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle size={32} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">
-              Remove Assignment
-            </h3>
-            <p className="text-neutral-400 text-sm mb-6">
-              Are you sure you want to remove{" "}
-              <span className="text-white font-bold">
-                {removeModal.className}
-              </span>{" "}
-              from{" "}
-              <span className="text-white font-bold">
-                {removeModal.lecturerName}
-              </span>
-              ? This action takes effect immediately.
-            </p>
+      {/* --- SLIDE-OVER DETAILS PANEL --- */}
+      {detailsPanel.isOpen && detailsPanel.lecturer && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110]"
+            onClick={() => setDetailsPanel({ isOpen: false, lecturer: null })}
+          ></div>
+          <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-[#0A0A0A] border-l border-white/10 z-[120] p-10 animate-in slide-in-from-right duration-500 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+            <button
+              onClick={() => setDetailsPanel({ isOpen: false, lecturer: null })}
+              className="absolute top-8 right-8 p-3 hover:bg-white/5 rounded-2xl transition-all text-neutral-500 hover:text-white"
+            >
+              <X />
+            </button>
 
-            <div className="flex gap-3 w-full">
+            <div className="flex flex-col items-center text-center mt-12 mb-12">
+              <div className="w-28 h-28 rounded-[2rem] bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-4xl font-black text-blue-400 mb-6 shadow-2xl shadow-blue-500/10">
+                {detailsPanel.lecturer.name.charAt(0)}
+              </div>
+              <h2 className="text-3xl font-black mb-1">
+                {detailsPanel.lecturer.name}
+              </h2>
+              <p className="text-neutral-500 text-sm font-medium mb-6 uppercase tracking-widest">
+                Senior Faculty Member
+              </p>
+              <div className="flex gap-4">
+                <span className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl text-xs font-bold border border-white/10">
+                  <Mail size={12} /> EMAIL
+                </span>
+                <span className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl text-xs font-bold border border-white/10">
+                  <Phone size={12} /> CALL
+                </span>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+              <div className="mb-10">
+                <div className="flex justify-between items-center mb-6">
+                  <h4 className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
+                    Course Allocations
+                  </h4>
+                  <button
+                    onClick={() =>
+                      setAssignModal({
+                        isOpen: true,
+                        lecturerId:
+                          detailsPanel.lecturer.id || detailsPanel.lecturer._id,
+                      })
+                    }
+                    className="text-[10px] font-black text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/10 hover:bg-blue-500/20 transition-all"
+                  >
+                    + ADD NEW
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {detailsPanel.lecturer.assignedClasses?.map((cls) => (
+                    <div
+                      key={cls.id}
+                      className="group flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-3xl hover:border-blue-500/30 transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
+                          <BookOpen size={18} />
+                        </div>
+                        <div>
+                          <p className="font-black text-sm">{cls.name}</p>
+                          <p className="text-[10px] text-neutral-500 font-bold uppercase">
+                            {cls.code} • Level {cls.level}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRemoveModal({
+                            isOpen: true,
+                            lecturerId:
+                              detailsPanel.lecturer.id ||
+                              detailsPanel.lecturer._id,
+                            classId: cls.id,
+                            className: cls.name,
+                            lecturerName: detailsPanel.lecturer.name,
+                          });
+                        }}
+                        className="p-3 text-red-400 hover:bg-red-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() =>
+                setSmsModal({
+                  isOpen: true,
+                  lecturer: detailsPanel.lecturer,
+                  message: "",
+                })
+              }
+              className="mt-6 w-full py-5 bg-white/5 border border-white/10 rounded-3xl text-xs font-black tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-3"
+            >
+              <Send size={14} /> DISPATCH DIRECTIVE
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* --- ALLOCATE CLASS MODAL --- */}
+      {assignModal.isOpen && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl">
+            <h3 className="text-xl font-black mb-8 flex items-center gap-3">
+              <BookOpen className="text-blue-500" /> Module Allocation
+            </h3>
+            <form onSubmit={handleAssignClass}>
+              <div className="mb-8">
+                <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">
+                  Available Modules
+                </label>
+                <select
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-blue-500 transition-all appearance-none text-white font-bold shadow-inner"
+                >
+                  <option value="" className="bg-black">
+                    Choose module...
+                  </option>
+                  {classes.map((c) => (
+                    <option
+                      key={c.id || c._id}
+                      value={c.id || c._id}
+                      className="bg-black"
+                    >
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAssignModal({ isOpen: false, lecturerId: null })
+                  }
+                  className="flex-1 py-4 text-xs font-black text-neutral-500 hover:text-white transition-all"
+                >
+                  CANCEL
+                </button>
+                <button
+                  disabled={!selectedClassId || processingAction}
+                  className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-black tracking-widest disabled:opacity-50 shadow-lg shadow-blue-600/30"
+                >
+                  {processingAction ? (
+                    <Loader2 className="animate-spin mx-auto" />
+                  ) : (
+                    "UPDATE LOAD"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- REMOVE MODAL --- */}
+      {removeModal.isOpen && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+          <div className="bg-[#0A0A0A] border border-red-500/20 rounded-[2.5rem] w-full max-w-xs p-8 shadow-2xl text-center">
+            <div className="w-20 h-20 bg-red-500/10 border border-red-500/10 rounded-[2rem] flex items-center justify-center text-red-500 mx-auto mb-6">
+              <AlertTriangle size={36} />
+            </div>
+            <h3 className="text-xl font-black mb-2 text-white italic underline">
+              SECURITY CHECK
+            </h3>
+            <p className="text-neutral-500 text-xs font-medium mb-8">
+              Revoke <b>{removeModal.className}</b> from{" "}
+              <b>{removeModal.lecturerName}</b>?
+            </p>
+            <div className="flex gap-4">
               <button
-                onClick={() =>
-                  setRemoveModal({
-                    isOpen: false,
-                    lecturerId: null,
-                    classId: null,
-                    className: "",
-                    lecturerName: "",
-                  })
-                }
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                onClick={() => setRemoveModal({ isOpen: false })}
+                className="flex-1 py-3 text-xs font-black text-neutral-500"
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={handleRemoveClass}
-                disabled={processingAction}
-                className="flex-1 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-red-600/20"
+                className="flex-1 py-3 bg-red-600 rounded-2xl text-xs font-black shadow-lg shadow-red-600/30"
               >
-                {processingAction ? (
-                  <Loader2 className="animate-spin" size={16} />
-                ) : (
-                  "Yes, Remove"
-                )}
+                REVOKE
               </button>
             </div>
           </div>

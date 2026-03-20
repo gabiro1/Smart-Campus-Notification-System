@@ -1,6 +1,8 @@
 import express from "express";
 import { sendMessage, getMessages, getContacts, voteOnPoll } from "../controller/messageController.js";
-import { protect } from "../../../middleware/authMiddleware.js"; 
+// 1. ADD getSentHistory to your imports here
+import { sendNotification, getSentHistory } from "../../notification/controllers/notificationController.js"; 
+import { protect, authorize } from "../../../middleware/authMiddleware.js"; 
 import upload from "../../../middleware/uploadMiddleware.js"; 
 
 const router = express.Router();
@@ -10,22 +12,33 @@ router.use(protect);
 
 /**
  * @route   GET /api/messages/contacts
- * @desc    Fetch allowed people to message (filtered by role/security)
  */
 router.get("/contacts", getContacts);
 
 /**
+ * @route   GET /api/messages/history
+ * @desc    Fetch HOD's sent notification logs
+ * 🛡️ CRITICAL: Must be placed BEFORE /:otherUserId
+ */
+router.get("/history", authorize('hod', 'admin'), getSentHistory);
+
+/**
+ * @route   POST /api/messages/notify
+ * @desc    Send Omnichannel Notification
+ */
+router.post("/notify", authorize('hod', 'admin'), sendNotification);
+
+/**
  * @route   POST /api/messages
- * @desc    Send a rich message (Text + Optional File)
- * @logic   upload.single('file') intercepts the file before it hits the controller
  */
 router.post("/", upload.single('file'), sendMessage);
 
 /**
  * @route   GET /api/messages/:otherUserId
- * @desc    Get the private chat history with a specific person
+ * @desc    Catch-all for direct messages
  */
 router.get("/:otherUserId", getMessages);
+
 router.put("/:messageId/vote", voteOnPoll);
 
 export default router;

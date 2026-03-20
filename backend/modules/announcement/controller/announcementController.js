@@ -345,3 +345,49 @@ export const updateAnnouncement = async (req, res) => {
     res.status(500).json({ message: "Failed to update broadcast" });
   }
 };
+
+
+// NEW: High-Performance Aggregation Endpoint
+export const getLecturerStats = async (req, res) => {
+  try {
+    const lecturerId = req.user._id;
+
+    // The Aggregation Pipeline
+    const stats = await Announcement.aggregate([
+      // 1. Filter: Only get announcements created by this specific lecturer
+      { $match: { lecturer: lecturerId } },
+      
+      // 2. Group & Calculate: Condense all documents into a single summary object
+      {
+        $group: {
+          _id: null, // We want one grand total, so we group by null
+          totalSent: { $sum: 1 }, // Count every document
+          totalViews: { $sum: { $size: { $ifNull: ["$viewedBy", []] } } }, // Sum the length of the viewedBy arrays
+          totalComments: { $sum: { $size: { $ifNull: ["$comments", []] } } }, // Sum the length of the comments arrays
+          uniqueCourses: { $addToSet: "$course" } // Collect unique course IDs into a set
+        }
+      },
+      
+      // 3. Format: Clean up the output to make it easy for the frontend to consume
+      {
+        $project: {
+          _id: 0,
+          totalSent: 1,
+          totalViews: 1,
+          totalComments: 1,
+          activeCourses: { $size: "$uniqueCourses" } // Count the unique courses
+        }
+      }
+    ]);
+
+    // If the lecturer has no announcements, the aggregation returns an empty array.
+    // We provide a fallback object full of zeros.
+    const defaultStats = { totalSent: 0, totalViews: 0, totalComments: 0, activeCourses: 0 };
+    const finalStats = stats.length > 0 ? stats[0] : defaultStats;
+
+    res.status(200).json({ success: true, data: finalStats });
+  } catch (error) {
+    console.error("Dashboard Stats Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};

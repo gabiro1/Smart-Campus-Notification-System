@@ -1,126 +1,127 @@
+import mongoose from "mongoose";
+import nodemailer from "nodemailer";
 import User from "../../user/model/User.js";
-import mongoose from 'mongoose';
+import NotificationLog from "../models/NotificationLog.js";
+import { sendPushNotification } from "../../../config/firebaseAdmin.js";
 
-
-// @desc    Get all notifications for current user (Powers the Bell Icon)
-export const getNotifications = async (req, res) => {
-    try {
-        const { page = 1, limit = 20 } = req.query;
-        const skip = (page - 1) * limit;
-
-        // Fetch user's notifications (both events and system alerts)
-        const notifications = await NotificationLog.find({ studentId: req.user.id })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit))
-            .populate('eventId', 'title description date time location'); // Only populates if eventId exists
-
-        const total = await NotificationLog.countDocuments({ studentId: req.user.id });
-        const unreadCount = await NotificationLog.countDocuments({ studentId: req.user.id, status: 'unread' });
-
-        res.json({
-            notifications,
-            unreadCount, // Added to instantly tell the frontend how many red dots to show
-            pagination: {
-                total,
-                pages: Math.ceil(total / limit),
-                currentPage: parseInt(page)
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+// --- HELPERS ---
+const getTransporter = () => {
+    return nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_APP_PASSWORD,
+        },
+    });
 };
 
-// @desc    Mark a specific notification as Read
-export const markAsRead = async (req, res) => {
-    try {
-        // FIXED: Now queries by the specific Notification _id instead of eventId
-        const log = await NotificationLog.findOneAndUpdate(
-            { _id: req.params.id, studentId: req.user.id },
-            { status: 'read', readAt: Date.now() },
-            { new: true }
-        );
+const escapeHTML = (str) => {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+};
 
-        if (!log) {
-            return res.status(404).json({ message: "Notification not found" });
+// ==========================================
+// 1. DISPATCH (HOD / ADMIN)
+// ==========================================
+
+export const sendNotification = async (req, res) => {
+    try {
+        const { targetUserId, email, name, fcmToken, message } = req.body;
+        if (!email || !message || !targetUserId) {
+            return res.status(400).json({ message: "Incomplete dispatch payload." });
         }
 
-        res.json({ success: true, log });
+        const tasks = [];
+        const channels = ["Email", "Database_Log"];
+
+        // Email Task
+        const transporter = getTransporter();
+        tasks.push(transporter.sendMail({
+            from: `"Dept Admin" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Official Department Directive",
+            html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #1e40af;">Official Assignment</h2>
+                    <p>Dear <strong>${name || "Staff Member"}</strong>,</p>
+                    <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #1e40af; color: #1e293b;">
+                        ${escapeHTML(message)}
+                    </div>
+                   </div>`,
+        }));
+
+        // DB Log Task
+        tasks.push(NotificationLog.create({
+            studentId: targetUserId,
+            senderId: req.user.id,
+            title: "Staff Directive",
+            message: message,
+            status: "unread",
+            type: "action"
+        }));
+
+        // Push Task
+        if (fcmToken) {
+            channels.push("Push_Notification");
+            tasks.push(sendPushNotification(fcmToken, "New Directive", message.substring(0, 80)));
+        }
+
+        const results = await Promise.allSettled(tasks);
+        res.status(200).json({ success: true, report: results.map((r, i) => ({ channel: channels[i], status: r.status })) });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "Dispatch failed." });
     }
 };
 
-// @desc    Mark all notifications as read for current user
-export const markAllAsRead = async (req, res) => {
+export const getSentHistory = async (req, res) => {
     try {
-        const result = await NotificationLog.updateMany(
-            { studentId: req.user.id, status: 'unread' },
-            { status: 'read', readAt: Date.now() }
-        );
+        const { page = 1, limit = 10 } = req.query;
+        const history = await NotificationLog.find({ senderId: req.user.id })
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .populate("studentId", "name email")
+            .lean();
 
-        res.json({
-            success: true,
-            message: `Marked ${result.modifiedCount} notifications as read`
-        });
+        const total = await NotificationLog.countDocuments({ senderId: req.user.id });
+        res.json({ success: true, data: history, pagination: { total, pages: Math.ceil(total / limit) } });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "History fetch failed." });
     }
 };
 
-// @desc    Get Stats for Admin (The "Read Receipts" Dashboard)
-export const getEventStats = async (req, res) => {
+// ==========================================
+// 2. INBOX & UTILITIES (USER SIDE)
+// ==========================================
+
+export const getNotifications = async (req, res) => {
     try {
-        const totalSent = await NotificationLog.countDocuments({ eventId: req.params.eventId });
-        const totalRead = await NotificationLog.countDocuments({ 
-            eventId: req.params.eventId, 
-            status: 'read' 
-        });
+        const notifications = await NotificationLog.find({ studentId: req.user.id })
+            .sort({ createdAt: -1 })
+            .populate("eventId", "title date time location")
+            .lean();
 
-        res.json({
-            eventId: req.params.eventId,
-            stats: {
-                sent: totalSent,
-                read: totalRead,
-                readRate: totalSent > 0 ? (totalRead / totalSent) * 100 : 0
-            }
-        });
+        const unreadCount = await NotificationLog.countDocuments({ studentId: req.user.id, status: "unread" });
+        res.json({ notifications, unreadCount });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Get AI Insights (Most active interests)
-export const getAIInsights = async (req, res) => {
-    try {
-        // Aggregates interests from all students in a specific department
-        const insights = await User.aggregate([
-            { $match: { department: req.query.dept } },
-            { $unwind: "$interests" },
-            { $group: { _id: "$interests", count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-        ]);
-        res.json(insights);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// @desc    Get single notification details
+// THE MISSING PIECE THAT CAUSED YOUR CRASH
 export const getNotificationDetails = async (req, res) => {
     try {
         const notification = await NotificationLog.findById(req.params.id)
-            .populate('eventId')
-            .populate('studentId', 'name email');
+            .populate("eventId")
+            .populate("studentId", "name email")
+            .lean();
 
-        if (!notification) {
-            return res.status(404).json({ message: "Notification not found" });
-        }
+        if (!notification) return res.status(404).json({ message: "Notification not found" });
 
-        // Check authorization - user can only see their own notifications
+        // Security check: User can only see their own notification
         if (notification.studentId._id.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Not authorized to view this notification" });
+            return res.status(403).json({ message: "Unauthorized access" });
         }
 
         res.json(notification);
@@ -129,78 +130,82 @@ export const getNotificationDetails = async (req, res) => {
     }
 };
 
-// @desc    Delete a specific notification
-export const deleteNotification = async (req, res) => {
+export const markAsRead = async (req, res) => {
     try {
-        const notification = await NotificationLog.findById(req.params.id);
-
-        if (!notification) {
-            return res.status(404).json({ message: "Notification not found" });
-        }
-
-        // Check authorization
-        if (notification.studentId.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Not authorized to delete this notification" });
-        }
-
-        await NotificationLog.findByIdAndDelete(req.params.id);
-
-        res.json({ message: "Notification deleted successfully" });
+        await NotificationLog.findOneAndUpdate(
+            { _id: req.params.id, studentId: req.user.id },
+            { status: "read", readAt: Date.now() }
+        );
+        res.json({ success: true });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Get notification summary for current user
+export const markAllAsRead = async (req, res) => {
+    try {
+        await NotificationLog.updateMany({ studentId: req.user.id, status: "unread" }, { status: "read", readAt: Date.now() });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const getNotificationSummary = async (req, res) => {
     try {
-        const userId = req.user.id;
-
-        const totalCount = await NotificationLog.countDocuments({ studentId: userId });
-        const unreadCount = await NotificationLog.countDocuments({ studentId: userId, status: 'unread' });
-        const readCount = await NotificationLog.countDocuments({ studentId: userId, status: 'read' });
-
-        // Get summary by event
-        const byEvent = await NotificationLog.aggregate([
-            { $match: { studentId: new mongoose.Types.ObjectId(userId) } }, // Fixed mongoose ObjectId instantiation
-            { $group: {
-                _id: '$eventId',
-                count: { $sum: 1 },
-                unread: { $sum: { $cond: [{ $eq: ['$status', 'unread'] }, 1, 0] } }
-            }},
-            { $lookup: {
-                from: 'events',
-                localField: '_id',
-                foreignField: '_id',
-                as: 'event'
-            }},
-            { $unwind: { path: '$event', preserveNullAndEmptyArrays: true } }
+        const [total, unread, read] = await Promise.all([
+            NotificationLog.countDocuments({ studentId: req.user.id }),
+            NotificationLog.countDocuments({ studentId: req.user.id, status: 'unread' }),
+            NotificationLog.countDocuments({ studentId: req.user.id, status: 'read' })
         ]);
-
-        res.json({
-            summary: {
-                total: totalCount,
-                unread: unreadCount,
-                read: readCount
-            },
-            byEvent
-        });
+        res.json({ summary: { total, unread, read } });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Get unread notification count
 export const getUnreadCount = async (req, res) => {
     try {
-        const unreadCount = await NotificationLog.countDocuments({
-            studentId: req.user.id,
-            status: 'unread'
-        });
+        const count = await NotificationLog.countDocuments({ studentId: req.user.id, status: "unread" });
+        res.json({ unreadCount: count });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-        res.json({
-            unreadCount
-        });
+// ==========================================
+// 3. ADMIN ANALYTICS
+// ==========================================
+
+export const getEventStats = async (req, res) => {
+    try {
+        const totalSent = await NotificationLog.countDocuments({ eventId: req.params.eventId });
+        const totalRead = await NotificationLog.countDocuments({ eventId: req.params.eventId, status: "read" });
+        res.json({ stats: { sent: totalSent, read: totalRead, rate: totalSent > 0 ? (totalRead / totalSent) * 100 : 0 } });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getAIInsights = async (req, res) => {
+    try {
+        const insights = await User.aggregate([
+            { $match: { department: req.query.dept } },
+            { $unwind: "$interests" },
+            { $group: { _id: "$interests", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+        ]);
+        res.json(insights);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const deleteNotification = async (req, res) => {
+    try {
+        const notification = await NotificationLog.findOneAndDelete({ _id: req.params.id, studentId: req.user.id });
+        if (!notification) return res.status(404).json({ message: "Not found" });
+        res.json({ message: "Deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -1,6 +1,9 @@
+// 1. CONFIGURATION
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import path from 'path';
 import cors from 'cors'; // Added for Frontend connectivity
 import userRoutes from './modules/user/routes/userRoutes.js';
@@ -18,8 +21,6 @@ import departmentRoutes from './modules/department/route/departmentRoutes.js';
 import courseRoutes from './modules/course/routes/courseRoutes.js'; // For course management features
 import studentRoutes from './modules/student/routes/studentRoutes.js';
 
-// 1. CONFIGURATION
-dotenv.config();
 const app = express();
 
 // 2. MIDDLEWARE
