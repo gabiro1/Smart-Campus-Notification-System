@@ -1,7 +1,9 @@
 import Message from "../model/Message.js";
 import User from "../../user/model/User.js";
 import Class from "../../class/model/Class.js";
+import Conversation from "../model/Conversation.js";
 import { bucket } from "../../../config/firebaseAdmin.js";
+import { getReceiverSocketId, io } from "../../../utils/socketServer.js";
 
 // @desc    Get allowed contacts based on user role
 // @route   GET /api/messages/contacts
@@ -55,44 +57,70 @@ export const getContacts = async (req, res) => {
 
 // @desc    Send a message (Text or File)
 // @route   POST /api/messages
-// Helper: Get allowed contacts for current user
+// Helper: Get allowed contacts for current user (returns array of string IDs)
 const getAllowedContactIds = async (user) => {
+  if (!user || !user.role) return [];
+  let allowedIds = [];
   const userRole = user.role.toLowerCase();
-  let contactIds = [];
 
-  if (userRole === "student") {
-    const classes = await ClassModel.find({ studentIds: user._id });
-    contactIds = classes.flatMap(c => c.lecturerIds);
-
-  } else if (userRole === "lecturer") {
-    const classes = await ClassModel.find({ lecturerIds: user._id });
-    const studentIds = classes.flatMap(c => c.studentIds);
-    const hodIds = classes.map(c => c.hodId);
-    contactIds = [...new Set([...studentIds, ...hodIds])]; // remove duplicates
-
-  } else if (userRole === "hod") {
-    const departmentUsers = await User.find({ department: user.department });
-    contactIds = departmentUsers.map(u => u._id);
-
-  } else if (userRole === "admin") {
-    const allUsers = await User.find();
-    contactIds = allUsers.map(u => u._id);
+  try {
+    if (userRole === "lecturer") {
+      const classes = await Class.find({ lecturers: user.id });
+      allowedIds = classes.flatMap(c => c.students);
+    } 
+    else if (userRole === "student") {
+      const classes = await Class.find({ students: user.id });
+      allowedIds = classes.flatMap(c => c.lecturers);
+    } 
+    else {
+      let allowedRoles = [];
+      switch(userRole) {
+        case "hod":
+          allowedRoles = ["student", "lecturer", "dean", "principal"];
+          break;
+        case "admin":
+          allowedRoles = ["student","lecturer","hod","dean","principal","guild_president"];
+          break;
+        case "principal":
+        case "dean":
+          allowedRoles = ["hod","lecturer","admin"];
+          break;
+      }
+      const users = await User.find({ role: { $in: allowedRoles } }).select("_id");
+      allowedIds = users.map(u => u._id);
+    }
+    // Return strings to safely use .includes() later, filter out self
+    return allowedIds.map(id => id.toString()).filter(id => id !== user.id.toString());
+  } catch (error) {
+    console.error("Error resolving allowed contacts:", error);
+    return [];
   }
-
-  // remove self
-  return contactIds.filter(id => id.toString() !== user._id.toString());
 };
 
 // Send a message with class-based permissions
 export const sendMessage = async (req, res) => {
   try {
+    // 1️⃣ Authentication Check
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "Unauthorized. User authentication token required." });
+    }
+
     const { receiverId, content, messageType } = req.body;
     const senderId = req.user._id;
 
-    // 1️⃣ Permission check
+    // 2️⃣ Input Validation
+    if (!receiverId) {
+      return res.status(400).json({ message: "Bad Request: receiverId is required." });
+    }
+    if (!content && !req.file) {
+      return res.status(400).json({ message: "Bad Request: Message cannot be empty." });
+    }
+
+    // 3️⃣ Permission check
     const allowedContacts = await getAllowedContactIds(req.user);
-    if (!allowedContacts.includes(receiverId)) {
-      return res.status(403).json({ message: "You are not allowed to message this user." });
+    if (!allowedContacts.includes(receiverId.toString())) {
+      console.warn(`[Access Denied] User ${senderId} attempted to message ${receiverId}`);
+      return res.status(403).json({ message: "Forbidden: You do not have permission to message this contact." });
     }
 
     // 2️⃣ Handle file upload if present
@@ -134,11 +162,55 @@ export const sendMessage = async (req, res) => {
       file: fileData,
     });
 
+    // 4️⃣ Handle Conversation
+    let conversation = await Conversation.findOne({
+      participants: { $all: [senderId, receiverId] }
+    });
+    
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [senderId, receiverId],
+        lastMessage: newMessage._id
+      });
+    } else {
+      conversation.lastMessage = newMessage._id;
+      await conversation.save();
+    }
+
+    // 5️⃣ Emit Socket Event for real-time sync
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
+
     res.status(201).json(newMessage);
 
   } catch (error) {
-    console.error("Message Error:", error);
-    res.status(500).json({ message: "Failed to send message" });
+    console.error("==== MESSAGE ERROR DETAILED ====");
+    console.error(error.message || error);
+    console.error(error.stack);
+    
+    res.status(500).json({ 
+      message: "Internal Server Error: Failed to send message.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined
+    });
+  }
+};
+
+// @desc    Get user's active conversations
+// @route   GET /api/messages/conversations
+export const getConversations = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const conversations = await Conversation.find({ participants: userId })
+      .populate("participants", "name profilePicture role department tags")
+      .populate("lastMessage")
+      .sort({ updatedAt: -1 });
+      
+    res.status(200).json(conversations);
+  } catch (error) {
+    console.error("Get Conversations Error:", error);
+    res.status(500).json({ message: "Failed to fetch conversations" });
   }
 };
 

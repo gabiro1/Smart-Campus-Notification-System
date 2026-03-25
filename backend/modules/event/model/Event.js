@@ -11,6 +11,8 @@ const EventSchema = new mongoose.Schema({
     targetDept: String,
     targetLevel: Number,
     tags: [String],
+    isEmergency: { type: Boolean, default: false }, // NEW for Pulse Broadcast
+    attachmentUrl: String, // NEW for Pulse Broadcast PDF
     priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     

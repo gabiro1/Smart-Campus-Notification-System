@@ -111,6 +111,31 @@ class APIClient {
     return this.client.get('/notifications/insights');
   }
 
+  // Reminder endpoints
+  async getReminders() {
+    return this.client.get('/reminders');
+  }
+
+  async createReminder(data: { title: string; description?: string; deadline: string; priority?: string }) {
+    return this.client.post('/reminders', data);
+  }
+
+  async updateReminder(id: string, data: Partial<{ title: string; description: string; deadline: string; priority: string }>) {
+    return this.client.put(`/reminders/${id}`, data);
+  }
+
+  async deleteReminder(id: string) {
+    return this.client.delete(`/reminders/${id}`);
+  }
+
+  async markReminderComplete(id: string) {
+    return this.client.post(`/reminders/${id}/complete`);
+  }
+
+  async markReminderUncomplete(id: string) {
+    return this.client.post(`/reminders/${id}/uncomplete`);
+  }
+
   // Update FCM token
   async updateFCMToken(fcmToken: string) {
     return this.client.put('/users/profile', { fcmToken });

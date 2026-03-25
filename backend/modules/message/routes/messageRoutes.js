@@ -1,5 +1,5 @@
 import express from "express";
-import { sendMessage, getMessages, getContacts, voteOnPoll } from "../controller/messageController.js";
+import { sendMessage, getMessages, getContacts, voteOnPoll, getConversations } from "../controller/messageController.js";
 // 1. ADD getSentHistory to your imports here
 import { sendNotification, getSentHistory } from "../../notification/controllers/notificationController.js"; 
 import { protect, authorize } from "../../../middleware/authMiddleware.js"; 
@@ -27,6 +27,11 @@ router.get("/history", authorize('hod', 'admin'), getSentHistory);
  * @desc    Send Omnichannel Notification
  */
 router.post("/notify", authorize('hod', 'admin'), sendNotification);
+
+/**
+ * @route   GET /api/messages/conversations
+ */
+router.get("/conversations", getConversations);
 
 /**
  * @route   POST /api/messages

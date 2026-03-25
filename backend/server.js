@@ -20,8 +20,12 @@ import schoolRoutes from './modules/school/route/schoolRoutes.js';
 import departmentRoutes from './modules/department/route/departmentRoutes.js';
 import courseRoutes from './modules/course/routes/courseRoutes.js'; // For course management features
 import studentRoutes from './modules/student/routes/studentRoutes.js';
+import { createServer } from 'http';
+import { initSocket } from './utils/socketServer.js';
 
 const app = express();
+const httpServer = createServer(app);
+initSocket(httpServer);
 
 // 2. MIDDLEWARE
 app.use(cors()); // Allows your React/React Native apps to connect
@@ -72,6 +76,6 @@ app.use((err, req, res, next) => {
 
 // 7. SERVER START
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port http://localhost:${PORT}`);
 });

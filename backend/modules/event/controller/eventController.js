@@ -144,18 +144,17 @@ export const createEvent = async (req, res) => {
   try {
     const eventData = { ...req.body, createdBy: req.user.id };
     let status = "pending";
-    let approvalLevel = "none";
+    let approvalLevel = req.body.approvalLevel || "none";
 
     // Role-based workflow logic
-    if (req.user.role === "admin") {
+    if (req.user.role === "admin" || eventData.isEmergency === true) {
       status = "approved";
     } else if (req.user.role === "hod") {
       approvalLevel = "school";
     } else if (req.user.role === "lecturer") {
       approvalLevel = "department";
     }
-    // Note: guild_president will default to 'pending' and 'none'.
-    // If you want them to auto-approve, add them to the 'admin' condition above.
+    // Note: guild_president will default to 'pending' and their requested approvalLevel unless isEmergency is toggled.
 
     const event = new Event({ ...eventData, status, approvalLevel });
     await event.save();

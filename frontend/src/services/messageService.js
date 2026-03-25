@@ -78,6 +78,17 @@ const messageService = {
       throw error;
     }
   },
+
+  // 7️⃣ NEW: Fetch all active conversations
+  getConversations: async () => {
+    try {
+      const response = await apiClient.get("/messages/conversations");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch conversations:", error);
+      throw error;
+    }
+  },
 };
 
 export default messageService;
