@@ -142,23 +142,48 @@ ${extractedText}
 ========================================================= */
 export const createEvent = async (req, res) => {
   try {
+    // Spread the request body (already enriched by classRepPulseEventScope
+    // middleware for class_rep users) and stamp the authenticated creator.
     const eventData = { ...req.body, createdBy: req.user.id };
     let status = "pending";
     let approvalLevel = req.body.approvalLevel || "none";
 
-    // Role-based workflow logic
+    // ── Role-based workflow routing ─────────────────────────────────────
     if (req.user.role === "admin" || eventData.isEmergency === true) {
+      // Admins and emergency broadcasts bypass the approval queue entirely.
       status = "approved";
+
+    } else if (req.user.role === "class_rep") {
+      // CLASS REP PATH
+      // ─────────────────────────────────────────────────────────────────
+      // By this point the classRepPulseEventScope middleware has already:
+      //   • Set req.body.targetScope      = 'class'
+      //   • Set req.body.targetLevel      = rep's representedLevel  (e.g. 'Year 2')
+      //   • Set req.body.targetDepartment = rep's representedDepartment (ObjectId)
+      //
+      // We trust those values here — no need to read them again from the user
+      // object. We just enforce the correct approval chain.
+      //
+      // Class-level events are reviewed by the department before going live,
+      // so they route through the 'department' approval level.
+      approvalLevel = "department";
+      // status remains 'pending' — HoD / department head will approve.
+
     } else if (req.user.role === "hod") {
+      // HoD events require school-level sign-off.
       approvalLevel = "school";
+
     } else if (req.user.role === "lecturer") {
+      // Lecturer events go to department for approval.
       approvalLevel = "department";
     }
-    // Note: guild_president will default to 'pending' and their requested approvalLevel unless isEmergency is toggled.
+    // Note: guild_president defaults to 'pending' with client-supplied
+    // approvalLevel unless isEmergency is toggled.
 
     const event = new Event({ ...eventData, status, approvalLevel });
     await event.save();
 
+    // Only broadcast immediately if the event was auto-approved.
     if (status === "approved") {
       await broadcastEvent(event);
     }

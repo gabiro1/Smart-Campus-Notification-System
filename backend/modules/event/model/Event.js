@@ -4,12 +4,22 @@ const EventSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: String,
     date: Date,
-    time: String, // NEW
-    location: String, // NEW
-    posterUrl: String, // NEW
+    time: String,
+    location: String,
+    posterUrl: String,
     targetSchool: String,
     targetDept: String,
     targetLevel: Number,
+    // ─ CLASS REP SCOPE FIELDS ───────────────────────────────────────────
+    // Populated automatically by classRepPulseEventScope middleware.
+    // Other roles leave these null; targeted queries fall back to targetDept/targetSchool.
+    targetScope: {
+        type: String,
+        enum: ['class', 'department', 'school', 'college', 'university'],
+        default: null
+    },
+    // ObjectId reference — matches User.representedDepartment
+    targetDepartment: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', default: null },
     tags: [String],
     isEmergency: { type: Boolean, default: false }, // NEW for Pulse Broadcast
     attachmentUrl: String, // NEW for Pulse Broadcast PDF

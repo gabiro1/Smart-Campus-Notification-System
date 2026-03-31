@@ -31,17 +31,17 @@ export default function MessagesTab() {
   }, [activeContact]);
 
   // MOCK DATA Fallback matching the high-fidelity UI requirements perfectly
-  // const MOCK_CONTACTS = [
-  //   { _id: 'mock1', name: "Dr. Sarah Vance", role: "Instructor", initial: "Dr", active: true, message: "Attached the updated syllabus...", time: "10:42 AM", unread: true },
-  //   { _id: 'mock2', name: "Marcus Wright", role: "Student", initial: "MW", active: false, message: "Thanks for the help with Lab 4!", time: "Yesterday", unread: false },
-  //   { _id: 'mock3', name: "AI Ethics Study Group", role: "Group", initial: "AI", active: false, message: "Lina: Who has the summary?", time: "2:15 PM", unread: false },
-  // ];
+  const MOCK_CONTACTS = [
+    { _id: 'mock1', name: "Dr. Sarah Vance", role: "Instructor", initial: "Dr", active: true, message: "Attached the updated syllabus...", time: "10:42 AM", unread: true },
+    { _id: 'mock2', name: "Marcus Wright", role: "Student", initial: "MW", active: false, message: "Thanks for the help with Lab 4!", time: "Yesterday", unread: false },
+    { _id: 'mock3', name: "AI Ethics Study Group", role: "Group", initial: "AI", active: false, message: "Lina: Who has the summary?", time: "2:15 PM", unread: false },
+  ];
 
-  // const MOCK_MESSAGES = [
-  //   { id: 1, sender: "me", text: "Hello Dr. Vance! I had a quick question regarding the final project submission. Are we required to include the raw dataset or just the analysis report?", time: "09:15 AM", read: true },
-  //   { id: 2, sender: "other", text: "Good morning, Alex. Please include both. The raw dataset should be in the 'Appendix' folder of your repository. It helps me verify the data processing steps you mentioned in the report.", time: "09:42 AM" },
-  //   { id: 3, sender: "other", text: "I've attached the updated rubric here for reference. Let me know if you need any further clarification before the deadline on Friday.", time: "09:43 AM", isFile: true, fileTitle: "Final_Project_Rubric_V2.pdf", fileSize: "1.2 MB • PDF Document" }
-  // ];
+  const MOCK_MESSAGES = [
+    { id: 1, sender: "me", text: "Hello Dr. Vance! I had a quick question regarding the final project submission. Are we required to include the raw dataset or just the analysis report?", time: "09:15 AM", read: true },
+    { id: 2, sender: "other", text: "Good morning, Alex. Please include both. The raw dataset should be in the 'Appendix' folder of your repository. It helps me verify the data processing steps you mentioned in the report.", time: "09:42 AM" },
+    { id: 3, sender: "other", text: "I've attached the updated rubric here for reference. Let me know if you need any further clarification before the deadline on Friday.", time: "09:43 AM", isFile: true, fileTitle: "Final_Project_Rubric_V2.pdf", fileSize: "1.2 MB • PDF Document" }
+  ];
 
   // 1. Initialize Real-Time WebSocket Connection
   useEffect(() => {

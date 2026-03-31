@@ -22,6 +22,8 @@ import {
 
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 import { validateEvent } from '../../../middleware/validateEvent.js';
+// Class rep policy: auto-scopes events to their represented class
+import { classRepPulseEventScope } from '../../../middleware/classRepPolicy.js';
 
 /* ================= MULTER UPLOAD CONFIGURATION ================= */
 const storage = multer.diskStorage({
@@ -55,14 +57,25 @@ router.post(
 );
 
 /* ================= CREATE EVENT ================= */
-router.post('/create', protect, authorize('admin', 'guild_president', 'lecturer'), validateEvent, createEvent);
+// class_rep is now allowed to create events, but classRepPulseEventScope
+// middleware runs first to enforce scope='class' and auto-populate audience.
+// All other roles pass through the middleware untouched.
+router.post(
+  '/create',
+  protect,
+  authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'),
+  classRepPulseEventScope,   // ← enriches req.body for class_rep; no-op for everyone else
+  validateEvent,
+  createEvent
+);
 
 /* ================= STUDENT FEED ================= */
 router.get('/feed', protect, getStudentFeed);
 
 /* ================= UPDATE & DELETE ================= */
-router.put('/:id', protect, authorize('admin', 'guild_president', 'lecturer'), updateEvent);
-router.delete('/:id', protect, authorize('admin', 'guild_president', 'lecturer'), deleteEvent);
+// class_rep can edit/delete their own events (ownership checked inside controller if needed).
+router.put('/:id',    protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'), updateEvent);
+router.delete('/:id', protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'), deleteEvent);
 
 /* ================= INTEREST & RATE ================= */
 router.post('/:id/interest', protect, interestInEvent);

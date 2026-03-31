@@ -9,6 +9,7 @@ import LecturerClasses from "../pages/dashboards/lecturer/pages/MyClasses";
 import LecturerAnalytics from "../pages/dashboards/lecturer/pages/Analytics";
 import LecturerSettings from "../pages/dashboards/lecturer/Settings";
 import MessagesTab from "../pages/Message/MessagesTab";
+import GovernancePage from "../pages/dashboards/shared/GovernancePage";
 
 export const lecturerRoutes = [
   <Route key="index" index element={<Navigate to="console" replace />} />,
@@ -81,6 +82,15 @@ export const lecturerRoutes = [
     element={
       <ProtectedRoute allowedRoles={["lecturer"]}>
         <MessagesTab />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="governance"
+    path="governance"
+    element={
+      <ProtectedRoute allowedRoles={["lecturer"]}>
+        <GovernancePage />
       </ProtectedRoute>
     }
   />,

@@ -68,9 +68,9 @@ const userSchema = new mongoose.Schema({
   
   role: {
     type: String,
-    enum: ["student", "lecturer", "hod", "guild_president", "admin", "dean", "principal"],
+    enum: ["student", "lecturer", "hod", "guild_president", "admin", "dean", "principal", "class_rep"],
     default: "student",
-    index: true 
+    index: true
   },
   studentID: {
     type: String,
@@ -78,7 +78,28 @@ const userSchema = new mongoose.Schema({
     sparse: true, // Allows null/undefined for staff while keeping uniqueness for students
     trim: true
   },
-  
+
+  // ==========================================
+  // CLASS REPRESENTATIVE FIELDS (NEW)
+  // ==========================================
+  // These fields are conditionally required when role === 'class_rep'
+  representedLevel: {
+    type: String,
+    enum: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+    // Only required for class representatives
+    required: function() {
+      return this.role === 'class_rep';
+    }
+  },
+  representedDepartment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Department',
+    // Only required for class representatives
+    required: function() {
+      return this.role === 'class_rep';
+    }
+  },
+
   lastActiveAt: {
     type: Date,
     default: Date.now

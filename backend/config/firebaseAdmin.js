@@ -78,5 +78,50 @@ const sendMulticastNotification = async (tokens, title, body) => {
   return { totalSuccess, totalFailure };
 };
 
+/**
+ * Subscribe a device token to one or more topics
+ * Used for scale: topic_dept_CS, topic_level_Year4, etc.
+ */
+const subscribeToTopics = async (token, topics) => {
+  try {
+    for (const topic of topics) {
+      // Topics must match regex: [a-zA-Z0-9-_.~%]+
+      // We will sanitize topics in the controller, but this is the delivery logic.
+      await admin.messaging().subscribeToTopic(token, topic);
+      console.log(`✅ Subscribed token to topic: ${topic}`);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error subscribing to topics:', error);
+    throw error;
+  }
+};
+
+/**
+ * Send a notification to a specific topic (Enterprise Scale)
+ */
+const sendTopicNotification = async (topic, title, body, data = {}) => {
+  const message = {
+    notification: { title, body },
+    data: data, // Custom metadata for deep linking (must be strings)
+    topic: topic,
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log(`✅ Successfully sent topic message [${topic}]:`, response);
+    return response;
+  } catch (error) {
+    console.error('❌ Error sending topic message:', error);
+    throw error;
+  }
+};
+
 // 4. Export everything for use in your controllers
-export { bucket, sendPushNotification, sendMulticastNotification };
+export { 
+  bucket, 
+  sendPushNotification, 
+  sendMulticastNotification, 
+  subscribeToTopics, 
+  sendTopicNotification 
+};

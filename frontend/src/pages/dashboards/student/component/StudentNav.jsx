@@ -2,27 +2,24 @@ import {
   LayoutDashboard,
   Calendar,
   MessageSquare,
-  Bell,
   Clock,
   Settings,
   Sparkles,
   ChevronUp,
   ChevronDown,
   Headset,
-  Megaphone, // ✅ IMPORTED NEW ICON
+  Megaphone,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-// ✅ FIXED: Updated paths to match the actual routes
+// Standardized routing paths
 const studentItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard" },
-  { icon: Megaphone, label: "Announcements", path: "/student/announcements" }, // <-- MOUNTED HERE
+  { icon: Megaphone, label: "Announcements", path: "/student/announcements" },
   { icon: Calendar, label: "Time Table", path: "/student/timetable" },
   { icon: MessageSquare, label: "Messages", path: "/student/messages" },
   { icon: Sparkles, label: "Events", path: "/student/events" },
   { icon: Clock, label: "Reminders", path: "/student/reminders" },
-  // If you want Notifications as a separate tab, you can keep it:
-  // { icon: Bell, label: "Notifications", path: "/student/notifications" },
 ];
 
 export default function StudentSidebar() {
@@ -30,7 +27,7 @@ export default function StudentSidebar() {
 
   return (
     <aside className="fixed left-0 top-0 h-screen bg-[#0D0D0D] border-r border-white/5 flex flex-col z-50 transition-all duration-300 w-20 md:w-72">
-      {/* 1. Header */}
+      {/* 1. Header / Organization Branding */}
       <div className="p-4">
         <button className="w-full flex items-center justify-center md:justify-between p-2 rounded-xl hover:bg-[#1A1A1A] transition-all group">
           <div className="flex items-center gap-3">
@@ -59,6 +56,7 @@ export default function StudentSidebar() {
           <p className="hidden md:block text-[10px] uppercase tracking-widest text-neutral-600 font-bold mb-4 px-3">
             Academic
           </p>
+
           {studentItems.map((item) => (
             <SidebarLink
               key={item.path}
@@ -71,22 +69,27 @@ export default function StudentSidebar() {
 
       {/* 3. Bottom Actions */}
       <div className="p-4 border-t border-white/5 space-y-2 bg-[#0D0D0D]">
-        <Link
-          to="/settings" // Make sure you don't need /student/settings here depending on your parent router!
-          className="flex items-center justify-center md:justify-start md:gap-3 p-3 md:p-2 md:pl-4 text-neutral-500 hover:text-white w-full transition-colors rounded-xl hover:bg-white/[0.03]"
-        >
-          <Settings size={20} />
-          <span className="hidden md:inline text-sm font-medium">Settings</span>
-        </Link>
-        <button className="flex items-center justify-center md:justify-start md:gap-3 p-3 md:p-2 md:pl-4 text-neutral-500 hover:text-white w-full transition-colors rounded-xl hover:bg-white/[0.03]">
-          <Headset size={20} />
-          <span className="hidden md:inline text-sm font-medium">Help</span>
+        {/* Reused SidebarLink for consistent UI and active state handling */}
+        <SidebarLink
+          item={{ icon: Settings, label: "Settings", path: "/student/settings" }}
+          active={location.pathname === "/student/settings"}
+        />
+        
+        {/* Help is usually a modal/trigger, not a route, so it remains a standard button but matches styling */}
+        <button className="flex items-center justify-center md:justify-start p-3 md:p-2.5 w-full rounded-xl transition-all duration-200 relative group text-neutral-500 hover:bg-white/[0.03] hover:text-neutral-200">
+          <div className="flex items-center gap-3">
+            <Headset size={20} strokeWidth={2} />
+            <span className="hidden md:inline text-sm font-semibold">
+              Help
+            </span>
+          </div>
         </button>
       </div>
     </aside>
   );
 }
 
+// Modular component for DRY code and consistent hit-areas
 function SidebarLink({ item, active }) {
   return (
     <Link

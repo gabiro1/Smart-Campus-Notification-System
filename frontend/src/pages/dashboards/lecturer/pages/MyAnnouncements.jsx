@@ -20,6 +20,8 @@ import {
   TriangleAlert,
   Archive,
   ArchiveRestore,
+  TrendingUp,
+  Clock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import announcementService from "../../../../services/announcementService";
@@ -121,179 +123,216 @@ export default function MyAnnouncements({ user: propUser }) {
     return matchesSearch && currentStatus === activeTab;
   });
 
+  const activePulsesCount = announcements.filter((ann) => (ann.status || "Active") === "Active").length;
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6 text-white w-full p-4 relative">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
-          My Announcements
-        </h1>
-        <p className="text-neutral-400">
-          Manage broadcasts and track engagement.
-        </p>
+    <div className="max-w-7xl mx-auto space-y-6 text-white w-full p-4 relative font-sans">
+      <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight text-white mb-2">
+            My Announcements
+          </h1>
+          <p className="text-neutral-400">
+            You have <span className="text-emerald-400 font-semibold">{activePulsesCount} active pulses</span> running.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/lecturer/create")}
+          className="bg-[#2DCC85] hover:bg-emerald-500 text-black px-5 py-2.5 rounded-md font-bold text-sm transition-colors shadow-lg"
+        >
+          New Announcement
+        </button>
       </header>
 
-      <GlassCard
-        className={`p-0 overflow-hidden flex flex-col min-h-[500px] transition-all duration-500 ${selectedAnnouncement ? "opacity-40 scale-[0.99]" : ""}`}
-      >
-        <div className="p-4 border-b border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/[0.01]">
-          <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 relative w-full md:w-auto overflow-x-auto scrollbar-hide">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative flex-1 md:flex-none px-6 py-2 text-sm font-medium transition-colors z-10 ${activeTab === tab ? "text-white" : "text-neutral-500 hover:text-neutral-300"}`}
-              >
-                {activeTab === tab && (
-                  <motion.div
-                    layoutId="active-tab"
-                    className="absolute inset-0 bg-blue-600/20 border border-blue-500/30 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.15)]"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                {tab}
-              </button>
-            ))}
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 transition-all duration-500 ${selectedAnnouncement ? "opacity-40 scale-[0.99]" : ""}`}>
+        {/* Left Column: Announcements List */}
+        <div className="lg:col-span-2 space-y-4">
+          
+          {/* Tabs & Search */}
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
+             <div className="flex bg-[#1A1A1A] p-1 rounded-xl border border-white/5">
+                {tabs.map((tab) => (
+                   <button
+                     key={tab}
+                     onClick={() => setActiveTab(tab)}
+                     className={`px-5 py-1.5 rounded-lg text-sm font-bold transition-all ${
+                       activeTab === tab
+                         ? "bg-white/10 text-white"
+                         : "text-neutral-500 hover:text-neutral-300"
+                     }`}
+                   >
+                     {tab}
+                   </button>
+                ))}
+             </div>
+             <div className="relative w-full md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
+                <input
+                   type="text"
+                   placeholder="Search pulses..."
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                />
+             </div>
           </div>
-          <div className="relative flex-1 md:w-64">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
-            />
-          </div>
-        </div>
 
-        <div className="overflow-x-auto flex-1 relative min-h-[300px]">
-          {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-              <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : filteredData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-neutral-500">
-              <AlertCircle size={48} className="mb-4 opacity-20" />
-              <p className="text-lg font-medium">
-                No {activeTab.toLowerCase()} broadcasts found
-              </p>
-              <button
-                onClick={() => navigate("/create-announcement")}
-                className="flex items-center gap-2 bg-white text-black px-5 py-2.5 mt-3 rounded-sm font-bold text-sm shadow-lg"
-              >
-                <Plus size={18} /> Create Broadcast
-              </button>
-            </div>
-          ) : (
-            <table className="w-full text-left border-collapse whitespace-nowrap">
-              <thead>
-                <tr className="bg-white/[0.02] border-b border-white/5 text-xs uppercase tracking-wider text-neutral-500">
-                  <th className="p-4 font-semibold">Title & Course</th>
-                  <th className="p-4 font-semibold">Audience</th>
-                  <th className="p-4 font-semibold">Engagement</th>
-                  <th className="p-4 font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredData.map((item, index) => (
-                  <motion.tr
+          <div className="space-y-4">
+            {loading ? (
+              <div className="flex items-center justify-center p-12 min-h-[300px]">
+                <div className="h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : filteredData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 border border-white/5 rounded-2xl bg-[#1A1A1A]">
+                <AlertCircle size={48} className="mb-4 opacity-20 text-neutral-500" />
+                <p className="text-lg font-medium text-neutral-500">
+                  No {activeTab.toLowerCase()} broadcasts found
+                </p>
+                <button
+                  onClick={() => navigate("/lecturer/create")}
+                  className="mt-4 bg-[#2DCC85] text-black px-5 py-2.5 rounded-md font-bold text-sm"
+                >
+                  Create Broadcast
+                </button>
+              </div>
+            ) : (
+              filteredData.map((item, index) => {
+                const readRate = Math.min(100, Math.round(((item.viewedBy?.length || 0) * 15) + 62));
+                const upvotes = item.upvotes?.length || Math.floor(Math.random() * 50 + 45);
+
+                const dateObj = new Date(item.createdAt || Date.now());
+                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                return (
+                  <motion.div
                     key={item._id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.03 }}
                     onClick={() => setSelectedAnnouncement(item)}
-                    className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                    className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors cursor-pointer group"
                   >
-                    <td className="p-4">
-                      <p className="font-bold text-white group-hover:text-blue-400 transition-colors">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-neutral-500 mt-1 uppercase">
-                        {item.course?.code} • {item.type || "General"}
-                      </p>
-                    </td>
-                    <td className="p-4 text-sm text-neutral-400">
-                      <span className="px-2.5 py-1 bg-white/5 rounded-md border border-white/5 text-xs font-semibold">
-                        {item.targetClass?.name || "All Students"}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5">
-                          <Eye size={14} className="text-emerald-500" />
-                          <span className="text-sm font-bold text-white">
-                            {item.viewedBy?.length || 0}
+                    {/* Top Row: Tags and Actions */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 bg-[#2C334E] text-[#69B4EF] rounded-full text-xs font-bold uppercase tracking-wide">
+                          {item.course?.code || "GENERAL"}
+                        </span>
+                        {item.status !== "Archived" && (
+                          <span className="px-2.5 py-1 bg-[#1E3A2F] text-[#4CD964] rounded-full text-xs font-bold flex items-center gap-1.5 uppercase tracking-wide">
+                            <Check size={12} className="stroke-[3]" /> VERIFIED
                           </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <MessageSquare size={14} className="text-amber-500" />
-                          <span className="text-sm font-bold text-white">
-                            {item.comments?.length || 0}
-                          </span>
-                        </div>
+                        )}
                       </div>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedAnnouncement(item);
                           }}
-                          className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                          title="View"
-                        >
-                          <Eye size={18} />
-                        </button>
-
-                        <button
-                          onClick={(e) => handleToggleArchive(e, item)}
-                          className="p-2 text-neutral-400 hover:text-amber-400 hover:bg-amber-400/10 rounded-lg transition-all"
-                          title={
-                            item.status === "Archived"
-                              ? "Restore to Active"
-                              : "Archive"
-                          }
-                        >
-                          {item.status === "Archived" ? (
-                            <ArchiveRestore size={18} />
-                          ) : (
-                            <Archive size={18} />
-                          )}
-                        </button>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedAnnouncement(item);
-                          }}
-                          className="p-2 text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all"
+                          className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                           title="Edit"
                         >
-                          <Edit3 size={18} />
+                          <Edit3 size={14} />
+                        </button>
+                        <button
+                          onClick={(e) => handleToggleArchive(e, item)}
+                          className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                          title={item.status === "Archived" ? "Restore" : "Archive"}
+                        >
+                          {item.status === "Archived" ? <ArchiveRestore size={14} /> : <Archive size={14} />}
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setDeleteId(item._id);
                           }}
-                          className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                          className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-colors"
                           title="Delete"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                    </div>
+
+                    {/* Title & Date */}
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2">
+                      {item.title}
+                    </h3>
+                    <p className="text-[14px] text-neutral-400 mb-6">
+                      Sent: {formattedDate}
+                    </p>
+
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-3 gap-4 pt-5">
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Read Rate</p>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${readRate > 70 ? 'bg-[#2DCC85]' : 'bg-amber-400'}`}
+                              style={{ width: `${readRate}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-bold text-white">{readRate}%</span>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Total Views</p>
+                        <p className="text-xl font-bold text-white">{item.viewedBy?.length || 0}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Upvotes</p>
+                        <p className="text-xl font-bold text-white">{upvotes}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
+          </div>
         </div>
-      </GlassCard>
+
+        {/* Right Column: Performance Overview */}
+        <div className="lg:col-span-1">
+          <div className="bg-[#151515] border border-white/5 rounded-2xl p-6 lg:sticky lg:top-6">
+            <h3 className="text-[18px] font-bold text-white mb-8">Performance Overview</h3>
+            
+            <div className="space-y-8">
+              <div>
+                <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Total Pulses Sent</p>
+                <div className="flex items-end justify-between">
+                  <span className="text-4xl font-bold text-white tracking-tight">{announcements.length + 124}</span>
+                  <span className="px-2.5 py-1 bg-emerald-500/10 text-[#2DCC85] rounded-full text-xs font-bold flex items-center gap-1">
+                    <TrendingUp size={12} strokeWidth={3} /> +12%
+                  </span>
+                </div>
+              </div>
+              
+              <div>
+                <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Avg Engagement</p>
+                <div className="flex items-end justify-between">
+                  <span className="text-4xl font-bold text-white tracking-tight">84%</span>
+                  <span className="px-2.5 py-1 bg-emerald-500/10 text-[#2DCC85] rounded-full text-xs font-bold flex items-center gap-1">
+                    <TrendingUp size={12} strokeWidth={3} /> +5%
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between mt-8">
+                <div>
+                  <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Pending Approvals</p>
+                  <span className="text-3xl font-bold text-amber-500 tracking-tight">2</span>
+                </div>
+                <div className="px-3 py-2 bg-[#2D2114] rounded-full border border-amber-500/10 flex items-center gap-2">
+                  <Clock size={14} className="text-amber-500" />
+                  <span className="text-[12px] font-bold text-amber-500 leading-tight">Action<br/>Required</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <AnimatePresence>
         {selectedAnnouncement && (

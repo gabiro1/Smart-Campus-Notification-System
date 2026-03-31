@@ -10,6 +10,7 @@ import LecturerManagement from "../pages/dashboards/hod/pages/LecturerManagement
 import DepartmentReports from "../pages/dashboards/hod/pages/DepartmentReports";
 import DepartmentSettings from "../pages/dashboards/hod/pages/DepartmentSettings";
 import MessagesTab from "../pages/Message/MessagesTab";
+import GovernancePage from "../pages/dashboards/shared/GovernancePage";
 
 export const hodRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -91,6 +92,15 @@ export const hodRoutes = [
     element={
       <ProtectedRoute allowedRoles={["hod"]}>
         <MessagesTab />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="governance"
+    path="governance"
+    element={
+      <ProtectedRoute allowedRoles={["hod"]}>
+        <GovernancePage />
       </ProtectedRoute>
     }
   />,

@@ -21,12 +21,12 @@ export const useNotifications = () => {
     }
   }, []);
 
-  const markAsRead = useCallback(async (eventId) => {
+  const markAsRead = useCallback(async (notificationId) => {
     try {
-      await notificationService.markAsRead(eventId);
+      await notificationService.markAsRead(notificationId);
       setNotifications(
         notifications.map((n) =>
-          n.eventId === eventId ? { ...n, read: true } : n
+          n._id === notificationId ? { ...n, status: 'read' } : n
         )
       );
       getUnreadCount();

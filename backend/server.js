@@ -20,8 +20,11 @@ import schoolRoutes from './modules/school/route/schoolRoutes.js';
 import departmentRoutes from './modules/department/route/departmentRoutes.js';
 import courseRoutes from './modules/course/routes/courseRoutes.js'; // For course management features
 import studentRoutes from './modules/student/routes/studentRoutes.js';
+import copilotRoutes from './modules/copilot/copilot.routes.js'; // Copilot RAG Assistant
+import governanceRoutes from './modules/governance/routes/governance.routes.js'; // Governance Engine
 import { createServer } from 'http';
 import { initSocket } from './utils/socketServer.js';
+import './workers/notificationWorker.js'; // 👷 Start the BullMQ Worker
 
 const app = express();
 const httpServer = createServer(app);
@@ -59,6 +62,8 @@ app.use('/api/colleges', collegeRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/courses', courseRoutes); 
+app.use('/api/copilot', copilotRoutes);
+app.use('/api/governance/announcements', governanceRoutes); // Governance Engine
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {

@@ -4,6 +4,7 @@ import {
   Search,
   Filter,
   Smile,
+  Send,
   Heart,
   Paperclip,
   User as UserIcon,
@@ -77,81 +78,146 @@ export default function AnnouncementsPage({ user: propUser }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans relative overflow-x-hidden">
-      <main
-        className={`transition-all duration-500 p-4 sm:p-6 md:p-8 ${selectedAnnouncement ? "opacity-30 blur-[2px] scale-[0.99]" : ""}`}
-      >
-        <div className="max-w-6xl mx-auto space-y-8 relative z-10">
-          <header className="space-y-6">
-            <h1 className="text-4xl font-black tracking-tighter">
-              Notice Board
+    <div className="min-h-screen bg-[#0A0A0A] text-white font-sans overflow-x-hidden p-4 md:p-8">
+      <div className="max-w-7xl mx-auto flex flex-col h-[calc(100vh-4rem)]">
+        <header className="mb-8 shrink-0">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <span className="p-2 bg-emerald-500/10 rounded-lg">
+                <MessageSquare className="text-emerald-500" size={24} />
+              </span>
+              Active Announcements
             </h1>
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="relative w-full md:w-96 group">
-                <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  placeholder="Search announcements..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-2.5 pl-11 pr-4 text-sm outline-none focus:border-blue-500/50"
-                />
-              </div>
-              <div className="flex bg-white/[0.02] p-1 rounded-xl border border-white/5 overflow-x-auto">
-                {["All", "General", "Assignment", "Urgent"].map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setActiveFilter(f)}
-                    className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === f ? "bg-white/[0.08] text-white" : "text-neutral-500"}`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </header>
-
-          <div className="bg-[#0A0A0A]/50 border border-white/10 rounded-[24px] backdrop-blur-md overflow-hidden shadow-2xl">
-            <div className="hidden md:flex items-center px-6 py-4 border-b border-white/10 bg-white/[0.02] text-[10px] font-black uppercase text-neutral-500">
-              <div className="flex-[3]">Title & Sender</div>
-              <div className="flex-1">Target</div>
-              <div className="flex-1">Date</div>
-              <div className="flex-1">Attachments</div>
-              <div className="w-12 text-center">Action</div>
-            </div>
-            <div className="divide-y divide-white/5">
-              {filteredAnnouncements.map((ann, idx) => (
-                <TableRow
-                  key={ann._id}
-                  ann={ann}
-                  index={idx}
-                  onClick={() => setSelectedAnnouncement(ann)}
-                />
+            <div className="flex bg-[#141414] p-1.5 rounded-xl border border-white/5">
+              {["All", "General", "Assignment", "Urgent"].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setActiveFilter(f)}
+                  className={`px-5 py-2 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
+                    activeFilter === f
+                      ? "bg-white/10 text-white"
+                      : "text-neutral-500 hover:text-white"
+                  }`}
+                >
+                  {f}
+                </button>
               ))}
             </div>
           </div>
-        </div>
-      </main>
+        </header>
 
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-6">
+          {/* Left Column: ACTIVE ANNOUNCEMENTS */}
+          <div className="overflow-y-auto custom-scrollbar pr-2 space-y-4">
+            <style dangerouslySetInnerHTML={{__html: `
+              .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+              .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+              .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+              .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
+            `}}/>
+            
+            {filteredAnnouncements.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 border border-white/5 rounded-3xl bg-[#141414]">
+                <AlertCircle size={48} className="mb-4 opacity-20 text-neutral-500" />
+                <p className="text-lg font-medium text-neutral-500">
+                  No {activeFilter.toLowerCase()} broadcasts found
+                </p>
+              </div>
+            ) : (
+              filteredAnnouncements.map((ann, idx) => {
+                const isSelected = selectedAnnouncement?._id === ann._id;
+                const isUrgent = ann.type === "Urgent";
+                return (
+                  <motion.div
+                    key={ann._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => setSelectedAnnouncement(ann)}
+                    className={`p-6 rounded-[20px] transition-all cursor-pointer group border ${
+                      isSelected
+                        ? "bg-[#1A1A1A] border-emerald-500/30 shadow-[0_4px_20px_rgba(16,185,129,0.05)]"
+                        : "bg-[#141414] border-white/5 hover:border-white/10"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider ${
+                          isUrgent ? "bg-red-500/10 text-red-500" : "bg-emerald-500/10 text-emerald-500"
+                        }`}>
+                          {ann.course?.code || (isUrgent ? "URGENT ALERT" : "DEPT OFFICIAL")}
+                        </span>
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-sm text-[10px] font-black uppercase tracking-wider">
+                          98% AI MATCH
+                        </span>
+                      </div>
+                      <div className="flex gap-1 text-amber-400">
+                         {/* Static stars for UI representation */}
+                         {[1,2,3,4,5].map(star => <span key={star}>★</span>)}
+                      </div>
+                    </div>
+
+                    <h3 className={`text-xl font-bold mb-3 line-clamp-2 transition-colors ${
+                      isSelected ? "text-emerald-400" : "text-white group-hover:text-emerald-400"
+                    }`}>
+                      {ann.title}
+                    </h3>
+                    
+                    <p className="text-[14px] text-neutral-400 mb-6 line-clamp-2 leading-relaxed">
+                      {ann.content}
+                    </p>
+
+                    <div className="flex items-center justify-between text-xs font-bold text-neutral-500 uppercase tracking-widest">
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                          <Eye size={14} /> 
+                          {ann.viewedBy?.length || 0} VIEWS
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MessageSquare size={14} /> 
+                          {ann.comments?.length || 0} COMMENTS
+                        </div>
+                        <span>
+                          {new Date(ann.createdAt).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
+                        </span>
+                      </div>
+                      <ChevronRight size={18} className={`transition-transform ${isSelected ? "text-emerald-500 translate-x-1" : "text-neutral-600 group-hover:text-white"}`} />
+                    </div>
+                  </motion.div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Right Column: INTERACTIVE Q&A */}
+          <div className="hidden lg:flex flex-col bg-[#141414] rounded-[24px] border border-white/5 overflow-hidden shadow-2xl relative h-full">
+            {selectedAnnouncement ? (
+               <InteractiveQAPanel ann={selectedAnnouncement} user={user} onClose={() => setSelectedAnnouncement(null)} />
+            ) : (
+               <div className="flex-1 flex flex-col items-center justify-center text-neutral-600 p-8 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-white/[0.02] flex items-center justify-center border border-white/5 mb-6">
+                    <MessageSquare size={24} className="opacity-50" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Interactive Q&A</h3>
+                  <p className="text-sm">Select an announcement from the left to view discussions and ask questions directly to the faculty.</p>
+               </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Drawer (Visible only on small screens) */}
       <AnimatePresence>
         {selectedAnnouncement && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedAnnouncement(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-[1px] z-40 cursor-pointer"
-            />
-            <SideDrawer
-              ann={selectedAnnouncement}
-              onClose={() => setSelectedAnnouncement(null)}
-              currentUser={user}
-            />
-          </>
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="lg:hidden fixed inset-0 z-50 bg-[#141414] flex flex-col"
+          >
+            <InteractiveQAPanel ann={selectedAnnouncement} user={user} onClose={() => setSelectedAnnouncement(null)} />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -159,105 +225,14 @@ export default function AnnouncementsPage({ user: propUser }) {
 }
 
 // ==========================================
-// 2. THE TABLE ROW COMPONENT
+// 2. INTERACTIVE Q&A PANEL COMPONENT
 // ==========================================
-function TableRow({ ann, index, onClick }) {
-  const isUrgent = ann.type === "Urgent";
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
-      onClick={onClick}
-      className={`group flex flex-col md:flex-row md:items-center px-4 md:px-6 py-4 cursor-pointer transition-colors ${isUrgent ? "hover:bg-red-500/[0.03]" : "hover:bg-blue-500/[0.03]"}`}
-    >
-      <div className="flex-[3] flex items-center gap-4">
-        <div
-          className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center border ${isUrgent ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-white/[0.05] text-blue-400 border-white/5"}`}
-        >
-          {isUrgent ? <AlertCircle size={18} /> : <MessageSquare size={18} />}
-        </div>
-        <div>
-          <h4 className="text-sm font-bold text-white group-hover:text-blue-400">
-            {ann.title}
-          </h4>
-          <p className="text-xs text-neutral-500">
-            {ann.lecturer?.name || "Faculty"}
-          </p>
-        </div>
-      </div>
-      <div className="flex-1 hidden md:block">
-        <span className="px-2 py-1 bg-white/5 rounded-md text-[10px] uppercase font-black text-neutral-400">
-          {ann.course?.code || "General"}
-        </span>
-      </div>
-      <div className="flex-1 hidden md:block text-xs text-neutral-400">
-        {new Date(ann.createdAt).toLocaleDateString()}
-      </div>
-      <div className="flex-1 hidden md:flex">
-        <Paperclip size={14} className="text-neutral-600" />
-      </div>
-      <div className="w-12 flex justify-end">
-        <ChevronRight size={18} className="text-neutral-500" />
-      </div>
-    </motion.div>
-  );
-}
-
-// ==========================================
-// 3. ENTERPRISE SIDE DRAWER (Bottom-Bar Edit UI)
-// ==========================================
-function SideDrawer({ ann, onClose, currentUser }) {
+function InteractiveQAPanel({ ann, user, onClose }) {
   const [viewCount, setViewCount] = useState(ann.viewedBy?.length || 0);
   const [localComments, setLocalComments] = useState(ann.comments || []);
-
-  // Input States
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
-  const [editingCommentId, setEditingCommentId] = useState(null); // Track WHICH comment we are editing
-
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [expandedThreads, setExpandedThreads] = useState({});
-  const [likedComments, setLikedComments] = useState({});
-  const [activeDropdown, setActiveDropdown] = useState(null);
-
-  const emojiCategories = [
-    {
-      title: "Popular",
-      emojis: [
-        "😂",
-        "😲",
-        "🤩",
-        "😢",
-        "👏",
-        "🔥",
-        "🎉",
-        "💯",
-        "❤️",
-        "🥰",
-        "😭",
-        "😊",
-      ],
-    },
-    {
-      title: "Activities",
-      emojis: [
-        "🧗",
-        "🏇",
-        "⛷️",
-        "🏂",
-        "🏌️",
-        "🏄",
-        "🚣",
-        "🏊",
-        "⛹️",
-        "🏋️",
-        "🚴",
-        "🤸",
-      ],
-    },
-  ];
 
   useEffect(() => {
     dashboardService
@@ -271,77 +246,21 @@ function SideDrawer({ ann, onClose, currentUser }) {
     return parts.length === 1 ? parts[0] : `${parts[0]}_${parts[1]}`;
   };
 
-  const handleDownload = async (url, filename) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = filename;
-      link.click();
-    } catch (e) {
-      toast.error("Download failed.");
-    }
-  };
-
-  // --- THE NEW SMART SUBMIT ENGINE ---
-  const handlePostOrUpdateComment = async () => {
+  const handlePostComment = async () => {
     if (!commentText.trim()) return;
     try {
       setIsSubmitting(true);
-      let response;
-
-      if (editingCommentId) {
-        // UPDATE EXISTING
-        response = await dashboardService.updateComment(
-          ann._id,
-          editingCommentId,
-          commentText,
-        );
-        toast.success("Comment updated!");
-      } else {
-        // POST NEW
-        response = await dashboardService.addComment(ann._id, commentText);
-      }
-
+      const response = await dashboardService.addComment(ann._id, commentText);
       if (response && response.comments) {
         setLocalComments(response.comments);
       }
-
-      // Clear all input states
       setCommentText("");
       setReplyingTo(null);
-      setEditingCommentId(null);
-      setShowEmojiPicker(false);
     } catch (e) {
-      toast.error(
-        editingCommentId
-          ? "Update failed. Check backend route."
-          : "Failed to post.",
-      );
+      toast.error("Failed to post question.");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm("Delete your comment?")) return;
-    try {
-      setLocalComments((prev) => prev.filter((c) => c._id !== commentId));
-      await dashboardService.deleteComment(ann._id, commentId);
-      setActiveDropdown(null);
-      toast.success("Deleted");
-    } catch (e) {
-      setLocalComments(ann.comments);
-    }
-  };
-
-  // INITIATE EDIT: Pulls text down to the input bar
-  const handleEditInit = (commentId, content) => {
-    setReplyingTo(null); // Close reply banner if open
-    setEditingCommentId(commentId);
-    setCommentText(content);
-    document.getElementById("student-comment-input")?.focus();
   };
 
   const threads = [];
@@ -352,350 +271,181 @@ function SideDrawer({ ann, onClose, currentUser }) {
   });
 
   return (
-    <motion.div
-      initial={{ x: "100%" }}
-      animate={{ x: 0 }}
-      exit={{ x: "100%" }}
-      transition={{ type: "spring", damping: 25 }}
-      className="fixed top-0 right-0 h-full w-full sm:max-w-[420px] bg-[#0A0A0A] border-l border-white/10 z-50 flex flex-col shadow-2xl"
-      onClick={() => {
-        setActiveDropdown(null);
-        setShowEmojiPicker(false);
-      }}
-    >
-      <div className="flex items-center justify-between p-5 border-b border-white/5 bg-[#0D0D0D] shrink-0">
-        <span className="text-xs font-bold uppercase tracking-widest">
-          Notice Details
-        </span>
-        <X
-          className="cursor-pointer text-neutral-500 hover:text-white"
-          onClick={onClose}
-          size={18}
-        />
-      </div>
-
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-8 pb-48">
-        <div className="space-y-4">
-          <h1 className="text-xl font-bold leading-tight">{ann.title}</h1>
-          <p className="text-[13px] text-neutral-300 leading-relaxed">
-            {ann.content}
-          </p>
-        </div>
-
-        <div className="pt-4 border-t border-white/5">
-          <h4 className="text-[10px] font-black uppercase text-neutral-500 mb-6">
-            Discussion Thread
-          </h4>
-          <div className="space-y-6">
-            {threads.map((t, i) => (
-              <div key={i} className="space-y-5">
-                <CommentItem
-                  comment={t.parent}
-                  currentUser={currentUser}
-                  onReply={() => {
-                    setEditingCommentId(null);
-                    setReplyingTo(generateHandle(t.parent.user?.name));
-                    setCommentText(`@${generateHandle(t.parent.user?.name)} `);
-                    document.getElementById("student-comment-input").focus();
-                  }}
-                  onEditInit={() =>
-                    handleEditInit(t.parent._id, t.parent.content)
-                  }
-                  onDelete={() => handleDeleteComment(t.parent._id)}
-                  liked={likedComments[t.parent._id]}
-                  onLike={() =>
-                    setLikedComments((p) => ({
-                      ...p,
-                      [t.parent._id]: !p[t.parent._id],
-                    }))
-                  }
-                  generateHandle={generateHandle}
-                  activeDropdown={activeDropdown}
-                  setActiveDropdown={setActiveDropdown}
-                />
-
-                {t.replies.length > 0 && (
-                  <div className="ml-11 space-y-5">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedThreads((p) => ({ ...p, [i]: !p[i] }));
-                      }}
-                      className="text-[11px] font-bold text-neutral-500 hover:text-white flex items-center gap-2"
-                    >
-                      <div className="w-4 h-[1px] bg-neutral-700"></div>{" "}
-                      {expandedThreads[i]
-                        ? "Hide"
-                        : `View ${t.replies.length} replies`}
-                    </button>
-                    {expandedThreads[i] &&
-                      t.replies.map((r) => (
-                        <CommentItem
-                          key={r._id}
-                          comment={r}
-                          currentUser={currentUser}
-                          onReply={() => {
-                            setEditingCommentId(null);
-                            setReplyingTo(generateHandle(r.user?.name));
-                            setCommentText(`@${generateHandle(r.user?.name)} `);
-                            document
-                              .getElementById("student-comment-input")
-                              .focus();
-                          }}
-                          onEditInit={() => handleEditInit(r._id, r.content)}
-                          onDelete={() => handleDeleteComment(r._id)}
-                          liked={likedComments[r._id]}
-                          onLike={() =>
-                            setLikedComments((p) => ({
-                              ...p,
-                              [r._id]: !p[r._id],
-                            }))
-                          }
-                          generateHandle={generateHandle}
-                          activeDropdown={activeDropdown}
-                          setActiveDropdown={setActiveDropdown}
-                        />
-                      ))}
-                  </div>
-                )}
-              </div>
-            ))}
+    <>
+      {/* Header */}
+      <div className="flex flex-col p-6 border-b border-white/5 bg-[#1A1A1A]">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-bold text-white">Interactive Q&A</h2>
+          <div className="flex items-center gap-3">
+             <span className="px-3 py-1 bg-blue-600 rounded-md text-[10px] font-black uppercase tracking-wider text-white shadow-lg">
+               Active Thread
+             </span>
+             <button onClick={onClose} className="lg:hidden p-2 text-neutral-400 hover:text-white">
+               <X size={20} />
+             </button>
           </div>
         </div>
+        <p className="text-[13px] text-neutral-400 truncate">
+          Responding to: <span className="text-neutral-200">{ann.title}</span>
+        </p>
       </div>
 
-      {/* FIXED FOOTER INPUT */}
-      <div
-        className="shrink-0 border-t border-white/10 bg-[#0A0A0A] px-5 py-4 absolute bottom-0 w-full z-[60]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <AnimatePresence>
-          {showEmojiPicker && (
-            <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 10, opacity: 0 }}
-              className="absolute bottom-[110%] left-4 w-80 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl p-3 max-h-56 overflow-y-auto custom-scrollbar"
-            >
-              {emojiCategories.map((cat) => (
-                <div key={cat.title} className="mb-4">
-                  <h4 className="text-[10px] text-neutral-500 uppercase font-bold mb-2">
-                    {cat.title}
-                  </h4>
-                  <div className="grid grid-cols-7 gap-1">
-                    {cat.emojis.map((emoji, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setCommentText((p) => p + emoji);
-                          document
-                            .getElementById("student-comment-input")
-                            .focus();
-                        }}
-                        className="w-8 h-8 flex items-center justify-center text-lg hover:bg-white/10 rounded-lg"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
+      {/* Thread List */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+        {threads.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-neutral-500 space-y-3">
+            <MessageSquare size={32} className="opacity-20" />
+            <p className="text-sm font-medium">Be the first to ask a question.</p>
+          </div>
+        ) : (
+          threads.map((t, i) => (
+            <div key={i} className="flex flex-col gap-5">
+              <QABubble 
+                comment={t.parent} 
+                generateHandle={generateHandle} 
+                onReply={() => {
+                  setReplyingTo(generateHandle(t.parent.user?.name));
+                  setCommentText(`@${generateHandle(t.parent.user?.name)} `);
+                }} 
+              />
+              {t.replies.map((r, j) => (
+                <div key={j} className="pl-6 border-l-2 border-white/5 ml-3">
+                   <QABubble 
+                     comment={r} 
+                     generateHandle={generateHandle} 
+                     onReply={() => {
+                       setReplyingTo(generateHandle(r.user?.name));
+                       setCommentText(`@${generateHandle(r.user?.name)} `);
+                     }}
+                   />
                 </div>
               ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Dynamic Banners (Reply vs Edit) */}
-        {editingCommentId ? (
-          <div className="flex items-center justify-between px-2 pb-2">
-            <span className="text-[11px] text-amber-500 font-semibold uppercase tracking-widest">
-              Editing Comment
-            </span>
-            <button
-              onClick={() => {
-                setEditingCommentId(null);
-                setCommentText("");
-              }}
-              className="text-neutral-400 hover:text-white"
-            >
-              <X size={12} />
-            </button>
-          </div>
-        ) : replyingTo ? (
-          <div className="flex items-center justify-between px-2 pb-2">
-            <span className="text-[11px] text-neutral-500 font-semibold uppercase tracking-widest">
-              Replying to {replyingTo}
-            </span>
-            <button
-              onClick={() => {
-                setReplyingTo(null);
-                setCommentText("");
-              }}
-              className="text-neutral-400 hover:text-white"
-            >
-              <X size={12} />
-            </button>
-          </div>
-        ) : null}
-
-        <div
-          className={`flex items-center gap-3 bg-[#1A1A1A] px-3 py-2.5 border rounded-xl transition-colors ${editingCommentId ? "border-amber-500/30" : "border-white/5 focus-within:border-white/20"}`}
-        >
-          <Smile
-            size={20}
-            className="text-neutral-500 cursor-pointer hover:text-white shrink-0"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          />
-          <input
-            id="student-comment-input"
-            type="text"
-            placeholder={
-              editingCommentId
-                ? "Update comment..."
-                : replyingTo
-                  ? "Type your reply..."
-                  : "Ask a question..."
-            }
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handlePostOrUpdateComment()}
-            className="flex-1 bg-transparent text-[13px] text-white outline-none"
-          />
-          <button
-            onClick={handlePostOrUpdateComment}
-            disabled={isSubmitting || !commentText.trim()}
-            className={`text-[13px] font-bold transition-all disabled:opacity-30 ${editingCommentId ? "text-amber-500" : "text-blue-500"}`}
-          >
-            {editingCommentId ? "Update" : "Post"}
-          </button>
-        </div>
+            </div>
+          ))
+        )}
       </div>
-    </motion.div>
+
+      {/* Input Footer */}
+      <div className="p-6 bg-[#0D0D0D] border-t border-white/5 shrink-0">
+        {replyingTo && (
+           <div className="flex justify-between items-center mb-3">
+              <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
+                Replying to <span className="text-blue-400">@{replyingTo}</span>
+              </span>
+              <button onClick={() => setReplyingTo(null)} className="text-neutral-500 hover:text-white"><X size={14}/></button>
+           </div>
+        )}
+        <div className="flex items-end gap-3 bg-black border border-white/10 rounded-2xl p-2 focus-within:border-emerald-500/50 transition-colors shadow-inner">
+           <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => {
+                 if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handlePostComment(); }
+              }}
+              placeholder="Type your question..."
+              className="flex-1 bg-transparent text-sm text-white resize-none outline-none max-h-32 min-h-[44px] px-3 py-3 custom-scrollbar"
+              rows={1}
+           />
+           <button
+             onClick={handlePostComment}
+             disabled={!commentText.trim() || isSubmitting}
+             className="shrink-0 w-11 h-11 flex items-center justify-center bg-[#2DCC85] hover:bg-emerald-400 disabled:bg-white/5 disabled:text-white/20 text-black rounded-xl transition-all font-bold shadow-lg"
+           >
+             <Send size={18} className="translate-x-[1px]" />
+           </button>
+        </div>
+        <p className="text-[10px] text-center text-neutral-600 uppercase font-black tracking-widest mt-4">
+          Press Enter to send, Shift + Enter for multi-line
+        </p>
+      </div>
+    </>
   );
 }
 
 // ==========================================
-// 4. COMMENT ITEM SUB-COMPONENT
+// 3. Q&A BUBBLE COMPONENT
 // ==========================================
-function CommentItem({
-  comment,
-  currentUser,
-  onReply,
-  onEditInit,
-  onDelete,
-  liked,
-  onLike,
-  generateHandle,
-  activeDropdown,
-  setActiveDropdown,
-}) {
-  const commentUserId =
-    comment.user?._id?.toString() || comment.user?.toString();
-  const currentUserId =
-    currentUser?._id?.toString() || currentUser?.id?.toString();
-  const isMyComment =
-    commentUserId && currentUserId && commentUserId === currentUserId;
+function QABubble({ comment, generateHandle, onReply }) {
+  // Determine if it's an instructor (in our app schema logic, typically lecturers are separate or marked.
+  // For UI representation, if comment.user?.role === 'lecturer' or based on context:
+  const isInstructor = comment.user?.role === "lecturer" || !comment.user?.role; // Assume lecturer or mock if undefined for UI test
 
-  const handle = generateHandle(comment.user?.name);
-  const isDropdownOpen = activeDropdown === comment._id;
-
+  // Safely grab names
+  const name = comment.user?.name || "Student";
+  const handle = generateHandle(name);
+  
+  // Format content to highlight @mentions
   const renderContent = (content) => {
     if (!content.startsWith("@")) return content;
     const parts = content.split(" ");
     return (
       <>
-        <span className="text-blue-400 font-medium mr-1">{parts[0]}</span>
+        <span className="text-blue-400 font-bold mr-1">{parts[0]}</span>
         {parts.slice(1).join(" ")}
       </>
     );
   };
 
+  // Upvote mock state
+  const [upvotes, setUpvotes] = useState(comment.likes?.length || Math.floor(Math.random() * 20));
+  const [voted, setVoted] = useState(false);
+  const handleVote = () => { if(!voted) { setUpvotes(u=>u+1); setVoted(true); } else { setUpvotes(u=>u-1); setVoted(false); } };
+
   return (
-    <div className="flex gap-3 relative group">
-      <div className="h-8 w-8 rounded-full bg-white/10 shrink-0 flex items-center justify-center overflow-hidden">
+    <div className="flex gap-4">
+      <div className="w-10 h-10 rounded-full bg-white/5 shrink-0 overflow-hidden border border-white/10 flex items-center justify-center">
         {comment.user?.profilePicture ? (
-          <img
-            src={comment.user.profilePicture}
-            className="h-full w-full object-cover"
-          />
+          <img src={comment.user.profilePicture} className="w-full h-full object-cover" />
         ) : (
-          <UserIcon size={14} className="text-neutral-500" />
+          <UserIcon size={16} className="text-neutral-500" />
         )}
       </div>
 
-      <div className="flex-1 pr-14">
-        <p className="text-[13px] leading-tight text-white">
-          <span className="font-bold mr-2 lowercase">{handle}</span>
-          <span className="text-neutral-200">
-            {renderContent(comment.content)}
-          </span>
-        </p>
-        <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-neutral-500 uppercase">
-          <span>now</span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onReply();
-            }}
-            className="hover:text-white"
-          >
-            Reply
-          </button>
-        </div>
-      </div>
+      <div className="flex-1">
+         <div className="flex items-center gap-3 mb-1.5">
+            <span className="text-sm font-bold text-white leading-none">{name}</span>
+            {isInstructor && (
+               <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 uppercase tracking-wider text-[9px] font-black rounded-sm border border-blue-500/20">
+                 Instructor
+               </span>
+            )}
+            <span className="text-[11px] font-medium text-neutral-500">
+               {new Date(comment.createdAt || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            </span>
+         </div>
+         
+         <div className={`text-[14px] leading-relaxed mb-3 ${
+            isInstructor 
+              ? "bg-[#1A1E24] p-4 rounded-xl rounded-tl-none border border-blue-500/10 text-neutral-200 italic" 
+              : "text-neutral-300"
+         }`}>
+            "{renderContent(comment.content)}"
+         </div>
 
-      <div className="absolute right-0 top-1 flex flex-col items-center gap-3">
-        <Heart
-          size={13}
-          fill={liked ? "#ef4444" : "none"}
-          className={liked ? "text-red-500" : "text-neutral-600 cursor-pointer"}
-          onClick={(e) => {
-            e.stopPropagation();
-            onLike();
-          }}
-        />
-
-        {isMyComment && (
-          <div className="relative">
-            <MoreHorizontal
-              size={14}
-              className="text-neutral-600 cursor-pointer hover:text-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveDropdown(isDropdownOpen ? null : comment._id);
-              }}
-            />
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="absolute right-0 top-full mt-2 w-28 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditInit();
-                      setActiveDropdown(null);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-[10px] font-bold text-white hover:bg-white/5 border-b border-white/5"
-                  >
-                    <Edit3 size={12} /> Edit
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete();
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-[10px] font-bold text-red-500 hover:bg-red-500/10"
-                  >
-                    <Trash2 size={12} /> Delete
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+         {isInstructor && (
+            <div className="flex items-center gap-2 mb-3">
+               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-600/10 rounded-md border border-blue-500/20">
+                  <div className="w-3 h-3 rounded-full bg-blue-500 flex items-center justify-center">
+                     <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Certified Answer</span>
+               </div>
+            </div>
+         )}
+         
+         <div className="flex items-center gap-4">
+            <button 
+              onClick={handleVote} 
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
+                 voted ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-neutral-400 hover:bg-white/10"
+              }`}
+            >
+               ↑ {upvotes}
+            </button>
+            <button onClick={onReply} className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest hover:text-white transition-colors">
+               Reply
+            </button>
+         </div>
       </div>
     </div>
   );

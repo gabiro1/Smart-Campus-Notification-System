@@ -8,7 +8,8 @@ import {
     getNotificationDetails,
     getNotificationSummary,
     getEventStats,
-    getAIInsights
+    getAIInsights,
+    registerDevice
 } from '../controllers/notificationController.js';
 import { protect } from '../../../middleware/authMiddleware.js';
 
@@ -25,6 +26,7 @@ router.get('/unread-count', getUnreadCount);
 router.get('/summary', getNotificationSummary);
 router.get('/insights', getAIInsights);
 router.put('/mark-all-read', markAllAsRead);
+router.post('/register-device', registerDevice);
 
 // ----------------------------------------------------
 // DYNAMIC ROUTES (With parameters)

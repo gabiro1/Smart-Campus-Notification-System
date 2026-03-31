@@ -15,6 +15,8 @@ export default function ProtectedRoute({ children, allowedRoles }) {
       hod: "/hod",
       lecturer: "/lecturer",
       student: "/student/dashboard",
+      // class_rep lives inside the student layout — same dashboard, extra creation powers
+      class_rep: "/student/dashboard",
       guild_president: "/guild/overview",
     };
     return <Navigate to={roleRedirects[user.role] || "/login"} replace />;

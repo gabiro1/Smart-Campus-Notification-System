@@ -5,9 +5,15 @@ import toast, { Toaster } from "react-hot-toast";
 import apiClient from "./services/apiClient";
 import AppRoutes from "./routes/main/AppRoutes";
 
+import { useRealTimeNotifications } from "./hooks/useRealTimeNotifications";
+
 function App() {
   const { user } = useAuth();
   const stopDoubleFire = useRef(false); // Fix for StrictMode
+
+  // 📡 Mount the Real-Time Notification Engine
+  // This listens for WebSocket 'notification:new' events globally
+  useRealTimeNotifications();
 
   useEffect(() => {
     // 1. Only run if user is logged in AND we haven't initialized yet
@@ -19,9 +25,10 @@ function App() {
       try {
         const fcmToken = await requestForToken();
         if (fcmToken) {
-          // 2. Sync token with backend
-          await apiClient.put("/users/profile", { fcmToken });
-          console.log("FCM Token synced successfully.");
+          // 🚀 PHASE 1: ENTERPRISE DEVICE REGISTRATION
+          // Syncs token AND subscribes user to academic topics (dept/level/campus)
+          await apiClient.post("/notifications/register-device", { fcmToken });
+          console.log("✅ Device registered and academic topics synced.");
         }
       } catch (error) {
         console.error("FCM Setup Error:", error);
@@ -29,51 +36,7 @@ function App() {
       }
     };
 
-    const startListener = async () => {
-      try {
-        // Use a standard non-recursive approach
-        // or ensure onMessageListener returns a clean payload
-        const payload = await onMessageListener();
-
-        toast.custom(
-          (t) => (
-            <div
-              className={`${t.visible ? "animate-enter" : "animate-leave"} max-w-md w-full bg-[#111] shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-white/10`}
-            >
-              <div className="flex-1 w-0 p-4">
-                <div className="flex items-start">
-                  <div className="ml-3 flex-1">
-                    <p className="text-sm font-bold text-white">
-                      {payload?.notification?.title || "New Message"}
-                    </p>
-                    <p className="mt-1 text-sm text-neutral-400">
-                      {payload?.notification?.body}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex border-l border-white/10">
-                <button
-                  onClick={() => toast.dismiss(t.id)}
-                  className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-blue-500 hover:text-blue-400 focus:outline-none"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          ),
-          { duration: 6000 },
-        );
-
-        // Re-initiate listener only after receiving a message
-        startListener();
-      } catch (err) {
-        console.error("Listener died:", err);
-      }
-    };
-
     setupNotifications();
-    startListener();
   }, [user]); // Re-run setup when the user logs in
 
   return (
