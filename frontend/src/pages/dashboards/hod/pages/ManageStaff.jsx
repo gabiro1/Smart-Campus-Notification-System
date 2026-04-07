@@ -1,4 +1,4 @@
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import {
   Search,
   UserPlus,

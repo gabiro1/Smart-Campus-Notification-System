@@ -136,7 +136,7 @@ export default function Maintenance() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
       <Toaster theme="dark" position="top-right" />
 
       {/* Header */}
@@ -175,7 +175,7 @@ export default function Maintenance() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Server size={22} className="text-blue-500" /> Service Health
@@ -230,7 +230,7 @@ export default function Maintenance() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-2 bg-[#0A0A0A] border border-white/10 rounded-[24px] overflow-hidden shadow-2xl flex flex-col h-[600px]"
+          className="lg:col-span-2 bg-background border border-white/10 rounded-[24px] overflow-hidden shadow-2xl flex flex-col h-[600px]"
         >
           {/* Terminal Header */}
           <div className="bg-[#111] p-4 border-b border-white/5 flex items-center justify-between">

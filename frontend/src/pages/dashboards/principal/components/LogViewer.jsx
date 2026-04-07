@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function LogViewer({ logs, onClear, height = "h-[400px]" }) {
   return (
     <GlassCard className={`p-0 flex flex-col ${height}`}>
-      <div className="p-4 border-b border-white/5 bg-[#050505] flex items-center justify-between shrink-0">
+      <div className="p-4 border-b border-white/5 bg-background flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 text-white font-bold text-sm">
           <Terminal size={16} className="text-emerald-400" /> System Terminal
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Menu, Bell } from "lucide-react";
-import Sidebar from "./Sidebar";
+import Sidebar from "@/components/shared/DeanSidebar";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function DashboardLayout() {
@@ -15,7 +15,7 @@ export default function DashboardLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex overflow-hidden">
+    <div className="min-h-screen bg-background text-white flex overflow-hidden">
       {/* Executive Ambient Glows */}
       <div className="fixed top-[-10%] left-[20%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/5 rounded-full blur-[150px] pointer-events-none" />
@@ -55,7 +55,7 @@ export default function DashboardLayout() {
                 <p className="text-xs text-neutral-500">Dean of Sciences</p>
               </div>
               <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-0.5">
-                <div className="w-full h-full bg-[#0a0a0a] rounded-full flex items-center justify-center text-xs font-bold text-white">
+                <div className="w-full h-full bg-background rounded-full flex items-center justify-center text-xs font-bold text-white">
                   RV
                 </div>
               </div>

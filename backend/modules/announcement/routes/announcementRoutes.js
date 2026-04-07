@@ -1,7 +1,7 @@
 import express from "express";
-import { 
-  createAnnouncement, 
-  getClassAnnouncements, 
+import {
+  createAnnouncement,
+  getClassAnnouncements,
   addComment,
   getLecturerAnnouncements,
   markAsViewed,
@@ -10,34 +10,58 @@ import {
   getLecturerStats,
   updateComment,
   getMyAnnouncements,
-  deleteAnnouncement // <--- YOU MUST IMPORT THIS FROM YOUR CONTROLLER
+  deleteAnnouncement,
+  getScheduledAnnouncements,
+  cancelScheduledAnnouncement,
+  rescheduleAnnouncement
 } from "../controller/announcementController.js";
 import { protect, authorize } from "../../../middleware/authMiddleware.js";
-import upload from "../../../middleware/uploadMiddleware.js"; 
+// Adjust this path if your upload middleware is located elsewhere
+import upload from "../../../middleware/uploadMiddleware.js";
+import { validateBody, schemas } from "../../../middleware/validation.js";
+import { auditLog } from "../../../middleware/auditMiddleware.js"; 
 
 const router = express.Router();
 
-// ==========================================
-// LECTURER DASHBOARD ROUTES
-// ==========================================
-router.get("/lecturer-manage", protect, authorize("lecturer"), getLecturerAnnouncements);
-router.post("/create", protect, authorize("lecturer"), upload.array("attachments", 5), createAnnouncement);
-router.delete("/:id", protect, authorize("lecturer"), deleteAnnouncement); // <--- ADDED THE MISSING ROUTE
-router.get("/dashboard-stats", protect, authorize("lecturer"), getLecturerStats);
+// Apply base authentication to ALL routes
+router.use(protect);
 
 // ==========================================
-// STUDENT FEED ROUTES
+// 1. LECTURER DASHBOARD ROUTES
 // ==========================================
-router.get("/my-feed", protect, getMyAnnouncements);
-router.patch("/:id", protect, authorize("lecturer"), updateAnnouncement);
+router.get("/lecturer-manage", authorize("lecturer"), getLecturerAnnouncements);
+router.get("/dashboard-stats", authorize("lecturer"), getLecturerStats);
+
+// Create Announcement (Accepts up to 5 file attachments)
+router.post("/create", authorize("lecturer"), upload.array("attachments", 5), validateBody(schemas.announcementCreation), auditLog('announcement'), createAnnouncement);
+
+// Edit and Delete Announcements
+router.patch("/:id", authorize("lecturer"), validateBody(schemas.announcementUpdate), auditLog('announcement', { captureChanges: true }), updateAnnouncement);
+router.delete("/:id", authorize("lecturer"), auditLog('announcement'), deleteAnnouncement);
+
+// Scheduled Announcements Management
+router.get("/scheduled", authorize("lecturer"), getScheduledAnnouncements);
+router.delete("/scheduled/:id/cancel", authorize("lecturer"), cancelScheduledAnnouncement);
+router.patch("/scheduled/:id/reschedule", authorize("lecturer"), rescheduleAnnouncement);
 
 // ==========================================
-// SHARED ROUTES (Both can view & comment)
+// 2. STUDENT FEED ROUTES
 // ==========================================
-router.get("/class/:classId", protect, getClassAnnouncements);
-router.post("/:id/comment", protect, addComment);
-router.delete("/:id/comment/:commentId", protect, deleteComment);
-router.post("/:id/view", protect, markAsViewed);
-router.patch("/:id/comment/:commentId", protect, updateComment);
+// Fetches the specific feed for the logged-in student's class
+router.get("/my-feed", getMyAnnouncements);
+
+// Fetches a feed for a specific class ID (used if a user can view multiple classes)
+router.get("/class/:classId", getClassAnnouncements);
+
+// ==========================================
+// 3. INTERACTIVITY (Shared: Views & Comments)
+// ==========================================
+// Record a view (Read Receipt)
+router.patch("/:id/view", markAsViewed);
+
+// Comment CRUD
+router.post("/:id/comment", addComment);
+router.patch("/:id/comment/:commentId", updateComment);
+router.delete("/:id/comment/:commentId", deleteComment);
 
 export default router;

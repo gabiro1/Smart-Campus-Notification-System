@@ -61,7 +61,7 @@ function MySubmissions({ refresh, role }) {
     return (
         <div className="space-y-3">
             {items.map((item) => (
-                <div key={item._id} className="flex items-start gap-4 p-4 bg-[#111111] border border-white/5 rounded-[10px]">
+                <div key={item._id} className="flex items-start gap-4 p-4 bg-background border border-white/5 rounded-[10px]">
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             <p className="text-sm font-semibold text-white truncate">{item.title}</p>
@@ -103,7 +103,7 @@ export default function GovernancePage() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white p-4 md:p-8">
+        <div className="min-h-screen bg-background text-white p-4 md:p-8">
             <div className="max-w-4xl mx-auto space-y-8">
 
                 {/* Page Header */}
@@ -115,7 +115,7 @@ export default function GovernancePage() {
                 </div>
 
                 {/* Tab Bar */}
-                <div className="flex bg-[#0D0D0D] p-1.5 rounded-[10px] border border-white/5 w-fit gap-1">
+                <div className="flex bg-card p-1.5 rounded-[10px] border border-white/5 w-fit gap-1">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
@@ -146,7 +146,7 @@ export default function GovernancePage() {
                             <AnnouncementForm onSuccess={() => { setRefreshKey((k) => k + 1); setActiveTab('mine'); }} />
                         )}
                         {activeTab === 'mine' && (
-                            <div className="bg-[#0D0D0D] border border-white/5 rounded-[15px] p-6 md:p-8">
+                            <div className="bg-card border border-white/5 rounded-[15px] p-6 md:p-8">
                                 <h2 className="text-xl font-bold mb-6">My Submissions</h2>
                                 <MySubmissions refresh={refreshKey} role={user?.role} />
                             </div>

@@ -26,10 +26,10 @@ export default function StudentSidebar() {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen bg-[#0D0D0D] border-r border-white/5 flex flex-col z-50 transition-all duration-300 w-20 md:w-72">
+    <aside className="fixed left-0 top-0 h-screen bg-card border-r border-white/5 flex flex-col z-50 transition-all duration-300 w-20 md:w-72">
       {/* 1. Header / Organization Branding */}
       <div className="p-4">
-        <button className="w-full flex items-center justify-center md:justify-between p-2 rounded-xl hover:bg-[#1A1A1A] transition-all group">
+        <button className="w-full flex items-center justify-center md:justify-between p-2 rounded-xl hover:bg-muted transition-all group">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 flex-shrink-0 bg-blue-600/20 text-blue-500 rounded-xl flex items-center justify-center font-bold border border-blue-500/20">
               U
@@ -68,7 +68,7 @@ export default function StudentSidebar() {
       </div>
 
       {/* 3. Bottom Actions */}
-      <div className="p-4 border-t border-white/5 space-y-2 bg-[#0D0D0D]">
+      <div className="p-4 border-t border-white/5 space-y-2 bg-card">
         {/* Reused SidebarLink for consistent UI and active state handling */}
         <SidebarLink
           item={{ icon: Settings, label: "Settings", path: "/student/settings" }}

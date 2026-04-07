@@ -214,6 +214,22 @@ export const getConversations = async (req, res) => {
   }
 };
 
+// @desc    Get total unread messages for current user
+// @route   GET /api/messages/unread-count
+export const getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const count = await Message.countDocuments({
+      receiverId: userId,
+      isRead: false
+    });
+    res.status(200).json({ unreadCount: count });
+  } catch (error) {
+    console.error("Unread Count Error:", error);
+    res.status(500).json({ message: "Failed to fetch unread messages count" });
+  }
+};
+
 // @desc    Get chat history between two users
 // @route   GET /api/messages/:otherUserId
 export const getMessages = async (req, res) => {

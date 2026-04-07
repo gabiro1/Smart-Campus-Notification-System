@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "@/components/shared/PrincipalSidebar";
 import TopBar from "../components/TopBar";
 import { AnimatePresence, motion } from "framer-motion";
 

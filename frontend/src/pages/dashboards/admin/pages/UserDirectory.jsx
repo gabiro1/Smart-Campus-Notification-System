@@ -158,7 +158,7 @@ export default function UserDirectory() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12 overflow-x-hidden relative w-full">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12 overflow-x-hidden relative w-full">
       <Toaster theme="dark" position="top-right" />
 
       {/* Header */}
@@ -191,7 +191,7 @@ export default function UserDirectory() {
               setPage(1);
             }}
             placeholder="Search students, lecturers, admins by name or email..."
-            className="w-full bg-[#0D0D0D] border border-white/5 rounded-2xl py-4 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm shadow-xl"
+            className="w-full bg-card border border-white/5 rounded-2xl py-4 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm shadow-xl"
           />
         </div>
 
@@ -208,7 +208,7 @@ export default function UserDirectory() {
                 setRoleFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full bg-[#0D0D0D] border border-white/5 rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider appearance-none cursor-pointer"
+              className="w-full bg-card border border-white/5 rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider appearance-none cursor-pointer"
             >
               <option value="">All Roles</option>
               <option value="student">Student</option>
@@ -231,14 +231,14 @@ export default function UserDirectory() {
                 setDeptFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full bg-[#0D0D0D] border border-white/5 rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider"
+              className="w-full bg-card border border-white/5 rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider"
             />
           </div>
         </div>
       </motion.div>
 
       {/* DIRECTORY DATA TABLE */}
-      <div className="bg-[#0D0D0D] border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+      <div className="bg-card border border-white/5 rounded-sm overflow-hidden shadow-2xl">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center gap-4">
             <Activity className="animate-spin text-blue-500" size={32} />
@@ -409,7 +409,7 @@ export default function UserDirectory() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a] border-l border-white/10 z-50 shadow-2xl flex flex-col"
+              className="fixed top-0 right-0 h-full w-full max-w-md bg-background border-l border-white/10 z-50 shadow-2xl flex flex-col"
             >
               {loadingDetails || !detailedUser ? (
                 <div className="h-full flex items-center justify-center">

@@ -1,5 +1,5 @@
-import StatCard from "../components/StatCard";
-import GlassCard from "../components/GlassCard";
+import { StatCard } from "@/components/shared";
+import { GlassCard } from "@/components/shared";
 import {
   Users,
   FileText,

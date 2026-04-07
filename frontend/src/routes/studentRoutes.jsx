@@ -12,6 +12,7 @@ import TimeTable from "../pages/dashboards/student/component/TimeTable";
 import MessagesTab from "../pages/Message/MessagesTab";
 import Profile from "../pages/dashboards/student/pages/Profile/Profile";
 import Settings from "../pages/dashboards/student/pages/Profile/Settings";
+import SearchResults from "../pages/dashboards/student/search/SearchResults";
 
 export const studentRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -50,6 +51,15 @@ export const studentRoutes = [
     element={
       <ProtectedRoute allowedRoles={["student"]}>
         <EventFeedGrid />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="search"
+    path="search"
+    element={
+      <ProtectedRoute allowedRoles={["student"]}>
+        <SearchResults />
       </ProtectedRoute>
     }
   />,

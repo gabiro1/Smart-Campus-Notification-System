@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import {
   Send,
   AlertTriangle,
@@ -304,7 +304,7 @@ export default function GlobalBroadcast() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`relative w-full max-w-md bg-[#050505] border rounded-2xl p-8 shadow-2xl z-10 text-center ${isEmergency ? "border-rose-500/50 shadow-[0_0_40px_rgba(225,29,72,0.2)]" : "border-white/10"}`}
+              className={`relative w-full max-w-md bg-background border rounded-2xl p-8 shadow-2xl z-10 text-center ${isEmergency ? "border-rose-500/50 shadow-[0_0_40px_rgba(225,29,72,0.2)]" : "border-white/10"}`}
             >
               {isSent ? (
                 <motion.div

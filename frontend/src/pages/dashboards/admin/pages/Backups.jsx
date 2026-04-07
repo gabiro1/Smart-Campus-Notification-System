@@ -94,7 +94,7 @@ export default function Backups() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
       <Toaster theme="dark" position="top-right" />
 
       {/* Header */}
@@ -119,7 +119,7 @@ export default function Backups() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Save size={22} className="text-blue-500" /> Manual Snapshot
@@ -170,7 +170,7 @@ export default function Backups() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold flex items-center gap-3 text-neutral-300">
@@ -207,7 +207,7 @@ export default function Backups() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[#0D0D0D] border border-white/5 rounded-[24px] overflow-hidden shadow-2xl h-full flex flex-col"
+            className="bg-card border border-white/5 rounded-[24px] overflow-hidden shadow-2xl h-full flex flex-col"
           >
             <div className="p-6 border-b border-white/5 flex items-center gap-3 bg-white/[0.01]">
               <HardDrive className="text-green-500" size={20} />

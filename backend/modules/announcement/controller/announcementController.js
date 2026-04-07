@@ -1,19 +1,24 @@
 import Announcement from "../model/Announcement.js";
 import Course from "../../course/model/Course.js";
-import User from "../../user/model/User.js"; 
-// 🔧 FIX 1: The missing import that caused the silent crash. 
+import User from "../../user/model/User.js";
+// 🔧 FIX 1: The missing import that caused the silent crash.
 // (Adjust the relative path if your folder structure differs slightly)
-import NotificationLog from "../../notification/models/NotificationLog.js"; 
+import NotificationLog from "../../notification/models/NotificationLog.js";
 import fs from "fs/promises";
 import path from "path";
 import { produceNotification } from "../../../services/notificationProducer.js";
+import { classifyWithFallback } from "../../../services/aiClassificationService.js";
+import { getPersonalizedContentBatch } from "../../../services/aiPersonalizationService.js";
+import { shouldSendNow } from "../../../utils/quietHours.js";
+import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
+import { ensureCachedTranslation } from "../../../services/translationService.js";
 
 // ==========================================
 // 1. CREATE ANNOUNCEMENT (The Engine)
 // ==========================================
 export const createAnnouncement = async (req, res) => {
   try {
-    const { title, content, courseId, type } = req.body;
+    const { title, content, courseId, type, scheduledAt, requiresAcknowledgment = false } = req.body;
     const lecturerId = req.user?._id;
 
     if (!lecturerId) return res.status(401).json({ message: "Unauthorized access" });
@@ -53,7 +58,55 @@ export const createAnnouncement = async (req, res) => {
       }
     }
 
-    // --- 3. Create Announcement ---
+    // --- 3. Determine Status (Scheduled vs Immediate) ---
+    let announcementStatus = "Active";
+    let scheduledTime = null;
+
+    if (scheduledAt && new Date(scheduledAt) > new Date()) {
+      announcementStatus = "Scheduled";
+      scheduledTime = new Date(scheduledAt);
+    }
+
+    // --- 4. AI CLASSIFICATION (with defensive fallback) ─────────────────────
+    let aiMetadata = null;
+    try {
+      const classification = await classifyWithFallback({
+        title,
+        content,
+        senderRole: req.user.role
+      });
+
+      aiMetadata = {
+        priority: classification.priority,
+        tags: classification.tags,
+        targetScope: classification.targetScope,
+        category: classification.aiCategory,
+        reasoning: classification.aiReasoning,
+        usedAI: classification.usedAI,
+        classifiedAt: new Date()
+      };
+
+      console.log(`[Announcement Creation] AI classification applied for "${title.substring(0, 50)}...":`, {
+        priority: classification.priority,
+        tags: classification.tags,
+        usedAI: classification.usedAI
+      });
+
+    } catch (classificationErr) {
+      // This should NOT happen - classifyWithFallback should never throw
+      console.error('[Announcement Creation] ❌ Classification error:', classificationErr.message);
+      aiMetadata = {
+        priority: 'medium',
+        tags: ['general'],
+        targetScope: null,
+        category: null,
+        reasoning: 'Fallback due to error',
+        usedAI: false,
+        classifiedAt: new Date()
+      };
+    }
+
+    // --- 5. Create Announcement ---
     const newAnnouncement = new Announcement({
       title,
       content,
@@ -62,55 +115,120 @@ export const createAnnouncement = async (req, res) => {
       targetClass,
       type,
       attachments: attachedFileUrls,
+      status: announcementStatus,
+      scheduledAt: scheduledTime,
+      aiMetadata, // Store AI classification results
+      requiresAcknowledgment: requiresAcknowledgment === true || requiresAcknowledgment === 'true'
     });
 
     await newAnnouncement.save();
     await newAnnouncement.populate("course", "name code");
 
-    // --- 4. FCM Push Notification (BullMQ) ---
-    const topic = `topic_class_${targetClass}`;
-    try {
-      await produceNotification({
-        title,
-        body: content,
-        topic,
-        type: "announcement",
-        data: { announcementId: newAnnouncement._id.toString() },
-      });
-    } catch (notifyErr) {
-      console.error("❌ FCM Push Failed:", notifyErr);
-    }
+    // --- 5. Dispatch Logic (Only if NOT scheduled) ---
+    let dispatched = false;
+    if (announcementStatus === "Active") {
+      // Create Notification Logs for Students with AI personalization
+      // Include role in selection for persona-based rewriting
+      // Also fetch fcmToken, quietHours, and languagePreference for push/translation
+      const students = await User.find({ classId: targetClass })
+        .select('_id role fcmToken quietHours languagePreference')
+        .lean();
 
-    // --- 5. Create Notification Logs for Students ---
-    const students = await User.find({ classId: targetClass }).select('_id');
-    
-    if (students.length > 0) {
-      const logs = students.map((student) => ({
-        studentId: student._id,
-        senderId: lecturerId,
-        title,
-        message: content,
-        type: "announcement", // 🔧 FIX 3: Matches the updated Enum in the schema
-        status: "unread",
-        referenceId: newAnnouncement._id, // 🔧 FIX 4: Changed from 'eventId' to prevent population crashes
-      }));
+      if (students.length > 0) {
+        // Ensure Kinyarwanda translation is cached if needed (for Rw students)
+        let cachedRw = null;
+        try {
+          cachedRw = await ensureCachedTranslation(newAnnouncement._id, title, content, students);
+        } catch (err) {
+          console.warn('[Translation] Failed to ensure translation:', err.message);
+        }
 
-      try {
-        // High-performance bulk insert
-        await NotificationLog.insertMany(logs);
-        console.log(`✅ DB Logger: Saved ${logs.length} notifications to MongoDB.`);
-      } catch (logErr) {
-        console.error("❌ CRITICAL: Failed to save Notification Logs to DB:", logErr);
+        // Generate personalized content per student role
+        let personalizedMap;
+        try {
+          personalizedMap = await getPersonalizedContentBatch(title, content, students);
+        } catch (err) {
+          console.warn('[Personalization] Failed for announcement, using generic content:', err.message);
+          personalizedMap = new Map();
+          students.forEach(u => personalizedMap.set(u._id.toString(), { title, message: content }));
+        }
+
+        // Override with Kinyarwanda translation for Rw-preferred students
+        if (cachedRw) {
+          students.filter(s => s.languagePreference === 'rw').forEach(s => {
+            personalizedMap.set(s._id.toString(), { title: cachedRw.title, message: cachedRw.body });
+          });
+        }
+
+        const logs = students.map((student) => {
+          const variant = personalizedMap.get(student._id.toString()) || { title, message: content };
+          return {
+            studentId: student._id,
+            senderId: lecturerId,
+            title: variant.title,
+            message: variant.message,
+            type: "announcement",
+            status: "unread",
+            referenceId: newAnnouncement._id,
+            priority: newAnnouncement.aiMetadata?.priority || 'medium',
+            digestedAt: null,
+            requiresAcknowledgment: newAnnouncement.requiresAcknowledgment,
+            acknowledgedAt: null
+          };
+        });
+
+        try {
+          await NotificationLog.insertMany(logs);
+          console.log(`✅ DB Logger: Saved ${logs.length} personalized notifications to MongoDB.`);
+        } catch (logErr) {
+          console.error("❌ CRITICAL: Failed to save Notification Logs to DB:", logErr);
+        }
+
+        // Send Push Notifications with quiet hours filtering
+        const announcementPriority = newAnnouncement.aiMetadata?.priority || 'medium';
+        const validRecipients = students.filter(u => {
+          const hasToken = u.fcmToken && u.fcmToken.trim() !== "";
+          if (!hasToken) return false;
+          // Check quiet hours: only send if canSendNow returns true
+          return shouldSendNow(u, announcementPriority);
+        });
+
+        if (validRecipients.length > 0) {
+          // Group tokens by personalized variant to minimize API calls
+          const tokenGroups = new Map();
+          validRecipients.forEach(user => {
+            const variant = personalizedMap.get(user._id.toString()) || { title, message: content };
+            const key = `${variant.title}|||${variant.message}`;
+            if (!tokenGroups.has(key)) tokenGroups.set(key, { title: variant.title, body: variant.message, tokens: [] });
+            tokenGroups.get(key).tokens.push(user.fcmToken);
+          });
+
+          // Send each group as a multicast (max 500 tokens per batch)
+          const pushPromises = [];
+          for (const { title: pushTitle, body: pushBody, tokens } of tokenGroups.values()) {
+            pushPromises.push(
+              sendMulticastNotification(tokens, pushTitle, pushBody).catch(err => {
+                console.error(`[Announcement] Push failed for ${tokens.length} tokens:`, err.message);
+              })
+            );
+          }
+          await Promise.all(pushPromises);
+          dispatched = true;
+          console.log(`✅ Announcement: Sent push to ${validRecipients.length} devices (filtered by quiet hours)`);
+        }
+      } else {
+        console.warn(`⚠️ No students found for class ID: ${targetClass}. Database logs skipped.`);
       }
-    } else {
-      console.warn(`⚠️ No students found for class ID: ${targetClass}. Database logs skipped.`);
     }
 
     // --- 6. Respond to Lecturer ---
     res.status(201).json({
-      message: "Announcement broadcasted successfully",
+      message: announcementStatus === "Scheduled"
+        ? "Announcement scheduled successfully"
+        : "Announcement broadcasted successfully",
       announcement: newAnnouncement,
-      notifiedStudents: students.length,
+      status: announcementStatus,
+      dispatched,
     });
   } catch (error) {
     console.error("Create Announcement Error:", error);
@@ -338,11 +456,11 @@ export const getLecturerStats = async (req, res) => {
       { $match: { lecturer: lecturerId } },
       {
         $group: {
-          _id: null, 
-          totalSent: { $sum: 1 }, 
-          totalViews: { $sum: { $size: { $ifNull: ["$viewedBy", []] } } }, 
-          totalComments: { $sum: { $size: { $ifNull: ["$comments", []] } } }, 
-          uniqueCourses: { $addToSet: "$course" } 
+          _id: null,
+          totalSent: { $sum: 1 },
+          totalViews: { $sum: { $size: { $ifNull: ["$viewedBy", []] } } },
+          totalComments: { $sum: { $size: { $ifNull: ["$comments", []] } } },
+          uniqueCourses: { $addToSet: "$course" }
         }
       },
       {
@@ -351,7 +469,7 @@ export const getLecturerStats = async (req, res) => {
           totalSent: 1,
           totalViews: 1,
           totalComments: 1,
-          activeCourses: { $size: "$uniqueCourses" } 
+          activeCourses: { $size: "$uniqueCourses" }
         }
       }
     ]);
@@ -363,5 +481,113 @@ export const getLecturerStats = async (req, res) => {
   } catch (error) {
     console.error("Dashboard Stats Error:", error);
     res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+// ==========================================
+// 6. SCHEDULING: Get Pending Scheduled Announcements
+// ==========================================
+export const getScheduledAnnouncements = async (req, res) => {
+  try {
+    const lecturerId = req.user._id;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const scheduled = await Announcement.find({
+      lecturer: lecturerId,
+      status: "Scheduled"
+    })
+    .populate("course", "name code")
+    .populate("targetClass", "name")
+    .sort({ scheduledAt: 1 })
+    .skip(skip)
+    .limit(parseInt(limit))
+    .lean();
+
+    const total = await Announcement.countDocuments({
+      lecturer: lecturerId,
+      status: "Scheduled"
+    });
+
+    res.status(200).json({
+      success: true,
+      data: scheduled,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: parseInt(page)
+      }
+    });
+  } catch (error) {
+    console.error("Fetch Scheduled Announcements Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch scheduled announcements" });
+  }
+};
+
+// ==========================================
+// 7. SCHEDULING: Cancel Scheduled Announcement
+// ==========================================
+export const cancelScheduledAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const lecturerId = req.user._id;
+
+    const announcement = await Announcement.findOneAndUpdate(
+      { _id: id, lecturer: lecturerId, status: "Scheduled" },
+      { $set: { status: "Draft" }, $unset: { scheduledAt: "" } },
+      { new: true }
+    );
+
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: "Scheduled announcement not found or already dispatched" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Scheduled announcement cancelled",
+      data: announcement
+    });
+  } catch (error) {
+    console.error("Cancel Scheduled Announcement Error:", error);
+    res.status(500).json({ success: false, message: "Failed to cancel scheduled announcement" });
+  }
+};
+
+// ==========================================
+// 8. SCHEDULING: Reschedule Announcement
+// ==========================================
+export const rescheduleAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { scheduledAt } = req.body;
+    const lecturerId = req.user._id;
+
+    if (!scheduledAt) {
+      return res.status(400).json({ success: false, message: "scheduledAt is required" });
+    }
+
+    const newDate = new Date(scheduledAt);
+    if (newDate <= new Date()) {
+      return res.status(400).json({ success: false, message: "Scheduled time must be in the future" });
+    }
+
+    const announcement = await Announcement.findOneAndUpdate(
+      { _id: id, lecturer: lecturerId, status: "Scheduled" },
+      { $set: { scheduledAt: newDate } },
+      { new: true }
+    );
+
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: "Scheduled announcement not found or not in scheduled status" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Announcement rescheduled successfully",
+      data: announcement
+    });
+  } catch (error) {
+    console.error("Reschedule Announcement Error:", error);
+    res.status(500).json({ success: false, message: "Failed to reschedule announcement" });
   }
 };

@@ -105,12 +105,82 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   notificationPreferences: {
+    // Global channel toggles (apply to all categories unless overridden)
     push: { type: Boolean, default: true },
     email: { type: Boolean, default: true },
-    sms: { type: Boolean, default: false }
+    sms: { type: Boolean, default: false },
+    // Category-specific channel maps
+    categories: {
+      events: {
+        push: { type: Boolean, default: true },
+        email: { type: Boolean, default: true },
+        sms: { type: Boolean, default: false }
+      },
+      reminders: {
+        push: { type: Boolean, default: true },
+        email: { type: Boolean, default: true },
+        sms: { type: Boolean, default: false }
+      },
+      governance: {
+        push: { type: Boolean, default: true },
+        email: { type: Boolean, default: true },
+        sms: { type: Boolean, default: false }
+      }
+    }
+  },
+
+  // Email Verification
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+
+  // JWT Refresh Tokens
+  refreshToken: String,
+
+  // Password Reset
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+
+  // Digest Summary Caching
+  lastDigestSummary: {
+    type: String,
+    default: null
+  },
+  lastDigestAt: {
+    type: Date,
+    default: null
+  },
+
+  // ONBOARDING STATUS
+  hasCompletedOnboarding: {
+    type: Boolean,
+    default: false,
+    index: true // Quick lookup for onboarding check
+  },
+
+  // QUIET HOURS (for notification suppression)
+  // Format: "HH:MM" (24-hour format, e.g., "22:00", "07:00")
+  // If null/undefined, no quiet hours enforced.
+  quietHours: {
+    startTime: { type: String, default: null },
+    endTime: { type: String, default: null }
+  },
+
+  // LANGUAGE PREFERENCE for AI Translation
+  // 'en' = English (default), 'rw' = Kinyarwanda
+  languagePreference: {
+    type: String,
+    enum: ['en', 'rw'],
+    default: 'en'
   }
-}, { 
-  timestamps: true 
+
+  // NOTE: 'interests' field already exists at line 61: [{ type: String, trim: true }]
+  // This array stores user's selected interest topics (tech, sports, seminars, etc.)
+}, {
+  timestamps: true
 });
 
 // COMPOUND INDEX: Since HODs constantly query for specific roles within their department

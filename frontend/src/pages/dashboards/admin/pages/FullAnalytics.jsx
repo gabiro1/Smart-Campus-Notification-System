@@ -35,13 +35,32 @@ export default function FullAnalytics() {
   const [auditPage, setAuditPage] = useState(1);
   const [auditTotalPages, setAuditTotalPages] = useState(1);
 
+  // Audit Filters State
+  const [auditFilters, setAuditFilters] = useState({
+    action: '',
+    adminId: '',
+    startDate: '',
+    endDate: ''
+  });
+
+  // Reset to page 1 when filters change to avoid invalid page numbers
+  const handleFilterChange = (field, value) => {
+    setAuditPage(1);
+    setAuditFilters(prev => ({ ...prev, [field]: value }));
+  };
+
+  const clearFilters = () => {
+    setAuditPage(1);
+    setAuditFilters({ action: '', adminId: '', startDate: '', endDate: '' });
+  };
+
   const fetchAllData = async () => {
     try {
       setLoading(true);
       const [analyticsData, engagementData, logsData] = await Promise.all([
         adminService.getAnalytics(), // Add date filters here later if needed
         adminService.getEngagementByDepartment(),
-        adminService.getAuditLogs(auditPage, 15),
+        adminService.getAuditLogs(auditPage, 15, auditFilters),
       ]);
 
       // Map backend data to Recharts format
@@ -76,11 +95,11 @@ export default function FullAnalytics() {
 
   useEffect(() => {
     fetchAllData();
-  }, [auditPage]);
+  }, [auditPage, auditFilters]);
 
   if (loading && !analytics) {
     return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <Activity className="animate-spin text-purple-500" size={40} />
         <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs">
           Compiling Analytics...
@@ -90,7 +109,7 @@ export default function FullAnalytics() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
       <Toaster theme="dark" position="top-right" />
 
       {/* Header & Tabs */}
@@ -110,7 +129,7 @@ export default function FullAnalytics() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex bg-[#0D0D0D] border border-white/5 rounded-2xl p-1"
+          className="flex bg-card border border-white/5 rounded-2xl p-1"
         >
           <TabButton
             active={activeTab === "analytics"}
@@ -145,7 +164,7 @@ export default function FullAnalytics() {
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Chart: Event Creation Trends */}
-              <div className="bg-[#0D0D0D] border border-white/5 p-6 rounded-[24px] shadow-xl h-[400px]">
+              <div className="bg-card border border-white/5 p-6 rounded-[24px] shadow-xl h-[400px]">
                 <h3 className="text-lg font-bold mb-6 text-neutral-300">
                   Event Volume
                 </h3>
@@ -192,7 +211,7 @@ export default function FullAnalytics() {
               </div>
 
               {/* Chart: Ratings Distribution */}
-              <div className="bg-[#0D0D0D] border border-white/5 p-6 rounded-[24px] shadow-xl h-[400px]">
+              <div className="bg-card border border-white/5 p-6 rounded-[24px] shadow-xl h-[400px]">
                 <h3 className="text-lg font-bold mb-6 text-neutral-300 flex items-center gap-2">
                   <Star size={18} className="text-yellow-500" /> Supervised
                   Learning (Ratings)
@@ -253,7 +272,7 @@ export default function FullAnalytics() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div className="bg-[#0D0D0D] border border-white/5 rounded-[24px] overflow-hidden shadow-2xl">
+            <div className="bg-card border border-white/5 rounded-[24px] overflow-hidden shadow-2xl">
               <div className="p-6 border-b border-white/5 flex items-center gap-3">
                 <PieIcon className="text-blue-500" size={20} />
                 <h3 className="text-lg font-bold text-neutral-300">
@@ -339,7 +358,84 @@ export default function FullAnalytics() {
               </p>
             </div>
 
-            <div className="bg-[#0D0D0D] border border-white/5 rounded-[24px] overflow-hidden shadow-2xl">
+            <div className="bg-card border border-white/5 rounded-[24px] overflow-hidden shadow-2xl">
+
+              {/* Filter Bar */}
+              <div className="p-6 border-b border-white/5 flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                    Action
+                  </label>
+                  <select
+                    value={auditFilters.action}
+                    onChange={(e) => handleFilterChange('action', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All Actions</option>
+                    <option value="CREATE_USER">Create User</option>
+                    <option value="UPDATE_USER">Update User</option>
+                    <option value="DELETE_USER">Delete User</option>
+                    <option value="PROMOTE_USER">Promote User</option>
+                    <option value="CREATE_EVENT">Create Event</option>
+                    <option value="UPDATE_EVENT">Update Event</option>
+                    <option value="DELETE_EVENT">Delete Event</option>
+                    <option value="CREATE_ANNOUNCEMENT">Create Announcement</option>
+                    <option value="UPDATE_ANNOUNCEMENT">Update Announcement</option>
+                    <option value="DELETE_ANNOUNCEMENT">Delete Announcement</option>
+                    <option value="BROADCAST_MESSAGE">Broadcast Message</option>
+                    <option value="SEND_SMS">Send SMS</option>
+                    <option value="VIEW_ANALYTICS">View Analytics</option>
+                    <option value="EXPORT_DATA">Export Data</option>
+                    <option value="LOGIN">Login</option>
+                    <option value="LOGOUT">Logout</option>
+                  </select>
+                </div>
+
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                    User Email/ID
+                  </label>
+                  <input
+                    type="text"
+                    value={auditFilters.adminId}
+                    onChange={(e) => handleFilterChange('adminId', e.target.value)}
+                    placeholder="Filter by user email or ID..."
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={auditFilters.startDate}
+                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={auditFilters.endDate}
+                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <button
+                  onClick={clearFilters}
+                  className="px-6 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-lg text-sm font-bold transition-colors border border-white/10"
+                >
+                  Clear Filters
+                </button>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-neutral-500 tracking-widest border-b border-white/5">

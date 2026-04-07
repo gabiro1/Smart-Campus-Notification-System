@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import StudentSidebar from "../../component/StudentNav";
 import { motion } from "framer-motion";
 import {
@@ -50,9 +51,11 @@ const fallbackEvents = [
 ];
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
   const { events, loading, error, getEvents, rateEvent, markInterested } =
     useEvents();
   const [selectedRating, setSelectedRating] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     getEvents(1, 10);
@@ -62,7 +65,7 @@ export default function StudentDashboard() {
   const displayEvents = events && events.length > 0 ? events : fallbackEvents;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex">
+    <div className="min-h-screen bg-background text-white flex">
       {/* 1. Sidebar - Persistent on the left */}
       <StudentSidebar />
 
@@ -101,10 +104,17 @@ export default function StudentDashboard() {
             <input
               type="text"
               placeholder="Search announcements, tags, or lecturers..."
-              className="w-full bg-[#111111] border border-white/10 rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-800"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchQuery.trim()) {
+                  navigate(`/student/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                }
+              }}
+              className="w-full bg-background border border-white/10 rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-800"
             />
           </div>
-          <button className="bg-[#111111] border border-white/5 px-4 py-2.5 rounded-[7px] text-xs font-bold text-neutral-300 flex items-center gap-2 hover:border-white/20">
+          <button className="bg-background border border-white/5 px-4 py-2.5 rounded-[7px] text-xs font-bold text-neutral-300 flex items-center gap-2 hover:border-white/20">
             <Filter size={14} /> Filter View
           </button>
         </div>
@@ -135,7 +145,7 @@ export default function StudentDashboard() {
         {/* Main Bento Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           {/* LEFT: AI RANKED FEED */}
-          <div className="lg:col-span-2 bg-[#0D0D0D] border border-white/5 rounded-[10px] p-8">
+          <div className="lg:col-span-2 bg-card border border-white/5 rounded-[10px] p-8">
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h3 className="text-lg font-bold">Recommended for You</h3>
@@ -158,7 +168,7 @@ export default function StudentDashboard() {
                   <motion.div
                     key={event._id}
                     whileHover={{ y: -2, backgroundColor: "#121212" }}
-                    className={`p-6 rounded-[15px] border border-white/5 bg-[#141414] transition-all relative group flex flex-col justify-between ${
+                    className={`p-6 rounded-[15px] border border-white/5 bg-background transition-all relative group flex flex-col justify-between ${
                       event.aiMatchScore > 85
                         ? "md:col-span-2 border-blue-500/20"
                         : "col-span-1"
@@ -222,7 +232,7 @@ export default function StudentDashboard() {
             {/* MESSAGES BENTO BOX */}
             <motion.div
               whileHover={{ backgroundColor: "#0F0F0F" }}
-              className="bg-[#0D0D0D] border border-white/5 rounded-[10px] p-7"
+              className="bg-card border border-white/5 rounded-[10px] p-7"
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-sm font-bold flex items-center gap-2">
@@ -249,7 +259,7 @@ export default function StudentDashboard() {
                 ].map((msg, i) => (
                   <div
                     key={i}
-                    className="p-3 bg-[#141414] border border-white/5 rounded-[10px] hover:border-blue-500/30 transition-all cursor-pointer"
+                    className="p-3 bg-background border border-white/5 rounded-[10px] hover:border-blue-500/30 transition-all cursor-pointer"
                   >
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-xs font-bold">{msg.sender}</span>
@@ -269,7 +279,7 @@ export default function StudentDashboard() {
             </motion.div>
 
             {/* TIMETABLE BOX */}
-            <div className="bg-[#0D0D0D] border border-white/5 rounded-[10px] p-7 flex-1">
+            <div className="bg-card border border-white/5 rounded-[10px] p-7 flex-1">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <Clock size={16} className="text-emerald-500" /> Today's Class
@@ -286,7 +296,7 @@ export default function StudentDashboard() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="flex gap-4 items-center p-4 bg-[#141414] rounded-[10px] border border-white/5"
+                    className="flex gap-4 items-center p-4 bg-background rounded-[10px] border border-white/5"
                   >
                     <div className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">
                       {item.time}
@@ -312,7 +322,7 @@ function StatCard({ title, value, change, color, icon }) {
   return (
     <motion.div
       whileHover={{ y: -4, backgroundColor: "#0F0F0F" }}
-      className="bg-[#0D0D0D] p-7 rounded-[10px] border border-white/5 transition-all shadow-sm"
+      className="bg-card p-7 rounded-[10px] border border-white/5 transition-all shadow-sm"
     >
       <div className="flex justify-between items-start mb-4">
         <p className="text-white font-black text-xs uppercase tracking-widest opacity-60">

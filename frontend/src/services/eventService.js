@@ -72,6 +72,26 @@ const eventService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to create event.");
     }
+  },
+
+  // Get event statistics including RSVP and attendance counts
+  getStats: async (eventId) => {
+    try {
+      const response = await apiClient.get(`/events/${eventId}/stats`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to fetch event stats.");
+    }
+  },
+
+  // Scan attendance via QR (for lecturers/admins)
+  scanAttendance: async (eventId, studentId) => {
+    try {
+      const response = await apiClient.post(`/events/${eventId}/scan-attendance`, { studentId });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to record attendance.");
+    }
   }
 };
 

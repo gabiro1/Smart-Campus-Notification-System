@@ -37,7 +37,7 @@ export default function TopBar({
             </p>
           </div>
           <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-0.5">
-            <div className="w-full h-full bg-[#0a0a0a] rounded-full flex items-center justify-center text-xs font-bold text-white">
+            <div className="w-full h-full bg-background rounded-full flex items-center justify-center text-xs font-bold text-white">
               {initials || "RV"}
             </div>
           </div>

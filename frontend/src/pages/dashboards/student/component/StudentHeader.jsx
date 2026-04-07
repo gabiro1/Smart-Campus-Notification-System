@@ -15,7 +15,7 @@ export default function StudentHeader() {
   } = useRealTimeNotifications();
 
   return (
-    <header className="sticky top-0 z-40 w-full h-16 bg-[#0D0D0D]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-end px-4 md:px-8">
+    <header className="sticky top-0 z-40 w-full h-16 bg-card/80 backdrop-blur-md border-b border-white/5 flex items-center justify-end px-4 md:px-8">
       {/* Right side actions */}
       <div className="flex items-center gap-4">
         
@@ -34,7 +34,7 @@ export default function StudentHeader() {
             {/* Unread Badge / Pulse */}
             {unreadCount > 0 && (
               <>
-                <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0D0D0D] z-10" />
+                <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-border z-10" />
                 <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping opacity-75" />
               </>
             )}

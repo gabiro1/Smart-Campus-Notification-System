@@ -32,7 +32,7 @@ export default function Notifications() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col">
+    <div className="min-h-screen bg-background text-white flex flex-col">
       <Navbar />
       <main className="flex-1 p-6 md:p-12 pt-32 max-w-4xl mx-auto w-full space-y-8">
         <header className="flex justify-between items-end border-b border-white/5 pb-6">

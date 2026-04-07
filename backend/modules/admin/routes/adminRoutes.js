@@ -9,14 +9,16 @@ import {
     deleteUser,
     promoteUser,
     getAnalytics,
-    getAuditLogs,
     getBroadcastHistory,
     getEventMonitor,
     getDepartmentStats,
-    getEngagementByDepartment
+    getEngagementByDepartment,
+    getActiveEmergencies
 } from '../controller/adminController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 import { getAcademicHierarchy } from '../controller/adminController.js';
+import { validateBody, schemas } from '../../../middleware/validation.js';
+import { auditLog } from '../../../middleware/auditMiddleware.js';
 
 // All admin routes require authentication and admin role
 router.use(protect, authorize('admin'));
@@ -47,21 +49,21 @@ router.get('/users/:userId', getUser);
  * @desc    Update user details
  * @access  Private (Admin only)
  */
-router.put('/users/:userId', updateUser);
+router.put('/users/:userId', validateBody(schemas.adminUserUpdate), auditLog('user', { captureChanges: true }), updateUser);
 
 /**
  * @route   DELETE /api/admin/users/:userId
  * @desc    Delete user account
  * @access  Private (Admin only)
  */
-router.delete('/users/:userId', deleteUser);
+router.delete('/users/:userId', auditLog('user'), deleteUser);
 
 /**
  * @route   POST /api/admin/users/:userId/promote
  * @desc    Promote user role
  * @access  Private (Admin only)
  */
-router.post('/users/:userId/promote', promoteUser);
+router.post('/users/:userId/promote', auditLog('user', { customAction: 'PROMOTE_USER' }), promoteUser);
 
 /**
  * @route   GET /api/admin/analytics
@@ -71,18 +73,18 @@ router.post('/users/:userId/promote', promoteUser);
 router.get('/analytics', getAnalytics);
 
 /**
- * @route   GET /api/admin/audit-logs
- * @desc    Get audit logs
- * @access  Private (Admin only)
- */
-router.get('/audit-logs', getAuditLogs);
-
-/**
  * @route   GET /api/admin/broadcasts
  * @desc    Get broadcast history
  * @access  Private (Admin only)
  */
 router.get('/broadcasts', getBroadcastHistory);
+
+/**
+ * @route   GET /api/admin/announcements/active-emergencies
+ * @desc    Get active emergency broadcasts with acknowledgment stats
+ * @access  Private (Admin only)
+ */
+router.get('/announcements/active-emergencies', getActiveEmergencies);
 
 /**
  * @route   GET /api/admin/event-monitor
@@ -105,7 +107,7 @@ router.get('/departments-stats', getDepartmentStats);
  */
 router.get('/engagement', getEngagementByDepartment);
 
-router.post('/users', createUser);
+router.post('/users', validateBody(schemas.adminUserCreation), auditLog('user'), createUser);
 
 router.get('/hierarchy', getAcademicHierarchy);
 

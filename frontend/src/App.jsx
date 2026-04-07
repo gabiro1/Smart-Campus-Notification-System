@@ -6,6 +6,7 @@ import apiClient from "./services/apiClient";
 import AppRoutes from "./routes/main/AppRoutes";
 
 import { useRealTimeNotifications } from "./hooks/useRealTimeNotifications";
+import SkipLink from "./components/shared/layout/SkipLink";
 
 function App() {
   const { user } = useAuth();
@@ -42,7 +43,10 @@ function App() {
   return (
     <>
       <Toaster position="top-right" reverseOrder={false} />
-      <AppRoutes />
+      <SkipLink />
+      <div id="main-content">
+        <AppRoutes />
+      </div>
     </>
   );
 }

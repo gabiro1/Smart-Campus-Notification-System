@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,

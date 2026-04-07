@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toast, Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import {
   Send,
   Type,
@@ -15,11 +16,14 @@ import {
   Paperclip,
   X,
   FileText,
+  ArrowLeft,
 } from "lucide-react";
 
 import announcementService from "../../../../services/announcementService";
 
 const LecturerCreateAnnouncement = () => {
+  const navigate = useNavigate();
+
   // --- FORM STATE ---
   // CHANGED: targetClass is now courseId
   const [formData, setFormData] = useState({
@@ -27,7 +31,18 @@ const LecturerCreateAnnouncement = () => {
     content: "",
     courseId: "",
     type: "General",
+    scheduledAt: "", // Empty = send immediately
   });
+
+  // AI Suggestion State
+  const [draftNotes, setDraftNotes] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+
+  // Scheduling UI state
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+
+  // Emergency acknowledgment toggle
+  const [requiresAcknowledgment, setRequiresAcknowledgment] = useState(false);
 
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
@@ -62,6 +77,45 @@ const LecturerCreateAnnouncement = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // AI Suggestion Handler
+  const handleAISuggest = async () => {
+    if (!draftNotes.trim()) {
+      return toast.error("Please enter some draft notes first.");
+    }
+
+    setAiLoading(true);
+    try {
+      const result = await announcementService.suggestAnnouncement(draftNotes);
+      if (result.success && result.announcement) {
+        setFormData((prev) => ({ ...prev, content: result.announcement }));
+        toast.success("Announcement polished!");
+      } else {
+        throw new Error(result.message || "AI failed to generate suggestion");
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || error.message || "Failed to generate suggestion";
+      toast.error(msg);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // --- HANDLE SCHEDULE TOGGLE ---
+  const handleScheduleToggle = () => {
+    setScheduleEnabled(!scheduleEnabled);
+    if (scheduleEnabled) {
+      // Turn off scheduling, clear date
+      setFormData((prev) => ({ ...prev, scheduledAt: "" }));
+    } else {
+      // Turn on scheduling - set default to tomorrow at 9 AM
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+      const isoDateTime = tomorrow.toISOString().slice(0, 16); // format for datetime-local
+      setFormData((prev) => ({ ...prev, scheduledAt: isoDateTime }));
+    }
   };
 
   // --- HANDLE FILE SELECTION ---
@@ -99,6 +153,8 @@ const LecturerCreateAnnouncement = () => {
       submitData.append("content", formData.content);
       submitData.append("courseId", formData.courseId); // SENDING THE COURSE ID
       submitData.append("type", formData.type);
+      submitData.append("scheduledAt", formData.scheduledAt || "");
+      submitData.append("requiresAcknowledgment", requiresAcknowledgment.toString());
 
       attachments.forEach((file) => {
         submitData.append("attachments", file);
@@ -109,7 +165,9 @@ const LecturerCreateAnnouncement = () => {
       toast.success("Announcement broadcasted successfully!");
 
       // Reset form
-      setFormData({ title: "", content: "", courseId: "", type: "General" });
+      setFormData({ title: "", content: "", courseId: "", type: "General", scheduledAt: "" });
+      setScheduleEnabled(false);
+      setRequiresAcknowledgment(false);
       setAttachments([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
@@ -160,7 +218,7 @@ const LecturerCreateAnnouncement = () => {
   const selectedCourse = myCourses.find((c) => c._id === formData.courseId);
 
   return (
-    <div className="w-full min-h-screen bg-[#0A0A0A] text-white p-4 md:p-8 font-sans">
+    <div className="w-full min-h-screen bg-background text-white p-4 md:p-8 font-sans">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -172,19 +230,28 @@ const LecturerCreateAnnouncement = () => {
         }}
       />
 
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-          Broadcast Announcement
-        </h1>
-        <p className="text-neutral-400 mt-2 text-sm max-w-2xl">
-          Send targeted notifications and course materials to your classes.
-        </p>
+      <div className="mb-10 pb-6 border-b border-white/5 flex items-start gap-6">
+        <button
+          onClick={() => navigate('/lecturer/announcements')}
+          className="mt-1 p-3 bg-input shadow-md hover:bg-muted border border-border rounded-2xl text-neutral-400 hover:text-white transition-all group"
+          title="Go back to announcements"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+        </button>
+        <div>
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">
+            Broadcast Announcement
+          </h1>
+          <p className="text-muted-foreground font-medium max-w-2xl text-sm">
+            Compose and securely dispatch targeted academic notifications and course materials.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
         {/* FORM SECTION */}
-        <div className="lg:col-span-3 bg-[#141414] border border-white/10 rounded-2xl p-6 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="lg:col-span-3 bg-background border border-white/5 rounded-3xl p-8 shadow-2xl">
+          <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
@@ -195,7 +262,7 @@ const LecturerCreateAnnouncement = () => {
                   value={formData.courseId}
                   onChange={handleChange}
                   disabled={loadingCourses}
-                  className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none disabled:opacity-50"
+                  className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none disabled:opacity-50"
                   required
                 >
                   <option value="" disabled>
@@ -221,13 +288,42 @@ const LecturerCreateAnnouncement = () => {
                   name="type"
                   value={formData.type}
                   onChange={handleChange}
-                  className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
+                  className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
                 >
                   <option value="General">General Update</option>
                   <option value="Urgent">Urgent Alert</option>
                   <option value="Assignment">Assignment / Task</option>
                   <option value="Event">Upcoming Event</option>
                 </select>
+              </div>
+            </div>
+
+            {/* EMERGENCY ACKNOWLEDGMENT TOGGLE */}
+            <div className="bg-red-900/10 border border-red-500/20 rounded-xl p-5">
+              <div className="flex items-start gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRequiresAcknowledgment(!requiresAcknowledgment)}
+                  className={`relative w-12 h-6 rounded-full transition-colors mt-0.5 ${
+                    requiresAcknowledgment ? 'bg-red-600' : 'bg-white/20'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                      requiresAcknowledgment ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+                <div className="flex-1">
+                  <label className="text-sm font-bold text-red-400 flex items-center gap-2">
+                    <AlertTriangle size={16} />
+                    Emergency Alert (Requires Acknowledgment)
+                  </label>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Students must explicitly acknowledge this alert before it can be dismissed.
+                    Use only for critical campus-wide emergencies.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -241,24 +337,80 @@ const LecturerCreateAnnouncement = () => {
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="e.g., Chapter 4 Lecture Notes"
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600"
+                className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600"
                 required
               />
             </div>
 
+            {/* AI SUGGESTION SECTION */}
+            <div className="bg-gradient-to-br from-blue-900/10 to-purple-900/10 border border-blue-500/20 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-blue-500/20 rounded-lg">
+                    <span className="text-lg">✨</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">AI Assistant</h4>
+                    <p className="text-xs text-neutral-500">Transform rough notes into professional announcements</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
+                    Draft Notes
+                  </label>
+                  <textarea
+                    value={draftNotes}
+                    onChange={(e) => setDraftNotes(e.target.value)}
+                    placeholder="Jot down your raw ideas, key points, or informal notes here... (e.g., 'hey students, quiz 2 is next week, study chapter 5, bring calculator')"
+                    rows="3"
+                    className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-600 resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleAISuggest}
+                    disabled={aiLoading || !draftNotes.trim()}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-white/10 disabled:to-white/10 disabled:text-white/50 text-white text-sm font-bold rounded-lg transition-all shadow-lg disabled:shadow-none"
+                  >
+                    {aiLoading ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Polishing...
+                      </>
+                    ) : (
+                      <>
+                        <span>✨</span> Make it Professional
+                      </>
+                    )}
+                  </button>
+                  <span className="text-xs text-neutral-500">
+                    AI will rewrite your notes into a polished academic announcement.
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                <AlignLeft size={16} className="text-neutral-500" /> Message
+                <AlignLeft size={16} className="text-neutral-500" /> Announcement Message
               </label>
               <textarea
                 name="content"
                 value={formData.content}
                 onChange={handleChange}
-                placeholder="Write the details here..."
+                placeholder="Write the details here... (You can use the AI assistant above to help draft this)"
                 rows="5"
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600 resize-none"
+                className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600 resize-none"
                 required
               ></textarea>
+              <p className="text-xs text-neutral-500 mt-1.5">
+                Use the AI assistant above to transform rough notes, then edit as needed.
+              </p>
             </div>
 
             <div>
@@ -278,9 +430,9 @@ const LecturerCreateAnnouncement = () => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium text-neutral-300 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 bg-input hover:bg-muted border border-border rounded-xl text-sm font-bold text-muted-foreground hover:text-white transition-all flex items-center gap-2 group"
                 >
-                  <Paperclip size={16} /> Choose Files
+                  <Paperclip size={16} className="group-hover:-rotate-12 transition-transform" /> Choose Files
                 </button>
                 <span className="text-xs text-neutral-500">
                   Supported: PDF, DOCX, PPTX, JPG (Max 5MB)
@@ -292,7 +444,7 @@ const LecturerCreateAnnouncement = () => {
                   {attachments.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between bg-[#0A0A0A] border border-white/10 p-3 rounded-xl group"
+                      className="flex items-center justify-between bg-background border border-white/10 p-3 rounded-xl group"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg shrink-0">
@@ -317,6 +469,57 @@ const LecturerCreateAnnouncement = () => {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+
+            {/* SCHEDULE SECTION */}
+            <div className="pt-4 border-t border-white/5">
+              <div className="flex items-start gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={handleScheduleToggle}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    scheduleEnabled ? 'bg-blue-600' : 'bg-white/20'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                      scheduleEnabled ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-neutral-300 flex items-center gap-2">
+                    <Calendar size={16} /> Send Later
+                  </label>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Schedule this announcement to be sent at a specific date and time.
+                  </p>
+                </div>
+              </div>
+
+              {scheduleEnabled && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mb-6"
+                >
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    Schedule Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="scheduledAt"
+                    value={formData.scheduledAt}
+                    onChange={handleChange}
+                    min={new Date().toISOString().slice(0, 16)}
+                    className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
+                  />
+                  <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
+                    <AlertTriangle size={12} />
+                    The announcement will be queued and automatically dispatched at the scheduled time.
+                  </p>
+                </motion.div>
               )}
             </div>
 
@@ -345,7 +548,7 @@ const LecturerCreateAnnouncement = () => {
             </h3>
 
             <div
-              className={`bg-[#1A1A1A] border ${previewStyles.border} rounded-2xl p-5 relative overflow-hidden transition-all duration-300`}
+              className={`bg-muted border ${previewStyles.border} rounded-2xl p-5 relative overflow-hidden transition-all duration-300`}
             >
               <div className="flex items-center justify-between mb-4">
                 <div
@@ -379,7 +582,7 @@ const LecturerCreateAnnouncement = () => {
               <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-2">
-                    <div className="w-6 h-6 rounded-full bg-neutral-800 border-2 border-[#1A1A1A]"></div>
+                    <div className="w-6 h-6 rounded-full bg-neutral-800 border-2 border-border"></div>
                   </div>
                   <span className="text-xs text-neutral-500 font-medium">
                     Q&A Thread

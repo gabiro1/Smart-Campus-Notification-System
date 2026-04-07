@@ -1,4 +1,4 @@
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { Bell, AlertCircle, CheckCircle2, Megaphone } from "lucide-react";
 
 const notifications = [

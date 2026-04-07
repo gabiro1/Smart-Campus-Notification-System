@@ -1,4 +1,4 @@
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { motion } from "framer-motion";
 import { MousePointerClick, Eye, Send } from "lucide-react";
 

@@ -1,9 +1,11 @@
 import express from "express";
-import { sendMessage, getMessages, getContacts, voteOnPoll, getConversations } from "../controller/messageController.js";
+import { sendMessage, getMessages, getContacts, voteOnPoll, getConversations, getUnreadCount } from "../controller/messageController.js";
 // 1. ADD getSentHistory to your imports here
 import { sendNotification, getSentHistory } from "../../notification/controllers/notificationController.js"; 
-import { protect, authorize } from "../../../middleware/authMiddleware.js"; 
-import upload from "../../../middleware/uploadMiddleware.js"; 
+import { protect, authorize } from "../../../middleware/authMiddleware.js";
+import upload from "../../../middleware/uploadMiddleware.js";
+import { validateBody, schemas } from "../../../middleware/validation.js";
+import { auditLog } from "../../../middleware/auditMiddleware.js";
 
 const router = express.Router();
 
@@ -26,7 +28,7 @@ router.get("/history", authorize('hod', 'admin'), getSentHistory);
  * @route   POST /api/messages/notify
  * @desc    Send Omnichannel Notification
  */
-router.post("/notify", authorize('hod', 'admin'), sendNotification);
+router.post("/notify", authorize('hod', 'admin'), auditLog('broadcast'), sendNotification);
 
 /**
  * @route   GET /api/messages/conversations
@@ -36,7 +38,13 @@ router.get("/conversations", getConversations);
 /**
  * @route   POST /api/messages
  */
-router.post("/", upload.single('file'), sendMessage);
+router.post("/", upload.single('file'), validateBody(schemas.messageSend), sendMessage);
+
+/**
+ * @route   GET /api/messages/unread-count
+ * @desc    Fetch true unread badges for active user
+ */
+router.get("/unread-count", getUnreadCount);
 
 /**
  * @route   GET /api/messages/:otherUserId
@@ -44,6 +52,6 @@ router.post("/", upload.single('file'), sendMessage);
  */
 router.get("/:otherUserId", getMessages);
 
-router.put("/:messageId/vote", voteOnPoll);
+router.put("/:messageId/vote", validateBody(schemas.pollVote), voteOnPoll);
 
 export default router;

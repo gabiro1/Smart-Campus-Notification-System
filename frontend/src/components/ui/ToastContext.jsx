@@ -38,8 +38,8 @@ export const ToastProvider = ({ children }) => {
           : "translate-y-10 opacity-0 pointer-events-none"
       } ${
         toast.type === "success"
-          ? "bg-[#0A0A0A] border-green-500/30 text-green-400" // Adjusted colors for dark theme contrast
-          : "bg-[#0A0A0A] border-red-500/30 text-red-400"
+          ? "bg-background border-green-500/30 text-green-400" // Adjusted colors for dark theme contrast
+          : "bg-background border-red-500/30 text-red-400"
       }`}
     >
       {toast.type === "success" ? (

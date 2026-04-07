@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import {
   Send,
   UploadCloud,
@@ -146,7 +146,7 @@ export default function SchoolBroadcast() {
 
             <div className="flex items-center gap-3 mb-5 relative z-10">
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-[2px]">
-                <div className="w-full h-full bg-[#050505] rounded-full flex items-center justify-center text-xs font-bold text-white">
+                <div className="w-full h-full bg-background rounded-full flex items-center justify-center text-xs font-bold text-white">
                   Dean
                 </div>
               </div>
@@ -190,7 +190,7 @@ export default function SchoolBroadcast() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 shadow-2xl z-10 text-center"
+              className="relative w-full max-w-md bg-background border border-white/10 rounded-2xl p-8 shadow-2xl z-10 text-center"
             >
               {isSent ? (
                 <motion.div

@@ -68,9 +68,58 @@
 
 @layer base {
   body {
-    background-color: #000000;
+    background-color: var(--background);
     font-family: var(--site-font);
   }
+}
+
+/* Semantic utility classes for quick migration from raw hex */
+@layer utilities {
+  /* Backgrounds */
+  .bg-background { background-color: var(--background); }
+  .bg-card { background-color: var(--card); }
+  .bg-popover { background-color: var(--popover); }
+  .bg-input { background-color: var(--input); }
+  .bg-muted { background-color: var(--muted); }
+  .bg-accent { background-color: var(--accent); }
+  .bg-sidebar { background-color: var(--sidebar); }
+
+  /* Text colors */
+  .text-foreground { color: var(--foreground); }
+  .text-card-foreground { color: var(--card-foreground); }
+  .text-muted-foreground { color: var(--muted-foreground); }
+  .text-primary-foreground { color: var(--primary-foreground); }
+  .text-secondary-foreground { color: var(--secondary-foreground); }
+  .text-accent-foreground { color: var(--accent-foreground); }
+
+  /* Borders */
+  .border-border { border-color: var(--border); }
+  .border-input { border-color: var(--input); }
+  .border-ring { border-color: var(--ring); }
+  .border-sidebar { border-color: var(--sidebar-border); }
+
+  /* Accent colors (semantic) */
+  .text-success { color: #10b981; }
+  .bg-success { background-color: #10b981; }
+  .border-success { border-color: #10b981; }
+
+  .text-warning { color: #f59e0b; }
+  .bg-warning { background-color: #f59e0b; }
+  .border-warning { border-color: #f59e0b; }
+
+  .text-error { color: #ef4444; }
+  .bg-error { background-color: #ef4444; }
+  .border-error { border-color: #ef4444; }
+
+  .text-info { color: #3b82f6; }
+  .bg-info { background-color: #3b82f6; }
+  .border-info { border-color: #3b82f6; }
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 .custom-scrollbar {
   -ms-overflow-style: none;

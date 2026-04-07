@@ -2,7 +2,7 @@ import { Menu, Bell, ShieldCheck } from "lucide-react";
 
 export default function TopBar({ isMobile, setSidebarOpen }) {
   return (
-    <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md shrink-0 z-40 sticky top-0">
+    <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-background/80 backdrop-blur-md shrink-0 z-40 sticky top-0">
       <div className="flex items-center gap-4">
         {isMobile && (
           <button

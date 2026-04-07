@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { 
   ImagePlus, Loader2, FileText, LayoutTemplate, ShieldAlert, AlertTriangle, Info, Check, X, Shield, Users ,CheckCircle 
 } from "lucide-react";
@@ -94,7 +94,7 @@ export default function CreatePulse() {
         <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2 font-sans">
           Create Pulse
         </h1>
-        <p className="text-[#8B92A5] text-lg font-medium">
+        <p className="text-muted-foreground text-lg font-medium">
           Broadcast hyper-targeted academic intelligence across the campus nexus.
         </p>
       </header>
@@ -106,7 +106,7 @@ export default function CreatePulse() {
           
           {/* PULSE HEADLINE */}
           <div>
-            <label className="block text-xs font-bold text-[#8B92A5] mb-2 tracking-widest uppercase">
+            <label className="block text-xs font-bold text-muted-foreground mb-2 tracking-widest uppercase">
               Pulse Headline
             </label>
             <input
@@ -114,14 +114,14 @@ export default function CreatePulse() {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full bg-[#1A1D24] border border-[#2A2E39] rounded-xl px-5 py-4 text-white focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-[#4A5060] text-lg font-medium"
+              className="w-full bg-input border border-border rounded-xl px-5 py-4 text-white focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-muted-foreground text-lg font-medium"
               placeholder="e.g. Advanced Quantum Mechanics Seminar Rescheduled"
             />
           </div>
 
           {/* DETAILED INFORMATION */}
           <div>
-            <label className="block text-xs font-bold text-[#8B92A5] mb-2 tracking-widest uppercase">
+            <label className="block text-xs font-bold text-muted-foreground mb-2 tracking-widest uppercase">
               Detailed Information
             </label>
             <textarea
@@ -130,18 +130,18 @@ export default function CreatePulse() {
               onChange={handleChange}
               rows={4}
               placeholder="Synthesize the core message for the AI engine..."
-              className="w-full bg-[#1A1D24] border border-[#2A2E39] rounded-xl px-5 py-4 text-white focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-[#4A5060] resize-none text-base"
+              className="w-full bg-input border border-border rounded-xl px-5 py-4 text-white focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-muted-foreground resize-none text-base"
             />
           </div>
 
           {/* CHOOSE RECIPIENTS */}
           <div>
-            <label className="block text-xs font-bold text-[#8B92A5] mb-2 tracking-widest uppercase">
+            <label className="block text-xs font-bold text-muted-foreground mb-2 tracking-widest uppercase">
               Choose Recipients
             </label>
-            <div className="bg-[#1A1D24] border border-[#2A2E39] rounded-xl p-3 flex flex-wrap gap-2 items-center">
+            <div className="bg-input border border-border rounded-xl p-3 flex flex-wrap gap-2 items-center">
               {recipients.map((rec, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-[#0B2E26] border border-[#10B981]/30 text-[#10B981] px-3 py-1.5 rounded-lg text-sm font-semibold">
+                <div key={idx} className="flex items-center gap-2 bg-[#0B2E26] border border-success/30 text-success px-3 py-1.5 rounded-lg text-sm font-semibold">
                   {rec}
                   <button onClick={() => removeRecipient(idx)} className="hover:text-white transition-colors">
                     <X size={14} />
@@ -152,7 +152,7 @@ export default function CreatePulse() {
                 onClick={() => {
                   if (!recipients.includes("New Filter")) setRecipients([...recipients, "New Filter"]);
                 }}
-                className="flex items-center gap-2 text-[#8B92A5] hover:text-white bg-[#2A2E39]/40 hover:bg-[#2A2E39] px-4 py-1.5 rounded-lg text-sm font-semibold transition-all border border-transparent"
+                className="flex items-center gap-2 text-muted-foreground hover:text-white bg-muted/40 hover:bg-muted px-4 py-1.5 rounded-lg text-sm font-semibold transition-all border border-transparent"
               >
                 + Add Filter
               </button>
@@ -161,14 +161,14 @@ export default function CreatePulse() {
 
           {/* GOVERNANCE LEVEL */}
           <div>
-            <label className="block text-xs font-bold text-[#8B92A5] mb-2 tracking-widest uppercase">
+            <label className="block text-xs font-bold text-muted-foreground mb-2 tracking-widest uppercase">
               Governance Level
             </label>
             <div className="grid grid-cols-3 gap-4">
               {[
-                { id: "department", label: "DEPT", icon: LayoutTemplate, activeColor: "text-[#10B981]", activeBorder: "border-[#10B981]", activeBg: "bg-[#10B981]/5" },
-                { id: "school", label: "SCHOOL", icon: Shield, activeColor: "text-[#3B82F6]", activeBorder: "border-[#3B82F6]", activeBg: "bg-[#3B82F6]/5" },
-                { id: "college", label: "COLLEGE", icon: Users, activeColor: "text-[#F59E0B]", activeBorder: "border-[#F59E0B]", activeBg: "bg-[#F59E0B]/5" }
+                { id: "department", label: "DEPT", icon: LayoutTemplate, activeColor: "text-success", activeBorder: "border-success", activeBg: "bg-success/5" },
+                { id: "school", label: "SCHOOL", icon: Shield, activeColor: "text-info", activeBorder: "border-info", activeBg: "bg-info/5" },
+                { id: "college", label: "COLLEGE", icon: Users, activeColor: "text-warning", activeBorder: "border-warning", activeBg: "bg-warning/5" }
               ].map((level) => {
                 const isActive = formData.approvalLevel === level.id;
                 const Icon = level.icon;
@@ -179,7 +179,7 @@ export default function CreatePulse() {
                     className={`flex flex-col items-center justify-center py-6 rounded-xl border-2 transition-all duration-200 ${
                       isActive 
                         ? `${level.activeBorder} ${level.activeBg} ${level.activeColor}` 
-                        : "border-[#1A1D24] bg-[#1A1D24] text-[#4A5060] hover:border-[#2A2E39] hover:text-[#8B92A5]"
+                        : "border-input bg-input text-muted-foreground hover:border-border hover:text-muted-foreground"
                     }`}
                   >
                     <Icon size={28} className="mb-3" />
@@ -197,37 +197,37 @@ export default function CreatePulse() {
             
             <button 
               onClick={() => imageInputRef.current?.click()}
-              className="border-2 border-dashed border-[#2A2E39] hover:border-[#4A5060] bg-[#1A1D24]/50 rounded-xl py-8 flex flex-col items-center justify-center text-[#8B92A5] hover:text-white transition-all group"
+              className="border-2 border-dashed border-border hover:border-[#4A5060] bg-input/50 rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground hover:text-white transition-all group"
             >
-              <ImagePlus size={24} className="mb-3 text-[#4A5060] group-hover:text-white transition-colors" />
+              <ImagePlus size={24} className="mb-3 text-muted-foreground group-hover:text-white transition-colors" />
               <span className="text-xs font-bold tracking-wider">ATTACH IMAGE</span>
             </button>
 
             <button 
               onClick={() => pdfInputRef.current?.click()}
-              className="border-2 border-dashed border-[#2A2E39] hover:border-[#4A5060] bg-[#1A1D24]/50 rounded-xl py-8 flex flex-col items-center justify-center text-[#8B92A5] hover:text-white transition-all group"
+              className="border-2 border-dashed border-border hover:border-[#4A5060] bg-input/50 rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground hover:text-white transition-all group"
             >
-              <FileText size={24} className="mb-3 text-[#4A5060] group-hover:text-white transition-colors" />
+              <FileText size={24} className="mb-3 text-muted-foreground group-hover:text-white transition-colors" />
               <span className="text-xs font-bold tracking-wider">ATTACH PDF SYLLABUS</span>
             </button>
           </div>
 
           {/* EMERGENCY OVERRIDE */}
-          <div className={`border-2 rounded-xl p-6 flex items-center justify-between transition-colors duration-300 ${formData.isEmergency ? 'border-red-500/50 bg-red-500/5' : 'border-[#1A1D24] bg-[#1A1D24]'}`}>
+          <div className={`border-2 rounded-xl p-6 flex items-center justify-between transition-colors duration-300 ${formData.isEmergency ? 'border-red-500/50 bg-red-500/5' : 'border-input bg-input'}`}>
             <div className="flex items-start gap-4">
-              <div className={`p-2 rounded-lg ${formData.isEmergency ? 'bg-red-500/20 text-red-500' : 'bg-[#2A2E39] text-[#8B92A5]'}`}>
+              <div className={`p-2 rounded-lg ${formData.isEmergency ? 'bg-red-500/20 text-red-500' : 'bg-muted text-muted-foreground'}`}>
                 <ShieldAlert size={24} />
               </div>
               <div>
                 <h4 className={`text-base font-bold mb-1 ${formData.isEmergency ? 'text-red-500' : 'text-white'}`}>Emergency Override</h4>
-                <p className={`text-xs font-bold tracking-wider ${formData.isEmergency ? 'text-red-500/70' : 'text-[#4A5060]'}`}>BYPASSES MUTE SETTINGS & AI FILTERS</p>
+                <p className={`text-xs font-bold tracking-wider ${formData.isEmergency ? 'text-red-500/70' : 'text-muted-foreground'}`}>BYPASSES MUTE SETTINGS & AI FILTERS</p>
               </div>
             </div>
             
             {/* Toggle Switch */}
             <button 
               onClick={() => setFormData(prev => ({ ...prev, isEmergency: !prev.isEmergency }))}
-              className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${formData.isEmergency ? 'bg-red-500' : 'bg-[#2A2E39]'}`}
+              className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${formData.isEmergency ? 'bg-red-500' : 'bg-muted'}`}
             >
               <div className={`w-6 h-6 bg-white rounded-full transition-transform duration-300 ${formData.isEmergency ? 'translate-x-6' : 'translate-x-0'}`} />
             </button>
@@ -237,7 +237,7 @@ export default function CreatePulse() {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold text-lg py-5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+            className="w-full bg-success hover:bg-success text-white font-bold text-lg py-5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 size={24} className="animate-spin" /> : null}
             {isSubmitting ? "Broadcasting..." : "Send Broadcast"}
@@ -247,17 +247,17 @@ export default function CreatePulse() {
         {/* === LIVE PREVIEW SIDE === */}
         <div className="space-y-4 hidden xl:block">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-bold text-[#8B92A5] tracking-widest uppercase">
+            <h3 className="text-xs font-bold text-muted-foreground tracking-widest uppercase">
               Live Pulse Preview
             </h3>
-            <div className="flex items-center gap-2 text-[#10B981] text-xs font-bold tracking-wider">
-              <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+            <div className="flex items-center gap-2 text-success text-xs font-bold tracking-wider">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
               REAL-TIME SYNC
             </div>
           </div>
 
           {/* Mobile Phone Mockup Card */}
-          <div className="bg-[#12141A] rounded-[2rem] border border-[#2A2E39] overflow-hidden shadow-2xl relative max-w-sm mx-auto">
+          <div className="bg-[#12141A] rounded-[2rem] border border-border overflow-hidden shadow-2xl relative max-w-sm mx-auto">
             {/* Image Header */}
             <div className="h-56 bg-gradient-to-br from-[#10B981]/20 to-[#0A0A0A] relative w-full overflow-hidden">
               {formData.posterUrl ? (
@@ -268,8 +268,8 @@ export default function CreatePulse() {
                 </div>
               )}
               {/* Overlay Badge */}
-              <div className="absolute top-4 right-4 bg-[#0A0A0A]/80 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
+              <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-info" />
                 <span className="text-[10px] font-bold text-white tracking-wider">98% AI MATCH</span>
               </div>
             </div>
@@ -277,32 +277,32 @@ export default function CreatePulse() {
             <div className="p-6 relative">
               {/* Badges row */}
               <div className="flex items-center gap-3 mb-4 text-[10px] font-bold tracking-wider">
-                <div className="bg-[#0B2E26] text-[#10B981] px-2.5 py-1 rounded-sm flex items-center gap-1 border border-[#10B981]/20">
+                <div className="bg-[#0B2E26] text-success px-2.5 py-1 rounded-sm flex items-center gap-1 border border-success/20">
                   <CheckCircle size={10} />
                   DEPT VERIFIED
                 </div>
-                <div className="text-[#8B92A5]">• 3 MINS AGO</div>
+                <div className="text-muted-foreground">• 3 MINS AGO</div>
               </div>
 
               <h2 className="text-2xl font-extrabold text-white leading-tight mb-3">
                 {formData.title || "Advanced Quantum Mechanics Seminar Rescheduled"}
               </h2>
 
-              <p className="text-[#8B92A5] text-sm leading-relaxed mb-6 font-medium">
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6 font-medium">
                 {formData.description || "Synthesize the core message for the AI engine. This will be the main body text students see on their mobile dashboard."}
               </p>
 
               {/* Data Blocks */}
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-[#1A1D24] border border-[#2A2E39] rounded-xl p-4">
-                  <div className="text-[10px] font-bold text-[#8B92A5] mb-1 tracking-wider uppercase">Impact Level</div>
-                  <div className="text-[#10B981] font-bold text-sm">High Relevance</div>
+                <div className="bg-input border border-border rounded-xl p-4">
+                  <div className="text-[10px] font-bold text-muted-foreground mb-1 tracking-wider uppercase">Impact Level</div>
+                  <div className="text-success font-bold text-sm">High Relevance</div>
                 </div>
-                <div className="bg-[#1A1D24] border border-[#2A2E39] rounded-xl p-4">
-                  <div className="text-[10px] font-bold text-[#8B92A5] mb-1 tracking-wider uppercase">Sentiment</div>
-                  <div className="flex text-[#10B981] gap-1">
+                <div className="bg-input border border-border rounded-xl p-4">
+                  <div className="text-[10px] font-bold text-muted-foreground mb-1 tracking-wider uppercase">Sentiment</div>
+                  <div className="flex text-success gap-1">
                     {'★★★★'.split('').map((s,i) => <span key={i}>{s}</span>)}
-                    <span className="text-[#4A5060]">★</span>
+                    <span className="text-muted-foreground">★</span>
                   </div>
                 </div>
               </div>
@@ -312,7 +312,7 @@ export default function CreatePulse() {
                 <div className="flex -space-x-2">
                   <div className="w-8 h-8 rounded-full border-2 border-[#12141A] bg-blue-500 flex items-center justify-center text-[10px] font-bold">AJ</div>
                   <div className="w-8 h-8 rounded-full border-2 border-[#12141A] bg-purple-500 flex items-center justify-center text-[10px] font-bold">MK</div>
-                  <div className="w-8 h-8 rounded-full border-2 border-[#12141A] bg-[#2A2E39] text-[#8B92A5] flex items-center justify-center text-[10px] font-bold">+42</div>
+                  <div className="w-8 h-8 rounded-full border-2 border-[#12141A] bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-bold">+42</div>
                 </div>
                 <button className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold hover:bg-gray-200 transition-colors">
                   View Details
@@ -324,16 +324,16 @@ export default function CreatePulse() {
 
           {/* Bottom stats below preview */}
           <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto pt-4">
-            <div className="bg-[#12141A] border border-[#2A2E39] rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-[#12141A] border border-border rounded-xl p-4 flex items-center gap-4">
               <div>
-                <div className="text-[#10B981] text-[10px] font-bold uppercase tracking-widest mb-1">Network Reach</div>
-                <div className="text-white text-xl font-bold">1,240 <span className="text-xs text-[#4A5060] font-normal">Nodes</span></div>
+                <div className="text-success text-[10px] font-bold uppercase tracking-widest mb-1">Network Reach</div>
+                <div className="text-white text-xl font-bold">1,240 <span className="text-xs text-muted-foreground font-normal">Nodes</span></div>
               </div>
             </div>
-            <div className="bg-[#12141A] border border-[#2A2E39] rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-[#12141A] border border-border rounded-xl p-4 flex items-center gap-4">
               <div>
-                <div className="text-[#3B82F6] text-[10px] font-bold uppercase tracking-widest mb-1">Est. Visibility</div>
-                <div className="text-white text-xl font-bold">High <span className="text-xs text-[#4A5060] font-normal">Priority</span></div>
+                <div className="text-info text-[10px] font-bold uppercase tracking-widest mb-1">Est. Visibility</div>
+                <div className="text-white text-xl font-bold">High <span className="text-xs text-muted-foreground font-normal">Priority</span></div>
               </div>
             </div>
           </div>

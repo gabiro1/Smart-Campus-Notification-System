@@ -116,7 +116,7 @@ export default function EditEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
       <Toaster theme="dark" position="top-right" />
 
       <div className="max-w-4xl mx-auto">
@@ -143,7 +143,7 @@ export default function EditEventPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-2xl"
+          className="bg-card border border-white/5 rounded-[24px] p-8 shadow-2xl"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* ... EXACT SAME FORM INPUTS AS CreateEventPage.jsx ... */}
@@ -158,7 +158,7 @@ export default function EditEventPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-white"
+                className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-white"
               />
             </div>
 
@@ -174,7 +174,7 @@ export default function EditEventPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, date: e.target.value })
                   }
-                  className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                  className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
                 />
               </div>
               <div className="space-y-1.5">
@@ -188,7 +188,7 @@ export default function EditEventPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, time: e.target.value })
                   }
-                  className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                  className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
                 />
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function EditEventPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, location: e.target.value })
                 }
-                className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
               />
             </div>
 
@@ -218,7 +218,7 @@ export default function EditEventPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-white"
+                className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-white"
               />
             </div>
 
@@ -231,7 +231,7 @@ export default function EditEventPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, tags: e.target.value })
                 }
-                className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
               />
             </div>
 
@@ -239,7 +239,7 @@ export default function EditEventPage() {
 
             <div className="bg-blue-500/[0.02] border border-blue-500/10 p-6 rounded-2xl relative">
               {loadingStructure && (
-                <div className="absolute inset-0 z-10 bg-[#0D0D0D]/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute inset-0 z-10 bg-card/80 backdrop-blur-sm flex items-center justify-center">
                   <Activity className="animate-spin text-blue-500" size={24} />
                 </div>
               )}
@@ -255,7 +255,7 @@ export default function EditEventPage() {
                   <select
                     value={formData.targetCollege}
                     onChange={handleCollegeChange}
-                    className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl outline-none text-sm text-white"
+                    className="w-full bg-background border border-white/5 p-4 rounded-xl outline-none text-sm text-white"
                   >
                     <option value="">All Colleges</option>
                     {Object.keys(academicStructure).map((college) => (
@@ -273,7 +273,7 @@ export default function EditEventPage() {
                     value={formData.targetSchool}
                     onChange={handleSchoolChange}
                     disabled={!formData.targetCollege}
-                    className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl outline-none text-sm text-white disabled:opacity-50"
+                    className="w-full bg-background border border-white/5 p-4 rounded-xl outline-none text-sm text-white disabled:opacity-50"
                   >
                     <option value="">
                       {formData.targetCollege
@@ -299,7 +299,7 @@ export default function EditEventPage() {
                       setFormData({ ...formData, targetDept: e.target.value })
                     }
                     disabled={!formData.targetSchool}
-                    className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl outline-none text-sm text-white disabled:opacity-50"
+                    className="w-full bg-background border border-white/5 p-4 rounded-xl outline-none text-sm text-white disabled:opacity-50"
                   >
                     <option value="">
                       {formData.targetSchool
@@ -322,7 +322,7 @@ export default function EditEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, targetLevel: e.target.value })
                     }
-                    className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl outline-none text-sm text-white"
+                    className="w-full bg-background border border-white/5 p-4 rounded-xl outline-none text-sm text-white"
                   >
                     <option value="">All Levels</option>
                     {[1, 2, 3, 4, 5].map((level) => (

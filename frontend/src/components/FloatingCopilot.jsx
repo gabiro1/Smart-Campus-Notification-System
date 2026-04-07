@@ -106,7 +106,7 @@ export default function FloatingCopilot() {
             animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
             exit={{ opacity: 0, y: 50, scale: 0.9, rotate: 5 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed bottom-8 right-8 z-[100] w-[380px] h-[600px] max-h-[85vh] bg-[#0D0D0D]/95 backdrop-blur-xl border border-white/10 rounded-[20px] shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-8 right-8 z-[100] w-[380px] h-[600px] max-h-[85vh] bg-card/95 backdrop-blur-xl border border-white/10 rounded-[20px] shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/10 bg-white/[0.02]">
@@ -115,7 +115,7 @@ export default function FloatingCopilot() {
                   <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                     <Sparkles size={16} className="text-emerald-400" />
                   </div>
-                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#0D0D0D]"></div>
+                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-border"></div>
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white leading-tight">UniNotify AI</h3>
@@ -158,7 +158,7 @@ export default function FloatingCopilot() {
                     className={`max-w-[85%] p-3.5 text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-blue-600 text-white rounded-[18px] rounded-br-none shadow-[0_4px_15px_rgba(37,99,235,0.2)]"
-                        : "bg-[#1A1A1A] text-neutral-200 rounded-[18px] rounded-bl-none border border-white/5"
+                        : "bg-muted text-neutral-200 rounded-[18px] rounded-bl-none border border-white/5"
                     }`}
                   >
                      <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -172,7 +172,7 @@ export default function FloatingCopilot() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex w-full justify-start"
                 >
-                  <div className="bg-[#1A1A1A] p-4 rounded-[18px] rounded-bl-none border border-white/5 flex items-center gap-2">
+                  <div className="bg-muted p-4 rounded-[18px] rounded-bl-none border border-white/5 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
@@ -183,8 +183,8 @@ export default function FloatingCopilot() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-white/10 bg-[#0A0A0A]">
-              <div className="flex items-end gap-2 bg-[#050505] p-1.5 rounded-2xl border border-white/10 focus-within:border-emerald-500/50 transition-colors shadow-inner">
+            <div className="p-4 border-t border-white/10 bg-background">
+              <div className="flex items-end gap-2 bg-background p-1.5 rounded-2xl border border-white/10 focus-within:border-emerald-500/50 transition-colors shadow-inner">
                 <textarea
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}

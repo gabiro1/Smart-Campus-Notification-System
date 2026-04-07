@@ -39,6 +39,20 @@ const notificationService = {
     return response.data;
   },
 
+  // Get AI digest summary
+  generateDigest: async (period = 'weekly') => {
+    const response = await apiClient.get('/notifications/digest', {
+      params: { period }
+    });
+    return response.data;
+  },
+
+  // Get latest cached digest (from cron or previous generation)
+  getLatestDigest: async () => {
+    const response = await apiClient.get('/notifications/digest/latest');
+    return response.data;
+  },
+
   // Get notification stats
   getStats: async (eventId) => {
     const response = await apiClient.get(`/notifications/stats/${eventId}`);
@@ -54,6 +68,24 @@ const notificationService = {
   // Get insights
   getInsights: async () => {
     const response = await apiClient.get('/notifications/insights');
+    return response.data;
+  },
+
+  // Get unacknowledged emergency notifications
+  getUnacknowledgedEmergencies: async () => {
+    const response = await apiClient.get('/notifications/emergency/unacknowledged');
+    return response.data;
+  },
+
+  // Acknowledge an emergency notification
+  acknowledgeNotification: async (notificationId) => {
+    const response = await apiClient.post(`/notifications/${notificationId}/acknowledge`);
+    return response.data;
+  },
+
+  // Get acknowledgment statistics for a broadcast (admin/lecturer)
+  getAcknowledgmentStats: async (referenceId) => {
+    const response = await apiClient.get(`/notifications/stats/acknowledgment/${referenceId}`);
     return response.data;
   },
 };

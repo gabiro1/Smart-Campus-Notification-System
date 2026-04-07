@@ -1,5 +1,7 @@
 import Event from "../model/Event.js";
+import EventRSVP from "../model/EventRSVP.js";
 import User from "../../user/model/User.js";
+import NotificationLog from "../../notification/models/NotificationLog.js";
 import { getTargetedUsers } from "../../../utils/notificationEngine.js";
 import { sendPushNotification } from "../../../config/firebaseAdmin.js";
 import { calculateMatchScore } from "../../../utils/mlEngine.js";
@@ -8,6 +10,11 @@ import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
 import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
+import ics from 'ics';
+import { classifyWithFallback } from "../../../services/aiClassificationService.js";
+import { scheduleEventReminders, cancelEventReminders, updateEventReminders } from "../../../services/eventReminderScheduler.js";
+import { getPersonalizedContentBatch } from "../../../services/aiPersonalizationService.js";
+import { shouldSendNow } from "../../../utils/quietHours.js";
 
 /* =========================================================
    AI FLYER PARSING
@@ -180,11 +187,69 @@ export const createEvent = async (req, res) => {
     // Note: guild_president defaults to 'pending' with client-supplied
     // approvalLevel unless isEmergency is toggled.
 
-    const event = new Event({ ...eventData, status, approvalLevel });
+    // ── AI CLASSIFICATION (with defensive fallback) ─────────────────────
+    let aiMetadata = null;
+    try {
+      const classification = await classifyWithFallback({
+        title: eventData.title,
+        content: eventData.description || '',
+        senderRole: req.user.role
+      });
+
+      // Apply AI/fallback results to event data
+      eventData.priority = classification.priority;
+      eventData.tags = classification.tags;
+
+      // Store full classification metadata for auditing
+      aiMetadata = {
+        usedAI: classification.usedAI,
+        fallbackReason: classification.fallbackReason || null,
+        aiCategory: classification.aiCategory || null,
+        aiUrgency: classification.aiUrgency || null,
+        classifiedAt: new Date()
+      };
+
+      // Only set targetScope if not already determined by role-based routing
+      if (!eventData.targetScope && classification.targetScope) {
+        eventData.targetScope = classification.targetScope;
+      }
+
+      console.log(`[Event Creation] AI classification applied for event "${eventData.title.substring(0, 50)}...":`, {
+        priority: classification.priority,
+        tags: classification.tags,
+        targetScope: eventData.targetScope,
+        usedAI: classification.usedAI
+      });
+
+    } catch (classificationErr) {
+      // This should NOT happen - classifyWithFallback should never throw
+      console.error('[Event Creation] ❌ Classification error (should have been caught):', classificationErr.message);
+      // Fallback to default values to ensure event creation proceeds
+      eventData.priority = 'medium';
+      eventData.tags = ['general'];
+      aiMetadata = {
+        usedAI: false,
+        fallbackReason: classificationErr.message,
+        aiCategory: null,
+        aiUrgency: null,
+        classifiedAt: new Date()
+      };
+    }
+
+    const event = new Event({ ...eventData, status, approvalLevel, aiMetadata });
     await event.save();
 
-    // Only broadcast immediately if the event was auto-approved.
+    // If event is auto-approved, schedule reminder jobs and broadcast
     if (status === "approved") {
+      // Schedule reminder notifications (24h and 1h before event)
+      try {
+        await scheduleEventReminders(event._id);
+        console.log(`[EventCreation] Reminder jobs scheduled for event ${event._id}`);
+      } catch (schedulerErr) {
+        console.error(`[EventCreation] Failed to schedule reminders for event ${event._id}:`, schedulerErr.message);
+        // Continue - don't fail the request if scheduling fails
+      }
+
       await broadcastEvent(event);
     }
 
@@ -300,14 +365,51 @@ export const rateEvent = async (req, res) => {
 ========================================================= */
 export const updateEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!event) return res.status(404).json({ message: "Event not found" });
+    // Fetch the existing event first to compare
+    const existingEvent = await Event.findById(req.params.id);
+    if (!existingEvent) {
+      return res.status(404).json({ message: "Event not found" });
+    }
 
-    if (event.status === "approved") {
+    const updateData = req.body;
+
+    // Check if date/time is being updated
+    const dateChanged = updateData.date && updateData.date !== existingEvent.date;
+    const timeChanged = updateData.time && updateData.time !== existingEvent.time;
+    const statusChanged = updateData.status && updateData.status !== existingEvent.status;
+
+    // Apply the update
+    const event = await Event.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Handle reminder job updates
+    if (event.status === 'approved') {
+      if (dateChanged || timeChanged) {
+        // Event time changed - update reminder jobs with new schedule
+        try {
+          await updateEventReminders(event._id);
+          console.log(`[EventUpdate] Reminder jobs updated for event ${event._id} due to time change`);
+        } catch (schedulerErr) {
+          console.error(`[EventUpdate] Failed to update reminders for event ${event._id}:`, schedulerErr.message);
+        }
+      }
+
+      // If status changed from approved to something else (rejected), cancel reminders
+      if (statusChanged && existingEvent.status === 'approved' && event.status !== 'approved') {
+        try {
+          await cancelEventReminders(event._id);
+          console.log(`[EventUpdate] Cancelled reminder jobs for event ${event._id} (status changed to ${event.status})`);
+        } catch (schedulerErr) {
+          console.error(`[EventUpdate] Failed to cancel reminders for event ${event._id}:`, schedulerErr.message);
+        }
+      }
+
+      // Broadcast update to all recipients
       await broadcastEvent(event, true);
     }
+
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -319,7 +421,18 @@ export const updateEvent = async (req, res) => {
 ========================================================= */
 export const deleteEvent = async (req, res) => {
   try {
-    await Event.findByIdAndDelete(req.params.id);
+    const eventId = req.params.id;
+
+    // Cancel any scheduled reminder jobs before deletion
+    try {
+      await cancelEventReminders(eventId);
+      console.log(`[EventDelete] Cancelled reminder jobs for event ${eventId}`);
+    } catch (schedulerErr) {
+      console.error(`[EventDelete] Failed to cancel reminders for event ${eventId}:`, schedulerErr.message);
+      // Continue with deletion even if cancellation fails
+    }
+
+    await Event.findByIdAndDelete(eventId);
     res.json({ message: "Event removed" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -448,9 +561,19 @@ export const getEventStats = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
+    // Calculate attendance stats from EventRSVP
+    const rsvpCount = await EventRSVP.countDocuments({ eventId: event._id });
+    const goingCount = await EventRSVP.countDocuments({ eventId: event._id, status: 'going' });
+    const maybeCount = await EventRSVP.countDocuments({ eventId: event._id, status: 'maybe' });
+    const attendedCount = await EventRSVP.countDocuments({ eventId: event._id, attended: true });
+
     const stats = {
       eventId: event._id,
       title: event.title,
+      totalRSVP: rsvpCount,
+      goingCount,
+      maybeCount,
+      attendedCount,
       totalRatings: event.ratings.length,
       avgRating:
         event.ratings.length > 0
@@ -458,7 +581,7 @@ export const getEventStats = async (req, res) => {
               event.ratings.reduce((sum, r) => sum + r.rating, 0) /
               event.ratings.length
             ).toFixed(1)
-          : 0,
+          : 0
     };
 
     res.json(stats);
@@ -508,6 +631,16 @@ export const processApproval = async (req, res) => {
       event.status = "approved";
       event.approvedBy = req.user.id;
       await event.save();
+
+      // Schedule reminder notifications (24h and 1h before event)
+      try {
+        await scheduleEventReminders(event._id);
+        console.log(`[EventApproval] Reminder jobs scheduled for event ${event._id}`);
+      } catch (schedulerErr) {
+        console.error(`[EventApproval] Failed to schedule reminders for event ${event._id}:`, schedulerErr.message);
+        // Continue - don't fail the approval if scheduling fails
+      }
+
       await broadcastEvent(event);
       return res.json({
         success: true,
@@ -528,47 +661,163 @@ export const processApproval = async (req, res) => {
 export const broadcastEvent = async (event, isUpdate = false) => {
   try {
     const recipients = await getTargetedUsers(event);
-    
+
     if (!recipients || recipients.length === 0) {
       console.log("No recipients found for this broadcast.");
       return;
     }
 
-    const notifTitle = isUpdate ? `⚠️ UPDATED: ${event.title}` : `📅 New Event: ${event.title}`;
-    
-    // Fallback format just in case event.date or event.time are missing
-    const notifMessage = event.location 
+    const baseTitle = isUpdate ? `⚠️ UPDATED: ${event.title}` : `📅 New Event: ${event.title}`;
+    const baseMessage = event.location
       ? `${event.location} | ${new Date(event.date).toLocaleDateString()} at ${event.time}`
       : event.description;
 
-    // 1. Prepare bulk notifications for the In-App Bell Icon
-    const notificationDocs = recipients.map(student => ({
-      eventId: event._id,
-      studentId: student._id,
-      title: notifTitle,
-      message: notifMessage,
-      type: 'event',
-      status: 'unread'
-    }));
+    // ==========================================
+    // AI PERSONALIZATION: Generate variants per role
+    // ==========================================
+    let personalizedMap;
+    try {
+      personalizedMap = await getPersonalizedContentBatch(baseTitle, baseMessage, recipients);
+    } catch (err) {
+      console.error('[Personalization] Failed in broadcastEvent, using generic content:', err.message);
+      personalizedMap = new Map();
+      recipients.forEach(u => personalizedMap.set(u._id.toString(), { title: baseTitle, message: baseMessage }));
+    }
+
+    // 1. Prepare bulk notifications for the In-App Bell Icon with personalized content
+    const notificationDocs = recipients.map(student => {
+      const variant = personalizedMap.get(student._id.toString()) || { title: baseTitle, message: baseMessage };
+      return {
+        eventId: event._id,
+        studentId: student._id,
+        title: variant.title,
+        message: variant.message,
+        type: 'event',
+        status: 'unread',
+        priority: event.priority || 'medium',
+        digestedAt: null
+      };
+    });
 
     // Bulk Insert into MongoDB (1 write instead of 5,000 writes!)
     await NotificationLog.insertMany(notificationDocs);
 
-    // 2. Extract valid FCM tokens for Mobile Push Notifications
-    const validFcmTokens = recipients
-      .map(student => student.fcmToken)
-      .filter(token => token !== undefined && token !== null && token.trim() !== "");
+    // 2. Extract valid FCM tokens with their personalized variants, respecting quiet hours
+    const eventPriority = event.priority || 'medium';
+    const validRecipients = recipients.filter(u => {
+      const hasToken = u.fcmToken && u.fcmToken.trim() !== "";
+      if (!hasToken) return false;
+      // Check quiet hours: only send push if canSendNow returns true
+      return shouldSendNow(u, eventPriority);
+    });
 
-    if (validFcmTokens.length > 0) {
-      // Send to Firebase (which will handle batching them in chunks of 500)
-      await sendMulticastNotification(
-        validFcmTokens,
-        notifTitle,
-        event.description
-      );
+    if (validRecipients.length > 0) {
+      // Group tokens by their personalized variant (unique title+message) to minimize API calls
+      const tokenGroups = new Map();
+      validRecipients.forEach(user => {
+        const variant = personalizedMap.get(user._id.toString()) || { title: baseTitle, message: baseMessage };
+        const key = `${variant.title}|||${variant.message}`;
+        if (!tokenGroups.has(key)) tokenGroups.set(key, { title: variant.title, body: variant.message, tokens: [] });
+        tokenGroups.get(key).tokens.push(user.fcmToken);
+      });
+
+      // Send each group as a separate multicast (max 500 tokens per batch handled internally)
+      const pushPromises = [];
+      for (const { title, body, tokens } of tokenGroups.values()) {
+        pushPromises.push(
+          sendMulticastNotification(tokens, title, body).catch(err => {
+            console.error(`[Personalization] Push failed for group of ${tokens.length} tokens:`, err.message);
+          })
+        );
+      }
+      await Promise.all(pushPromises);
     }
-    
+
   } catch (error) {
     console.error("Broadcast Helper Error:", error);
+  }
+};
+
+/* =========================================================
+   CALENDAR EXPORT (ICS GENERATION)
+========================================================= */
+export const exportCalendar = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    // Fetch organizer (creator) info
+    let organizer = "Unknown Organizer";
+    if (event.createdBy) {
+      const creator = await User.findById(event.createdBy).select('name email');
+      if (creator) {
+        organizer = `${creator.name} <${creator.email}>`;
+      }
+    }
+
+    // Combine date and time into start Date object
+    // Assume event.time is a string like "14:00" or "2:00 PM"
+    const startDate = new Date(event.date);
+    let startHour, startMinute;
+    if (event.time) {
+      const timeMatch = event.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+      if (timeMatch) {
+        startHour = parseInt(timeMatch[1], 10);
+        startMinute = parseInt(timeMatch[2], 10);
+        if (timeMatch[3]?.toUpperCase() === 'PM' && startHour < 12) startHour += 12;
+        if (timeMatch[3]?.toUpperCase() === 'AM' && startHour === 12) startHour = 0;
+      } else {
+        // fallback: parse as HH:mm
+        const [h, m] = event.time.split(':');
+        startHour = parseInt(h, 10);
+        startMinute = parseInt(m, 10);
+      }
+    } else {
+      // Default to 9:00 AM if no time provided
+      startHour = 9;
+      startMinute = 0;
+    }
+    startDate.setHours(startHour, startMinute, 0, 0);
+
+    // Assume 1 hour duration for end time
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + 1);
+
+    // Format description with location
+    const description = event.location
+      ? `${event.description || ''}\n\nLocation: ${event.location}`
+      : event.description || '';
+
+    // Create ICS event object
+    const icsEvent = {
+      start: fromDateToIcalFormat(startDate),
+      end: fromDateToIcalFormat(endDate),
+      title: event.title,
+      description: description,
+      location: event.location || '',
+      organizer: { name: organizer },
+      status: 'CONFIRMED',
+      busyStatus: 'BUSY',
+      categories: ['University Event'],
+      priority: 5
+    };
+
+    const { error, value } = createEvent(icsEvent);
+
+    if (error) {
+      console.error('[Calendar Export] ICS creation error:', error);
+      return res.status(500).json({ success: false, message: 'Failed to generate calendar file' });
+    }
+
+    // Set headers for file download
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="event-${event._id}.ics"`);
+
+    res.send(value);
+  } catch (error) {
+    console.error('[Calendar Export] Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to generate calendar file' });
   }
 };

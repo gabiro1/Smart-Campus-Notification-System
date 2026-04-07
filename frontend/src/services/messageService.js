@@ -89,6 +89,17 @@ const messageService = {
       throw error;
     }
   },
+
+  // 8️⃣ Fetch unread count for sidebar
+  getUnreadCount: async () => {
+    try {
+      const response = await apiClient.get("/messages/unread-count");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch unread count:", error);
+      throw error;
+    }
+  },
 };
 
 export default messageService;

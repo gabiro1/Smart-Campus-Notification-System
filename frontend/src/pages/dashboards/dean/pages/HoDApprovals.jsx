@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { Search, Filter, Eye, Check, X, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -232,7 +232,7 @@ export default function HoDApprovals() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-2xl z-10"
+              className="relative w-full max-w-2xl bg-background border border-white/10 rounded-2xl p-6 shadow-2xl z-10"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>

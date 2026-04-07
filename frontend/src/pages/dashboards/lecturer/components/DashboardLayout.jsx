@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import Sidebar from "@/components/shared/LecturerSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardLayout() {

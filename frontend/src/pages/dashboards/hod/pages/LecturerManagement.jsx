@@ -202,7 +202,7 @@ const LecturerManagement = () => {
   }, [searchQuery]);
 
   return (
-    <div className="w-full min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-[#050505] text-white p-4 md:p-8 font-sans relative overflow-hidden">
+    <div className="w-full min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-background text-white p-4 md:p-8 font-sans relative overflow-hidden">
       {/* Dynamic Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -443,7 +443,7 @@ const LecturerManagement = () => {
       {/* --- NOTIFY MODAL (OMNICHANNEL) --- */}
       {smsModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-background border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-xl font-black mb-1 flex items-center gap-2 text-white">
               <ShieldCheck className="text-blue-500" /> Dispatch Memo
             </h3>
@@ -503,7 +503,7 @@ const LecturerManagement = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110]"
             onClick={() => setDetailsPanel({ isOpen: false, lecturer: null })}
           ></div>
-          <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-[#0A0A0A] border-l border-white/10 z-[120] p-10 animate-in slide-in-from-right duration-500 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+          <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-background border-l border-white/10 z-[120] p-10 animate-in slide-in-from-right duration-500 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
             <button
               onClick={() => setDetailsPanel({ isOpen: false, lecturer: null })}
               className="absolute top-8 right-8 p-3 hover:bg-white/5 rounded-2xl transition-all text-neutral-500 hover:text-white"
@@ -609,7 +609,7 @@ const LecturerManagement = () => {
       {/* --- ALLOCATE CLASS MODAL --- */}
       {assignModal.isOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl">
+          <div className="bg-background border border-white/10 rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl">
             <h3 className="text-xl font-black mb-8 flex items-center gap-3">
               <BookOpen className="text-blue-500" /> Module Allocation
             </h3>
@@ -666,7 +666,7 @@ const LecturerManagement = () => {
       {/* --- REMOVE MODAL --- */}
       {removeModal.isOpen && (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#0A0A0A] border border-red-500/20 rounded-[2.5rem] w-full max-w-xs p-8 shadow-2xl text-center">
+          <div className="bg-background border border-red-500/20 rounded-[2.5rem] w-full max-w-xs p-8 shadow-2xl text-center">
             <div className="w-20 h-20 bg-red-500/10 border border-red-500/10 rounded-[2rem] flex items-center justify-center text-red-500 mx-auto mb-6">
               <AlertTriangle size={36} />
             </div>

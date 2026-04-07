@@ -52,7 +52,7 @@ export default function StatusBadge({ currentRole, options, onUpdate }) {
               initial={{ opacity: 0, y: 4, scale: 0.95 }}
               animate={{ opacity: 1, y: 8, scale: 1 }}
               exit={{ opacity: 0, y: 4, scale: 0.95 }}
-              className="absolute left-0 z-50 w-44 bg-[#111111] border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-1.5 backdrop-blur-xl"
+              className="absolute left-0 z-50 w-44 bg-background border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-1.5 backdrop-blur-xl"
             >
               <div className="text-[9px] uppercase font-black text-neutral-600 px-3 py-2 tracking-widest">
                 Change Role

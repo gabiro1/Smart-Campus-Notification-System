@@ -388,7 +388,7 @@ const RemindersTab = () => {
               exit={{ scale: 0.96, y: 16, opacity: 0 }}
               className="w-full max-w-md"
             >
-              <GlassCard className="w-full p-6 bg-[#0a0a0a]/95 border-white/10">
+              <GlassCard className="w-full p-6 bg-background/95 border-white/10">
                 <h2 className="text-base font-semibold mb-6">New Task</h2>
                 <form onSubmit={handleAddReminder} className="space-y-4">
                   <input
@@ -476,7 +476,7 @@ const RemindersTab = () => {
               exit={{ scale: 0.96, y: 16, opacity: 0 }}
               className="w-full max-w-md"
             >
-              <GlassCard className="w-full p-6 bg-[#0a0a0a]/95 border-white/10">
+              <GlassCard className="w-full p-6 bg-background/95 border-white/10">
                 <h2 className="text-base font-semibold mb-6">Update Task</h2>
                 <form onSubmit={handleUpdateReminder} className="space-y-4">
                   <input

@@ -87,7 +87,7 @@ export default function EventFeedGrid({
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <div
                 key={n}
-                className="h-48 w-full bg-[#141414] border border-white/5 rounded-[15px] animate-pulse"
+                className="h-48 w-full bg-background border border-white/5 rounded-[15px] animate-pulse"
               />
             ))}
           </div>
@@ -135,7 +135,7 @@ export default function EventFeedGrid({
                 placeholder="Search pulses, tags, or keywords..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#111111] border border-white/10 rounded-xl py-3 md:py-3.5 pl-12 pr-4 text-sm focus:outline-none transition-all text-white placeholder:text-neutral-600 focus:border-white/20"
+                className="w-full bg-background border border-white/10 rounded-xl py-3 md:py-3.5 pl-12 pr-4 text-sm focus:outline-none transition-all text-white placeholder:text-neutral-600 focus:border-white/20"
               />
             </div>
 
@@ -148,7 +148,7 @@ export default function EventFeedGrid({
               <select
                 value={activeFilter}
                 onChange={(e) => setActiveFilter(e.target.value)}
-                className="appearance-none w-full bg-[#111111] border border-white/10 rounded-xl py-3 md:py-3.5 pl-11 pr-10 text-sm text-white focus:outline-none cursor-pointer focus:border-white/20"
+                className="appearance-none w-full bg-background border border-white/10 rounded-xl py-3 md:py-3.5 pl-11 pr-10 text-sm text-white focus:outline-none cursor-pointer focus:border-white/20"
               >
                 <option value="all">All Pulses</option>
                 <option value="high">High Priority</option>
@@ -165,7 +165,7 @@ export default function EventFeedGrid({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center p-12 md:p-20 border border-white/5 rounded-[15px] bg-[#141414]"
+            className="flex flex-col items-center justify-center p-12 md:p-20 border border-white/5 rounded-[15px] bg-background"
           >
             <AlertCircle size={40} className="text-neutral-600 mb-4" />
             <h4 className="text-white font-bold text-lg md:text-xl">
@@ -215,7 +215,7 @@ export default function EventFeedGrid({
               <button
                 onClick={handleLoadMore}
                 disabled={isSpinning}
-                className="flex items-center gap-2 px-6 md:px-8 py-3 bg-[#111111] border border-white/5 rounded-lg text-xs md:text-sm font-bold text-neutral-400 hover:text-white hover:border-white/20 hover:bg-[#141414] transition-all disabled:opacity-50 disabled:cursor-wait"
+                className="flex items-center gap-2 px-6 md:px-8 py-3 bg-background border border-white/5 rounded-lg text-xs md:text-sm font-bold text-neutral-400 hover:text-white hover:border-white/20 hover:bg-background transition-all disabled:opacity-50 disabled:cursor-wait"
               >
                 {isSpinning ? (
                   <>

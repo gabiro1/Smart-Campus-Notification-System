@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { Search, Filter, MoreVertical, Archive, Eye } from "lucide-react";
 
 const allAnnouncements = [

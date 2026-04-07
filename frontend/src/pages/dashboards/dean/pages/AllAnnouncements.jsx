@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import {
   Search,
   Filter,
@@ -199,7 +199,7 @@ export default function AllAnnouncements() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 shadow-2xl z-10"
+              className="relative w-full max-w-2xl bg-background border border-white/10 rounded-2xl p-8 shadow-2xl z-10"
             >
               <h2 className="text-2xl font-bold text-white mb-2">
                 {selectedAnnouncement.title}

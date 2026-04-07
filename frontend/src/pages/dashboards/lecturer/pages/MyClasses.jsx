@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
-import GlassCard from "../components/GlassCard"; // Adjust path if needed
+import { GlassCard } from "@/components/shared"; 
+import ClassCard from "../components/ClassCard";
 import {
   Users,
   GraduationCap,
   MoreHorizontal,
-  Loader2,
+  Loader2, 
   Mail,
   Search,
 } from "lucide-react";
 import classService from "../../../../services/classService";
+import LoadingSpinner from '../../../../components/ui/LoadingSpinner.jsx'
 
 export default function MyClasses() {
   // --- State Management ---
@@ -82,16 +84,17 @@ export default function MyClasses() {
   // --- Render Loading / Error States ---
   if (isLoadingClasses) {
     return (
-      <div className="flex h-64 items-center justify-center text-blue-400">
-        <Loader2 className="animate-spin" size={32} />
+      <div className="flex h-64 items-center justify-center">
+        <LoadingSpinner size="lg" color="primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-red-400 text-center mt-10 p-4 bg-red-400/10 border border-red-400/20 rounded-xl">
-        {error}
+      <div className="flex flex-col items-center justify-center py-12">
+        <p className="text-red-400 text-lg font-semibold mb-2">Error</p>
+        <p className="text-neutral-400 max-w-md text-center">{error}</p>
       </div>
     );
   }
@@ -112,72 +115,22 @@ export default function MyClasses() {
       {/* Class Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {classes.length === 0 ? (
-          <div className="col-span-full p-8 text-center bg-white/5 border border-white/10 rounded-xl">
-            <p className="text-neutral-400">
-              You are not assigned to any classes yet.
-            </p>
+          <div className="col-span-full">
+            <EmptyState
+              icon={Users}
+              title="No Classes Assigned"
+              description="You are not assigned to any classes yet. Contact your department administrator for assistance."
+            />
           </div>
         ) : (
           classes.map((cls, idx) => (
-            <GlassCard
-              key={cls._id}
-              delay={idx * 0.1}
-              onClick={() => handleSelectClass(cls)}
-              className={`flex flex-col relative group cursor-pointer border transition-all duration-300 ${
-                selectedClass?._id === cls._id
-                  ? "border-blue-500 bg-blue-500/5 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
-                  : "border-white/5 hover:border-blue-500/50 hover:bg-white/5"
-              }`}
-            >
-              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  className="text-neutral-400 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Stops the card click event from firing
-                    console.log("Open menu for", cls.name);
-                  }}
-                >
-                  <MoreHorizontal size={20} />
-                </button>
-              </div>
-
-              <div
-                className={`p-3 w-fit rounded-xl border mb-4 group-hover:scale-110 transition-transform duration-500 ${
-                  selectedClass?._id === cls._id
-                    ? "bg-blue-500/20 border-blue-500/40"
-                    : "bg-blue-500/10 border-blue-500/20"
-                }`}
-              >
-                <GraduationCap size={24} className="text-blue-400" />
-              </div>
-
-              <h3
-                className="text-xl font-bold text-white mb-1 truncate"
-                title={cls.name}
-              >
-                {cls.name}
-              </h3>
-              <p className="text-sm text-neutral-400 font-medium mb-6">
-                {cls.code} • {cls.level}
-              </p>
-
-              <div className="grid grid-cols-2 gap-4 mt-auto pt-4 border-t border-white/10">
-                <div>
-                  <p className="text-xs text-neutral-500 mb-1">Enrolled</p>
-                  <p className="text-lg font-semibold text-white flex items-center gap-2">
-                    <Users size={14} className="text-blue-400" />{" "}
-                    {cls.studentCount}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500 mb-1">Status</p>
-                  <p className="text-sm font-semibold text-emerald-400 flex items-center gap-2 mt-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Active
-                  </p>
-                </div>
-              </div>
-            </GlassCard>
+            <div key={cls._id} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 100}ms` }}>
+              <ClassCard
+                cls={cls}
+                onClick={() => handleSelectClass(cls)}
+                isSelected={selectedClass?._id === cls._id}
+              />
+            </div>
           ))
         )}
       </div>

@@ -13,6 +13,7 @@ export const getTargetedUsers = async (event) => {
         query.interests = { $in: event.tags };
     }
 
-    return await User.find(query).select('fcmToken email');
+    // Include role for personalization, plus other needed fields
+    return await User.find(query).select('fcmToken email role name phoneNumber notificationPreferences');
 };
 

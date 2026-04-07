@@ -95,6 +95,42 @@ updateAnnouncement: async (announcementId, updateData) => {
     const response = await apiClient.get('/announcements/dashboard-stats');
     return response.data;
   },
+
+  // 11. SCHEDULING: Get scheduled announcements
+  getScheduledAnnouncements: async (page = 1, limit = 10) => {
+    const response = await apiClient.get('/announcements/scheduled', {
+      params: { page, limit }
+    });
+    return response.data;
+  },
+
+  // 12. SCHEDULING: Cancel scheduled announcement
+  cancelScheduledAnnouncement: async (announcementId) => {
+    const response = await apiClient.delete(`/announcements/scheduled/${announcementId}/cancel`);
+    return response.data;
+  },
+
+  // 13. SCHEDULING: Reschedule announcement
+  rescheduleAnnouncement: async (announcementId, scheduledAt) => {
+    const response = await apiClient.patch(`/announcements/scheduled/${announcementId}/reschedule`, {
+      scheduledAt
+    });
+    return response.data;
+  },
+
+  // 14. AI: Generate professional announcement from raw draft
+  suggestAnnouncement: async (rawText) => {
+    const response = await apiClient.post('/ai/suggest-announcement', {
+      rawText,
+    });
+    return response.data;
+  },
+
+  // 15. Analytics: Get read receipt stats for an announcement
+  getAnnouncementAnalytics: async (announcementId) => {
+    const response = await apiClient.get(`/analytics/announcements/${announcementId}`);
+    return response.data;
+  },
 };
 
 export default announcementService;

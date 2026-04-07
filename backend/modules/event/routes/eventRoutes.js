@@ -17,13 +17,17 @@ import {
     getEventsByDepartment,
     getPendingApprovals,
     processApproval,
-    parseFlyer // Make sure this is exported from eventController.js
+    parseFlyer, // Make sure this is exported from eventController.js
+    exportCalendar // Calendar export endpoint
 } from '../controller/eventController.js';
 
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
-import { validateEvent } from '../../../middleware/validateEvent.js';
 // Class rep policy: auto-scopes events to their represented class
 import { classRepPulseEventScope } from '../../../middleware/classRepPolicy.js';
+import rsvpRoutes from "./rsvpRoutes.js";
+import { scanAttendance } from "../controller/eventRSVPController.js";
+import { validateBody, schemas } from '../../../middleware/validation.js';
+import { auditLog } from '../../../middleware/auditMiddleware.js';
 
 /* ================= MULTER UPLOAD CONFIGURATION ================= */
 const storage = multer.diskStorage({
@@ -65,7 +69,8 @@ router.post(
   protect,
   authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'),
   classRepPulseEventScope,   // ← enriches req.body for class_rep; no-op for everyone else
-  validateEvent,
+  validateBody(schemas.eventCreation),
+  auditLog('event'),
   createEvent
 );
 
@@ -74,8 +79,8 @@ router.get('/feed', protect, getStudentFeed);
 
 /* ================= UPDATE & DELETE ================= */
 // class_rep can edit/delete their own events (ownership checked inside controller if needed).
-router.put('/:id',    protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'), updateEvent);
-router.delete('/:id', protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'), deleteEvent);
+router.put('/:id',    protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'), validateBody(schemas.eventUpdate), auditLog('event', { captureChanges: true }), updateEvent);
+router.delete('/:id', protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'class_rep'), auditLog('event'), deleteEvent);
 
 /* ================= INTEREST & RATE ================= */
 router.post('/:id/interest', protect, interestInEvent);
@@ -87,9 +92,16 @@ router.get('/search', searchEvents);
 router.get('/department', getEventsByDepartment);
 router.get('/:id/stats', protect, getEventStats);
 router.get('/:id', protect, getEventDetails);
+router.get('/:id/calendar', protect, exportCalendar);
+
+/* ================= ATTENDANCE SCANNING ================= */
+router.post('/:id/scan-attendance', protect, authorize('admin', 'lecturer', 'hod', 'dean', 'principal'), scanAttendance);
 
 /* ================= PENDING APPROVALS ================= */
 router.get('/approvals/pending', protect, authorize('dean', 'principal', 'lecturer'), getPendingApprovals);
 router.post('/approvals/:pulseId', protect, authorize('dean', 'principal', 'lecturer'), processApproval);
+
+/* ================= RSVP ================= */
+router.use('/rsvp', rsvpRoutes);
 
 export default router;

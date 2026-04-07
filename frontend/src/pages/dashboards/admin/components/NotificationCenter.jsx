@@ -88,7 +88,7 @@ export default function NotificationCenter() {
       {/* The Bell Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-3 bg-[#111] hover:bg-[#1A1A1A] rounded-full text-neutral-400 hover:text-white transition-all border border-white/5 shadow-md"
+        className="relative p-3 bg-[#111] hover:bg-muted rounded-full text-neutral-400 hover:text-white transition-all border border-white/5 shadow-md"
       >
         <Bell size={18} />
         {unreadCount > 0 && (
@@ -110,7 +110,7 @@ export default function NotificationCenter() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-full mt-3 w-80 md:w-96 bg-[#0D0D0D] border border-white/10 rounded-[24px] shadow-2xl overflow-hidden z-[100]"
+            className="absolute right-0 top-full mt-3 w-80 md:w-96 bg-card border border-white/10 rounded-[24px] shadow-2xl overflow-hidden z-[100]"
           >
             {/* Header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
@@ -183,7 +183,7 @@ export default function NotificationCenter() {
             </div>
 
             {/* Footer */}
-            <div className="p-3 border-t border-white/5 bg-[#0a0a0a] text-center">
+            <div className="p-3 border-t border-white/5 bg-background text-center">
               <button className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white transition-colors">
                 View Full Logs
               </button>

@@ -1,4 +1,4 @@
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { BarChart3, PlusCircle, Users, CheckSquare } from "lucide-react";
 
 export default function Engagement() {
@@ -32,7 +32,7 @@ export default function Engagement() {
               </label>
               <textarea
                 rows="2"
-                className="w-full bg-[#0A0A0A]/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 resize-none"
+                className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 resize-none"
                 placeholder="What should be the theme for..."
               />
             </div>
@@ -41,12 +41,12 @@ export default function Engagement() {
               <input
                 type="text"
                 placeholder="Option A"
-                className="w-full bg-[#0A0A0A]/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                className="w-full bg-background/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
               />
               <input
                 type="text"
                 placeholder="Option B"
-                className="w-full bg-[#0A0A0A]/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                className="w-full bg-background/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
               />
             </div>
             <button className="w-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-white font-medium py-2 rounded-xl transition-all">

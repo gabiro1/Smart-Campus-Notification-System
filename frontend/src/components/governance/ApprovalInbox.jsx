@@ -79,7 +79,7 @@ function PendingCard({ item, onDecision }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.25 }}
-            className="bg-[#141414] border border-white/5 rounded-[15px] overflow-hidden"
+            className="bg-background border border-white/5 rounded-[15px] overflow-hidden"
         >
             {/* Card Header */}
             <div className="p-5">
@@ -170,7 +170,7 @@ function PendingCard({ item, onDecision }) {
                                 value={reason}
                                 onChange={(e) => setReason(e.target.value)}
                                 placeholder="Explain why this announcement is being rejected..."
-                                className="w-full bg-[#111111] border border-red-500/20 focus:border-red-500/50 text-white rounded-[10px] px-4 py-3 text-sm outline-none transition-colors placeholder:text-neutral-600 resize-none"
+                                className="w-full bg-background border border-red-500/20 focus:border-red-500/50 text-white rounded-[10px] px-4 py-3 text-sm outline-none transition-colors placeholder:text-neutral-600 resize-none"
                                 autoFocus
                             />
                             <div className="flex gap-2">
@@ -226,7 +226,7 @@ export default function ApprovalInbox() {
     };
 
     return (
-        <div className="bg-[#0D0D0D] border border-white/5 rounded-[15px] p-6 md:p-8">
+        <div className="bg-card border border-white/5 rounded-[15px] p-6 md:p-8">
 
             {/* Header */}
             <div className="flex items-center justify-between mb-8">

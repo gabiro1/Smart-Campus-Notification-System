@@ -192,7 +192,7 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12 relative overflow-hidden w-full">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12 relative overflow-hidden w-full">
       <Toaster theme="dark" position="top-right" />
 
       {/* Header */}
@@ -231,7 +231,7 @@ export default function UserManagement() {
               setPage(1);
             }}
             placeholder="Search by name or email..."
-            className="w-full bg-[#0D0D0D] border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-[#111] outline-none transition-all text-sm shadow-xl"
+            className="w-full bg-card border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-[#111] outline-none transition-all text-sm shadow-xl"
           />
         </div>
         <div className="relative">
@@ -245,7 +245,7 @@ export default function UserManagement() {
               setRoleFilter(e.target.value);
               setPage(1);
             }}
-            className="w-full md:w-48 bg-[#0D0D0D] border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer shadow-xl"
+            className="w-full md:w-48 bg-card border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer shadow-xl"
           >
             <option value="">All Roles</option>
             <option value="student">Student</option>
@@ -260,7 +260,7 @@ export default function UserManagement() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-[#0D0D0D] border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+      <div className="bg-card border border-white/5 rounded-sm overflow-hidden shadow-2xl">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center gap-4">
             <Activity className="animate-spin text-blue-500" size={32} />
@@ -444,7 +444,7 @@ export default function UserManagement() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a] border-l border-white/10 z-50 shadow-2xl flex flex-col"
+              className="fixed top-0 right-0 h-full w-full max-w-md bg-background border-l border-white/10 z-50 shadow-2xl flex flex-col"
             >
               {/* Drawer Header */}
               <div className="p-8 border-b border-white/5 relative bg-[#111]">
@@ -693,7 +693,7 @@ export default function UserManagement() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0D0D0D] p-8 rounded-[24px] border border-white/10 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+              className="bg-card p-8 rounded-[24px] border border-white/10 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               <button
                 onClick={() => setIsModalOpen(false)}

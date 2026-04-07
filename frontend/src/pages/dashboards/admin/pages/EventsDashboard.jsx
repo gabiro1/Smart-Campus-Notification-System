@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import adminService from "../../../../services/adminService";
+import eventService from "../../../../services/eventService";
 import EventsTable from "../components/EventsTable";
+import AttendanceScanner from "../../../../components/dashboards/AttendanceScanner";
 
 export default function EventsDashboard() {
   const navigate = useNavigate();
@@ -33,6 +35,8 @@ export default function EventsDashboard() {
 
   // Modal State for Viewing
   const [viewingEvent, setViewingEvent] = useState(null);
+  const [eventStats, setEventStats] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   const fetchEvents = async () => {
     try {
@@ -82,12 +86,19 @@ export default function EventsDashboard() {
   };
 
   // Open the view modal
-  const handleView = (event) => {
+  const handleView = async (event) => {
+    try {
+      const stats = await eventService.getStats(event._id);
+      setEventStats(stats);
+    } catch (error) {
+      console.error("Failed to fetch event stats:", error);
+      setEventStats(null);
+    }
     setViewingEvent(event);
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12 relative">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12 relative">
       <Toaster theme="dark" position="top-right" />
 
       {/* Header */}
@@ -134,7 +145,7 @@ export default function EventsDashboard() {
               setPage(1);
             }}
             placeholder="Search events by title or location..."
-            className="w-full bg-[#0D0D0D] border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-[#111] outline-none transition-all text-sm"
+            className="w-full bg-card border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-[#111] outline-none transition-all text-sm"
           />
         </div>
         <div className="relative">
@@ -148,7 +159,7 @@ export default function EventsDashboard() {
               setFilterCollege(e.target.value);
               setPage(1);
             }}
-            className="w-full md:w-48 bg-[#0D0D0D] border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer"
+            className="w-full md:w-48 bg-card border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer"
           >
             <option value="">All Colleges</option>
             <option value="College of Science and Technology (CST)">CST</option>
@@ -164,7 +175,7 @@ export default function EventsDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-[#0D0D0D] border border-white/5 rounded-[24px] overflow-hidden shadow-2xl"
+        className="bg-card border border-white/5 rounded-[24px] overflow-hidden shadow-2xl"
       >
         <EventsTable
           events={events}
@@ -208,7 +219,7 @@ export default function EventsDashboard() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0D0D0D] p-8 rounded-[24px] border border-white/10 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+              className="bg-card p-8 rounded-[24px] border border-white/10 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               <button
                 onClick={() => setViewingEvent(null)}
@@ -284,9 +295,59 @@ export default function EventsDashboard() {
                     </div>
                   </div>
                 </div>
+
+                {/* Attendance & RSVP Stats */}
+                {eventStats && (
+                  <div className="bg-[#111] p-5 rounded-2xl border border-white/10">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-bold text-white">Attendance Overview</h4>
+                      <button
+                        onClick={() => setShowScanner(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-colors"
+                      >
+                        <Users size={16} />
+                        Scan Attendance
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-4 gap-4">
+                      <div className="bg-white/5 rounded-xl p-4 text-center">
+                        <p className="text-xs text-neutral-400 uppercase">RSVP'd</p>
+                        <p className="text-2xl font-bold text-blue-400">{eventStats.goingCount}</p>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-4 text-center">
+                        <p className="text-xs text-neutral-400 uppercase">Maybe</p>
+                        <p className="text-2xl font-bold text-amber-400">{eventStats.maybeCount}</p>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-4 text-center">
+                        <p className="text-xs text-neutral-400 uppercase">Attended</p>
+                        <p className="text-2xl font-bold text-emerald-400">{eventStats.attendedCount}</p>
+                      </div>
+                      <div className="bg-white/5 rounded-xl p-4 text-center">
+                        <p className="text-xs text-neutral-400 uppercase">Total RSVP</p>
+                        <p className="text-2xl font-bold text-purple-400">{eventStats.totalRSVP}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Attendance Scanner Overlay */}
+      <AnimatePresence>
+        {showScanner && viewingEvent && (
+          <AttendanceScanner
+            eventId={viewingEvent._id}
+            onClose={() => setShowScanner(false)}
+            onScanSuccess={() => {
+              // Refresh stats after successful scan
+              eventService.getStats(viewingEvent._id)
+                .then(setEventStats)
+                .catch(err => console.error("[Stats refresh] Failed:", err));
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

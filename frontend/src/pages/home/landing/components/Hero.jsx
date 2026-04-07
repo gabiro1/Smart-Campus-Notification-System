@@ -20,7 +20,7 @@ export default function Hero({ user }) {
   };
 
   return (
-    <section className="relative pt-32 pb-20 px-6 bg-[#050505] flex flex-col items-center text-center">
+    <section className="relative pt-32 pb-20 px-6 bg-background flex flex-col items-center text-center">
       <div className="absolute top-0 w-full h-[500px] bg-gradient-to-b from-blue-600/10 to-transparent blur-[100px] -z-10" />
 
       <motion.div
@@ -50,7 +50,7 @@ export default function Hero({ user }) {
           </button>
           <button
             onClick={handleAdminAccess} // 5. Added click handler
-            className="px-6 py-3 bg-[#111111] border border-white/10 text-white hover:bg-white/5 rounded-lg font-bold text-sm transition-all"
+            className="px-6 py-3 bg-background border border-white/10 text-white hover:bg-white/5 rounded-lg font-bold text-sm transition-all"
           >
             Admin Portal
           </button>

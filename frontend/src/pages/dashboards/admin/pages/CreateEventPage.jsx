@@ -119,7 +119,7 @@ export default function CreateEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
       <Toaster theme="dark" position="top-right" />
 
       <div className="max-w-5xl mx-auto">
@@ -150,7 +150,7 @@ export default function CreateEventPage() {
               animate={{ opacity: 1, x: 0 }}
               className="p-[1px] rounded-[24px] bg-gradient-to-b from-blue-500/30 via-purple-500/10 to-transparent shadow-2xl sticky top-8"
             >
-              <div className="bg-[#0D0D0D] rounded-[23px] p-8 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[300px]">
+              <div className="bg-card rounded-[23px] p-8 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[300px]">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -197,7 +197,7 @@ export default function CreateEventPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="xl:col-span-2 bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-2xl"
+            className="xl:col-span-2 bg-card border border-white/5 rounded-[24px] p-8 shadow-2xl"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1.5">
@@ -211,7 +211,7 @@ export default function CreateEventPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                  className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
                 />
               </div>
 
@@ -227,7 +227,7 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, date: e.target.value })
                     }
-                    className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                    className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
                   />
                 </div>
                 <div className="space-y-1.5 md:col-span-1">
@@ -241,7 +241,7 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, time: e.target.value })
                     }
-                    className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                    className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
                   />
                 </div>
                 <div className="space-y-1.5 md:col-span-1">
@@ -255,7 +255,7 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
-                    className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                    className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
                   />
                 </div>
               </div>
@@ -271,7 +271,7 @@ export default function CreateEventPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full bg-[#141414] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-white"
+                  className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-white"
                 />
               </div>
 
@@ -286,7 +286,7 @@ export default function CreateEventPage() {
                   <select
                     value={formData.targetCollege}
                     onChange={handleCollegeChange}
-                    className="bg-[#050505] border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer"
+                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer"
                   >
                     <option value="">All Colleges</option>
                     {Object.keys(academicStructure).map((c) => (
@@ -299,7 +299,7 @@ export default function CreateEventPage() {
                     value={formData.targetSchool}
                     onChange={handleSchoolChange}
                     disabled={!formData.targetCollege}
-                    className="bg-[#050505] border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50"
+                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50"
                   >
                     <option value="">All Schools</option>
                     {availableSchools.map((s) => (
@@ -314,7 +314,7 @@ export default function CreateEventPage() {
                       setFormData({ ...formData, targetDept: e.target.value })
                     }
                     disabled={!formData.targetSchool}
-                    className="bg-[#050505] border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50"
+                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50"
                   >
                     <option value="">All Departments</option>
                     {availableDepartments.map((d) => (
@@ -330,7 +330,7 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, targetLevel: e.target.value })
                     }
-                    className="bg-[#050505] border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white"
+                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white"
                   />
                 </div>
               </div>

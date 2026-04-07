@@ -9,6 +9,7 @@ import {
 
 } from '../controller/reminderController.js';
 import { protect } from '../../../middleware/authMiddleware.js';
+import { validateBody, schemas } from '../../../middleware/validation.js';
 
 /**
  * @route   GET /api/reminders
@@ -37,14 +38,14 @@ router.get('/due', protect, getDueReminders);
  * @desc    Create a new reminder
  * @access  Private
  */
-router.post('/', protect, createReminder);
+router.post('/', protect, validateBody(schemas.reminderCreation), createReminder);
 
 /**
  * @route   PUT /api/reminders/:id
  * @desc    Update a reminder
  * @access  Private
  */
-router.put('/:id', protect, updateReminder);
+router.put('/:id', protect, validateBody(schemas.reminderUpdate), updateReminder);
 
 /**
  * @route   DELETE /api/reminders/:id

@@ -71,7 +71,7 @@ export default function CoreSettings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <Activity className="animate-spin text-blue-500" size={32} />
         <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
           Loading Configurations...
@@ -81,7 +81,7 @@ export default function CoreSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8 lg:p-12">
+    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
       <Toaster theme="dark" position="top-right" />
 
       {/* Header */}
@@ -121,7 +121,7 @@ export default function CoreSettings() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Smartphone size={22} className="text-green-500" /> SMS Gateway
@@ -172,7 +172,7 @@ export default function CoreSettings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Zap size={22} className="text-purple-500" /> AI Engine
@@ -239,7 +239,7 @@ export default function CoreSettings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[#0D0D0D] border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Shield size={22} className="text-blue-500" /> Security & Workflow

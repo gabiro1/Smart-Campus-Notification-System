@@ -13,7 +13,8 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     // Only connect if user is logged in
     if (user && token) {
-      const socketInstance = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+      const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace('/api', '');
+      const socketInstance = io(socketUrl, {
         auth: { token },
         transports: ['websocket'], // Faster, preferred for modern MERN
       });

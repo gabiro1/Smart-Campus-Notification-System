@@ -94,7 +94,7 @@ export default function AnnouncementForm({ onSuccess }) {
     };
 
     return (
-        <div className="bg-[#0D0D0D] border border-white/5 rounded-[15px] p-6 md:p-8">
+        <div className="bg-card border border-white/5 rounded-[15px] p-6 md:p-8">
             <div className="flex items-center gap-4 mb-8">
                 <div className="p-3 bg-blue-500/10 rounded-[10px] border border-blue-500/20">
                     <Megaphone className="text-blue-400" size={22} />
@@ -120,7 +120,7 @@ export default function AnnouncementForm({ onSuccess }) {
                         placeholder="e.g. Midterm Examination Schedule Update"
                         value={form.title}
                         onChange={(e) => handleChange('title', e.target.value)}
-                        className="w-full bg-[#111111] border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-600"
+                        className="w-full bg-background border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-600"
                     />
                 </div>
 
@@ -134,7 +134,7 @@ export default function AnnouncementForm({ onSuccess }) {
                         placeholder="Write the detailed announcement content here..."
                         value={form.content}
                         onChange={(e) => handleChange('content', e.target.value)}
-                        className="w-full bg-[#111111] border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-600 resize-none"
+                        className="w-full bg-background border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-600 resize-none"
                     />
                 </div>
 
@@ -154,7 +154,7 @@ export default function AnnouncementForm({ onSuccess }) {
                                     className={`flex-1 py-2.5 rounded-[10px] text-[11px] font-bold border transition-all ${
                                         form.priority === p.value
                                             ? p.color
-                                            : 'bg-[#111111] border-white/10 text-neutral-500 hover:border-white/20'
+                                            : 'bg-background border-white/10 text-neutral-500 hover:border-white/20'
                                     }`}
                                 >
                                     {p.label}
@@ -172,11 +172,11 @@ export default function AnnouncementForm({ onSuccess }) {
                             <select
                                 value={form.targetScope}
                                 onChange={(e) => handleChange('targetScope', e.target.value)}
-                                className="w-full appearance-none bg-[#111111] border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors pr-10"
+                                className="w-full appearance-none bg-background border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors pr-10"
                             >
                                 <option value="" disabled className="text-neutral-500">Select target scope...</option>
                                 {SCOPE_OPTIONS.map((s) => (
-                                    <option key={s.value} value={s.value} className="bg-[#111111]">
+                                    <option key={s.value} value={s.value} className="bg-background">
                                         {s.label}
                                     </option>
                                 ))}

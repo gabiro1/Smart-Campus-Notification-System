@@ -17,6 +17,8 @@ export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [digest, setDigest] = useState(null);
+  const [loadingDigest, setLoadingDigest] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -58,9 +60,24 @@ export default function NotificationCenter() {
     }
   };
 
+  const fetchLatestDigest = async () => {
+    try {
+      const data = await notificationService.getLatestDigest();
+      if (data.success && data.summary) {
+        setDigest(data.summary);
+      } else {
+        setDigest(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch latest digest");
+      setDigest(null);
+    }
+  };
+
   const toggleDropdown = () => {
     if (!isOpen) {
-      fetchNotifications(); // Only fetch full list when opening
+      fetchNotifications(); // Fetch notifications
+      fetchLatestDigest(); // Fetch latest digest
     }
     setIsOpen(!isOpen);
   };
@@ -95,6 +112,26 @@ export default function NotificationCenter() {
       toast.success("All caught up!");
     } catch (error) {
       toast.error("Failed to mark all as read");
+    }
+  };
+
+  const handleGenerateDigest = async () => {
+    setLoadingDigest(true);
+    try {
+      const result = await notificationService.generateDigest('daily');
+      if (result.success && result.summary) {
+        setDigest(result.summary);
+        toast.success('Digest generated!');
+      } else if (result.success && !result.summary) {
+        setDigest('No new low-priority notifications to summarize.');
+        toast.info('No new notifications to digest.');
+      } else {
+        throw new Error(result.message || 'Failed to generate digest');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to generate digest');
+    } finally {
+      setLoadingDigest(false);
     }
   };
 
@@ -170,7 +207,7 @@ export default function NotificationCenter() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#0a0a0a] border border-white/10 rounded-[20px] shadow-2xl overflow-hidden z-50 flex flex-col"
+            className="absolute right-0 mt-3 w-80 sm:w-96 bg-background border border-white/10 rounded-[20px] shadow-2xl overflow-hidden z-50 flex flex-col"
           >
             {/* Header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-[#111]">
@@ -182,18 +219,53 @@ export default function NotificationCenter() {
                   </span>
                 )}
               </h3>
-              {unreadCount > 0 && (
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1"
+                  >
+                    <CheckCheck size={14} /> Mark all read
+                  </button>
+                )}
                 <button
-                  onClick={handleMarkAllAsRead}
-                  className="text-[10px] font-bold uppercase tracking-wider text-blue-500 hover:text-blue-400 transition-colors flex items-center gap-1"
+                  onClick={handleGenerateDigest}
+                  disabled={loadingDigest}
+                  className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1 disabled:opacity-50"
+                  title="Generate AI digest of low-priority notifications"
                 >
-                  <CheckCheck size={14} /> Mark all read
+                  {loadingDigest ? (
+                    <>Generating...</>
+                  ) : (
+                    <>📋 Digest</>
+                  )}
                 </button>
-              )}
+              </div>
             </div>
 
+            {/* Digest Section */}
+            {(digest || loadingDigest) && (
+              <div className="p-4 border-b border-white/5 bg-[#0a0a0a]">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+                    AI Daily Digest
+                  </h4>
+                </div>
+                {loadingDigest ? (
+                  <div className="flex items-center gap-2 text-xs text-neutral-500">
+                    <Activity className="animate-spin" size={14} />
+                    Generating your digest...
+                  </div>
+                ) : (
+                  <div className="text-xs text-neutral-300 whitespace-pre-line leading-relaxed bg-[#111] p-3 rounded-lg border border-white/5">
+                    {digest}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* List Body */}
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar flex-1 bg-[#050505]">
+            <div className="max-h-[400px] overflow-y-auto custom-scrollbar flex-1 bg-background">
               {loading ? (
                 <div className="p-8 flex flex-col items-center justify-center gap-3 text-neutral-500">
                   <Activity className="animate-spin text-blue-500" size={24} />

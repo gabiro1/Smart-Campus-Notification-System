@@ -68,7 +68,7 @@ export default function AnnouncementsPage({ user: propUser }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-blue-400 text-xs font-black uppercase tracking-widest">
           Decrypting Feed
@@ -78,7 +78,7 @@ export default function AnnouncementsPage({ user: propUser }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-sans overflow-x-hidden p-4 md:p-8">
+    <div className="min-h-screen bg-background text-white font-sans overflow-x-hidden p-4 md:p-8">
       <div className="max-w-7xl mx-auto flex flex-col h-[calc(100vh-4rem)]">
         <header className="mb-8 shrink-0">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -88,7 +88,7 @@ export default function AnnouncementsPage({ user: propUser }) {
               </span>
               Active Announcements
             </h1>
-            <div className="flex bg-[#141414] p-1.5 rounded-xl border border-white/5">
+            <div className="flex bg-background p-1.5 rounded-xl border border-white/5">
               {["All", "General", "Assignment", "Urgent"].map((f) => (
                 <button
                   key={f}
@@ -117,7 +117,7 @@ export default function AnnouncementsPage({ user: propUser }) {
             `}}/>
             
             {filteredAnnouncements.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-12 border border-white/5 rounded-3xl bg-[#141414]">
+              <div className="flex flex-col items-center justify-center p-12 border border-white/5 rounded-3xl bg-background">
                 <AlertCircle size={48} className="mb-4 opacity-20 text-neutral-500" />
                 <p className="text-lg font-medium text-neutral-500">
                   No {activeFilter.toLowerCase()} broadcasts found
@@ -136,8 +136,8 @@ export default function AnnouncementsPage({ user: propUser }) {
                     onClick={() => setSelectedAnnouncement(ann)}
                     className={`p-6 rounded-[20px] transition-all cursor-pointer group border ${
                       isSelected
-                        ? "bg-[#1A1A1A] border-emerald-500/30 shadow-[0_4px_20px_rgba(16,185,129,0.05)]"
-                        : "bg-[#141414] border-white/5 hover:border-white/10"
+                        ? "bg-muted border-emerald-500/30 shadow-[0_4px_20px_rgba(16,185,129,0.05)]"
+                        : "bg-background border-white/5 hover:border-white/10"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-4">
@@ -190,7 +190,7 @@ export default function AnnouncementsPage({ user: propUser }) {
           </div>
 
           {/* Right Column: INTERACTIVE Q&A */}
-          <div className="hidden lg:flex flex-col bg-[#141414] rounded-[24px] border border-white/5 overflow-hidden shadow-2xl relative h-full">
+          <div className="hidden lg:flex flex-col bg-background rounded-[24px] border border-white/5 overflow-hidden shadow-2xl relative h-full">
             {selectedAnnouncement ? (
                <InteractiveQAPanel ann={selectedAnnouncement} user={user} onClose={() => setSelectedAnnouncement(null)} />
             ) : (
@@ -214,7 +214,7 @@ export default function AnnouncementsPage({ user: propUser }) {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="lg:hidden fixed inset-0 z-50 bg-[#141414] flex flex-col"
+            className="lg:hidden fixed inset-0 z-50 bg-background flex flex-col"
           >
             <InteractiveQAPanel ann={selectedAnnouncement} user={user} onClose={() => setSelectedAnnouncement(null)} />
           </motion.div>
@@ -273,7 +273,7 @@ function InteractiveQAPanel({ ann, user, onClose }) {
   return (
     <>
       {/* Header */}
-      <div className="flex flex-col p-6 border-b border-white/5 bg-[#1A1A1A]">
+      <div className="flex flex-col p-6 border-b border-white/5 bg-muted">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-xl font-bold text-white">Interactive Q&A</h2>
           <div className="flex items-center gap-3">
@@ -326,7 +326,7 @@ function InteractiveQAPanel({ ann, user, onClose }) {
       </div>
 
       {/* Input Footer */}
-      <div className="p-6 bg-[#0D0D0D] border-t border-white/5 shrink-0">
+      <div className="p-6 bg-card border-t border-white/5 shrink-0">
         {replyingTo && (
            <div className="flex justify-between items-center mb-3">
               <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-widest">
@@ -349,7 +349,7 @@ function InteractiveQAPanel({ ann, user, onClose }) {
            <button
              onClick={handlePostComment}
              disabled={!commentText.trim() || isSubmitting}
-             className="shrink-0 w-11 h-11 flex items-center justify-center bg-[#2DCC85] hover:bg-emerald-400 disabled:bg-white/5 disabled:text-white/20 text-black rounded-xl transition-all font-bold shadow-lg"
+             className="shrink-0 w-11 h-11 flex items-center justify-center bg-success hover:bg-emerald-400 disabled:bg-white/5 disabled:text-white/20 text-black rounded-xl transition-all font-bold shadow-lg"
            >
              <Send size={18} className="translate-x-[1px]" />
            </button>

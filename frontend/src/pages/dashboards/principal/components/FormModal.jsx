@@ -26,7 +26,7 @@ export default function FormModal({
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-2xl z-10"
+            className="relative w-full max-w-md bg-background border border-white/10 rounded-2xl p-6 shadow-2xl z-10"
           >
             {/* Header */}
             <div className="flex justify-between items-start mb-6">

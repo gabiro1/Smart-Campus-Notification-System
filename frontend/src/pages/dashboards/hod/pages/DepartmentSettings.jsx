@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { Shield, Settings as SettingsIcon, BellRing, Save } from "lucide-react";
 
 // Liquid Toggle component reused from earlier

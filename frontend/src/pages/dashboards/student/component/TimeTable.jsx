@@ -152,7 +152,7 @@ export default function TimeTable() {
   const currentClasses = scheduleData[selectedDay] || [];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white overflow-x-hidden">
       {/* ── Ambient Background Glow ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 left-[20%] w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px]" />

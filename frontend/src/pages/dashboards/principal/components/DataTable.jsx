@@ -11,7 +11,7 @@ export default function DataTable({
     <div className="overflow-x-auto flex-1 custom-scrollbar">
       <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
-          <tr className="bg-[#050505] border-b border-white/5 text-[10px] uppercase tracking-widest text-neutral-500">
+          <tr className="bg-background border-b border-white/5 text-[10px] uppercase tracking-widest text-neutral-500">
             {columns.map((col, i) => (
               <th
                 key={i}

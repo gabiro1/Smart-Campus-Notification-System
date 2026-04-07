@@ -39,6 +39,16 @@ const authService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to update profile.');
     }
+  },
+
+  // 5. Update notification preferences
+  updateNotificationPreferences: async (preferences) => {
+    try {
+      const response = await apiClient.put('/users/notification-preferences', { preferences });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update notification preferences.');
+    }
   }
 };
 

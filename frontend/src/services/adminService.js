@@ -57,9 +57,9 @@ createUser: async (userData) => {
   },
 
   // Get audit logs
-  getAuditLogs: async (page = 1, limit = 20) => {
+  getAuditLogs: async (page = 1, limit = 20, filters = {}) => {
     const response = await apiClient.get('/admin/audit-logs', {
-      params: { page, limit },
+      params: { page, limit, ...filters },
     });
     return response.data;
   },
@@ -186,7 +186,12 @@ createUser: async (userData) => {
     return response.data;
   },
 
- 
+  // Get active emergency broadcasts with acknowledgment statistics
+  getActiveEmergencies: async () => {
+    const response = await apiClient.get('/admin/announcements/active-emergencies');
+    return response.data;
+  },
+
 };
 
 export default adminService;

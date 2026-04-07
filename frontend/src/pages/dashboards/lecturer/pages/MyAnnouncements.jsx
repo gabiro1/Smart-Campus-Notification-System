@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,9 +22,11 @@ import {
   ArchiveRestore,
   TrendingUp,
   Clock,
+  BarChart3,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import announcementService from "../../../../services/announcementService";
+import AnnouncementAnalytics from "../../../../components/dashboards/AnnouncementAnalytics";
 
 // ==========================================
 // 1. MAIN MANAGEMENT DASHBOARD
@@ -36,11 +38,14 @@ export default function MyAnnouncements({ user: propUser }) {
   const [activeTab, setActiveTab] = useState("Active");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [analyticsModalId, setAnalyticsModalId] = useState(null);
 
   const [deleteId, setDeleteId] = useState(null);
+  const [rescheduleId, setRescheduleId] = useState(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
 
   const user = propUser || JSON.parse(localStorage.getItem("user"));
-  const tabs = ["Active", "Draft", "Archived"];
+  const tabs = ["Active", "Scheduled", "Draft", "Archived"];
 
   useEffect(() => {
     fetchMyPosts();
@@ -106,6 +111,57 @@ export default function MyAnnouncements({ user: propUser }) {
     }
   };
 
+  const handleCancelSchedule = async (e, item) => {
+    e.stopPropagation();
+    if (!window.confirm("Cancel this scheduled announcement? It will not be sent.")) return;
+
+    try {
+      const response = await announcementService.cancelScheduledAnnouncement(item._id);
+      if (response && response.success) {
+        toast.success("Scheduled announcement cancelled");
+        fetchMyPosts();
+        if (selectedAnnouncement?._id === item._id) {
+          setSelectedAnnouncement((prev) => ({ ...prev, status: "Draft", scheduledAt: null }));
+        }
+      }
+    } catch (error) {
+      toast.error("Failed to cancel scheduled announcement");
+    }
+  };
+
+  const handleOpenReschedule = (e, item) => {
+    e.stopPropagation();
+    setRescheduleId(item._id);
+    // Set current scheduled time as default
+    if (item.scheduledAt) {
+      const date = new Date(item.scheduledAt);
+      const isoDateTime = date.toISOString().slice(0, 16);
+      setRescheduleDate(isoDateTime);
+    }
+  };
+
+  const handleConfirmReschedule = async () => {
+    if (!rescheduleDate) {
+      toast.error("Please select a date and time");
+      return;
+    }
+
+    try {
+      const response = await announcementService.rescheduleAnnouncement(rescheduleId, rescheduleDate);
+      if (response && response.success) {
+        toast.success("Announcement rescheduled successfully");
+        setRescheduleId(null);
+        setRescheduleDate("");
+        fetchMyPosts();
+        if (selectedAnnouncement?._id === rescheduleId) {
+          setSelectedAnnouncement((prev) => ({ ...prev, scheduledAt: new Date(rescheduleDate) }));
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to reschedule announcement");
+    }
+  };
+
   const handleUpdateLocal = (updatedAnn) => {
     setAnnouncements((prev) =>
       prev.map((a) => (a._id === updatedAnn._id ? updatedAnn : a)),
@@ -138,7 +194,7 @@ export default function MyAnnouncements({ user: propUser }) {
         </div>
         <button
           onClick={() => navigate("/lecturer/create")}
-          className="bg-[#2DCC85] hover:bg-emerald-500 text-black px-5 py-2.5 rounded-md font-bold text-sm transition-colors shadow-lg"
+          className="bg-success hover:bg-emerald-500 text-black px-5 py-2.5 rounded-md font-bold text-sm transition-colors shadow-lg"
         >
           New Announcement
         </button>
@@ -150,7 +206,7 @@ export default function MyAnnouncements({ user: propUser }) {
           
           {/* Tabs & Search */}
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
-             <div className="flex bg-[#1A1A1A] p-1 rounded-xl border border-white/5">
+             <div className="flex bg-muted p-1 rounded-xl border border-white/5">
                 {tabs.map((tab) => (
                    <button
                      key={tab}
@@ -172,7 +228,7 @@ export default function MyAnnouncements({ user: propUser }) {
                    placeholder="Search pulses..."
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
-                   className="w-full bg-[#1A1A1A] border border-white/5 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                   className="w-full bg-muted border border-white/5 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
                 />
              </div>
           </div>
@@ -183,14 +239,14 @@ export default function MyAnnouncements({ user: propUser }) {
                 <div className="h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : filteredData.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-12 border border-white/5 rounded-2xl bg-[#1A1A1A]">
+              <div className="flex flex-col items-center justify-center p-12 border border-white/5 rounded-2xl bg-muted">
                 <AlertCircle size={48} className="mb-4 opacity-20 text-neutral-500" />
                 <p className="text-lg font-medium text-neutral-500">
                   No {activeTab.toLowerCase()} broadcasts found
                 </p>
                 <button
                   onClick={() => navigate("/lecturer/create")}
-                  className="mt-4 bg-[#2DCC85] text-black px-5 py-2.5 rounded-md font-bold text-sm"
+                  className="mt-4 bg-success text-black px-5 py-2.5 rounded-md font-bold text-sm"
                 >
                   Create Broadcast
                 </button>
@@ -203,6 +259,10 @@ export default function MyAnnouncements({ user: propUser }) {
                 const dateObj = new Date(item.createdAt || Date.now());
                 const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
+                // Scheduled date formatting
+                const scheduledObj = item.scheduledAt ? new Date(item.scheduledAt) : null;
+                const formattedScheduled = scheduledObj ? scheduledObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+
                 return (
                   <motion.div
                     key={item._id}
@@ -210,31 +270,62 @@ export default function MyAnnouncements({ user: propUser }) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.03 }}
                     onClick={() => setSelectedAnnouncement(item)}
-                    className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors cursor-pointer group"
+                    className="bg-muted border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors cursor-pointer group"
                   >
                     {/* Top Row: Tags and Actions */}
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
-                        <span className="px-3 py-1 bg-[#2C334E] text-[#69B4EF] rounded-full text-xs font-bold uppercase tracking-wide">
+                        <span className="px-3 py-1 bg-[#2C334E] text-info rounded-full text-xs font-bold uppercase tracking-wide">
                           {item.course?.code || "GENERAL"}
                         </span>
                         {item.status !== "Archived" && (
-                          <span className="px-2.5 py-1 bg-[#1E3A2F] text-[#4CD964] rounded-full text-xs font-bold flex items-center gap-1.5 uppercase tracking-wide">
+                          <span className="px-2.5 py-1 bg-[#1E3A2F] text-success rounded-full text-xs font-bold flex items-center gap-1.5 uppercase tracking-wide">
                             <Check size={12} className="stroke-[3]" /> VERIFIED
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        {/* Analytics Button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedAnnouncement(item);
+                            setAnalyticsModalId(item._id);
                           }}
-                          className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                          title="Edit"
+                          className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 hover:bg-purple-500/20 transition-colors"
+                          title="View Analytics"
                         >
-                          <Edit3 size={14} />
+                          <BarChart3 size={14} />
                         </button>
+
+                        {item.status === "Scheduled" ? (
+                          <>
+                            <button
+                              onClick={(e) => handleOpenReschedule(e, item)}
+                              className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-colors"
+                              title="Reschedule"
+                            >
+                              <Clock size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => handleCancelSchedule(e, item)}
+                              className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-colors"
+                              title="Cancel Schedule"
+                            >
+                              <X size={14} />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedAnnouncement(item);
+                            }}
+                            className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => handleToggleArchive(e, item)}
                           className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
@@ -259,9 +350,18 @@ export default function MyAnnouncements({ user: propUser }) {
                     <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2">
                       {item.title}
                     </h3>
-                    <p className="text-[14px] text-neutral-400 mb-6">
-                      Sent: {formattedDate}
-                    </p>
+                    <div className="flex items-center gap-2 mb-6">
+                      {item.status === "Scheduled" && formattedScheduled ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                          <Clock size={12} />
+                          Scheduled: {formattedScheduled}
+                        </span>
+                      ) : (
+                        <p className="text-[14px] text-neutral-400">
+                          Sent: {formattedDate}
+                        </p>
+                      )}
+                    </div>
 
                     {/* Stats Row */}
                     <div className="grid grid-cols-3 gap-4 pt-5">
@@ -270,7 +370,7 @@ export default function MyAnnouncements({ user: propUser }) {
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${readRate > 70 ? 'bg-[#2DCC85]' : 'bg-amber-400'}`}
+                              className={`h-full rounded-full ${readRate > 70 ? 'bg-success' : 'bg-amber-400'}`}
                               style={{ width: `${readRate}%` }}
                             ></div>
                           </div>
@@ -303,7 +403,7 @@ export default function MyAnnouncements({ user: propUser }) {
                 <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Total Pulses Sent</p>
                 <div className="flex items-end justify-between">
                   <span className="text-4xl font-bold text-white tracking-tight">{announcements.length + 124}</span>
-                  <span className="px-2.5 py-1 bg-emerald-500/10 text-[#2DCC85] rounded-full text-xs font-bold flex items-center gap-1">
+                  <span className="px-2.5 py-1 bg-emerald-500/10 text-success rounded-full text-xs font-bold flex items-center gap-1">
                     <TrendingUp size={12} strokeWidth={3} /> +12%
                   </span>
                 </div>
@@ -313,7 +413,7 @@ export default function MyAnnouncements({ user: propUser }) {
                 <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Avg Engagement</p>
                 <div className="flex items-end justify-between">
                   <span className="text-4xl font-bold text-white tracking-tight">84%</span>
-                  <span className="px-2.5 py-1 bg-emerald-500/10 text-[#2DCC85] rounded-full text-xs font-bold flex items-center gap-1">
+                  <span className="px-2.5 py-1 bg-emerald-500/10 text-success rounded-full text-xs font-bold flex items-center gap-1">
                     <TrendingUp size={12} strokeWidth={3} /> +5%
                   </span>
                 </div>
@@ -368,7 +468,7 @@ export default function MyAnnouncements({ user: propUser }) {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-sm bg-[#1A1A1A] border border-white/10 rounded-2xl overflow-hidden"
+              className="relative w-full max-w-sm bg-muted border border-white/10 rounded-2xl overflow-hidden"
             >
               <div className="p-6 text-center">
                 <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
@@ -400,6 +500,71 @@ export default function MyAnnouncements({ user: propUser }) {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Reschedule Modal */}
+      <AnimatePresence>
+        {rescheduleId && (
+          <div className="fixed inset-0 flex items-center justify-center z-[1000] p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setRescheduleId(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-muted border border-white/10 rounded-2xl overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Clock className="text-blue-500" size={20} />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Reschedule Announcement</h3>
+                </div>
+                <p className="text-neutral-400 text-sm mb-4">
+                  Choose a new date and time for this announcement to be sent.
+                </p>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    New Schedule Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={rescheduleDate}
+                    onChange={(e) => setRescheduleDate(e.target.value)}
+                    min={new Date().toISOString().slice(0, 16)}
+                    className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setRescheduleId(null)}
+                    className="flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl font-bold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmReschedule}
+                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold transition-colors"
+                  >
+                    Reschedule
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Analytics Modal */}
+      <AnnouncementAnalytics
+        announcementId={analyticsModalId}
+        onClose={() => setAnalyticsModalId(null)}
+      />
     </div>
   );
 }
@@ -559,13 +724,13 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: "100%", opacity: 0.5 }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="fixed top-0 right-0 h-full w-full sm:max-w-[420px] bg-[#121212] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col"
+      className="fixed top-0 right-0 h-full w-full sm:max-w-[420px] bg-card border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col"
       onClick={() => {
         setActiveDropdown(null);
         setShowEmojiPicker(false);
       }}
     >
-      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#121212] shrink-0 z-20">
+      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-card shrink-0 z-20">
         <h3 className="text-sm font-bold text-white">
           {isEditingBroadcast ? "Editing Broadcast" : "Thread Details"}
         </h3>
@@ -729,7 +894,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
       </div>
 
       <div
-        className="shrink-0 border-t border-white/10 bg-[#121212] px-4 py-3 absolute bottom-0 w-full z-[60]"
+        className="shrink-0 border-t border-white/10 bg-card px-4 py-3 absolute bottom-0 w-full z-[60]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Emoji Picker Modal */}
@@ -739,7 +904,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 10, opacity: 0 }}
-              className="absolute bottom-[110%] left-4 w-80 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl p-3 max-h-56 overflow-y-auto custom-scrollbar"
+              className="absolute bottom-[110%] left-4 w-80 bg-muted border border-white/10 rounded-xl shadow-2xl p-3 max-h-56 overflow-y-auto custom-scrollbar"
             >
               {emojiCategories.map((cat) => (
                 <div key={cat.title} className="mb-4">
@@ -800,7 +965,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
         ) : null}
 
         <div
-          className={`flex items-center gap-3 bg-[#1A1A1A] px-3 py-2.5 border rounded-xl transition-colors ${editingCommentId ? "border-amber-500/30" : "border-white/5"}`}
+          className={`flex items-center gap-3 bg-muted px-3 py-2.5 border rounded-xl transition-colors ${editingCommentId ? "border-amber-500/30" : "border-white/5"}`}
         >
           <Smile
             size={20}
@@ -927,7 +1092,7 @@ function CommentItem({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="absolute right-0 top-full mt-2 w-28 bg-[#1A1A1A] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
+                  className="absolute right-0 top-full mt-2 w-28 bg-muted border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
                 >
                   <button
                     onClick={(e) => {

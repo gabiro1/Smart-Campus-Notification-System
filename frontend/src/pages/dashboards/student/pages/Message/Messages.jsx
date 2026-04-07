@@ -114,12 +114,12 @@ export default function Messages() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-6rem)] w-full bg-[#0A0A0A] text-slate-200 overflow-hidden font-sans border-t border-[#1A1D24]">
+    <div className="flex h-[calc(100vh-6rem)] w-full bg-background text-slate-200 overflow-hidden font-sans border-t border-input">
       
       {/* LEFT PANEL: ACTIVE CHATS */}
-      <div className="w-[320px] border-r border-[#1A1D24] flex flex-col bg-[#0A0A0A]">
+      <div className="w-[320px] border-r border-input flex flex-col bg-background">
         <div className="p-6">
-          <h2 className="text-[11px] font-extrabold tracking-widest text-[#4A5060] uppercase mb-4">
+          <h2 className="text-[11px] font-extrabold tracking-widest text-muted-foreground uppercase mb-4">
             Active Chats
           </h2>
         </div>
@@ -131,7 +131,7 @@ export default function Messages() {
               onClick={() => setActiveChatId(contact.id || contact._id)}
               className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                 activeChatId === (contact.id || contact._id) || (!activeChatId && i === 0)
-                  ? "bg-[#1A1D24]" 
+                  ? "bg-input" 
                   : "hover:bg-[#12141A]"
               }`}
             >
@@ -141,18 +141,18 @@ export default function Messages() {
                   {contact.initial || "Dr"}
                 </div>
                 {contact.unread && (
-                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#10B981] rounded-full border-2 border-[#0A0A0A]" />
+                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-success rounded-full border-2 border-[#0A0A0A]" />
                 )}
               </div>
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
                   <h3 className="text-sm font-bold text-white truncate">{contact.name || "Dr. Sarah Vance"}</h3>
-                  <span className="text-[10px] text-[#4A5060] font-medium whitespace-nowrap ml-2">
+                  <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap ml-2">
                     {contact.time || "10:42 AM"}
                   </span>
                 </div>
-                <p className={`text-xs truncate ${contact.unread ? "text-[#10B981] font-semibold" : "text-[#8B92A5]"}`}>
+                <p className={`text-xs truncate ${contact.unread ? "text-success font-semibold" : "text-muted-foreground"}`}>
                   {contact.message || (contact.lastMessage?.content || "Tap to view conversation")}
                 </p>
               </div>
@@ -162,10 +162,10 @@ export default function Messages() {
       </div>
 
       {/* MIDDLE PANEL: CHAT WINDOW */}
-      <div className="flex-1 flex flex-col bg-[#0A0A0A]">
+      <div className="flex-1 flex flex-col bg-background">
         
         {/* Chat Header */}
-        <div className="h-20 border-b border-[#1A1D24] px-6 flex items-center justify-between shrink-0">
+        <div className="h-20 border-b border-input px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-blue-900/40 flex items-center justify-center text-sm font-bold border border-blue-500/20">
               Dr
@@ -173,25 +173,25 @@ export default function Messages() {
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="text-lg font-extrabold text-white leading-tight">Dr. Sarah Vance</h2>
-                <span className="bg-[#1A1D24] text-[#8B92A5] px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider border border-[#2A2E39]">
+                <span className="bg-input text-muted-foreground px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider border border-border">
                   INSTRUCTOR
                 </span>
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-                <p className="text-[#10B981] text-xs font-bold tracking-wider">ACTIVE NOW</p>
+                <div className="w-1.5 h-1.5 rounded-full bg-success" />
+                <p className="text-success text-xs font-bold tracking-wider">ACTIVE NOW</p>
               </div>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="w-10 h-10 rounded-xl bg-[#1A1D24] flex items-center justify-center text-[#8B92A5] hover:text-white transition-colors">
+            <button className="w-10 h-10 rounded-xl bg-input flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
               <Phone size={18} />
             </button>
-            <button className="w-10 h-10 rounded-xl bg-[#1A1D24] flex items-center justify-center text-[#8B92A5] hover:text-white transition-colors">
+            <button className="w-10 h-10 rounded-xl bg-input flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
               <Video size={18} />
             </button>
-            <button className="w-10 h-10 rounded-xl bg-[#1A1D24] flex items-center justify-center text-[#8B92A5] hover:text-white transition-colors">
+            <button className="w-10 h-10 rounded-xl bg-input flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
               <Search size={18} />
             </button>
           </div>
@@ -201,7 +201,7 @@ export default function Messages() {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           
           <div className="flex justify-center">
-            <div className="bg-[#1A1D24] text-[#4A5060] px-4 py-1.5 rounded-full text-[10px] font-extrabold tracking-widest border border-[#2A2E39]">
+            <div className="bg-input text-muted-foreground px-4 py-1.5 rounded-full text-[10px] font-extrabold tracking-widest border border-border">
               MONDAY, OCT 23
             </div>
           </div>
@@ -217,8 +217,8 @@ export default function Messages() {
                 {msg.text || msg.content ? (
                   <div className={`p-4 rounded-[20px] text-sm leading-relaxed ${
                     isMe 
-                      ? "bg-[#2A2E39] text-[#E2E8F0] rounded-br-[4px] border border-[#3B4252]" 
-                      : "bg-[#12141A] text-[#A0AEC0] rounded-bl-[4px] border border-[#1A1D24]"
+                      ? "bg-muted text-[#E2E8F0] rounded-br-[4px] border border-[#3B4252]" 
+                      : "bg-[#12141A] text-muted-foreground rounded-bl-[4px] border border-input"
                   }`}>
                     {msg.text || msg.content}
                   </div>
@@ -228,22 +228,22 @@ export default function Messages() {
                 {(msg.isFile || msg.file) && (
                   <div className={`mt-2 p-4 rounded-xl border flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity ${
                     isMe 
-                      ? "bg-[#2A2E39] border-[#3B4252] rounded-br-none" 
-                      : "bg-[#12141A] border-[#1A1D24]"
+                      ? "bg-muted border-[#3B4252] rounded-br-none" 
+                      : "bg-[#12141A] border-input"
                   }`}>
                     <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
                       <FileText size={20} />
                     </div>
                     <div>
                       <p className="text-white text-sm font-bold mb-0.5">{msg.fileTitle || msg.file?.name}</p>
-                      <p className="text-[#8B92A5] text-xs">{msg.fileSize || `${Math.round((msg.file?.size||0)/1000)} KB`}</p>
+                      <p className="text-muted-foreground text-xs">{msg.fileSize || `${Math.round((msg.file?.size||0)/1000)} KB`}</p>
                     </div>
                   </div>
                 )}
 
-                <div className="text-[10px] text-[#4A5060] font-medium mt-1.5 flex items-center gap-1">
+                <div className="text-[10px] text-muted-foreground font-medium mt-1.5 flex items-center gap-1">
                   {msg.time || new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  {isMe && msg.read && <span className="text-[#10B981] ml-1">• Read</span>}
+                  {isMe && msg.read && <span className="text-success ml-1">• Read</span>}
                 </div>
               </div>
             );
@@ -257,12 +257,12 @@ export default function Messages() {
           
           <form 
             onSubmit={handleSendMessage} 
-            className="flex items-center gap-2 bg-[#12141A] border border-[#1A1D24] p-2 rounded-full relative z-20 shadow-2xl"
+            className="flex items-center gap-2 bg-[#12141A] border border-input p-2 rounded-full relative z-20 shadow-2xl"
           >
-            <button type="button" className="p-3 text-[#8B92A5] hover:text-white transition-colors rounded-full hover:bg-[#1A1D24]">
+            <button type="button" className="p-3 text-muted-foreground hover:text-white transition-colors rounded-full hover:bg-input">
               <Paperclip size={20} />
             </button>
-            <button type="button" className="p-3 text-[#8B92A5] hover:text-white transition-colors rounded-full hover:bg-[#1A1D24] mr-2">
+            <button type="button" className="p-3 text-muted-foreground hover:text-white transition-colors rounded-full hover:bg-input mr-2">
               <Smile size={20} />
             </button>
             
@@ -271,19 +271,19 @@ export default function Messages() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Type a message to Dr. Sarah..."
-              className="flex-1 bg-transparent text-white placeholder:text-[#4A5060] focus:outline-none focus:ring-0 text-sm"
+              className="flex-1 bg-transparent text-white placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm"
             />
             
             <button 
               type="submit"
               disabled={!inputText.trim()}
-              className="w-12 h-12 rounded-full bg-[#10B981] hover:bg-[#059669] flex items-center justify-center text-white disabled:opacity-50 transition-all active:scale-95 shadow-lg shadow-[#10B981]/20"
+              className="w-12 h-12 rounded-full bg-success hover:bg-success flex items-center justify-center text-white disabled:opacity-50 transition-all active:scale-95 shadow-lg shadow-[#10B981]/20"
             >
               <Send size={18} className="ml-1" />
             </button>
           </form>
           
-          <p className="text-center text-[9px] font-bold tracking-widest text-[#4A5060] mt-4 uppercase">
+          <p className="text-center text-[9px] font-bold tracking-widest text-muted-foreground mt-4 uppercase">
             END-TO-END ENCRYPTED ACADEMIC CHANNEL
           </p>
         </div>
@@ -291,52 +291,52 @@ export default function Messages() {
       </div>
 
       {/* RIGHT PANEL: CONTACT INFO / DETAILS */}
-      <div className="w-[320px] border-l border-[#1A1D24] flex flex-col bg-[#0A0A0A] overflow-y-auto">
-        <div className="p-8 flex flex-col items-center border-b border-[#1A1D24]">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-bl from-blue-900 via-[#1A1D24] to-[#0A0A0A] border border-[#2A2E39] mb-4 flex items-center justify-center text-2xl font-black shadow-xl">
+      <div className="w-[320px] border-l border-input flex flex-col bg-background overflow-y-auto">
+        <div className="p-8 flex flex-col items-center border-b border-input">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-bl from-blue-900 via-[#1A1D24] to-[#0A0A0A] border border-border mb-4 flex items-center justify-center text-2xl font-black shadow-xl">
             Dr
           </div>
           <h2 className="text-xl font-extrabold text-white mb-1">Dr. Sarah Vance</h2>
-          <p className="text-xs text-[#8B92A5] font-medium mb-4">Professor of Computational Ethics</p>
+          <p className="text-xs text-muted-foreground font-medium mb-4">Professor of Computational Ethics</p>
           
           <div className="flex gap-2">
-            <span className="bg-[#1A1D24] text-[#A0AEC0] px-3 py-1 rounded-md text-[10px] font-bold border border-[#2A2E39]">Research</span>
-            <span className="bg-[#1A1D24] text-[#A0AEC0] px-3 py-1 rounded-md text-[10px] font-bold border border-[#2A2E39]">Ethics</span>
+            <span className="bg-input text-muted-foreground px-3 py-1 rounded-md text-[10px] font-bold border border-border">Research</span>
+            <span className="bg-input text-muted-foreground px-3 py-1 rounded-md text-[10px] font-bold border border-border">Ethics</span>
           </div>
         </div>
 
-        <div className="p-6 border-b border-[#1A1D24]">
-          <h3 className="text-[10px] font-extrabold tracking-widest text-[#4A5060] uppercase mb-4">
+        <div className="p-6 border-b border-input">
+          <h3 className="text-[10px] font-extrabold tracking-widest text-muted-foreground uppercase mb-4">
             Upcoming Deadlines
           </h3>
           <div className="space-y-3">
             <div className="bg-[#2D1618] border border-red-900/50 p-3 rounded-xl border-l-2 border-l-red-500">
               <h4 className="text-red-400 text-xs font-bold mb-1">Project Proposal</h4>
-              <p className="text-[10px] text-[#A0AEC0]">Tomorrow at 11:59 PM</p>
+              <p className="text-[10px] text-muted-foreground">Tomorrow at 11:59 PM</p>
             </div>
-            <div className="bg-[#1A1D24] border border-[#2A2E39] p-3 rounded-xl border-l-2 border-l-blue-500">
+            <div className="bg-input border border-border p-3 rounded-xl border-l-2 border-l-blue-500">
               <h4 className="text-slate-100 text-xs font-bold mb-1">Week 8 Reflection</h4>
-              <p className="text-[10px] text-[#A0AEC0]">Friday at 5:00 PM</p>
+              <p className="text-[10px] text-muted-foreground">Friday at 5:00 PM</p>
             </div>
           </div>
         </div>
 
         <div className="p-6">
-          <h3 className="text-[10px] font-extrabold tracking-widest text-[#4A5060] uppercase mb-4">
+          <h3 className="text-[10px] font-extrabold tracking-widest text-muted-foreground uppercase mb-4">
             Shared Media
           </h3>
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="aspect-square bg-[#1A1D24] border border-[#2A2E39] rounded-xl flex items-center justify-center text-[#4A5060] hover:text-[#8B92A5] hover:bg-[#2A2E39] cursor-pointer transition-colors">
+            <div className="aspect-square bg-input border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-muted-foreground hover:bg-muted cursor-pointer transition-colors">
               <ImageIcon size={20} />
             </div>
-            <div className="aspect-square bg-[#1A1D24] border border-[#2A2E39] rounded-xl flex items-center justify-center text-[#4A5060] hover:text-[#8B92A5] hover:bg-[#2A2E39] cursor-pointer transition-colors">
+            <div className="aspect-square bg-input border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-muted-foreground hover:bg-muted cursor-pointer transition-colors">
               <FileText size={20} />
             </div>
-            <div className="aspect-square bg-[#1A1D24] border border-[#2A2E39] rounded-xl flex items-center justify-center text-[#4A5060] hover:text-[#8B92A5] hover:bg-[#2A2E39] cursor-pointer transition-colors">
+            <div className="aspect-square bg-input border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-muted-foreground hover:bg-muted cursor-pointer transition-colors">
               <LinkIcon size={20} />
             </div>
           </div>
-          <button className="text-[10px] font-extrabold tracking-widest text-[#10B981] hover:text-[#059669] uppercase transition-colors">
+          <button className="text-[10px] font-extrabold tracking-widest text-success hover:text-[#059669] uppercase transition-colors">
             VIEW ALL FILES
           </button>
         </div>

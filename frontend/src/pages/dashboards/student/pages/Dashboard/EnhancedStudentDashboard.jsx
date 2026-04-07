@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -12,6 +13,7 @@ import {
   Eye,
   AlertCircle,
   QrCode,
+  Filter,
 } from "lucide-react";
 
 // --- SYSTEM IMPORTS ---
@@ -21,6 +23,7 @@ import dashboardService from "../../../../../services/dashboardService";
 import toast from "react-hot-toast";
 
 export default function EnhancedStudentDashboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   // Data State
@@ -37,6 +40,7 @@ export default function EnhancedStudentDashboard() {
   // UI State
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // --- DATA FETCHING ENGINE (BULLETPROOFED) ---
   const loadDashboardData = useCallback(async (silent = false) => {
@@ -96,7 +100,7 @@ export default function EnhancedStudentDashboard() {
   if (loading) return <DashboardSkeleton />;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white flex font-sans overflow-x-hidden">
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* 1. HEADER: Dynamic Context */}
@@ -128,6 +132,31 @@ export default function EnhancedStudentDashboard() {
               </span>
             </button>
           </header>
+
+          {/* Action Row: Search */}
+          <div className="flex items-center mb-2 gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Search events, announcements, tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    navigate(`/student/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                  }
+                }}
+                className="w-full bg-background border border-white/10 rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-800"
+              />
+            </div>
+            <button className="bg-background border border-white/5 px-4 py-2.5 rounded-[7px] text-xs font-bold text-neutral-300 flex items-center gap-2 hover:border-white/20">
+              <Filter size={14} /> Filter
+            </button>
+          </div>
 
           {/* 2. URGENT NOTIFICATIONS */}
           <AnimatePresence>
@@ -212,7 +241,7 @@ export default function EnhancedStudentDashboard() {
                     <EventItem key={event._id} event={event} />
                   ))
                 ) : (
-                  <div className="bg-[#0D0D0D] border border-white/5 p-20 rounded-[32px] text-center">
+                  <div className="bg-card border border-white/5 p-20 rounded-[32px] text-center">
                     <p className="text-neutral-600 text-sm italic">
                       The campus is currently quiet. AI is scanning for
                       updates...
@@ -279,7 +308,7 @@ export default function EnhancedStudentDashboard() {
 
 function StatCard({ label, value, trend, icon: Icon, color }) {
   return (
-    <div className="bg-[#0D0D0D] p-6 rounded-[32px] border border-white/5 hover:border-white/10 transition-all">
+    <div className="bg-card p-6 rounded-[32px] border border-white/5 hover:border-white/10 transition-all">
       <div className="flex justify-between items-start mb-4">
         <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
           {label}
@@ -298,7 +327,7 @@ function StatCard({ label, value, trend, icon: Icon, color }) {
 
 function GlassCard({ children, title, icon: Icon }) {
   return (
-    <div className="bg-[#0D0D0D] border border-white/5 rounded-[32px] p-6 shadow-2xl">
+    <div className="bg-card border border-white/5 rounded-[32px] p-6 shadow-2xl">
       <div className="flex items-center gap-3 mb-6">
         <Icon size={18} className="text-blue-500" />
         <h3 className="text-sm font-black uppercase tracking-widest text-white">
@@ -313,7 +342,7 @@ function GlassCard({ children, title, icon: Icon }) {
 function EventItem({ event }) {
   const match = Math.round(event.aiMatchScore || 85);
   return (
-    <div className="p-5 rounded-[28px] bg-[#0D0D0D] border border-white/5 hover:border-blue-500/30 transition-all flex flex-col gap-4 group">
+    <div className="p-5 rounded-[28px] bg-card border border-white/5 hover:border-blue-500/30 transition-all flex flex-col gap-4 group">
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
@@ -393,7 +422,7 @@ function ScheduleItem({ time, subject, room }) {
 // Loading Skeleton UI
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-[#050505] p-8 space-y-8 animate-pulse">
+    <div className="min-h-screen bg-background p-8 space-y-8 animate-pulse">
       <div className="h-20 w-1/3 bg-white/5 rounded-3xl" />
       <div className="grid grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (

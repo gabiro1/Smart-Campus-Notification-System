@@ -38,10 +38,10 @@ export default function AdminSidebar() {
   const location = useLocation();
 
   return (
-    <aside className="w-72 h-screen bg-[#0D0D0D] border-r border-white/5 flex flex-col fixed left-0 top-0 z-50">
+    <aside className="w-72 h-screen bg-card border-r border-white/5 flex flex-col fixed left-0 top-0 z-50">
       {/* 1. Account Header */}
       <div className="p-4">
-        <button className="w-full flex items-center justify-between p-2 rounded-xl shadow-2xl hover:bg-[#1A1A1A] transition-all group border border-transparent hover:border-white/5">
+        <button className="w-full flex items-center justify-between p-2 rounded-xl shadow-2xl hover:bg-muted transition-all group border border-transparent hover:border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-600/20 text-blue-500 rounded-lg flex items-center justify-center font-black border border-blue-500/20">
               U
@@ -113,13 +113,13 @@ export default function AdminSidebar() {
       </div>
 
       {/* 3. Bottom Actions (Fixed at bottom) */}
-      <div className="p-4 border-t border-white/5 space-y-1 bg-[#0D0D0D]">
+      <div className="p-4 border-t border-white/5 space-y-1 bg-card">
         {/* Core Settings */}
         <Link
           to="/admin/settings"
           className={`flex items-center gap-3 p-2 pl-4 w-full transition-colors rounded-lg ${
             location.pathname === "/admin/settings"
-              ? "bg-[#1A1A1A] text-white border border-white/5 shadow-lg"
+              ? "bg-muted text-white border border-white/5 shadow-lg"
               : "text-neutral-500 hover:text-white hover:bg-white/[0.03]"
           }`}
         >
@@ -132,7 +132,7 @@ export default function AdminSidebar() {
           to="/admin/help"
           className={`flex items-center gap-3 p-2 pl-4 mt-1 w-full transition-colors rounded-lg ${
             location.pathname === "/admin/help"
-              ? "bg-[#1A1A1A] text-white border border-white/5 shadow-lg"
+              ? "bg-muted text-white border border-white/5 shadow-lg"
               : "text-neutral-500 hover:text-white hover:bg-white/[0.03]"
           }`}
         >
@@ -151,7 +151,7 @@ function SidebarLink({ item, active }) {
       to={item.path}
       className={`flex items-center justify-between p-2 rounded-lg transition-all duration-200 group ${
         active
-          ? "bg-[#1A1A1A] text-white border border-white/5 shadow-lg"
+          ? "bg-muted text-white border border-white/5 shadow-lg"
           : "text-neutral-500 hover:bg-white/[0.03] hover:text-neutral-200"
       }`}
     >

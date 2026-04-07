@@ -1,4 +1,4 @@
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import { Search, Filter, MoreVertical, Mail } from "lucide-react";
 
 const members = [
@@ -98,9 +98,9 @@ export default function Members() {
                   </td>
                   <td className="p-4 text-sm text-neutral-300">
                     <select className="bg-transparent border-none focus:ring-0 text-sm cursor-pointer hover:text-white appearance-none outline-none">
-                      <option className="bg-[#1A1A1A]">{member.role}</option>
-                      <option className="bg-[#1A1A1A]">Admin</option>
-                      <option className="bg-[#1A1A1A]">Moderator</option>
+                      <option className="bg-muted">{member.role}</option>
+                      <option className="bg-muted">Admin</option>
+                      <option className="bg-muted">Moderator</option>
                     </select>
                   </td>
                   <td className="p-4 text-sm text-neutral-400">

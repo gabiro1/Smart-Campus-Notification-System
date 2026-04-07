@@ -3,6 +3,11 @@ import nodemailer from "nodemailer";
 import NotificationLog from "../models/NotificationLog.js";
 import User from "../../user/model/User.js";
 import { sendPushNotification, subscribeToTopics } from "../../../config/firebaseAdmin.js";
+import { sendSMSViaTwilio } from "../../../services/smsService.js";
+import { summarizeNotifications } from "../../../services/aiProvider.js";
+import { generateVariantForRole } from "../../../services/aiPersonalizationService.js";
+import { generateAndSendDigest } from "../../../services/digestService.js";
+import { shouldSendNow } from "../../../utils/quietHours.js";
 
 // --- EMAIL HELPER ---
 const getTransporter = () => {
@@ -217,55 +222,130 @@ export const registerDevice = async (req, res) => {
 
 export const sendNotification = async (req, res) => {
     try {
-        const { targetUserId, email, name, fcmToken, message, title = "Official Directive" } = req.body;
+        const { targetUserId, email, name, fcmToken, message, title = "Official Directive", priority = "normal", category = "events" } = req.body;
         const senderId = req.user._id;
 
         if (!email || !message || !targetUserId) {
             return res.status(400).json({ success: false, message: "Incomplete dispatch payload." });
         }
 
+        // Fetch target user to check preferences and contact info
+        const targetUser = await User.findById(targetUserId).select('phoneNumber notificationPreferences');
+        if (!targetUser) {
+            return res.status(404).json({ success: false, message: "Target user not found" });
+        }
+
+        const prefs = targetUser.notificationPreferences || {};
+        const categoryPrefs = prefs.categories?.[category] || {};
+
+        // Determine if a channel is enabled, with priority override
+        const shouldSend = (channel) => {
+          if (priority === 'critical') return true;
+          // Check category-specific first, then global. Default true for push/email, false for sms.
+          if (categoryPrefs[channel] !== undefined) return categoryPrefs[channel];
+          return prefs[channel] ?? (channel === 'sms' ? false : true);
+        };
+
+        // Map priority to NotificationLog enum (normal -> medium)
+        const mapPriority = (p) => {
+          switch (p) {
+            case 'low': return 'low';
+            case 'medium': return 'medium';
+            case 'high': return 'high';
+            case 'critical': return 'critical';
+            case 'normal': return 'medium';
+            default: return 'medium';
+          }
+        };
+
         const tasks = [];
         const channels = ["Database_Log"];
 
-        // 1. DB Log Task (Always happens)
+        // ==========================================
+        // AI PERSONALIZATION: Rewrite for recipient role
+        // ==========================================
+        let personalizedTitle = title;
+        let personalizedMessage = message;
+        try {
+          const variant = await generateVariantForRole(title, message, targetUser.role || 'default');
+          personalizedTitle = variant.title;
+          personalizedMessage = variant.message;
+        } catch (err) {
+          console.warn('[Personalization] Failed to generate variant for direct notification, using original:', err.message);
+        }
+
+        // 1. DB Log Task (Always happens) - with personalized content and priority
         tasks.push(NotificationLog.create({
             studentId: targetUserId,
             senderId: senderId,
-            title: title,
-            message: message,
+            title: personalizedTitle,
+            message: personalizedMessage,
             status: "unread",
-            type: "action"
+            type: category,
+            priority: mapPriority(priority)
         }));
 
-        // 2. Email Task
-        const transporter = getTransporter();
-        tasks.push(transporter.sendMail({
-            from: `"Department Admin" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: title,
-            html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-                    <h2 style="color: #1e40af;">${escapeHTML(title)}</h2>
-                    <p>Dear <strong>${name || "Student"}</strong>,</p>
-                    <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #1e40af; color: #1e293b;">
-                        ${escapeHTML(message)}
-                    </div>
-                   </div>`,
-        }).then(() => channels.push("Email")));
+        // Check if we can send now based on quiet hours and priority
+        const priorityMapped = mapPriority(priority);
+        const canSendNow = shouldSendNow(targetUser, priorityMapped);
 
-        // 3. Push Task (If token exists)
-        if (fcmToken) {
-            tasks.push(sendPushNotification(fcmToken, title, message.substring(0, 80))
-                .then(() => channels.push("Push_Notification"))
+        // 2. Email Task (if enabled AND quiet hours allow)
+        if (shouldSend('email') && canSendNow) {
+            const transporter = getTransporter();
+            tasks.push(
+                transporter.sendMail({
+                    from: `"Department Admin" <${process.env.EMAIL_USER}>`,
+                    to: email,
+                    subject: personalizedTitle,
+                    html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                            <h2 style="color: #1e40af;">${escapeHTML(personalizedTitle)}</h2>
+                            <p>Dear <strong>${name || "Student"}</strong>,</p>
+                            <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #1e40af; color: #1e293b;">
+                                ${escapeHTML(personalizedMessage)}
+                            </div>
+                           </div>`,
+                }).then(() => channels.push("Email"))
+                .catch((emailErr) => {
+                    console.warn(`[Notification] Email failed for user ${targetUserId}:`, emailErr.message);
+                })
+            );
+        }
+
+        // 3. Push Task (If token exists and enabled AND quiet hours allow)
+        if (fcmToken && shouldSend('push') && canSendNow) {
+            tasks.push(
+                sendPushNotification(fcmToken, personalizedTitle, personalizedMessage.substring(0, 80))
+                    .then(() => channels.push("Push_Notification"))
+                    .catch((pushErr) => {
+                        console.warn(`[Notification] Push failed for user ${targetUserId}:`, pushErr.message);
+                    })
+            );
+        }
+
+        // 4. SMS Task (If user has phone number and enabled AND quiet hours allow)
+        if (targetUser.phoneNumber && shouldSend('sms') && canSendNow) {
+            const smsMessage = `${personalizedTitle}: ${personalizedMessage.substring(0, 160)}`;
+            tasks.push(
+                sendSMSViaTwilio(targetUser.phoneNumber, smsMessage)
+                    .then((result) => {
+                        channels.push("SMS");
+                        return result;
+                    })
+                    .catch((smsErr) => {
+                        console.warn(`[Notification] SMS failed for user ${targetUserId}:`, smsErr.message);
+                        return { sid: null, error: smsErr.message };
+                    })
             );
         }
 
         // Wait for all channels to attempt delivery
         const results = await Promise.allSettled(tasks);
-        
-        res.status(200).json({ 
-            success: true, 
+
+        res.status(200).json({
+            success: true,
             message: "Dispatch complete.",
-            channelsActived: channels 
+            channelsActived: channels,
+            priority
         });
     } catch (error) {
         console.error("Dispatch Error:", error);
@@ -337,4 +417,181 @@ export const getAIInsights = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: "Failed to fetch AI insights." });
     }
+};
+
+/* =========================================================
+   AI DIGEST GENERATOR (Now uses shared digestService)
+========================================================= */
+export const generateDigest = async (req, res) => {
+  try {
+    const { period = 'weekly' } = req.query;
+    const result = await generateAndSendDigest(req.user, { period, filterPriority: 'low' });
+
+    if (result.skipped) {
+      return res.json({
+        success: true,
+        message: 'No unread low-priority notifications in the selected period.',
+        summary: null,
+        period,
+        notificationCount: 0,
+      });
+    }
+
+    if (!result.success) {
+      return res.status(500).json({ success: false, message: result.error });
+    }
+
+    res.status(200).json({
+      success: true,
+      summary: result.summary,
+      period,
+      notificationCount: result.notificationCount,
+    });
+  } catch (error) {
+    console.error('[Digest] Generation error:', error);
+    res.status(500).json({ success: false, message: 'Failed to generate digest' });
+  }
+};
+
+/* =========================================================
+   GET LATEST DIGEST (Cached)
+========================================================= */
+export const getLatestDigest = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('lastDigestSummary lastDigestAt');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      summary: user.lastDigestSummary,
+      generatedAt: user.lastDigestAt,
+    });
+  } catch (error) {
+    console.error('[Digest] Fetch latest error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch latest digest' });
+  }
+};
+
+// ==========================================
+// 4. EMERGENCY ACKNOWLEDGMENT SYSTEM
+// ==========================================
+
+/**
+ * POST /api/notifications/:id/acknowledge
+ * Student acknowledges an emergency notification
+ */
+export const acknowledgeNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const studentId = req.user._id;
+
+    const notification = await NotificationLog.findOne({
+      _id: id,
+      studentId: studentId,
+      requiresAcknowledgment: true
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Emergency notification not found or does not require acknowledgment'
+      });
+    }
+
+    if (notification.acknowledgedAt) {
+      return res.status(200).json({
+        success: true,
+        message: 'Notification already acknowledged',
+        data: notification
+      });
+    }
+
+    // Set acknowledgment timestamp
+    notification.acknowledgedAt = new Date();
+    await notification.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Emergency notification acknowledged',
+      data: notification
+    });
+
+  } catch (error) {
+    console.error('Acknowledge Notification Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to acknowledge notification' });
+  }
+};
+
+/**
+ * GET /api/notifications/emergency/unacknowledged
+ * Check if user has any unacknowledged emergency notifications
+ */
+export const getUnacknowledgedEmergencies = async (req, res) => {
+  try {
+    const studentId = req.user._id;
+
+    const unacknowledged = await NotificationLog.find({
+      studentId,
+      requiresAcknowledgment: true,
+      acknowledgedAt: null
+    })
+    .select('_id title message referenceId createdAt')
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .lean();
+
+    const total = await NotificationLog.countDocuments({
+      studentId,
+      requiresAcknowledgment: true,
+      acknowledgedAt: null
+    });
+
+    res.status(200).json({
+      success: true,
+      count: total,
+      notifications: unacknowledged
+    });
+  } catch (error) {
+    console.error('Get Unacknowledged Emergencies Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch emergency notifications' });
+  }
+};
+
+/**
+ * GET /api/notifications/stats/acknowledgment/:referenceId
+ * Admin/lecturer: Get acknowledgment statistics for a broadcast
+ */
+export const getAcknowledgmentStats = async (req, res) => {
+  try {
+    const { referenceId } = req.params;
+
+    const totalSent = await NotificationLog.countDocuments({ referenceId });
+    const acknowledged = await NotificationLog.countDocuments({
+      referenceId,
+      requiresAcknowledgment: true,
+      acknowledgedAt: { $ne: null }
+    });
+    const pending = await NotificationLog.countDocuments({
+      referenceId,
+      requiresAcknowledgment: true,
+      acknowledgedAt: null
+    });
+
+    const acknowledgedRate = totalSent > 0 ? ((acknowledged / totalSent) * 100).toFixed(1) : 0;
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalSent,
+        acknowledged,
+        pending,
+        acknowledgedRate: `${acknowledgedRate}%`
+      }
+    });
+  } catch (error) {
+    console.error('Get Acknowledgment Stats Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch acknowledgment statistics' });
+  }
 };

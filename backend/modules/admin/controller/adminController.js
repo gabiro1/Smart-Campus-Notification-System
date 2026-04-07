@@ -3,6 +3,7 @@ import Event from '../../event/model/Event.js';
 import NotificationLog from '../../notification/models/NotificationLog.js';
 import Reminder from '../../reminder/model/Reminder.js';
 import AuditLog from '../../audit/models/AuditLog.js';
+import Announcement from '../../announcement/model/Announcement.js';
 
 
 
@@ -83,14 +84,6 @@ export const createUser = async (req, res) => {
             school,
             department
         });
-
-        await logAuditAction(
-            req.user.id,
-            'CREATE_USER',
-            user._id,
-            'USER',
-            `Created new user ${user.name}`
-        );
 
         res.status(201).json({
             message: "User created successfully",
@@ -242,15 +235,6 @@ export const updateUser = async (req, res) => {
 
         const updatedUser = await user.save();
 
-        await logAuditAction(
-            req.user.id,
-            'UPDATE_USER',
-            user._id,
-            'USER',
-            `Updated user ${user.name}`,
-            { before, after: updatedUser._doc }
-        );
-
         // Remove password from response
         const userResponse = updatedUser.toObject({ virtuals: true });
         delete userResponse.password;
@@ -280,14 +264,6 @@ export const deleteUser = async (req, res) => {
         await Reminder.deleteMany({ studentId: user._id });
         await NotificationLog.deleteMany({ studentId: user._id });
         await User.findByIdAndDelete(user._id);
-
-        await logAuditAction(
-            req.user.id,
-            'DELETE_USER',
-            user._id,
-            'USER',
-            `Deleted user ${userName}`
-        );
 
         res.json({
             message: "User and all associated data deleted successfully"
@@ -319,14 +295,6 @@ export const promoteUser = async (req, res) => {
         const oldRole = user.role;
         user.role = role;
         await user.save();
-
-        await logAuditAction(
-            req.user.id,
-            'PROMOTE_USER',
-            user._id,
-            'USER',
-            `Promoted ${user.name} from ${oldRole} to ${role}`
-        );
 
         res.json({
             message: "User role updated successfully",
@@ -585,4 +553,60 @@ export const getEngagementByDepartment = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+// @desc    Get active emergency broadcasts with acknowledgment stats
+// @route   GET /api/admin/announcements/active-emergencies
+// @access  Admin only
+export const getActiveEmergencies = async (req, res) => {
+  try {
+    // Find all active announcements that require acknowledgment
+    const activeEmergencies = await Announcement.find({
+      status: "Active",
+      requiresAcknowledgment: true
+    })
+    .select('_id title createdAt lecturer')
+    .populate('lecturer', 'name')
+    .sort({ createdAt: -1 })
+    .lean();
+
+    if (activeEmergencies.length === 0) {
+      return res.json({ activeEmergencies: [] });
+    }
+
+    // For each emergency, compute acknowledgment stats
+    const emergenciesWithStats = await Promise.all(
+      activeEmergencies.map(async (announcement) => {
+        const totalSent = await NotificationLog.countDocuments({
+          referenceId: announcement._id
+        });
+
+        const acknowledged = await NotificationLog.countDocuments({
+          referenceId: announcement._id,
+          requiresAcknowledgment: true,
+          acknowledgedAt: { $ne: null }
+        });
+
+        const pending = totalSent - acknowledged;
+
+        return {
+          _id: announcement._id,
+          title: announcement.title,
+          lecturer: announcement.lecturer?.name || 'Unknown',
+          createdAt: announcement.createdAt,
+          stats: {
+            totalSent,
+            acknowledged,
+            pending,
+            acknowledgedRate: totalSent > 0 ? ((acknowledged / totalSent) * 100).toFixed(1) : 0
+          }
+        };
+      })
+    );
+
+    res.json({ activeEmergencies: emergenciesWithStats });
+  } catch (error) {
+    console.error("Get Active Emergencies Error:", error);
+    res.status(500).json({ message: error.message });
+  }
 };

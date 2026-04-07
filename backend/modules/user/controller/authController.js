@@ -3,7 +3,42 @@ import Class from '../../class/model/Class.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
-import { generateURStudentID } from '../../../middleware/authMiddleware.js'; 
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import { generateURStudentID } from '../../../middleware/authMiddleware.js';
+
+// Reuse email transporter from notification module
+const getTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
+};
+
+const sendVerificationEmail = async (email, token) => {
+  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    to: email,
+    from: process.env.EMAIL_USER,
+    subject: 'Verify Your Email - UniNotify AI',
+    html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email. This link expires in 24 hours.</p>`
+  });
+};
+
+const sendPasswordResetEmail = async (email, token) => {
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    to: email,
+    from: process.env.EMAIL_USER,
+    subject: 'Password Reset - UniNotify AI',
+    html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p>`
+  });
+}; 
 
 // Helper function to validate ObjectIds
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -120,7 +155,8 @@ export const login = async (req, res) => {
         role: user.role,
         department: user.department, // Now populated! (e.g., { _id: "...", name: "Info Tech" })
         phoneNumber: user.phoneNumber,
-        profilePicture: user.profilePicture
+        profilePicture: user.profilePicture,
+        languagePreference: user.languagePreference // Add language preference
       };
 
       // Role-specific data injection
@@ -128,7 +164,10 @@ export const login = async (req, res) => {
         userData.studentID = user.studentID;
         userData.level = user.level;
         userData.interests = user.interests;
-        userData.classInfo = user.classId; 
+        userData.classInfo = user.classId;
+        userData.notificationPreferences = user.notificationPreferences;
+        userData.quietHours = user.quietHours;
+        userData.hasCompletedOnboarding = user.hasCompletedOnboarding;
       }
 
       res.status(200).json({
@@ -179,13 +218,18 @@ export const updateProfile = async (req, res) => {
     if (user) {
       user.name = req.body.name || user.name;
       user.phoneNumber = req.body.phoneNumber || user.phoneNumber;
-      user.interests = req.body.interests || user.interests; 
-      user.fcmToken = req.body.fcmToken || user.fcmToken; 
+      user.interests = req.body.interests || user.interests;
+      user.fcmToken = req.body.fcmToken || user.fcmToken;
       user.profilePicture = req.body.profilePicture || user.profilePicture;
+
+      // Language preference for Kinyarwanda translation
+      if (req.body.languagePreference) {
+        user.languagePreference = req.body.languagePreference;
+      }
 
       // Only allow updating level if they are a student
       if (user.role === 'student' && req.body.level) {
-        user.level = req.body.level; 
+        user.level = req.body.level;
       }
 
       if (req.body.password) {
@@ -193,19 +237,189 @@ export const updateProfile = async (req, res) => {
       }
 
       const updatedUser = await user.save();
-      
+
       await updatedUser.populate('department', 'name code');
       await updatedUser.populate('classId', 'name code level');
 
       res.status(200).json({
         success: true,
-        user: updatedUser 
+        user: updatedUser
       });
     } else {
       res.status(404).json({ success: false, message: "User not found" });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error updating profile" });
+  }
+};
+
+// @desc    Update notification preferences (granular control)
+// @route   PUT /api/users/notification-preferences
+// @access  Private (User can only update their own)
+export const updateNotificationPreferences = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const { preferences } = req.body;
+
+    // Validate structure
+    if (!preferences || typeof preferences !== 'object') {
+      return res.status(400).json({ success: false, message: "Invalid preferences payload" });
+    }
+
+    // Ensure categories object exists
+    if (!user.notificationPreferences.categories) {
+      user.notificationPreferences.categories = {
+        events: { push: true, email: true, sms: false },
+        reminders: { push: true, email: true, sms: false },
+        governance: { push: true, email: true, sms: false }
+      };
+    }
+
+    // Merge global channel toggles
+    if (preferences.push !== undefined) user.notificationPreferences.push = preferences.push;
+    if (preferences.email !== undefined) user.notificationPreferences.email = preferences.email;
+    if (preferences.sms !== undefined) user.notificationPreferences.sms = preferences.sms;
+
+    // Merge category-specific overrides
+    if (preferences.categories) {
+      const cats = preferences.categories;
+      if (cats.events) {
+        if (cats.events.push !== undefined) user.notificationPreferences.categories.events.push = cats.events.push;
+        if (cats.events.email !== undefined) user.notificationPreferences.categories.events.email = cats.events.email;
+        if (cats.events.sms !== undefined) user.notificationPreferences.categories.events.sms = cats.events.sms;
+      }
+      if (cats.reminders) {
+        if (cats.reminders.push !== undefined) user.notificationPreferences.categories.reminders.push = cats.reminders.push;
+        if (cats.reminders.email !== undefined) user.notificationPreferences.categories.reminders.email = cats.reminders.email;
+        if (cats.reminders.sms !== undefined) user.notificationPreferences.categories.reminders.sms = cats.reminders.sms;
+      }
+      if (cats.governance) {
+        if (cats.governance.push !== undefined) user.notificationPreferences.categories.governance.push = cats.governance.push;
+        if (cats.governance.email !== undefined) user.notificationPreferences.categories.governance.email = cats.governance.email;
+        if (cats.governance.sms !== undefined) user.notificationPreferences.categories.governance.sms = cats.governance.sms;
+      }
+    }
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Notification preferences updated",
+      preferences: updatedUser.notificationPreferences
+    });
+  } catch (error) {
+    console.error("Update Preferences Error:", error);
+    res.status(500).json({ success: false, message: "Failed to update preferences" });
+  }
+};
+
+// @desc    Complete onboarding (first login setup)
+// @route   PUT /api/users/onboarding
+// @access  Private (student only, must not have completed onboarding)
+export const completeOnboarding = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Only students need onboarding (others skip)
+    if (user.role !== 'student') {
+      return res.status(400).json({ success: false, message: "Onboarding is only for students" });
+    }
+
+    // If already completed, return success (idempotent)
+    if (user.hasCompletedOnboarding) {
+      return res.status(200).json({
+        success: true,
+        message: "Onboarding already completed",
+        completed: true
+      });
+    }
+
+    const { interests, channelPreferences, quietHours } = req.body;
+
+    // Validate and update interests (array of strings)
+    if (Array.isArray(interests)) {
+      // Filter out empty/whitespace entries
+      user.interests = interests
+        .filter(i => typeof i === 'string' && i.trim().length > 0)
+        .map(i => i.trim().toLowerCase());
+    }
+
+    // Update notification preferences from channelPreferences
+    if (channelPreferences && typeof channelPreferences === 'object') {
+      // Global toggles
+      if (channelPreferences.push !== undefined) user.notificationPreferences.push = Boolean(channelPreferences.push);
+      if (channelPreferences.email !== undefined) user.notificationPreferences.email = Boolean(channelPreferences.email);
+      if (channelPreferences.sms !== undefined) user.notificationPreferences.sms = Boolean(channelPreferences.sms);
+
+      // Ensure categories object exists
+      if (!user.notificationPreferences.categories) {
+        user.notificationPreferences.categories = {
+          events: { push: true, email: true, sms: false },
+          reminders: { push: true, email: true, sms: false },
+          governance: { push: true, email: true, sms: false }
+        };
+      }
+
+      // Category-specific overrides if provided
+      if (channelPreferences.categories) {
+        const cats = channelPreferences.categories;
+        if (cats.events) {
+          if (cats.events.push !== undefined) user.notificationPreferences.categories.events.push = Boolean(cats.events.push);
+          if (cats.events.email !== undefined) user.notificationPreferences.categories.events.email = Boolean(cats.events.email);
+          if (cats.events.sms !== undefined) user.notificationPreferences.categories.events.sms = Boolean(cats.events.sms);
+        }
+        if (cats.reminders) {
+          if (cats.reminders.push !== undefined) user.notificationPreferences.categories.reminders.push = Boolean(cats.reminders.push);
+          if (cats.reminders.email !== undefined) user.notificationPreferences.categories.reminders.email = Boolean(cats.reminders.email);
+          if (cats.reminders.sms !== undefined) user.notificationPreferences.categories.reminders.sms = Boolean(cats.reminders.sms);
+        }
+        if (cats.governance) {
+          if (cats.governance.push !== undefined) user.notificationPreferences.categories.governance.push = Boolean(cats.governance.push);
+          if (cats.governance.email !== undefined) user.notificationPreferences.categories.governance.email = Boolean(cats.governance.email);
+          if (cats.governance.sms !== undefined) user.notificationPreferences.categories.governance.sms = Boolean(cats.governance.sms);
+        }
+      }
+    }
+
+    // Update quiet hours if provided
+    if (quietHours && typeof quietHours === 'object') {
+      const { startTime, endTime } = quietHours;
+      // Validate format: "HH:MM" (24-hour)
+      const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+      if (startTime && typeof startTime === 'string' && timeRegex.test(startTime)) {
+        user.quietHours.startTime = startTime;
+      }
+      if (endTime && typeof endTime === 'string' && timeRegex.test(endTime)) {
+        user.quietHours.endTime = endTime;
+      }
+    }
+
+    // Mark onboarding as complete
+    user.hasCompletedOnboarding = true;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Onboarding completed successfully",
+      user: {
+        interests: user.interests,
+        notificationPreferences: user.notificationPreferences,
+        quietHours: user.quietHours,
+        hasCompletedOnboarding: user.hasCompletedOnboarding
+      }
+    });
+  } catch (error) {
+    console.error("Onboarding Error:", error);
+    res.status(500).json({ success: false, message: "Failed to complete onboarding", error: error.message });
   }
 };
 
@@ -302,5 +516,175 @@ export const enrollStudent = async (req, res) => {
   } catch (error) {
     console.error("Enrollment Error:", error);
     res.status(500).json({ success: false, message: "Enrollment failed", error: error.message });
+  }
+};
+
+// @desc    Generate email verification token & send email
+// @route   POST /api/users/request-verification
+// @access  Private (must be logged in)
+export const requestVerification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({ success: false, message: "Email already verified" });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.emailVerificationToken = token;
+    user.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24h
+    await user.save();
+
+    // Send email (async, don't wait)
+    sendVerificationEmail(user.email, token).catch(console.error);
+
+    res.status(200).json({ success: true, message: "Verification email sent" });
+  } catch (error) {
+    console.error("Verification Request Error:", error);
+    res.status(500).json({ success: false, message: "Failed to send verification email" });
+  }
+};
+
+// @desc    Verify email address
+// @route   GET /api/users/verify-email/:token
+// @access  Public
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const user = await User.findOne({
+      emailVerificationToken: token,
+      emailVerificationExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Email verified successfully" });
+  } catch (error) {
+    console.error("Email Verification Error:", error);
+    res.status(500).json({ success: false, message: "Verification failed" });
+  }
+};
+
+// @desc    Request password reset
+// @route   POST /api/users/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // For security, return 200 even if email not found
+      return res.status(200).json({ success: true, message: "If email exists, reset instructions sent" });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = token;
+    user.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save();
+
+    await sendPasswordResetEmail(email, token);
+    res.status(200).json({ success: true, message: "Password reset email sent" });
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({ success: false, message: "Failed to process request" });
+  }
+};
+
+// @desc    Reset password with token
+// @route   PUT /api/users/reset-password/:token
+// @access  Public
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ success: false, message: "Password is required" });
+    }
+
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    user.password = hashedPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ success: false, message: "Failed to reset password" });
+  }
+};
+
+// @desc    Refresh access token
+// @route   POST /api/users/refresh-token
+// @access  Private (must provide valid refresh token)
+export const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(400).json({ success: false, message: "Refresh token is required" });
+    }
+
+    const user = await User.findOne({ refreshToken });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid refresh token" });
+    }
+
+    // Issue new access token
+    const newAccessToken = jwt.sign(
+      { id: user._id, role: user.role, department: user.department },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    // Optionally rotate refresh token
+    const newRefreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.status(200).json({ success: true, accessToken: newAccessToken, refreshToken: newRefreshToken });
+  } catch (error) {
+    console.error("Refresh Token Error:", error);
+    res.status(500).json({ success: false, message: "Failed to refresh token" });
+  }
+};
+
+// @desc    Logout (invalidate refresh token)
+// @route   POST /api/users/logout
+// @access  Private
+export const logout = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.refreshToken = undefined;
+      await user.save();
+    }
+    res.status(200).json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Logout failed" });
   }
 };

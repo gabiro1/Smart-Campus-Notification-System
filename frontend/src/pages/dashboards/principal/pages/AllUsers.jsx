@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "../components/GlassCard";
+import { GlassCard } from "@/components/shared";
 import {
   Search,
   Filter,
@@ -106,13 +106,13 @@ export default function AllUsers() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search user ID, name, or department..."
-                className="w-full bg-[#050505] border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                className="w-full bg-background border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
               />
             </div>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="bg-[#050505] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-emerald-500/50 appearance-none w-48 hidden md:block"
+              className="bg-background border border-white/10 rounded-xl px-4 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-emerald-500/50 appearance-none w-48 hidden md:block"
             >
               <option value="All">All Entities</option>
               <option value="Student">Students</option>
@@ -219,7 +219,7 @@ export default function AllUsers() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 shadow-2xl z-10"
+              className="relative w-full max-w-2xl bg-background border border-white/10 rounded-2xl p-8 shadow-2xl z-10"
             >
               <div className="flex justify-between items-start mb-6 border-b border-white/10 pb-6">
                 <div className="flex items-center gap-4">
