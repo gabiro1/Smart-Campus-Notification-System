@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,12 +10,19 @@ import {
   MapPin,
   Bookmark,
 } from "lucide-react";
+import eventService from "../../../../services/eventService";
+import toast from "react-hot-toast";
 
-export default function EventCard({ event, onRate, onBookmark }) {
+export default function EventCard({ event, onRate, onBookmark, initialBookmark = false }) {
   const navigate = useNavigate();
 
-  // Local state for immediate UI feedback
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  // Local state for immediate UI feedback — syncs with server state on re-render
+  const [isBookmarked, setIsBookmarked] = useState(initialBookmark);
+
+  // Keep in sync when parent passes fresh data (e.g. after page reload)
+  useEffect(() => {
+    setIsBookmarked(initialBookmark);
+  }, [initialBookmark]);
   const [hoveredStar, setHoveredStar] = useState(0);
 
   // Styling helper for the school/college badge
@@ -29,15 +36,27 @@ export default function EventCard({ event, onRate, onBookmark }) {
 
   // Handlers
   const handleCardClick = () => {
-    // Navigate to the dynamic event route (assuming your event object has an _id or id)
-    navigate(`/events/${event._id || event.id}`);
+    navigate(`/student/events/${event._id || event.id}`);
   };
 
-  const handleBookmarkClick = (e) => {
+  const handleBookmarkClick = async (e) => {
     e.stopPropagation(); // Prevents the card click (navigation) from firing
+    
+    // Optimistic UI Update
     const newState = !isBookmarked;
     setIsBookmarked(newState);
-    if (onBookmark) onBookmark(event._id || event.id, newState);
+    
+    try {
+      await eventService.toggleBookmark(event._id || event.id);
+      if (newState) {
+        toast.success("Event saved to bookmarks", { style: { background: '#171717', color: '#fff', border: '1px solid #333' }});
+      }
+      if (onBookmark) onBookmark(event._id || event.id, newState);
+    } catch (err) {
+      // Revert if API fails
+      setIsBookmarked(!newState);
+      toast.error("Failed to save event");
+    }
   };
 
   const handleRateClick = (e, star) => {

@@ -1,5 +1,6 @@
 import Event from "../model/Event.js";
 import EventRSVP from "../model/EventRSVP.js";
+import Bookmark from "../model/Bookmark.js";
 import User from "../../user/model/User.js";
 import NotificationLog from "../../notification/models/NotificationLog.js";
 import { getTargetedUsers } from "../../../utils/notificationEngine.js";
@@ -290,10 +291,15 @@ export const getStudentFeed = async (req, res) => {
       $or: orConditions,
     });
 
+    // Fetch this user's bookmarked event IDs for annotation
+    const userBookmarks = await Bookmark.find({ userId: req.user.id }).select('eventId').lean();
+    const bookmarkedIds = new Set(userBookmarks.map(b => b.eventId.toString()));
+
     const rankedFeed = events
       .map((event) => ({
         ...event._doc,
         aiMatchScore: calculateMatchScore(user, event),
+        isBookmarked: bookmarkedIds.has(event._id.toString()),
       }))
       .sort((a, b) => b.aiMatchScore - a.aiMatchScore);
 
@@ -819,5 +825,79 @@ export const exportCalendar = async (req, res) => {
   } catch (error) {
     console.error('[Calendar Export] Error:', error);
     res.status(500).json({ success: false, message: 'Failed to generate calendar file' });
+  }
+};
+
+/* =========================================================
+   BOOKMARK (SAVE) EVENT - O(1) Toggle
+========================================================= */
+export const toggleBookmark = async (req, res) => {
+  try {
+    const { id: eventId } = req.params;
+    const userId = req.user.id;
+
+    // Check if event exists
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+
+    // Look for existing bookmark
+    const existingBookmark = await Bookmark.findOne({ userId, eventId });
+
+    if (existingBookmark) {
+      // Remove it (Unbookmark)
+      await Bookmark.deleteOne({ _id: existingBookmark._id });
+      return res.status(200).json({ success: true, isBookmarked: false, message: "Event removed from saved items" });
+    } else {
+      // Create new (Bookmark)
+      await Bookmark.create({ userId, eventId });
+      return res.status(200).json({ success: true, isBookmarked: true, message: "Event saved" });
+    }
+  } catch (error) {
+    console.error("Toggle Bookmark Error:", error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+/* =========================================================
+   GET BOOKMARKED EVENTS (Paginated)
+========================================================= */
+export const getBookmarkedEvents = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Count total before pagination for correct pagination data
+    const total = await Bookmark.countDocuments({ userId });
+
+    // Fetch bookmarks for user, populate the full event (no status match filter —
+    // that filter silently nulls the populated field causing events to disappear)
+    const bookmarks = await Bookmark.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .populate('eventId');
+
+    // Filter out orphaned bookmarks where the event document was deleted
+    const validEvents = bookmarks
+      .filter(b => b.eventId !== null && b.eventId !== undefined)
+      .map(b => ({
+        ...b.eventId._doc,
+        isBookmarked: true  // These are all bookmarked by definition
+      }));
+
+    res.status(200).json({
+      success: true,
+      events: validEvents,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: Number(page)
+      }
+    });
+
+  } catch (error) {
+    console.error("Get Bookmarked Events Error:", error);
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };

@@ -14,6 +14,8 @@ import {
   AlertCircle,
   QrCode,
   Filter,
+  ArrowUpRight,
+  TrendingUp,
 } from "lucide-react";
 
 // --- SYSTEM IMPORTS ---
@@ -107,12 +109,10 @@ export default function EnhancedStudentDashboard() {
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-white mb-2 mt-2">
-                Hello, {user?.name?.split(" ")[0] || "Student"}
+                Hey {user?.name?.split(" ")[0] || "Student"},
               </h1>
               <p className="text-neutral-400 text-sm max-w-md">
-                Your AI agent has prioritized{" "}
-                {events.filter((e) => e.isUrgent).length} urgent items. Keep
-                your pulse on {user?.interests?.length || 0} interests.
+                Here's what's happening on campus today.
               </p>
             </div>
 
@@ -233,6 +233,9 @@ export default function EnhancedStudentDashboard() {
                   <Sparkles size={20} className="text-blue-500" /> Intelligence
                   Feed
                 </h3>
+                <button className="text-xs font-bold text-neutral-400 bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg hover:text-white transition-colors">
+                  This Week ▾
+                </button>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
@@ -253,7 +256,15 @@ export default function EnhancedStudentDashboard() {
 
             {/* 5. SIDEBAR: CONTEXTUAL DATA */}
             <div className="space-y-6">
-              <GlassCard title="Broadcasts" icon={MessageSquare}>
+              <GlassCard 
+                title="Broadcasts" 
+                icon={MessageSquare}
+                action={
+                  <button onClick={() => navigate('/student/announcements')} className="text-[10px] font-black text-blue-400 uppercase tracking-widest hover:text-blue-300">
+                    See all →
+                  </button>
+                }
+              >
                 <div className="space-y-3">
                   {messages.length > 0 ? (
                     messages.map((m, i) => (
@@ -308,31 +319,36 @@ export default function EnhancedStudentDashboard() {
 
 function StatCard({ label, value, trend, icon: Icon, color }) {
   return (
-    <div className="bg-card p-6 rounded-[32px] border border-white/5 hover:border-white/10 transition-all">
-      <div className="flex justify-between items-start mb-4">
-        <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
-          {label}
-        </span>
-        <div className={`p-2 rounded-xl bg-white/5 ${color}`}>
-          <Icon size={16} />
+    <div className="bg-card p-6 rounded-[32px] border border-white/5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between">
+      <div>
+        <div className="flex justify-between items-start mb-4">
+          <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+            <Icon size={12} className={color} /> {label}
+          </span>
+          <button className="text-neutral-500 group-hover:text-white transition-colors">
+            <ArrowUpRight size={16} />
+          </button>
         </div>
+        <h2 className="text-3xl font-bold text-white mb-2">{value}</h2>
       </div>
-      <h2 className="text-3xl font-bold text-white mb-1">{value}</h2>
-      <p className="text-[10px] text-neutral-600 font-bold uppercase tracking-tight">
-        {trend}
+      <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest flex items-center gap-1.5 mt-2">
+        <TrendingUp size={12} className={color} /> {trend}
       </p>
     </div>
   );
 }
 
-function GlassCard({ children, title, icon: Icon }) {
+function GlassCard({ children, title, icon: Icon, action }) {
   return (
     <div className="bg-card border border-white/5 rounded-[32px] p-6 shadow-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Icon size={18} className="text-blue-500" />
-        <h3 className="text-sm font-black uppercase tracking-widest text-white">
-          {title}
-        </h3>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Icon size={18} className="text-blue-500" />
+          <h3 className="text-sm font-black uppercase tracking-widest text-white">
+            {title}
+          </h3>
+        </div>
+        {action}
       </div>
       {children}
     </div>
@@ -341,8 +357,18 @@ function GlassCard({ children, title, icon: Icon }) {
 
 function EventItem({ event }) {
   const match = Math.round(event.aiMatchScore || 85);
+  
+  let borderColor = "border-l-blue-500/40";
+  if (event.isUrgent || event.priority === 'urgent' || event.priority === 'high') {
+    borderColor = "border-l-red-500";
+  } else if (event.priority === 'medium') {
+    borderColor = "border-l-amber-400";
+  } else if (event.priority === 'low') {
+    borderColor = "border-l-emerald-400";
+  }
+
   return (
-    <div className="p-5 rounded-[28px] bg-card border border-white/5 hover:border-blue-500/30 transition-all flex flex-col gap-4 group">
+    <div className={`p-5 rounded-[28px] bg-card border border-white/5 hover:border-white/10 transition-all flex flex-col gap-4 group border-l-4 ${borderColor}`}>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />

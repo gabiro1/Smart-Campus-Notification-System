@@ -92,8 +92,10 @@ const subscribeToTopics = async (token, topics) => {
     }
     return { success: true };
   } catch (error) {
-    console.error('❌ Error subscribing to topics:', error);
-    throw error;
+    // Log but do NOT re-throw — a Firebase credential issue should not crash
+    // unrelated features (bookmarks, feed, etc.) that share the same request lifecycle.
+    console.error('❌ Error subscribing to topics:', error.message);
+    return { success: false, error: error.message };
   }
 };
 

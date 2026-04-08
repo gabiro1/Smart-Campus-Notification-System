@@ -26,17 +26,31 @@ const eventService = {
     }
   },
 
-  // --- ACTION METHODS ---
-
-  // Bookmark an event
-  toggleInterest: async (eventId) => {
+  // --- BOOKMARK METHODS ---
+  
+  getBookmarks: async (page = 1, limit = 20) => {
     try {
-      const response = await apiClient.post(`/events/${eventId}/interest`);
+      const response = await apiClient.get('/events/bookmarks', {
+        params: { page, limit }
+      });
       return response.data;
     } catch (error) {
-      throw new Error("Failed to save event.");
+      throw new Error(error.response?.data?.message || "Failed to fetch bookmarks.");
     }
   },
+
+  toggleBookmark: async (eventId) => {
+    try {
+      const response = await apiClient.post(`/events/${eventId}/bookmark`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to toggle bookmark.");
+    }
+  },
+
+  // --- ACTION METHODS ---
+
+  // Express Interest (Machine Learning AI Weight Adjustment)
 
   // Submit AI Training Data (Rating)
   rateEvent: async (eventId, rating) => {

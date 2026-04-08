@@ -11,6 +11,7 @@ import {
   Settings,
   LayoutDashboard,
   ShieldAlert,
+  Bookmark,
 } from "lucide-react";
 
 // The Brain: Importing the global authentication state
@@ -157,7 +158,21 @@ export default function Navbar() {
               <Search size={20} />
             </button>
 
-            {/* Notification Bell (This will connect to WebSockets later) */}
+            {/* Bookmarks Icon (students only) */}
+            {user.role === "student" && (
+              <button
+                onClick={() => navigate("/student/bookmarks")}
+                className="p-2 hover:bg-white/5 rounded-full text-neutral-400 relative transition-colors group"
+                title="Saved Events"
+              >
+                <Bookmark
+                  size={20}
+                  className="group-hover:text-blue-400 transition-colors"
+                />
+              </button>
+            )}
+
+            {/* Notification Bell */}
             <button
               onClick={() => navigate("/student/reminders")}
               className="p-2 hover:bg-white/5 rounded-full text-neutral-400 relative transition-colors group"

@@ -3,53 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import EventCard from "./EventCard";
 import { AlertCircle, Search, Filter, Loader2 } from "lucide-react";
 
-// --- FALLBACK DATA ---
-const fallbackEvents = [
-  {
-    _id: "fb1",
-    title: "URGENT: Advanced Programming Venue Change",
-    description:
-      "Due to network maintenance in Hall 4, today's session for Level 4 IT has been relocated to Computer Lab 2.",
-    date: new Date().toISOString(),
-    priority: "high",
-    aiMatchScore: 98,
-    approvalLevel: "department",
-    tags: ["urgent", "venue"],
-  },
-  {
-    _id: "fb2",
-    title: "Campus-Wide Wi-Fi Upgrade",
-    description:
-      "The IT Directorate will be upgrading core routers across the CST campus this weekend. Expect outages.",
-    date: new Date().toISOString(),
-    priority: "medium",
-    aiMatchScore: 82,
-    approvalLevel: "college",
-    tags: ["network", "campus"],
-  },
-  {
-    _id: "fb3",
-    title: "Guest Lecture: AI in Agriculture",
-    description:
-      "Join us for a seminar discussing how AI models predict farming risks. Highly recommended for IT final years.",
-    date: new Date().toISOString(),
-    priority: "low",
-    aiMatchScore: 95,
-    approvalLevel: "school",
-    tags: ["ai", "seminar"],
-  },
-  {
-    _id: "fb4",
-    title: "Reminder: Submit Feedback for Last Week's IT Seminar",
-    description:
-      "Your feedback helps us improve future events. Please take a moment to share your thoughts on the recent seminar.",
-    date: new Date().toISOString(),
-    priority: "urgent",
-    aiMatchScore: 88,
-    approvalLevel: "school",
-    tags: ["feedback", "seminar"],
-  },
-];
 
 export default function EventFeedGrid({
   events = [],
@@ -81,13 +34,13 @@ export default function EventFeedGrid({
   // Adjusted to match the responsive sidebar and grid
   if (loading && (!events || events.length === 0)) {
     return (
-      <div className="p-4 sm:p-6 md:p-8 transition-all duration-300 min-h-screen">
+      <div className=" transition-all duration-300 min-h-screen">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 ">
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <div
                 key={n}
-                className="h-48 w-full bg-background border border-white/5 rounded-[15px] animate-pulse"
+                className="h-48 w-full bg-background border border-white/5 rounded-[8px] animate-pulse"
               />
             ))}
           </div>
@@ -96,8 +49,8 @@ export default function EventFeedGrid({
     );
   }
 
-  // 2. Base Data
-  const baseEvents = events && events.length > 0 ? events : fallbackEvents;
+  // 2. Base Data — real events only, no fallback stubs
+  const baseEvents = events || [];
 
   // 3. Search and Filter Logic
   const filteredEvents = baseEvents.filter((event) => {
@@ -114,7 +67,7 @@ export default function EventFeedGrid({
   });
 
   return (
-    <div className="ml-20 md:ml-72 p-4 sm:p-6 md:p-8 transition-all duration-300 min-h-screen overflow-x-hidden">
+    <div className="p-4 sm:p-6 md:p-8 transition-all duration-300 min-h-screen overflow-x-hidden">
       {/* Centering Wrapper for Ultrawide Screens */}
       <div className="max-w-7xl mx-auto">
         {/* --- HEADER: TITLE, SEARCH & FILTER --- */}
@@ -204,6 +157,7 @@ export default function EventFeedGrid({
                       event={event}
                       onRate={onRate}
                       onDetails={onDetails}
+                      initialBookmark={event.isBookmarked}
                     />
                   </motion.div>
                 ))}

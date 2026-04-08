@@ -127,9 +127,9 @@ export default function TimeTable() {
       </div>
 
       {/* ── Main Layout Wrapper ── 
-          Accounts for the Rail Sidebar (w-20 on mobile, w-72 on desktop)
+          The margin offset is now handled by the global StudentLayout.
       */}
-      <div className="relative z-10 transition-all duration-300 ml-20 md:ml-72">
+      <div className="relative z-10 transition-all duration-300">
         {/* ── Centering Container ── */}
         <main className="max-w-4xl mx-auto px-4 sm:px-8 py-10 md:py-20 min-h-screen flex flex-col">
           {/* Header */}

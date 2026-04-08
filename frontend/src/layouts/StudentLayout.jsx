@@ -10,21 +10,25 @@ export default function StudentLayout() {
   const { user } = useAuth();
 
   return (
-    <div className="flex-1 ml-20 md:ml-72 min-h-screen relative z-10 flex flex-col bg-[#050505]">
-      {/* Persistent Top Bar for Notifications & Global Actions */}
-      <StudentHeader />
-
-      {/* Emergency Alert Banner (sticky top) */}
-      <EmergencyBanner />
-
-      {/* Main Content Area - Overflows independently if needed */}
-      <main className="flex-1 flex flex-col w-full h-full relative pt-2">
-        <Outlet />
-      </main>
-
-      {/* Bottom Nav / Copilot Context */}
+    <div className="min-h-screen bg-[#050505] relative">
+      {/* 1. Sidebar - Fixed on the left */}
       <StudentNav />
-      <FloatingCopilot />
+
+      {/* 2. Main Content Wrapper - Shifted by Sidebar width */}
+      <div className="flex-1 ml-20 md:ml-72 min-h-screen relative z-10 flex flex-col">
+        {/* Persistent Top Bar for Notifications & Global Actions */}
+        <StudentHeader />
+
+        {/* Emergency Alert Banner (sticky top) */}
+        <EmergencyBanner />
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col w-full h-full relative pt-2">
+          <Outlet />
+        </main>
+
+        <FloatingCopilot />
+      </div>
 
       {/* Onboarding Wizard (only for students who haven't completed) */}
       {user?.role === 'student' && !user?.hasCompletedOnboarding && <OnboardingWizard />}

@@ -177,7 +177,7 @@ export const registerDevice = async (req, res) => {
 
         if (!user) return res.status(404).json({ success: false, message: "User not found." });
 
-        // 1. Update user profile with the new token
+        // 1. Update user profile with the new token (always succeeds independently)
         user.fcmToken = fcmToken;
         await user.save();
 
@@ -199,15 +199,23 @@ export const registerDevice = async (req, res) => {
         // Topic: Specific Class (Crucial for Course Announcements)
         if (user.classId) topics.push(`topic_class_${sanitize(user.classId)}`);
 
-        // 3. Batch subscribe via Firebase Admin
+        // 3. Batch subscribe via Firebase Admin (non-fatal — credential errors won't crash this)
+        let topicsResult = { success: true };
         if (topics.length > 0) {
-            await subscribeToTopics(fcmToken, topics);
+            topicsResult = await subscribeToTopics(fcmToken, topics);
+            if (!topicsResult.success) {
+                console.warn(`[DeviceRegistration] Topic subscription failed for user ${user._id}: ${topicsResult.error}`);
+                console.warn(`[DeviceRegistration] FCM token was saved. To fix: regenerate your Firebase service account key at https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk`);
+            }
         }
 
         res.status(200).json({
             success: true,
-            message: "Device registered and topics updated.",
-            topicsAttached: topics
+            message: topicsResult.success
+                ? "Device registered and topics updated."
+                : "Device registered (FCM token saved). Topic subscriptions skipped due to a Firebase credential issue \u2014 push notifications may be delayed until resolved.",
+            topicsAttached: topicsResult.success ? topics : [],
+            warning: topicsResult.success ? undefined : "Firebase credential invalid. Regenerate your service account key."
         });
 
     } catch (error) {

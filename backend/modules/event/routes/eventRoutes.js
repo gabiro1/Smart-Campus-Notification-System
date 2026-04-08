@@ -17,8 +17,10 @@ import {
     getEventsByDepartment,
     getPendingApprovals,
     processApproval,
-    parseFlyer, // Make sure this is exported from eventController.js
-    exportCalendar // Calendar export endpoint
+    parseFlyer,
+    exportCalendar,
+    toggleBookmark,
+    getBookmarkedEvents
 } from '../controller/eventController.js';
 
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
@@ -90,9 +92,16 @@ router.post('/:id/rate', protect, rateEvent);
 router.get('/', getEvents);
 router.get('/search', searchEvents);
 router.get('/department', getEventsByDepartment);
+
+/* ================= BOOKMARKS ================= */
+// IMPORTANT: Static routes like '/bookmarks' MUST be defined before
+// dynamic '/:id' routes, otherwise Express will match 'bookmarks' as an id.
+router.get('/bookmarks', protect, getBookmarkedEvents);
+
 router.get('/:id/stats', protect, getEventStats);
 router.get('/:id', protect, getEventDetails);
 router.get('/:id/calendar', protect, exportCalendar);
+router.post('/:id/bookmark', protect, toggleBookmark);
 
 /* ================= ATTENDANCE SCANNING ================= */
 router.post('/:id/scan-attendance', protect, authorize('admin', 'lecturer', 'hod', 'dean', 'principal'), scanAttendance);

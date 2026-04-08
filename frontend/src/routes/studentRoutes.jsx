@@ -6,7 +6,9 @@ import EnhancedStudentDashboard from "../pages/dashboards/student/pages/Dashboar
 // ✅ IMPORT THE NEW PAGE HERE (Adjust the folder path to match where you saved it)
 import AnnouncementsPage from "../pages/dashboards/student/pages/announcement/AnnouncementsPage";
 import { NotificationsTab } from "../pages/dashboards/student/pages/Notifications/NotificationsTab";
-import EventFeedGrid from "../pages/dashboards/student/Events/EventFeedGrid";
+import EventsPage from "../pages/dashboards/student/Events/EventsPage";
+import BookmarksPage from "../pages/dashboards/student/Events/BookmarksPage";
+import EventDetails from "../pages/dashboards/student/Events/EventDetails";
 import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
 import TimeTable from "../pages/dashboards/student/component/TimeTable";
 import MessagesTab from "../pages/Message/MessagesTab";
@@ -35,22 +37,30 @@ export const studentRoutes = [
       </ProtectedRoute>
     }
   />,
-  // OPTIONAL: If you still want a separate Notifications page, define it correctly
-  <Route
-    key="notifications"
-    path="notifications"
-    element={
-      <ProtectedRoute allowedRoles={["student"]}>
-        <NotificationsTab />
-      </ProtectedRoute>
-    }
-  />,
   <Route
     key="events"
     path="events"
     element={
       <ProtectedRoute allowedRoles={["student"]}>
-        <EventFeedGrid />
+        <EventsPage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="bookmarks"
+    path="bookmarks"
+    element={
+      <ProtectedRoute allowedRoles={["student"]}>
+        <BookmarksPage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="event-details"
+    path="events/:eventId"
+    element={
+      <ProtectedRoute allowedRoles={["student"]}>
+        <EventDetails />
       </ProtectedRoute>
     }
   />,

@@ -15,7 +15,7 @@ const EventSchema = new mongoose.Schema({
     // Other roles leave these null; targeted queries fall back to targetDept/targetSchool.
     targetScope: {
         type: String,
-        enum: ['class', 'department', 'school', 'college', 'university'],
+        enum: ['class', 'department', 'school', 'college'],
         default: null
     },
     // ObjectId reference — matches User.representedDepartment

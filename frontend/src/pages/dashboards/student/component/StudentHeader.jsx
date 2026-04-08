@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Bookmark } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useRealTimeNotifications } from "../../../../hooks/useRealTimeNotifications";
 import NotificationDropdown from "./NotificationDropdown";
 
 export default function StudentHeader() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const navigate = useNavigate();
 
   // 📡 Real-time Notification Engine extracted from Sidebar
   const { 
@@ -17,7 +19,16 @@ export default function StudentHeader() {
   return (
     <header className="sticky top-0 z-40 w-full h-16 bg-card/80 backdrop-blur-md border-b border-white/5 flex items-center justify-end px-4 md:px-8">
       {/* Right side actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+
+        {/* 🔖 Bookmarks shortcut */}
+        <button
+          onClick={() => navigate('/student/bookmarks')}
+          title="Saved Events"
+          className="p-2.5 rounded-xl text-neutral-500 hover:bg-white/[0.05] hover:text-blue-400 border border-transparent transition-all duration-200 group"
+        >
+          <Bookmark size={20} className="group-hover:scale-110 transition-transform" />
+        </button>
         
         {/* 🔔 Real-time Pulse Container */}
         <div className="relative">
