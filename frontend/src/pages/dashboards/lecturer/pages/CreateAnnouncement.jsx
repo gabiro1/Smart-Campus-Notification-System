@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toast, Toaster } from "react-hot-toast";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Send,

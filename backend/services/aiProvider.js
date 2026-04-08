@@ -43,11 +43,11 @@ const getOpenRouterClient = () => {
 export const MODELS = {
   FAST: {
     groq: 'llama-3.1-8b-instant',
-    openrouter: 'qwen/qwen3.6-plus:free',
+    openrouter: 'google/gemma-2-9b-it:free',
   },
   CAPABLE: {
     groq: 'llama-3.3-70b-versatile',
-    openrouter: 'qwen/qwen3.6-plus:free',
+    openrouter: 'google/gemma-2-9b-it:free',
   },
 };
 
@@ -73,17 +73,15 @@ export const chat = async ({
 
   // ── ATTEMPT 1: Groq ──
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-    const response = await getGroqClient().chat.completions.create({
-      model: MODELS[tier].groq,
-      messages,
-      max_tokens: maxTokens,
-      temperature,
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
+    const response = await getGroqClient().chat.completions.create(
+      {
+        model: MODELS[tier].groq,
+        messages,
+        max_tokens: maxTokens,
+        temperature,
+      },
+      { timeout: timeoutMs } // SDK supported timeout option
+    );
 
     const msg = extractMessage(response);
     if (!msg) throw new Error('Groq returned empty response');
@@ -96,17 +94,15 @@ export const chat = async ({
 
   // ── ATTEMPT 2: OpenRouter ──
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-    const response = await getOpenRouterClient().chat.completions.create({
-      model: MODELS[tier].openrouter,
-      messages,
-      max_tokens: maxTokens,
-      temperature,
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
+    const response = await getOpenRouterClient().chat.completions.create(
+      {
+        model: MODELS[tier].openrouter,
+        messages,
+        max_tokens: maxTokens,
+        temperature,
+      },
+      { timeout: timeoutMs } // SDK supported timeout option
+    );
 
     const msg = extractMessage(response);
     if (!msg) throw new Error('OpenRouter returned empty response');

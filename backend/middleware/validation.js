@@ -227,19 +227,21 @@ export const pollVoteSchema = Joi.object({
 // ==========================================
 
 export const announcementCreationSchema = Joi.object({
-  title: Joi.string().trim().min(5).max(200).required(),
-  content: Joi.string().trim().min(20).max(5000).required(),
-  targetScope: Joi.string().valid('class', 'department', 'school', 'college', 'university').required(),
-  targetDepartment: Joi.string().optional().allow(''),
-  priority: Joi.string().valid('low', 'medium', 'high', 'urgent').optional().default('medium')
+  title: Joi.string().trim().min(3).max(200).required(),
+  content: Joi.string().trim().min(5).max(5000).required(),
+  courseId: Joi.string().required(),
+  type: Joi.string().valid('General', 'Urgent', 'Assignment', 'Event').optional().default('General'),
+  scheduledAt: Joi.date().iso().optional().allow(null, ''),
+  requiresAcknowledgment: Joi.boolean().optional().default(false)
 });
 
 export const announcementUpdateSchema = Joi.object({
-  title: Joi.string().trim().min(5).max(200).optional(),
-  content: Joi.string().trim().min(20).max(5000).optional(),
-  targetScope: Joi.string().valid('class', 'department', 'school', 'college', 'university').optional(),
-  targetDepartment: Joi.string().optional().allow(''),
-  priority: Joi.string().valid('low', 'medium', 'high', 'urgent').optional()
+  title: Joi.string().trim().min(3).max(200).optional(),
+  content: Joi.string().trim().min(5).max(5000).optional(),
+  courseId: Joi.string().optional(),
+  type: Joi.string().valid('General', 'Urgent', 'Assignment', 'Event').optional(),
+  scheduledAt: Joi.date().iso().optional().allow(null, ''),
+  requiresAcknowledgment: Joi.boolean().optional()
 });
 
 // ==========================================

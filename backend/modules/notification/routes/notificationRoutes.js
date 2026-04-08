@@ -6,20 +6,23 @@ import {
     getUnreadCount,
     deleteNotification,
     registerDevice,
-    sendNotification,      // NEW: Admin dispatch
-    getSentHistory,        // NEW: Admin dispatch history
-    getBroadcastStats,     // NEW: Replaced getEventStats
-    generateDigest,        // NEW: AI Digest
-    getLatestDigest,       // NEW: Get cached digest
-    acknowledgeNotification, // NEW: Emergency acknowledgment
-    getUnacknowledgedEmergencies, // NEW: Check for emergencies
-    getAcknowledgmentStats // NEW: Admin analytics
+    sendNotification,
+    getSentHistory,
+    getBroadcastStats,
+    generateDigest,
+    getLatestDigest,
+    acknowledgeNotification,
+    getUnacknowledgedEmergencies,
+    getAcknowledgmentStats
 } from '../controllers/notificationController.js';
+
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Apply base authentication to ALL routes
+// ==========================================
+// 🔐 GLOBAL PROTECTION
+// ==========================================
 router.use(protect);
 
 // ==========================================
@@ -29,29 +32,69 @@ router.get('/', getNotifications);
 router.get('/unread-count', getUnreadCount);
 router.put('/mark-all-read', markAllAsRead);
 router.post('/register-device', registerDevice);
-// AI Digest
+
+// 🧠 AI Digest
 router.get('/digest', generateDigest);
 router.get('/digest/latest', getLatestDigest);
 
 // ==========================================
-// 2. ADMIN & HOD DISPATCH (Protected Roles)
+// 2. ADMIN / HOD / LECTURER OPERATIONS
 // ==========================================
-// Assuming 'admin' and 'hod' are your elevated roles. Adjust if needed.
-router.post('/dispatch', authorize('admin', 'hod', 'lecturer'), sendNotification);
-router.get('/dispatch/history', authorize('admin', 'hod', 'lecturer'), getSentHistory);
-router.get('/stats/:referenceId', authorize('admin', 'hod', 'lecturer'), getBroadcastStats);
+
+// 📤 Send Notification
+router.post(
+    '/dispatch',
+    authorize('admin', 'hod', 'lecturer'),
+    sendNotification
+);
+
+// 📜 Dispatch History
+router.get(
+    '/dispatch/history',
+    authorize('admin', 'hod', 'lecturer'),
+    getSentHistory
+);
+
+// 📊 Stats (NO COLLISION ANYMORE)
+
+// Broadcast stats
+router.get(
+    '/stats/broadcast/:referenceId',
+    authorize('admin', 'hod', 'lecturer'),
+    getBroadcastStats
+);
+
+// Acknowledgment stats
+router.get(
+    '/stats/acknowledgment/:referenceId',
+    authorize('admin', 'hod', 'lecturer'),
+    getAcknowledgmentStats
+);
 
 // ==========================================
-// 3. DYNAMIC ROUTES (Must stay at the bottom)
+// 3. 🚨 EMERGENCY FEATURES
 // ==========================================
+
+// Unacknowledged emergency notifications
+router.get(
+    '/emergency/unacknowledged',
+    getUnacknowledgedEmergencies
+);
+
+// Acknowledge emergency notification
+router.post(
+    '/:id/acknowledge',
+    acknowledgeNotification
+);
+
+// ==========================================
+// 4. ⚠️ DYNAMIC ROUTES (MUST BE LAST)
+// ==========================================
+
+// Mark single notification as read
 router.put('/:id/read', markAsRead);
+
+// Delete notification
 router.delete('/:id', deleteNotification);
-
-// Emergency acknowledgment
-router.post('/:id/acknowledge', acknowledgeNotification);
-router.get('/emergency/unacknowledged', getUnacknowledgedEmergencies);
-
-// Admin analytics
-router.get('/stats/acknowledgment/:referenceId', authorize('admin', 'hod', 'lecturer'), getAcknowledgmentStats);
 
 export default router;

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import apiClient from '../../../../services/apiClient';
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
@@ -85,6 +86,8 @@ const ScheduleCard = ({ item, index }) => (
 // ─────────────────────────────────────────────
 export default function TimeTable() {
   const [selectedDay, setSelectedDay] = useState("Monday");
+  const [scheduleData, setScheduleData] = useState({});
+  const [loading, setLoading] = useState(true);
 
   // Day configurations for responsive labels
   const days = [
@@ -95,59 +98,24 @@ export default function TimeTable() {
     { full: "Friday", short: "Fri" },
   ];
 
-  const scheduleData = {
-    Monday: [
-      {
-        time: "08:00 - 10:00",
-        course: "Advanced Programming",
-        room: "Lab 2",
-        lecturer: "Dr. Kamali",
-      },
-      {
-        time: "11:00 - 13:00",
-        course: "Cybersecurity",
-        room: "Hall 4",
-        lecturer: "Prof. Agnes",
-      },
-      {
-        time: "14:00 - 16:00",
-        course: "Software Engineering",
-        room: "Room 12",
-        lecturer: "Dr. Mugisha",
-      },
-    ],
-    Tuesday: [
-      {
-        time: "09:00 - 11:00",
-        course: "Database Systems",
-        room: "Lab 1",
-        lecturer: "Mr. Jean",
-      },
-      {
-        time: "14:00 - 16:00",
-        course: "Computer Networks",
-        room: "Hall 2",
-        lecturer: "Dr. Uwimana",
-      },
-    ],
-    Wednesday: [
-      {
-        time: "08:00 - 10:00",
-        course: "Artificial Intelligence",
-        room: "Lab 3",
-        lecturer: "Prof. Habimana",
-      },
-    ],
-    Thursday: [],
-    Friday: [
-      {
-        time: "10:00 - 12:00",
-        course: "Project Management",
-        room: "Hall 1",
-        lecturer: "Mrs. Ingabire",
-      },
-    ],
-  };
+  useEffect(() => {
+    setLoading(true);
+    apiClient.get('/timetable', { params: { dayOfWeek: selectedDay } })
+      .then(res => { 
+        const data = res.data?.data || res.data || []; 
+        setScheduleData(prev => ({ 
+          ...prev, 
+          [selectedDay]: data.map(t => ({ 
+            time: t.startTime+" - "+t.endTime, 
+            course: t.topic||"Class", 
+            room: t.venue||"TBD", 
+            lecturer: t.lecturerId?.name||"Lecturer" 
+          })) 
+        })); 
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [selectedDay]);
 
   const currentClasses = scheduleData[selectedDay] || [];
 
@@ -228,7 +196,13 @@ export default function TimeTable() {
                 transition={{ duration: 0.2 }}
                 className="space-y-3 md:space-y-4"
               >
-                {currentClasses.length > 0 ? (
+                {loading ? (
+                  <>
+                    <div className="h-20 bg-white/5 rounded-3xl animate-pulse mb-4"></div>
+                    <div className="h-20 bg-white/5 rounded-3xl animate-pulse mb-4"></div>
+                    <div className="h-20 bg-white/5 rounded-3xl animate-pulse mb-4"></div>
+                  </>
+                ) : currentClasses.length > 0 ? (
                   currentClasses.map((item, i) => (
                     <ScheduleCard key={i} item={item} index={i} />
                   ))

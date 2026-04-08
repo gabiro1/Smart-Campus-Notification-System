@@ -82,24 +82,36 @@ const generalRateLimiter = rateLimit({
     message: 'Too many requests from this IP, please try again after 15 minutes.'
   },
   skip: (req) => {
+    // Completely disable rate limiting in development to avoid getting locked out
+    if (process.env.NODE_ENV !== 'production') return true;
+    
     // Skip rate limiting for trusted internal services if needed
-    // For example, if you have internal microservices with specific IPs
     // return req.ip === '10.0.0.1' || req.ip === '127.0.0.1';
-    return false; // Apply to all external requests
+    return false; // Apply to all external requests in production
   }
 });
 
 // Strict rate limiter for authentication endpoints: 5 attempts per 15 minutes
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // Limit each IP to 5 login attempts per windowMs
+  max: 5, 
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
     message: 'Too many authentication attempts. Please try again after 15 minutes.'
   },
-  skipSuccessfulRequests: true // Only count failed attempts
+  skipSuccessfulRequests: true,
+  skip: (req) => {
+    // Completely disable rate limiting in development
+    if (process.env.NODE_ENV !== 'production') return true;
+    return false;
+  },
+  // 💡 ADD THIS: Helps you debug in the network tab
+  handler: (req, res, next, options) => {
+    console.warn(`Rate limit exceeded for IP: ${req.ip}`);
+    res.status(options.statusCode).send(options.message);
+  }
 });
 
 // Apply strict auth rate limiting to authentication endpoints ONLY before general limiter
@@ -173,7 +185,7 @@ app.use((err, req, res, next) => {
 });
 
 // 7. SERVER START
-const PORT = process.env.PORT || 6000;
+const PORT = process.env.PORT;
 httpServer.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port http://localhost:${PORT}`);
 });

@@ -1,6 +1,12 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ToastProvider } from "../../components/ui/ToastContext";
 import NotFound from "../../pages/error/NotFound";
+import { useAuth } from "../../context/AuthContext";
+
+// --- AUTH PAGES ---
+import ForgotPassword from "../../pages/auth/ForgotPassword";
+import ResetPassword from "../../pages/auth/ResetPassword";
+import VerifyEmail from "../../pages/auth/VerifyEmail";
 
 // --- LAYOUTS ONLY ---
 import AdminLayout from "../../layouts/AdminLayout";
@@ -9,6 +15,7 @@ import GuildLayout from "../../pages/dashboards/guild_president/Components/Dashb
 import LecturerLayout from "../../pages/dashboards/lecturer/components/DashboardLayout";
 import HodLayout from "../../pages/dashboards/hod/components/DashboardLayout";
 import DeanLayout from "../../pages/dashboards/dean/components/DashboardLayout";
+import PrincipalLayout from "../../pages/dashboards/principal/components/DashboardLayout";
 
 // --- MODULAR ROUTE ARRAYS ---
 import { publicRoutes } from "../publicRoutes";
@@ -18,6 +25,18 @@ import { hodRoutes } from "../hodRoutes";
 import { deanRoutes } from "../deanRoutes";
 import { lecturerRoutes } from "../lecturerRoutes";
 import { guildRoutes } from "../guildRoutes";
+import { principalRoutes } from "../principalRoutes";
+
+// --- DYNAMIC GLOBAL REDIRECTS ---
+function ProfileRedirect() {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  
+  // Dynamically redirect based on the authenticated user's role
+  return <Navigate to={`/${user.role}/profile`} replace />;
+}
 
 export default function AppRoutes() {
   return (
@@ -25,6 +44,14 @@ export default function AppRoutes() {
       <Routes>
         {/* Unprotected Public Routes */}
         {publicRoutes}
+
+        {/* Global Nav Fallback Fixes */}
+        <Route path="/profile" element={<ProfileRedirect />} />
+
+        {/* Auth Pages (public, no layout) */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
         {/* Protected Role-Based Layouts */}
         <Route path="/student" element={<StudentLayout />}>
@@ -49,6 +76,10 @@ export default function AppRoutes() {
 
         <Route path="/guild" element={<GuildLayout />}>
           {guildRoutes}
+        </Route>
+
+        <Route path="/principal" element={<PrincipalLayout />}>
+          {principalRoutes}
         </Route>
 
         {/* 404 Fallback */}

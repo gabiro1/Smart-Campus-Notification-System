@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 import notificationService from '../services/notificationService';
 import toast from 'react-hot-toast';
 import React from 'react';
@@ -15,27 +16,50 @@ import React from 'react';
  */
 export const useRealTimeNotifications = () => {
   const { socket } = useSocket();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isThrottled, setIsThrottled] = useState(false);
+
+  // Strict execution guards
+  const hasSyncedInitial = useRef(false);
+  const isLoadingRef = useRef(false);
 
   // --- 1. Initial fetch + merge unread count
   const syncNotifications = useCallback(async () => {
+    // Guard Clauses: check if unauthenticated, already loading, throttled, or already synced initial
+    if (!user || isLoadingRef.current || isThrottled || hasSyncedInitial.current) {
+      return;
+    }
+
+    isLoadingRef.current = true;
     setLoading(true);
+
     try {
       const { notifications: fetched, unreadCount: unread } = await notificationService.getNotifications(1, 20);
       setNotifications(fetched || []);
       setUnreadCount(unread || 0);
+      hasSyncedInitial.current = true;
     } catch (err) {
-      console.error('❌ Sync Failure:', err.message);
+      const statusCode = err?.response?.status || err?.status;
+      if (statusCode === 429) {
+        setIsThrottled(true);
+        toast.error('Too many requests. Connection throttled, please wait.');
+      } else {
+        console.error('❌ Sync Failure:', err.message);
+      }
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
     }
-  }, []);
+  }, [isThrottled]);
 
   useEffect(() => {
-    syncNotifications();
-  }, [syncNotifications]);
+    if (user) {
+      syncNotifications();
+    }
+  }, [user]); // Run when the authenticated user is available
 
   // --- 2. WebSocket listener for real-time
   useEffect(() => {
@@ -80,7 +104,7 @@ export const useRealTimeNotifications = () => {
             </button>
           </div>
         </div>
-      ), { duration: 6000 });
+      ), { duration: 4000 });
     };
 
     socket.on('notification:new', handleNewNotification);
