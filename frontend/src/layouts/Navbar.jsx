@@ -41,11 +41,11 @@ export default function Navbar() {
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-white/5 bg-[#050505]/95 backdrop-blur-md"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-border bg-card/95 backdrop-blur-md"
     >
       {/* 1. BRAND LOGO */}
       <Link to="/" className="flex items-center gap-2">
-        <span className="text-xl font-bold tracking-tighter text-white">
+        <span className="text-xl font-bold tracking-tighter text-foreground">
           UniNotify <span className="text-blue-500">AI</span>
         </span>
       </Link>
@@ -137,7 +137,7 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <Link
               to="/login"
-              className="text-sm font-bold text-neutral-400 hover:text-white transition-colors"
+              className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
             >
               Login
             </Link>
@@ -153,7 +153,7 @@ export default function Navbar() {
             {/* Search Icon */}
             <button
               onClick={() => navigate("/search")}
-              className="p-2 hover:bg-white/5 rounded-full text-neutral-400 transition-colors"
+              className="p-2 hover:bg-accent rounded-full text-muted-foreground transition-colors"
             >
               <Search size={20} />
             </button>
@@ -162,7 +162,7 @@ export default function Navbar() {
             {user.role === "student" && (
               <button
                 onClick={() => navigate("/student/bookmarks")}
-                className="p-2 hover:bg-white/5 rounded-full text-neutral-400 relative transition-colors group"
+                className="p-2 hover:bg-accent rounded-full text-muted-foreground relative transition-colors group"
                 title="Saved Events"
               >
                 <Bookmark
@@ -175,18 +175,18 @@ export default function Navbar() {
             {/* Notification Bell */}
             <button
               onClick={() => navigate("/student/reminders")}
-              className="p-2 hover:bg-white/5 rounded-full text-neutral-400 relative transition-colors group"
+              className="p-2 hover:bg-accent rounded-full text-muted-foreground relative transition-colors group"
             >
               <Bell
                 size={20}
-                className="group-hover:text-white transition-colors"
+                className="group-hover:text-foreground transition-colors"
               />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#050505]" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-card" />
             </button>
 
             {/* Profile Dropdown */}
             <div className="group relative ml-2">
-              <div className="w-10 h-10 rounded-full border border-white/10 p-0.5 cursor-pointer hover:border-blue-500/50 transition-colors">
+              <div className="w-10 h-10 rounded-full border border-border p-0.5 cursor-pointer hover:border-blue-500/50 transition-colors">
                 <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center text-sm font-bold text-blue-400">
                   {initials || "U"}
                 </div>
@@ -198,12 +198,12 @@ export default function Navbar() {
               </div>
 
               {/* Dropdown Menu */}
-              <div className="absolute right-0 top-12 w-56 border border-white/10 rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 bg-[#0A0A0A] shadow-2xl z-50">
-                <div className="px-3 py-2 mb-2 border-b border-white/5">
-                  <p className="text-sm font-bold text-white truncate">
+              <div className="absolute right-0 top-12 w-56 border border-border rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 bg-card shadow-2xl z-50">
+                <div className="px-3 py-2 mb-2 border-b border-border">
+                  <p className="text-sm font-bold text-foreground truncate">
                     {user.name}
                   </p>
-                  <p className="text-[10px] text-neutral-500 truncate">
+                  <p className="text-[10px] text-muted-foreground truncate">
                     {user.email}
                   </p>
                 </div>
@@ -219,7 +219,7 @@ export default function Navbar() {
                   label="Settings"
                 />
 
-                <hr className="my-2 border-white/5" />
+                <hr className="my-2 border-border" />
 
                 {/* Global Logout Action */}
                 <button
@@ -238,7 +238,7 @@ export default function Navbar() {
 
         {/* Mobile Toggle */}
         <button
-          className="lg:hidden p-2 text-white ml-2"
+          className="lg:hidden p-2 text-foreground ml-2"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -252,11 +252,11 @@ export default function Navbar() {
             initial={{ opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
-            className="fixed inset-0 bg-[#050505] z-[60] flex flex-col p-8 pt-24 space-y-6 lg:hidden overflow-y-auto"
+            className="fixed inset-0 bg-card z-[60] flex flex-col p-8 pt-24 space-y-6 lg:hidden overflow-y-auto"
           >
             {/* Close button inside mobile menu for safety */}
             <button
-              className="absolute top-6 right-6 p-2 text-white"
+              className="absolute top-6 right-6 p-2 text-foreground"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <X size={28} />
@@ -264,11 +264,11 @@ export default function Navbar() {
 
             {isLoggedIn ? (
               <>
-                <div className="mb-4 pb-4 border-b border-white/10">
+                <div className="mb-4 pb-4 border-b border-border">
                   <p className="text-sm text-blue-400 font-black uppercase tracking-widest mb-1">
                     {user.role}
                   </p>
-                  <p className="text-2xl font-bold text-white">{user.name}</p>
+                  <p className="text-2xl font-bold text-foreground">{user.name}</p>
                 </div>
 
                 {user.role === "student" && (
@@ -343,7 +343,7 @@ function NavLink({ to, label, active }) {
     <Link to={to} className="relative group flex flex-col items-center">
       <motion.span
         whileHover={{ y: -2 }}
-        className={`text-[12px] font-bold tracking-widest uppercase transition-colors ${active ? "text-white" : "text-neutral-500 group-hover:text-white"}`}
+        className={`text-[12px] font-bold tracking-widest uppercase transition-colors ${active ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}
       >
         {label}
       </motion.span>
@@ -362,7 +362,7 @@ function MobileLink({ to, label, close }) {
     <Link
       to={to}
       onClick={() => close(false)}
-      className="text-2xl font-bold text-neutral-400 hover:text-white tracking-tight transition-colors"
+      className="text-2xl font-bold text-muted-foreground hover:text-foreground tracking-tight transition-colors"
     >
       {label}
     </Link>
@@ -373,7 +373,7 @@ function DropdownItem({ to, icon, label }) {
   return (
     <Link
       to={to}
-      className="flex items-center gap-3 p-2.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+      className="flex items-center gap-3 p-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all"
     >
       {icon} {label}
     </Link>

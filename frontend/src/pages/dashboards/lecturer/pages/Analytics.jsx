@@ -95,10 +95,10 @@ export default function Analytics() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
           Performance Analytics
         </h1>
-        <p className="text-neutral-400">
+        <p className="text-muted-foreground">
           Deep dive into how students interact with your messages.
         </p>
       </header>
@@ -109,17 +109,17 @@ export default function Analytics() {
           <>
             {[1, 2, 3, 4, 5].map((i) => (
               <GlassCard key={i} delay={i * 0.1} className="flex items-center gap-3 p-4">
-                <div className="p-3 rounded-xl bg-white/5 animate-pulse w-10 h-10" />
+                <div className="p-3 rounded-xl bg-accent animate-pulse w-10 h-10" />
                 <div className="space-y-2 flex-1">
-                  <div className="h-3 w-16 bg-white/5 animate-pulse rounded" />
-                  <div className="h-6 w-12 bg-white/5 animate-pulse rounded" />
+                  <div className="h-3 w-16 bg-accent animate-pulse rounded" />
+                  <div className="h-6 w-12 bg-accent animate-pulse rounded" />
                 </div>
               </GlassCard>
             ))}
           </>
         ) : (
           [
-            { label: "Announcements", val: stats.totalAnnouncements, icon: BarChart3, color: "text-neutral-400", bg: "bg-neutral-500/10" },
+            { label: "Announcements", val: stats.totalAnnouncements, icon: BarChart3, color: "text-muted-foreground", bg: "bg-neutral-500/10" },
             { label: "Total Views", val: stats.totalViews.toLocaleString(), icon: Send, color: "text-blue-400", bg: "bg-blue-500/10" },
             { label: "Unique Opens", val: stats.uniqueOpens.toLocaleString(), icon: Eye, color: "text-purple-400", bg: "bg-purple-500/10" },
             { label: "Announc. Opened", val: `${stats.avgOpenRate}%`, icon: TrendingUp, color: "text-emerald-400", bg: "bg-emerald-500/10" },
@@ -130,8 +130,8 @@ export default function Analytics() {
                 <stat.icon size={18} className={stat.color} />
               </div>
               <div>
-                <p className="text-[10px] text-neutral-500 font-medium uppercase tracking-wide">{stat.label}</p>
-                <p className="text-xl font-bold text-white">{stat.val}</p>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</p>
+                <p className="text-xl font-bold text-foreground">{stat.val}</p>
               </div>
             </GlassCard>
           ))
@@ -141,7 +141,7 @@ export default function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Bar Chart - Views Last 7 Days */}
         <GlassCard delay={0.3} className="h-96 flex flex-col">
-          <h3 className="text-lg font-semibold text-white mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             Views (Past 7 Days)
           </h3>
           <div className="flex-1 min-h-[200px]">
@@ -175,7 +175,7 @@ export default function Analytics() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-neutral-500 text-sm">
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 No data available
               </div>
             )}
@@ -184,7 +184,7 @@ export default function Analytics() {
 
         {/* Announcements Overview */}
         <GlassCard delay={0.4} className="h-96 flex flex-col">
-          <h3 className="text-lg font-semibold text-white mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             Announcement Overview
           </h3>
           <div className="flex-1 flex flex-col items-center justify-center space-y-8">
@@ -206,18 +206,18 @@ export default function Analytics() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-white">{stats.avgOpenRate}%</span>
-                <span className="text-xs text-neutral-400">Opened</span>
+                <span className="text-3xl font-bold text-foreground">{stats.avgOpenRate}%</span>
+                <span className="text-xs text-muted-foreground">Opened</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-8 text-center">
               <div>
                 <p className="text-2xl font-bold text-blue-400">{stats.totalViews}</p>
-                <p className="text-xs text-neutral-500">Total Views</p>
+                <p className="text-xs text-muted-foreground">Total Views</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-purple-400">{stats.uniqueOpens}</p>
-                <p className="text-xs text-neutral-500">Announcements Opened</p>
+                <p className="text-xs text-muted-foreground">Announcements Opened</p>
               </div>
             </div>
           </div>
@@ -227,32 +227,32 @@ export default function Analytics() {
       {/* Top Performing Announcements */}
       {topPerforming.length > 0 && (
         <GlassCard delay={0.5} className="p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <TrendingUp size={20} className="text-emerald-400" />
             Top Performing Announcements
           </h3>
           <div className="space-y-3">
             {topPerforming.map((ann, idx) => (
-              <div key={ann._id} className="flex items-center gap-4 p-3 bg-background/50 rounded-lg border border-white/5">
+              <div key={ann._id} className="flex items-center gap-4 p-3 bg-background/50 rounded-lg border border-border">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
                   idx === 0 ? 'bg-amber-500/20 text-amber-400' :
                   idx === 1 ? 'bg-neutral-400/20 text-neutral-300' :
                   idx === 2 ? 'bg-orange-600/20 text-orange-400' :
-                  'bg-white/5 text-neutral-500'
+                  'bg-accent text-muted-foreground'
                 }`}>
                   #{idx + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{ann.title}</p>
-                  <p className="text-xs text-neutral-500">{ann.course?.name || 'General'}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{ann.title}</p>
+                  <p className="text-xs text-muted-foreground">{ann.course?.name || 'General'}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-white">{ann.viewCount}</p>
-                  <p className="text-[10px] text-neutral-500">views</p>
+                  <p className="text-lg font-bold text-foreground">{ann.viewCount}</p>
+                  <p className="text-[10px] text-muted-foreground">views</p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-emerald-400">{ann.openRate}%</p>
-                  <p className="text-[10px] text-neutral-500">open rate</p>
+                  <p className="text-[10px] text-muted-foreground">open rate</p>
                 </div>
               </div>
             ))}

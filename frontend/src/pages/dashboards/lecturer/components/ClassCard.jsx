@@ -35,7 +35,7 @@ export default function ClassCard({ cls, onClick, isSelected }) {
       {/* Header: Title and Badge */}
       <div className="flex items-start justify-between mb-4">
         <h3
-          className={`text-xl font-bold leading-tight line-clamp-2 transition-colors ${isSelected ? "text-blue-400" : "text-white group-hover:text-blue-400"}`}
+          className={`text-xl font-bold leading-tight line-clamp-2 transition-colors ${isSelected ? "text-blue-400" : "text-foreground group-hover:text-blue-400"}`}
           title={name}
         >
           {name}
@@ -70,7 +70,7 @@ export default function ClassCard({ cls, onClick, isSelected }) {
               Enrolled
             </span>
           </div>
-          <p className="text-2xl font-black text-white">{studentCount}</p>
+          <p className="text-2xl font-black text-foreground">{studentCount}</p>
         </div>
         <div className={`border rounded-[16px] p-4 transition-colors ${isSelected ? "bg-red-500/5 border-red-500/20" : "bg-[#14161C] border-border shadow-inner"}`}>
           <div className="flex items-center gap-2 mb-1">
@@ -79,7 +79,7 @@ export default function ClassCard({ cls, onClick, isSelected }) {
               Alerts
             </span>
           </div>
-          <p className="text-2xl font-black text-white">{activeAnnouncements}</p>
+          <p className="text-2xl font-black text-foreground">{activeAnnouncements}</p>
         </div>
       </div>
 
@@ -93,7 +93,7 @@ export default function ClassCard({ cls, onClick, isSelected }) {
             e.stopPropagation();
             if (onClick) onClick();
           }}
-          className="flex-1 bg-input hover:bg-muted border border-border text-muted-foreground hover:text-white py-2.5 px-4 rounded-[12px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 group/btn"
+          className="flex-1 bg-input hover:bg-muted border border-border text-muted-foreground hover:text-foreground py-2.5 px-4 rounded-[12px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 group/btn"
         >
           View Course
           <ArrowRight
@@ -106,7 +106,7 @@ export default function ClassCard({ cls, onClick, isSelected }) {
             e.stopPropagation();
             navigate(`/lecturer/create`);
           }}
-          className="p-2.5 bg-blue-600 hover:bg-blue-500 border border-blue-500 hover:border-blue-400 text-white rounded-[12px] transition-all shadow-[0_4px_15px_rgba(59,130,246,0.3)] tooltip-trigger group/alert active:scale-95"
+          className="p-2.5 bg-blue-600 hover:bg-blue-500 border border-blue-500 hover:border-blue-400 text-foreground rounded-[12px] transition-all shadow-[0_4px_15px_rgba(59,130,246,0.3)] tooltip-trigger group/alert active:scale-95"
           title="Post Alert"
         >
           <Plus size={18} strokeWidth={2.5} className="group-hover/alert:rotate-90 transition-transform duration-300" />

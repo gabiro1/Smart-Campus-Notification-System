@@ -125,16 +125,16 @@ export default function EnhancedStudentDashboard() {
   if (loading) return <DashboardSkeleton />;
 
   return (
-    <div className="min-h-screen bg-background text-white flex font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-card text-foreground flex font-sans overflow-x-hidden">
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* 1. HEADER: Dynamic Context */}
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight text-white mb-2 mt-2">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2 mt-2">
                 Hey {user?.name?.split(" ")[0] || "Student"},
               </h1>
-              <p className="text-neutral-400 text-sm max-w-md">
+              <p className="text-muted-foreground text-sm max-w-md">
                 Here's what's happening on campus today.
               </p>
             </div>
@@ -148,7 +148,7 @@ export default function EnhancedStudentDashboard() {
             >
               <Zap
                 size={16}
-                className={isRefreshing ? "text-white" : "text-blue-500"}
+                className={isRefreshing ? "text-foreground" : "text-blue-500"}
               />
               <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">
                 {isRefreshing ? "Syncing..." : "Real-Time Active"}
@@ -160,7 +160,7 @@ export default function EnhancedStudentDashboard() {
           <div className="flex items-center mb-2 gap-4">
             <div className="relative flex-1 max-w-md">
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -173,10 +173,10 @@ export default function EnhancedStudentDashboard() {
                     navigate(`/student/search?q=${encodeURIComponent(searchQuery.trim())}`);
                   }
                 }}
-                className="w-full bg-background border border-white/10 rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-800"
+                className="w-full bg-card border border-border rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-muted-foreground"
               />
             </div>
-            <button className="bg-background border border-white/5 px-4 py-2.5 rounded-[7px] text-xs font-bold text-neutral-300 flex items-center gap-2 hover:border-white/20">
+            <button className="bg-card border border-border px-4 py-2.5 rounded-[7px] text-xs font-bold text-neutral-300 flex items-center gap-2 hover:border-white/20">
               <Filter size={14} /> Filter
             </button>
           </div>
@@ -193,13 +193,13 @@ export default function EnhancedStudentDashboard() {
                   className="bg-red-500/10 border border-red-500/30 p-5 rounded-3xl flex items-center gap-5"
                 >
                   <div className="bg-red-500 p-3 rounded-2xl">
-                    <AlertCircle size={24} className="text-white" />
+                    <AlertCircle size={24} className="text-foreground" />
                   </div>
                   <div className="flex-1">
                     <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">
                       Critical Action Required
                     </h4>
-                    <p className="text-md text-white font-bold">
+                    <p className="text-md text-foreground font-bold">
                       {urgentEvent.title}
                     </p>
                     <p className="text-sm text-red-200/60 font-medium">
@@ -256,7 +256,7 @@ export default function EnhancedStudentDashboard() {
                   <Sparkles size={20} className="text-blue-500" /> Intelligence
                   Feed
                 </h3>
-                <button className="text-xs font-bold text-neutral-400 bg-white/5 border border-white/5 px-3 py-1.5 rounded-lg hover:text-white transition-colors">
+                <button className="text-xs font-bold text-muted-foreground bg-accent border border-border px-3 py-1.5 rounded-lg hover:text-foreground transition-colors">
                   This Week ▾
                 </button>
               </div>
@@ -267,8 +267,8 @@ export default function EnhancedStudentDashboard() {
                     <EventItem key={event._id} event={event} />
                   ))
                 ) : (
-                  <div className="bg-card border border-white/5 p-20 rounded-[32px] text-center">
-                    <p className="text-neutral-600 text-sm italic">
+                  <div className="bg-card border border-border p-20 rounded-[32px] text-center">
+                    <p className="text-muted-foreground text-sm italic">
                       The campus is currently quiet. AI is scanning for
                       updates...
                     </p>
@@ -300,7 +300,7 @@ export default function EnhancedStudentDashboard() {
                       />
                     ))
                   ) : (
-                    <p className="text-xs text-neutral-500 text-center py-4">
+                    <p className="text-xs text-muted-foreground text-center py-4">
                       No recent broadcasts.
                     </p>
                   )}
@@ -320,7 +320,7 @@ export default function EnhancedStudentDashboard() {
                     ))
                   ) : (
                     <div className="py-4 text-center">
-                      <p className="text-[10px] text-neutral-600 uppercase tracking-widest font-black">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
                         No Lectures Slated
                       </p>
                     </div>
@@ -328,7 +328,7 @@ export default function EnhancedStudentDashboard() {
                 </div>
                 <button 
                   onClick={() => navigate('/student/timetable')}
-                  className="w-full mt-4 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors"
+                  className="w-full mt-4 py-3 bg-accent border border-border rounded-2xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
                 >
                   View Full Timetable
                 </button>
@@ -345,19 +345,19 @@ export default function EnhancedStudentDashboard() {
 
 function StatCard({ label, value, trend, icon: Icon, color }) {
   return (
-    <div className="bg-card p-6 rounded-[32px] border border-white/5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between">
+    <div className="bg-card p-6 rounded-[32px] border border-border hover:border-border transition-all cursor-pointer group flex flex-col justify-between">
       <div>
         <div className="flex justify-between items-start mb-4">
-          <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
             <Icon size={12} className={color} /> {label}
           </span>
-          <button className="text-neutral-500 group-hover:text-white transition-colors">
+          <button className="text-muted-foreground group-hover:text-foreground transition-colors">
             <ArrowUpRight size={16} />
           </button>
         </div>
-        <h2 className="text-3xl font-bold text-white mb-2">{value}</h2>
+        <h2 className="text-3xl font-bold text-foreground mb-2">{value}</h2>
       </div>
-      <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest flex items-center gap-1.5 mt-2">
+      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5 mt-2">
         <TrendingUp size={12} className={color} /> {trend}
       </p>
     </div>
@@ -366,11 +366,11 @@ function StatCard({ label, value, trend, icon: Icon, color }) {
 
 function GlassCard({ children, title, icon: Icon, action }) {
   return (
-    <div className="bg-card border border-white/5 rounded-[32px] p-6 shadow-2xl">
+    <div className="bg-card border border-border rounded-[32px] p-6 shadow-2xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Icon size={18} className="text-blue-500" />
-          <h3 className="text-sm font-black uppercase tracking-widest text-white">
+          <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
             {title}
           </h3>
         </div>
@@ -394,7 +394,7 @@ function EventItem({ event }) {
   }
 
   return (
-    <div className={`p-5 rounded-[28px] bg-card border border-white/5 hover:border-white/10 transition-all flex flex-col gap-4 group border-l-4 ${borderColor}`}>
+    <div className={`p-5 rounded-[28px] bg-card border border-border hover:border-border transition-all flex flex-col gap-4 group border-l-4 ${borderColor}`}>
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
@@ -402,28 +402,28 @@ function EventItem({ event }) {
             {match}% AI Match
           </span>
         </div>
-        <button className="p-2 bg-white/5 rounded-xl text-neutral-500 hover:text-white transition-colors">
+        <button className="p-2 bg-accent rounded-xl text-muted-foreground hover:text-foreground transition-colors">
           <Bookmark size={16} />
         </button>
       </div>
       <div>
-        <h4 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors mb-1">
+        <h4 className="font-bold text-lg text-foreground group-hover:text-blue-400 transition-colors mb-1">
           {event.title}
         </h4>
-        <p className="text-sm text-neutral-500 line-clamp-2 leading-relaxed">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {event.description || "No description available."}
         </p>
       </div>
-      <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
+      <div className="flex items-center justify-between mt-2 pt-4 border-t border-border">
         <div className="flex items-center gap-4">
-          <span className="text-[10px] font-bold text-neutral-600 flex items-center gap-1.5 uppercase">
+          <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 uppercase">
             <Clock size={12} /> {event.time || "10:00 AM"}
           </span>
-          <span className="text-[10px] font-bold text-neutral-600 flex items-center gap-1.5 uppercase">
+          <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 uppercase">
             <ArrowRight size={12} /> {event.location || "Auditorium"}
           </span>
         </div>
-        <button className="text-[10px] font-black text-white bg-blue-600/20 px-4 py-2 rounded-xl border border-blue-500/20 hover:bg-blue-600 transition-all">
+        <button className="text-[10px] font-black text-foreground bg-blue-600/20 px-4 py-2 rounded-xl border border-blue-500/20 hover:bg-blue-600 transition-all">
           DETAILS
         </button>
       </div>
@@ -434,9 +434,9 @@ function EventItem({ event }) {
 // ✅ FIXED: Now accepts and renders the title
 function MessageItem({ sender, role, title, text }) {
   return (
-    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors cursor-pointer group">
+    <div className="p-4 rounded-2xl bg-accent border border-border hover:border-border transition-colors cursor-pointer group">
       <div className="flex justify-between mb-2">
-        <span className="text-xs font-bold text-white tracking-tight">
+        <span className="text-xs font-bold text-foreground tracking-tight">
           {sender}
         </span>
         <span className="text-[8px] font-black text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded uppercase">
@@ -444,11 +444,11 @@ function MessageItem({ sender, role, title, text }) {
         </span>
       </div>
       {title && (
-        <h4 className="text-sm font-bold text-white mb-1 leading-tight">
+        <h4 className="text-sm font-bold text-foreground mb-1 leading-tight">
           {title}
         </h4>
       )}
-      <p className="text-[11px] text-neutral-500 line-clamp-2 italic leading-relaxed">
+      <p className="text-[11px] text-muted-foreground line-clamp-2 italic leading-relaxed">
         "{text}"
       </p>
     </div>
@@ -457,13 +457,13 @@ function MessageItem({ sender, role, title, text }) {
 
 function ScheduleItem({ time, subject, room }) {
   return (
-    <div className="flex items-center gap-4 p-4 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.04] transition-colors">
+    <div className="flex items-center gap-4 p-4 bg-accent rounded-2xl border border-border hover:bg-primary/10 transition-colors">
       <div className="text-[10px] font-black text-blue-500 w-10 shrink-0">
         {time}
       </div>
       <div>
-        <p className="text-[11px] font-bold text-white">{subject}</p>
-        <p className="text-[9px] text-neutral-500 uppercase font-black mt-0.5 tracking-widest">
+        <p className="text-[11px] font-bold text-foreground">{subject}</p>
+        <p className="text-[9px] text-muted-foreground uppercase font-black mt-0.5 tracking-widest">
           {room}
         </p>
       </div>
@@ -474,16 +474,16 @@ function ScheduleItem({ time, subject, room }) {
 // Loading Skeleton UI
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-background p-8 space-y-8 animate-pulse">
-      <div className="h-20 w-1/3 bg-white/5 rounded-3xl" />
+    <div className="min-h-screen bg-card p-8 space-y-8 animate-pulse">
+      <div className="h-20 w-1/3 bg-accent rounded-3xl" />
       <div className="grid grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-32 bg-white/5 rounded-[32px]" />
+          <div key={i} className="h-32 bg-accent rounded-[32px]" />
         ))}
       </div>
       <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2 h-[600px] bg-white/5 rounded-[32px]" />
-        <div className="h-[600px] bg-white/5 rounded-[32px]" />
+        <div className="col-span-2 h-[600px] bg-accent rounded-[32px]" />
+        <div className="h-[600px] bg-accent rounded-[32px]" />
       </div>
     </div>
   );

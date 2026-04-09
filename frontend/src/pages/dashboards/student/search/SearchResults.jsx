@@ -62,7 +62,7 @@ export default function SearchResults() {
   return (
     <div className="pt-8 px-6 pb-20 max-w-6xl mx-auto space-y-8">
       {/* Search Header */}
-      <div className="glass p-6 rounded-2xl border border-white/10">
+      <div className="glass p-6 rounded-2xl border border-border">
         <div className="flex items-center gap-4">
           <Search className="text-blue-400" size={24} />
           <input
@@ -70,7 +70,7 @@ export default function SearchResults() {
             placeholder="Search events, announcements, tags..."
             defaultValue={query}
             onChange={handleSearchChange}
-            className="bg-transparent w-full text-xl outline-none text-white placeholder:text-neutral-500"
+            className="bg-transparent w-full text-xl outline-none text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function SearchResults() {
 
         {/* Results Summary */}
         {!loading && !error && (
-          <p className="text-xs text-neutral-500 mt-3">
+          <p className="text-xs text-muted-foreground mt-3">
             Found {results.total} result{results.total !== 1 ? 's' : ''}
             {intent?.contentType && intent.contentType !== 'both' && ` in ${intent.contentType}s`}
           </p>
@@ -121,7 +121,7 @@ export default function SearchResults() {
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="animate-spin text-blue-400" size={48} />
-          <p className="text-neutral-500 mt-4 text-sm">AI is searching...</p>
+          <p className="text-muted-foreground mt-4 text-sm">AI is searching...</p>
         </div>
       )}
 
@@ -129,7 +129,7 @@ export default function SearchResults() {
       {error && !loading && (
         <div className="glass p-8 rounded-2xl border border-red-500/30 text-center">
           <p className="text-red-400 font-bold">Search Failed</p>
-          <p className="text-neutral-400 text-sm mt-2">{error}</p>
+          <p className="text-muted-foreground text-sm mt-2">{error}</p>
           <button
             onClick={performSearch}
             className="mt-4 px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30"
@@ -145,7 +145,7 @@ export default function SearchResults() {
           {/* Events Section */}
           {results.events?.length > 0 && (
             <section>
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <Calendar className="text-blue-400" size={20} />
                 Events ({results.events.length})
               </h2>
@@ -154,23 +154,23 @@ export default function SearchResults() {
                   <div
                     key={event._id}
                     onClick={() => navigate(`/student/events/${event._id}`)}
-                    className="glass p-6 rounded-2xl border border-white/5 hover:border-blue-500/30 transition-all group cursor-pointer"
+                    className="glass p-6 rounded-2xl border border-border hover:border-blue-500/30 transition-all group cursor-pointer"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <span className="text-[10px] font-black text-blue-400 uppercase tracking-wider bg-blue-500/10 px-2 py-1 rounded">
                         {event.priority || 'Medium'}
                       </span>
-                      <span className="text-[10px] text-neutral-500">
+                      <span className="text-[10px] text-muted-foreground">
                         {formatDate(event.date)}
                       </span>
                     </div>
-                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-foreground font-bold text-lg mb-2 group-hover:text-blue-400 transition-colors">
                       {event.title || 'Untitled Event'}
                     </h3>
-                    <p className="text-neutral-500 text-sm line-clamp-2 mb-4">
+                    <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
                       {event.description || "No description available."}
                     </p>
-                    <div className="flex items-center gap-4 text-xs text-neutral-400">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       {event.location && (
                         <span className="flex items-center gap-1">
                           <MapPin size={12} /> {event.location}
@@ -191,7 +191,7 @@ export default function SearchResults() {
           {/* Announcements Section */}
           {results.announcements?.length > 0 && (
             <section>
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <FileText className="text-emerald-400" size={20} />
                 Announcements ({results.announcements.length})
               </h2>
@@ -200,20 +200,20 @@ export default function SearchResults() {
                   <div
                     key={ann._id}
                     onClick={() => navigate(`/student/announcements/${ann._id}`)}
-                    className="glass p-6 rounded-2xl border border-white/5 hover:border-emerald-500/30 transition-all group cursor-pointer"
+                    className="glass p-6 rounded-2xl border border-border hover:border-emerald-500/30 transition-all group cursor-pointer"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-1 rounded">
                         {ann.type}
                       </span>
-                      <span className="text-[10px] text-neutral-500">
+                      <span className="text-[10px] text-muted-foreground">
                         {formatDate(ann.createdAt)}
                       </span>
                     </div>
-                    <h3 className="text-white font-bold text-lg mb-2 group-hover:text-emerald-400 transition-colors">
+                    <h3 className="text-foreground font-bold text-lg mb-2 group-hover:text-emerald-400 transition-colors">
                       {ann.title}
                     </h3>
-                    <p className="text-neutral-500 text-sm line-clamp-2">
+                    <p className="text-muted-foreground text-sm line-clamp-2">
                       {ann.content}
                     </p>
                   </div>
@@ -227,8 +227,8 @@ export default function SearchResults() {
       {/* Empty State */}
       {!loading && !error && results.total === 0 && query && (
         <div className="text-center py-20">
-          <p className="text-neutral-500 text-lg">No results found for "{query}"</p>
-          <p className="text-neutral-600 text-sm mt-2">
+          <p className="text-muted-foreground text-lg">No results found for "{query}"</p>
+          <p className="text-muted-foreground text-sm mt-2">
             Try different keywords or check spelling
           </p>
         </div>
@@ -237,8 +237,8 @@ export default function SearchResults() {
       {/* Initial State */}
       {!loading && !error && !query && (
         <div className="text-center py-20">
-          <Search className="mx-auto text-neutral-600 mb-4" size={64} />
-          <p className="text-neutral-500">Enter a search term to begin</p>
+          <Search className="mx-auto text-muted-foreground mb-4" size={64} />
+          <p className="text-muted-foreground">Enter a search term to begin</p>
         </div>
       )}
     </div>

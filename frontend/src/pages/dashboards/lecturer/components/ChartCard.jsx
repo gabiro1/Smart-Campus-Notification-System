@@ -11,9 +11,9 @@ export default function ChartCard({
   return (
     <GlassCard delay={delay} className={`flex flex-col ${height}`}>
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         {subtitle && (
-          <p className="text-sm text-neutral-400 mt-1">{subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
         )}
       </div>
 

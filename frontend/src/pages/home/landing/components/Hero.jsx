@@ -28,18 +28,18 @@ export default function Hero({ user }) {
         animate={{ opacity: 1 }}
         className="max-w-4xl"
       >
-        <span className="px-3 py-1 font-sans rounded-full border border-white/10 text-neutral-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-6 inline-block bg-white/5">
+        <span className="px-3 py-1 font-sans rounded-full border border-white/10 text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] mb-6 inline-block bg-accent">
           AI-Powered Communication for UR
         </span>
 
         <h1
-          className={`${styles.heading} text-6xl md:text-7xl font-semibold text-white font-black tracking-tight mb-6 leading-none`}
+          className={`${styles.heading} text-6xl md:text-7xl font-semibold text-foreground font-black tracking-tight mb-6 leading-none`}
         >
           Smart Alerts. <br />
-          <span className="text-neutral-600">Zero Noise.</span>
+          <span className="text-muted-foreground">Zero Noise.</span>
         </h1>
 
-        <p className="text-neutral-500 max-w-lg mx-auto text-base mb-10 leading-relaxed">
+        <p className="text-muted-foreground max-w-lg mx-auto text-base mb-10 leading-relaxed">
           The ultimate bridge between University administration and students.
           Get the news you need, exactly when you need it.
         </p>
@@ -50,7 +50,7 @@ export default function Hero({ user }) {
           </button>
           <button
             onClick={handleAdminAccess} // 5. Added click handler
-            className="px-6 py-3 bg-background border border-white/10 text-white hover:bg-white/5 rounded-lg font-bold text-sm transition-all"
+            className="px-6 py-3 bg-background border border-white/10 text-foreground hover:bg-accent rounded-lg font-bold text-sm transition-all"
           >
             Admin Portal
           </button>

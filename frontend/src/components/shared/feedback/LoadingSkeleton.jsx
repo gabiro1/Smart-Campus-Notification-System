@@ -13,7 +13,7 @@ export default function LoadingSkeleton({
   width,
   height,
 }) {
-  const baseClasses = "animate-pulse bg-white/5 rounded";
+  const baseClasses = "animate-pulse bg-accent rounded";
 
   const variantClasses = {
     text: "h-4 w-full",

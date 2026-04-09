@@ -38,15 +38,15 @@ export default function SystemAnalytics() {
     <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
             System Analytics & Health
           </h1>
-          <p className="text-neutral-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Deep infrastructure metrics and AI performance monitoring.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-white/10 rounded-xl text-sm text-neutral-300 hover:text-white transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors">
             <Calendar size={16} /> Last 7 Days
           </button>
         </div>
@@ -59,10 +59,10 @@ export default function SystemAnalytics() {
             <MailCheck size={28} />
           </div>
           <div>
-            <p className="text-sm text-neutral-400 font-bold">
+            <p className="text-sm text-muted-foreground font-bold">
               Global Delivery Rate
             </p>
-            <h3 className="text-3xl font-bold text-white tracking-tight mt-1">
+            <h3 className="text-3xl font-bold text-foreground tracking-tight mt-1">
               99.8%
             </h3>
           </div>
@@ -72,10 +72,10 @@ export default function SystemAnalytics() {
             <Zap size={28} />
           </div>
           <div>
-            <p className="text-sm text-neutral-400 font-bold">
+            <p className="text-sm text-muted-foreground font-bold">
               Avg Response Time
             </p>
-            <h3 className="text-3xl font-bold text-white tracking-tight mt-1">
+            <h3 className="text-3xl font-bold text-foreground tracking-tight mt-1">
               42ms
             </h3>
           </div>
@@ -85,10 +85,10 @@ export default function SystemAnalytics() {
             <Bot size={28} />
           </div>
           <div>
-            <p className="text-sm text-neutral-400 font-bold">
+            <p className="text-sm text-muted-foreground font-bold">
               AI Confidence Score
             </p>
-            <h3 className="text-3xl font-bold text-white tracking-tight mt-1">
+            <h3 className="text-3xl font-bold text-foreground tracking-tight mt-1">
               96.2%
             </h3>
           </div>
@@ -98,7 +98,7 @@ export default function SystemAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Network Load Area Chart */}
         <GlassCard delay={0.4} className="h-[400px] flex flex-col">
-          <h2 className="text-lg font-bold text-white mb-6">
+          <h2 className="text-lg font-bold text-foreground mb-6">
             Network Load & Peak Capacity
           </h2>
           <div className="flex-1 w-full min-h-0">
@@ -161,7 +161,7 @@ export default function SystemAnalytics() {
 
         {/* AI Performance Bar Chart */}
         <GlassCard delay={0.5} className="h-[400px] flex flex-col">
-          <h2 className="text-lg font-bold text-white mb-6">
+          <h2 className="text-lg font-bold text-foreground mb-6">
             AI Module Accuracy Matrix
           </h2>
           <div className="flex-1 w-full min-h-0">

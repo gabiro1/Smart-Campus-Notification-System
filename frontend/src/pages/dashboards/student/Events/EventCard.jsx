@@ -69,7 +69,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
     <motion.div
       whileHover={{ y: -2, backgroundColor: "#121212" }}
       onClick={handleCardClick}
-      className={`relative p-5 md:p-6 rounded-[15px] border border-white/5 bg-background transition-all group flex flex-col justify-between h-full w-full cursor-pointer hover:shadow-xl hover:shadow-black/50 ${
+      className={`relative p-5 md:p-6 rounded-[15px] border border-border bg-card transition-all group flex flex-col justify-between h-full w-full cursor-pointer hover:shadow-xl hover:shadow-black/50 ${
         event.priority === "high" || event.priority === "urgent"
           ? "border-red-500/20"
           : ""
@@ -107,7 +107,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
 
           <button
             onClick={handleBookmarkClick}
-            className="p-1 -mt-1 -mr-1 text-neutral-500 hover:text-white transition-colors focus:outline-none"
+            className="p-1 -mt-1 -mr-1 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
           >
             <Bookmark
               size={18}
@@ -118,7 +118,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
         </div>
 
         {/* --- Meta Details (Date & Location) --- */}
-        <div className="flex flex-wrap items-center gap-3 text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-3">
+        <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-3">
           <span className="flex items-center gap-1">
             <Clock size={12} /> {new Date(event.date).toLocaleDateString()}
           </span>
@@ -130,16 +130,16 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
         </div>
 
         {/* --- Text Content --- */}
-        <h3 className="text-base md:text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+        <h3 className="text-base md:text-lg font-bold text-foreground mb-2 group-hover:text-blue-400 transition-colors">
           {event?.title || 'Untitled Event'}
         </h3>
-        <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2 mb-6">
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-6">
           {event?.description || "No description available."}
         </p>
       </div>
 
         {/* --- Footer: Rating & Action Button --- */}
-      <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
+      <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
         <div className="flex items-center gap-3">
           <div
             className="flex gap-0.5"
@@ -164,7 +164,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
                     className={`transition-colors duration-200 ${
                       star <= (hoveredStar || Math.round(avgRating))
                         ? "fill-yellow-500 text-yellow-500"
-                        : "text-neutral-700 hover:text-yellow-500"
+                        : "text-muted-foreground hover:text-yellow-500"
                     }`}
                   />
                 </button>
@@ -172,13 +172,13 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
             })}
           </div>
           {event.ratings && event.ratings.length > 0 && (
-            <span className="text-[9px] md:text-[10px] text-neutral-500 hidden sm:inline">
+            <span className="text-[9px] md:text-[10px] text-muted-foreground hidden sm:inline">
               ({event.ratings.length})
             </span>
           )}
         </div>
 
-        <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-blue-600 text-neutral-400 group-hover:text-white transition-colors">
+        <button className="w-8 h-8 rounded-full bg-accent flex items-center justify-center group-hover:bg-blue-600 text-muted-foreground group-hover:text-foreground transition-colors">
           <ChevronRight size={16} />
         </button>
       </div>

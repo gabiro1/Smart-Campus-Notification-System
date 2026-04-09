@@ -15,7 +15,7 @@ export default function DashboardLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white flex overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
       {/* Enterprise Ambient Glows */}
       <div className="fixed top-[-20%] left-[10%] w-[60%] h-[60%] bg-emerald-900/10 rounded-full blur-[150px] pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[150px] pointer-events-none" />
@@ -26,7 +26,7 @@ export default function DashboardLayout() {
         isMobile={isMobile}
       />
 
-      <div className="flex-1 flex flex-col lg:ml-64 relative z-10 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col lg:ml-72 relative z-10 h-screen overflow-hidden">
         <TopBar isMobile={isMobile} setSidebarOpen={setSidebarOpen} />
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">

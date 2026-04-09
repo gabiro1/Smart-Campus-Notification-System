@@ -245,9 +245,9 @@ export default function Settings() {
     return (
       <div className="pt-24 px-6 pb-20 max-w-2xl mx-auto">
         <div className="animate-pulse space-y-8">
-          <div className="h-10 bg-white/10 rounded w-1/3"></div>
-          <div className="h-40 bg-white/5 rounded-[32px]"></div>
-          <div className="h-64 bg-white/5 rounded-[32px]"></div>
+          <div className="h-10 bg-primary/10 rounded w-1/3"></div>
+          <div className="h-40 bg-accent rounded-[32px]"></div>
+          <div className="h-64 bg-accent rounded-[32px]"></div>
         </div>
       </div>
     );
@@ -255,17 +255,17 @@ export default function Settings() {
 
   return (
     <div className="pt-24 px-6 pb-20 max-w-2xl mx-auto space-y-8">
-      <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">
+      <h2 className="text-3xl font-black text-foreground italic tracking-tighter uppercase">
         Settings
       </h2>
 
       {/* Section 1: Language */}
-      <section className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+      <section className="glass p-6 rounded-[32px] border border-border space-y-4">
         <div className="flex items-center gap-3 text-blue-400">
           <Globe size={20} />
           <h3 className="font-bold text-sm uppercase tracking-widest">Notification Language</h3>
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Announcements are auto-translated into your preferred language.
         </p>
         <div className="flex gap-3">
@@ -277,13 +277,13 @@ export default function Settings() {
             }}
           />
         </div>
-        <p className="text-xs text-neutral-400">
+        <p className="text-xs text-muted-foreground">
           Current: {user?.languagePreference === "en" ? "English" : "Kinyarwanda"}
         </p>
       </section>
 
       {/* Section 2: Notification Channels */}
-      <section className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+      <section className="glass p-6 rounded-[32px] border border-border space-y-4">
         <div className="flex items-center gap-3 text-blue-400">
           <Bell size={20} />
           <h3 className="font-bold text-sm uppercase tracking-widest">Notification Channels</h3>
@@ -309,17 +309,17 @@ export default function Settings() {
       </section>
 
       {/* Section 3: Category Preferences */}
-      <section className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+      <section className="glass p-6 rounded-[32px] border border-border space-y-4">
         <div className="flex items-center gap-3 text-purple-400">
           <Bell size={20} />
           <h3 className="font-bold text-sm uppercase tracking-widest">Category Preferences</h3>
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Customize which channels you receive for each notification type.
         </p>
         {['events', 'reminders', 'governance'].map((category) => (
-          <div key={category} className="border-t border-white/5 pt-4 first:border-0 first:pt-0">
-            <h4 className="text-sm font-bold text-white mb-3 capitalize">{category}</h4>
+          <div key={category} className="border-t border-border pt-4 first:border-0 first:pt-0">
+            <h4 className="text-sm font-bold text-foreground mb-3 capitalize">{category}</h4>
             <div className="grid grid-cols-3 gap-4">
               <ChannelToggle
                 label="Push"
@@ -342,12 +342,12 @@ export default function Settings() {
       </section>
 
       {/* Section 4: Quiet Hours */}
-      <section className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+      <section className="glass p-6 rounded-[32px] border border-border space-y-4">
         <div className="flex items-center gap-3 text-indigo-400">
           <Moon size={20} />
           <h3 className="font-bold text-sm uppercase tracking-widest">Quiet Hours (Do Not Disturb)</h3>
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Suppress low/medium priority notifications during rest hours. Critical alerts always come through.
         </p>
         <ToggleRow
@@ -360,25 +360,25 @@ export default function Settings() {
           }}
         />
         {quietHoursEnabled && (
-          <div className="space-y-3 mt-4 p-4 bg-white/5 rounded-xl">
+          <div className="space-y-3 mt-4 p-4 bg-accent rounded-xl">
             <div className="flex items-center gap-4">
-              <label className="text-xs text-neutral-400 w-16">Start:</label>
+              <label className="text-xs text-muted-foreground w-16">Start:</label>
               <input
                 type="time"
                 value={quietHours.startTime}
                 onChange={(e) => setQuietHours(prev => ({ ...prev, startTime: e.target.value }))}
                 onBlur={saveQuietHours}
-                className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm"
+                className="bg-primary/10 border border-border rounded-lg px-3 py-2 text-foreground text-sm"
               />
             </div>
             <div className="flex items-center gap-4">
-              <label className="text-xs text-neutral-400 w-16">End:</label>
+              <label className="text-xs text-muted-foreground w-16">End:</label>
               <input
                 type="time"
                 value={quietHours.endTime}
                 onChange={(e) => setQuietHours(prev => ({ ...prev, endTime: e.target.value }))}
                 onBlur={saveQuietHours}
-                className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm"
+                className="bg-primary/10 border border-border rounded-lg px-3 py-2 text-foreground text-sm"
               />
             </div>
             <p className="text-[10px] text-amber-400 mt-2 flex items-center gap-1">
@@ -390,18 +390,18 @@ export default function Settings() {
       </section>
 
       {/* Section 5: Daily Digest */}
-      <section className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+      <section className="glass p-6 rounded-[32px] border border-border space-y-4">
         <div className="flex items-center gap-3 text-cyan-400">
           <Mail size={20} />
           <h3 className="font-bold text-sm uppercase tracking-widest">Daily Digest Email</h3>
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           Get an AI summary of your notifications delivered to your email.
         </p>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-white font-medium">Enable Digest Email</p>
-            <p className="text-[10px] text-neutral-500">Last digest: {formatLastDigest(user?.lastDigestAt)}</p>
+            <p className="text-sm text-foreground font-medium">Enable Digest Email</p>
+            <p className="text-[10px] text-muted-foreground">Last digest: {formatLastDigest(user?.lastDigestAt)}</p>
           </div>
           <ToggleRow
             label=""
@@ -417,21 +417,21 @@ export default function Settings() {
       </section>
 
       {/* Section 6: Security & Password */}
-      <section className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+      <section className="glass p-6 rounded-[32px] border border-border space-y-4">
         <div className="flex items-center gap-3 text-emerald-400">
           <Lock size={20} />
           <h3 className="font-bold text-sm uppercase tracking-widest">Security</h3>
         </div>
         
         <div className="space-y-3">
-          <h4 className="text-xs font-bold text-white uppercase">Change Password</h4>
+          <h4 className="text-xs font-bold text-foreground uppercase">Change Password</h4>
           <form onSubmit={handlePasswordChange} className="space-y-3">
             <input
               type={showPasswords ? "text" : "password"}
               placeholder="Current Password"
               value={passwordData.currentPassword}
               onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50"
+              className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-emerald-500/50"
               required
             />
             <input
@@ -439,7 +439,7 @@ export default function Settings() {
               placeholder="New Password (min 6 characters)"
               value={passwordData.newPassword}
               onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50"
+              className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-emerald-500/50"
               required
               minLength={6}
             />
@@ -448,14 +448,14 @@ export default function Settings() {
               placeholder="Confirm New Password"
               value={passwordData.confirmPassword}
               onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50"
+              className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-emerald-500/50"
               required
             />
             <div className="flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setShowPasswords(!showPasswords)}
-                className="flex items-center gap-2 text-xs text-neutral-500 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPasswords ? <EyeOff size={14} /> : <Eye size={14} />}
                 {showPasswords ? "Hide" : "Show"} passwords
@@ -463,7 +463,7 @@ export default function Settings() {
               <button
                 type="submit"
                 disabled={changingPassword}
-                className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-foreground rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
               >
                 {changingPassword && <Loader2 size={16} className="animate-spin" />}
                 Update Password
@@ -472,7 +472,7 @@ export default function Settings() {
           </form>
         </div>
 
-        <div className="border-t border-white/5 pt-4 mt-4">
+        <div className="border-t border-border pt-4 mt-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {user?.emailVerified ? (
@@ -481,8 +481,8 @@ export default function Settings() {
                 <XCircle size={16} className="text-red-400" />
               )}
               <div>
-                <p className="text-sm text-white font-medium">Email Verification</p>
-                <p className="text-[10px] text-neutral-500">
+                <p className="text-sm text-foreground font-medium">Email Verification</p>
+                <p className="text-[10px] text-muted-foreground">
                   Status: {user?.emailVerified ? "Verified" : "Not Verified"}
                 </p>
               </div>
@@ -490,7 +490,7 @@ export default function Settings() {
             {!user?.emailVerified && (
               <button
                 onClick={handleResendVerification}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg transition-colors"
+                className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-foreground text-xs font-bold rounded-lg transition-colors"
               >
                 Resend Email
               </button>
@@ -508,10 +508,10 @@ export default function Settings() {
         
         <div className="space-y-4">
           {/* Logout */}
-          <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-accent rounded-xl">
             <div>
-              <p className="text-sm text-white font-medium">Log Out</p>
-              <p className="text-[10px] text-neutral-500">Sign out of this device</p>
+              <p className="text-sm text-foreground font-medium">Log Out</p>
+              <p className="text-[10px] text-muted-foreground">Sign out of this device</p>
             </div>
             <button
               onClick={handleLogout}
@@ -523,14 +523,14 @@ export default function Settings() {
           </div>
           
           {/* Delete Account */}
-          <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-accent rounded-xl">
             <div>
-              <p className="text-sm text-white font-medium">Delete Account</p>
-              <p className="text-[10px] text-neutral-500">Permanently remove your account and all data</p>
+              <p className="text-sm text-foreground font-medium">Delete Account</p>
+              <p className="text-[10px] text-muted-foreground">Permanently remove your account and all data</p>
             </div>
             <button
               onClick={() => setShowDeleteModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-foreground text-sm font-bold rounded-lg transition-colors"
             >
               <Trash2 size={16} />
               Delete
@@ -540,7 +540,7 @@ export default function Settings() {
       </section>
 
       {/* Section 8: Help & Support */}
-      <section className="glass p-6 rounded-[32px] border border-white/5 space-y-4">
+      <section className="glass p-6 rounded-[32px] border border-border space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-cyan-400">
             <HelpCircle size={20} />
@@ -548,7 +548,7 @@ export default function Settings() {
           </div>
           <button
             onClick={() => setShowSupportSection(!showSupportSection)}
-            className="text-neutral-500 hover:text-white transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronDown size={20} className={`transition-transform ${showSupportSection ? 'rotate-180' : ''}`} />
           </button>
@@ -556,14 +556,14 @@ export default function Settings() {
         
         {showSupportSection && (
           <div className="space-y-4">
-            <p className="text-xs text-neutral-500">Something broken? Let us know.</p>
+            <p className="text-xs text-muted-foreground">Something broken? Let us know.</p>
             
             {/* Ticket Form */}
             <form onSubmit={handleSubmitTicket} className="space-y-3">
               <select
                 value={ticketForm.category}
                 onChange={(e) => setTicketForm(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground text-sm focus:outline-none focus:border-cyan-500/50"
               >
                 <option value="bug">Bug Report</option>
                 <option value="feature_request">Feature Request</option>
@@ -576,20 +576,20 @@ export default function Settings() {
                 placeholder="Subject"
                 value={ticketForm.subject}
                 onChange={(e) => setTicketForm(prev => ({ ...prev, subject: e.target.value }))}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-neutral-600 text-sm focus:outline-none focus:border-cyan-500/50"
+                className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:border-cyan-500/50"
                 required
               />
               <textarea
                 placeholder="Describe what happened..."
                 value={ticketForm.description}
                 onChange={(e) => setTicketForm(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-neutral-600 text-sm focus:outline-none focus:border-cyan-500/50 min-h-[100px] resize-none"
+                className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:border-cyan-500/50 min-h-[100px] resize-none"
                 required
               />
               <button
                 type="submit"
                 disabled={submittingTicket}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-cyan-600 hover:bg-cyan-500 text-foreground rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
               >
                 {submittingTicket ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -602,21 +602,21 @@ export default function Settings() {
 
             {/* My Tickets */}
             {myTickets.length > 0 && (
-              <div className="border-t border-white/5 pt-4 mt-4">
-                <h4 className="text-xs font-bold text-white uppercase mb-3">My Reports</h4>
+              <div className="border-t border-border pt-4 mt-4">
+                <h4 className="text-xs font-bold text-foreground uppercase mb-3">My Reports</h4>
                 <div className="space-y-2">
                   {myTickets.slice(0, 5).map((ticket) => (
-                    <div key={ticket._id} className="p-3 bg-white/5 rounded-xl">
+                    <div key={ticket._id} className="p-3 bg-accent rounded-xl">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`w-2 h-2 rounded-full ${
                           ticket.status === 'open' ? 'bg-blue-500' :
                           ticket.status === 'in_review' ? 'bg-yellow-500' :
                           ticket.status === 'resolved' ? 'bg-green-500' : 'bg-neutral-500'
                         }`} />
-                        <span className="text-[10px] font-bold text-neutral-500">#{ticket.ticketNumber}</span>
-                        <span className="text-[10px] font-medium text-white truncate flex-1">{ticket.subject}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground">#{ticket.ticketNumber}</span>
+                        <span className="text-[10px] font-medium text-foreground truncate flex-1">{ticket.subject}</span>
                       </div>
-                      <p className="text-[10px] text-neutral-500 capitalize">
+                      <p className="text-[10px] text-muted-foreground capitalize">
                         {ticket.status.replace('_', ' ')} {ticket.adminReply && '• Replied'}
                       </p>
                     </div>
@@ -643,7 +643,7 @@ export default function Settings() {
               <AlertTriangle size={24} />
               <h3 className="text-xl font-bold">Delete Account</h3>
             </div>
-            <p className="text-neutral-400 text-sm mb-4">
+            <p className="text-muted-foreground text-sm mb-4">
               This action cannot be undone. All your data will be permanently deleted.
             </p>
             <input
@@ -651,7 +651,7 @@ export default function Settings() {
               placeholder="Enter your password to confirm"
               value={deletePassword}
               onChange={(e) => setDeletePassword(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-neutral-600 focus:outline-none focus:border-red-500/50 mb-4"
+              className="w-full bg-primary/10 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-red-500/50 mb-4"
             />
             <div className="flex gap-3">
               <button
@@ -659,14 +659,14 @@ export default function Settings() {
                   setShowDeleteModal(false);
                   setDeletePassword("");
                 }}
-                className="flex-1 py-3 border border-white/10 text-neutral-400 rounded-xl font-bold text-sm hover:bg-white/5 transition-colors"
+                className="flex-1 py-3 border border-border text-muted-foreground rounded-xl font-bold text-sm hover:bg-accent transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleting}
-                className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-foreground rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {deleting && <Loader2 size={16} className="animate-spin" />}
                 Delete Forever
@@ -684,8 +684,8 @@ function ToggleRow({ label, description, active, onChange }) {
   return (
     <div className="flex items-center justify-between p-2">
       <div>
-        <p className="text-white text-sm font-bold">{label}</p>
-        {description && <p className="text-[10px] text-neutral-500">{description}</p>}
+        <p className="text-foreground text-sm font-bold">{label}</p>
+        {description && <p className="text-[10px] text-muted-foreground">{description}</p>}
       </div>
       <button
         onClick={() => onChange(!active)}
@@ -707,8 +707,8 @@ function ChannelToggle({ label, active, onChange }) {
       onClick={() => onChange(!active)}
       className={`py-2 px-4 rounded-xl text-xs font-bold border transition-all ${
         active
-          ? "bg-blue-600 border-blue-500 text-white"
-          : "bg-white/5 border-white/10 text-neutral-500 hover:bg-white/10"
+          ? "bg-blue-600 border-blue-500 text-foreground"
+          : "bg-accent border-border text-muted-foreground hover:bg-primary/10"
       }`}
     >
       {label}

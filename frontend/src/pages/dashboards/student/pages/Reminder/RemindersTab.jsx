@@ -35,7 +35,7 @@ const PRIORITY_CONFIG = {
 // ─── Shared Components ──────────────────────────────────────────────────────
 const GlassCard = ({ children, className = "", glow = "" }) => (
   <div
-    className={`relative rounded-xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl shadow-xl ${glow} ${className}`}
+    className={`relative rounded-xl border border-border bg-accent backdrop-blur-xl shadow-xl ${glow} ${className}`}
   >
     {children}
   </div>
@@ -71,7 +71,7 @@ const TaskCard = ({ item, priorityKey, index, onDelete, onEdit }) => {
           >
             <GlassCard
               glow={snapshot.isDragging ? `shadow-xs ${config.glow}` : ""}
-              className="p-4 group cursor-grab active:cursor-grabbing transition-all hover:bg-white/[0.05]"
+              className="p-4 group cursor-grab active:cursor-grabbing transition-all hover:bg-accent"
             >
               <div
                 className={`absolute -top-6 -left-6 w-24 h-24 rounded-sm bg-gradient-radial ${config.ambient} to-transparent blur-2xl opacity-60 pointer-events-none`}
@@ -140,7 +140,7 @@ const TaskCard = ({ item, priorityKey, index, onDelete, onEdit }) => {
                     className={`text-[10px] px-2 py-0.5 rounded-full ${
                       isOverdue
                         ? "bg-red-500/10 text-red-400 ring-1 ring-red-500/20"
-                        : "bg-white/[0.04] text-zinc-500"
+                        : "bg-primary/10 text-zinc-500"
                     }`}
                   >
                     {isOverdue ? "⚠ " : ""}Due {formatDateTime(item.dueDate)}
@@ -286,7 +286,7 @@ const RemindersTab = () => {
     );
 
   return (
-    <div className="relative min-h-screen bg-[#000000] text-white transition-all duration-300 overflow-hidden">
+    <div className="relative min-h-screen bg-card text-foreground transition-all duration-300 overflow-hidden">
       <Toaster position="bottom-right" />
 
       <div className="relative z-10 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
@@ -344,7 +344,7 @@ const RemindersTab = () => {
                       ref={provided.innerRef}
                       className={`min-h-[5px] lg:min-h-[500px] space-y-3 p-2 rounded-xl border transition-all ${
                         snapshot.isDraggingOver
-                          ? "border-white/10 bg-white/[0.02]"
+                          ? "border-border bg-white/[0.02]"
                           : "border-transparent"
                       }`}
                     >
@@ -388,13 +388,13 @@ const RemindersTab = () => {
               exit={{ scale: 0.96, y: 16, opacity: 0 }}
               className="w-full max-w-md"
             >
-              <GlassCard className="w-full p-6 bg-background/95 border-white/10">
+              <GlassCard className="w-full p-6 bg-background/95 border-border">
                 <h2 className="text-base font-semibold mb-6">New Task</h2>
                 <form onSubmit={handleAddReminder} className="space-y-4">
                   <input
                     type="text"
                     placeholder="Task title"
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all"
+                    className="w-full bg-accent border border-border rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all"
                     value={newReminder.title}
                     onChange={(e) =>
                       setNewReminder({ ...newReminder, title: e.target.value })
@@ -403,7 +403,7 @@ const RemindersTab = () => {
                   <textarea
                     placeholder="Add notes..."
                     rows={3}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all resize-none"
+                    className="w-full bg-accent border border-border rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all resize-none"
                     value={newReminder.note}
                     onChange={(e) =>
                       setNewReminder({ ...newReminder, note: e.target.value })
@@ -412,7 +412,7 @@ const RemindersTab = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="datetime-local"
-                      className="bg-white/[0.03] border border-white/[0.08] rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
+                      className="bg-accent border border-border rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
                       value={newReminder.dueDate}
                       onChange={(e) =>
                         setNewReminder({
@@ -422,7 +422,7 @@ const RemindersTab = () => {
                       }
                     />
                     <select
-                      className="bg-white/[0.03] border border-white/[0.08] rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
+                      className="bg-accent border border-border rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
                       value={newReminder.priority}
                       onChange={(e) =>
                         setNewReminder({
@@ -440,7 +440,7 @@ const RemindersTab = () => {
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="flex-1 border border-white/[0.08] text-zinc-400 py-2.5 rounded-md text-sm hover:text-white transition-all order-2 sm:order-1"
+                      className="flex-1 border border-border text-zinc-400 py-2.5 rounded-md text-sm hover:text-foreground transition-all order-2 sm:order-1"
                     >
                       Cancel
                     </button>
@@ -476,13 +476,13 @@ const RemindersTab = () => {
               exit={{ scale: 0.96, y: 16, opacity: 0 }}
               className="w-full max-w-md"
             >
-              <GlassCard className="w-full p-6 bg-background/95 border-white/10">
+              <GlassCard className="w-full p-6 bg-background/95 border-border">
                 <h2 className="text-base font-semibold mb-6">Update Task</h2>
                 <form onSubmit={handleUpdateReminder} className="space-y-4">
                   <input
                     type="text"
                     placeholder="Task title"
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all"
+                    className="w-full bg-accent border border-border rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all"
                     value={editingTask.title}
                     onChange={(e) =>
                       setEditingTask({ ...editingTask, title: e.target.value })
@@ -491,7 +491,7 @@ const RemindersTab = () => {
                   <textarea
                     placeholder="Add notes..."
                     rows={3}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all resize-none"
+                    className="w-full bg-accent border border-border rounded-md px-3.5 py-2.5 text-sm outline-none focus:border-white/20 transition-all resize-none"
                     value={editingTask.note}
                     onChange={(e) =>
                       setEditingTask({ ...editingTask, note: e.target.value })
@@ -500,7 +500,7 @@ const RemindersTab = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="datetime-local"
-                      className="bg-white/[0.03] border border-white/[0.08] rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
+                      className="bg-accent border border-border rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
                       value={editingTask.dueDate}
                       onChange={(e) =>
                         setEditingTask({
@@ -510,7 +510,7 @@ const RemindersTab = () => {
                       }
                     />
                     <select
-                      className="bg-white/[0.03] border border-white/[0.08] rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
+                      className="bg-accent border border-border rounded-md px-3 py-2.5 text-sm [color-scheme:dark] w-full"
                       value={editingTask.priority}
                       onChange={(e) =>
                         setEditingTask({
@@ -528,7 +528,7 @@ const RemindersTab = () => {
                     <button
                       type="button"
                       onClick={() => setIsEditModalOpen(false)}
-                      className="flex-1 border border-white/[0.08] text-zinc-400 py-2.5 rounded-md text-sm hover:text-white transition-all order-2 sm:order-1"
+                      className="flex-1 border border-border text-zinc-400 py-2.5 rounded-md text-sm hover:text-foreground transition-all order-2 sm:order-1"
                     >
                       Cancel
                     </button>

@@ -182,13 +182,13 @@ export default function MyAnnouncements({ user: propUser }) {
   const activePulsesCount = announcements.filter((ann) => (ann.status || "Active") === "Active").length;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 text-white w-full p-4 relative font-sans">
+    <div className="max-w-7xl mx-auto space-y-6 text-foreground w-full p-4 relative font-sans">
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white mb-2">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">
             My Announcements
           </h1>
-          <p className="text-neutral-400">
+          <p className="text-muted-foreground">
             You have <span className="text-emerald-400 font-semibold">{activePulsesCount} active pulses</span> running.
           </p>
         </div>
@@ -206,15 +206,15 @@ export default function MyAnnouncements({ user: propUser }) {
           
           {/* Tabs & Search */}
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
-             <div className="flex bg-muted p-1 rounded-xl border border-white/5">
+             <div className="flex bg-muted p-1 rounded-xl border border-border">
                 {tabs.map((tab) => (
                    <button
                      key={tab}
                      onClick={() => setActiveTab(tab)}
                      className={`px-5 py-1.5 rounded-lg text-sm font-bold transition-all ${
                        activeTab === tab
-                         ? "bg-white/10 text-white"
-                         : "text-neutral-500 hover:text-neutral-300"
+                         ? "bg-white/10 text-foreground"
+                         : "text-muted-foreground hover:text-neutral-300"
                      }`}
                    >
                      {tab}
@@ -222,13 +222,13 @@ export default function MyAnnouncements({ user: propUser }) {
                 ))}
              </div>
              <div className="relative w-full md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={16} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                 <input
                    type="text"
                    placeholder="Search pulses..."
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
-                   className="w-full bg-muted border border-white/5 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                   className="w-full bg-muted border border-border rounded-xl pl-9 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-emerald-500/50 transition-colors"
                 />
              </div>
           </div>
@@ -239,9 +239,9 @@ export default function MyAnnouncements({ user: propUser }) {
                 <div className="h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : filteredData.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-12 border border-white/5 rounded-2xl bg-muted">
-                <AlertCircle size={48} className="mb-4 opacity-20 text-neutral-500" />
-                <p className="text-lg font-medium text-neutral-500">
+              <div className="flex flex-col items-center justify-center p-12 border border-border rounded-2xl bg-muted">
+                <AlertCircle size={48} className="mb-4 opacity-20 text-muted-foreground" />
+                <p className="text-lg font-medium text-muted-foreground">
                   No {activeTab.toLowerCase()} broadcasts found
                 </p>
                 <button
@@ -270,7 +270,7 @@ export default function MyAnnouncements({ user: propUser }) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.03 }}
                     onClick={() => setSelectedAnnouncement(item)}
-                    className="bg-muted border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors cursor-pointer group"
+                    className="bg-muted border border-border rounded-2xl p-6 hover:border-white/10 transition-colors cursor-pointer group"
                   >
                     {/* Top Row: Tags and Actions */}
                     <div className="flex justify-between items-start mb-4">
@@ -320,7 +320,7 @@ export default function MyAnnouncements({ user: propUser }) {
                               e.stopPropagation();
                               setSelectedAnnouncement(item);
                             }}
-                            className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                            className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
                             title="Edit"
                           >
                             <Edit3 size={14} />
@@ -328,7 +328,7 @@ export default function MyAnnouncements({ user: propUser }) {
                         )}
                         <button
                           onClick={(e) => handleToggleArchive(e, item)}
-                          className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                          className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
                           title={item.status === "Archived" ? "Restore" : "Archive"}
                         >
                           {item.status === "Archived" ? <ArchiveRestore size={14} /> : <Archive size={14} />}
@@ -347,7 +347,7 @@ export default function MyAnnouncements({ user: propUser }) {
                     </div>
 
                     {/* Title & Date */}
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2">
+                    <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2">
                       {item.title}
                     </h3>
                     <div className="flex items-center gap-2 mb-6">
@@ -357,7 +357,7 @@ export default function MyAnnouncements({ user: propUser }) {
                           Scheduled: {formattedScheduled}
                         </span>
                       ) : (
-                        <p className="text-[14px] text-neutral-400">
+                        <p className="text-[14px] text-muted-foreground">
                           Sent: {formattedDate}
                         </p>
                       )}
@@ -366,24 +366,24 @@ export default function MyAnnouncements({ user: propUser }) {
                     {/* Stats Row */}
                     <div className="grid grid-cols-3 gap-4 pt-5">
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Read Rate</p>
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 tracking-wider">Read Rate</p>
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                          <div className="flex-1 h-1.5 bg-accent rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${readRate > 70 ? 'bg-success' : 'bg-amber-400'}`}
                               style={{ width: `${readRate}%` }}
                             ></div>
                           </div>
-                          <span className="text-sm font-bold text-white">{readRate}%</span>
+                          <span className="text-sm font-bold text-foreground">{readRate}%</span>
                         </div>
                       </div>
                       <div className="text-center">
-                        <p className="text-[10px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Total Views</p>
-                        <p className="text-xl font-bold text-white">{item.viewedBy?.length || 0}</p>
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 tracking-wider">Total Views</p>
+                        <p className="text-xl font-bold text-foreground">{item.viewedBy?.length || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[10px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Upvotes</p>
-                        <p className="text-xl font-bold text-white">{upvotes}</p>
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 tracking-wider">Upvotes</p>
+                        <p className="text-xl font-bold text-foreground">{upvotes}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -395,14 +395,14 @@ export default function MyAnnouncements({ user: propUser }) {
 
         {/* Right Column: Performance Overview */}
         <div className="lg:col-span-1">
-          <div className="bg-[#151515] border border-white/5 rounded-2xl p-6 lg:sticky lg:top-6">
-            <h3 className="text-[18px] font-bold text-white mb-8">Performance Overview</h3>
+          <div className="bg-[#151515] border border-border rounded-2xl p-6 lg:sticky lg:top-6">
+            <h3 className="text-[18px] font-bold text-foreground mb-8">Performance Overview</h3>
             
             <div className="space-y-8">
               <div>
-                <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Total Pulses Sent</p>
+                <p className="text-[11px] uppercase font-bold text-muted-foreground mb-2 tracking-wider">Total Pulses Sent</p>
                 <div className="flex items-end justify-between">
-                  <span className="text-4xl font-bold text-white tracking-tight">{announcements.length + 124}</span>
+                  <span className="text-4xl font-bold text-foreground tracking-tight">{announcements.length + 124}</span>
                   <span className="px-2.5 py-1 bg-emerald-500/10 text-success rounded-full text-xs font-bold flex items-center gap-1">
                     <TrendingUp size={12} strokeWidth={3} /> +12%
                   </span>
@@ -410,9 +410,9 @@ export default function MyAnnouncements({ user: propUser }) {
               </div>
               
               <div>
-                <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Avg Engagement</p>
+                <p className="text-[11px] uppercase font-bold text-muted-foreground mb-2 tracking-wider">Avg Engagement</p>
                 <div className="flex items-end justify-between">
-                  <span className="text-4xl font-bold text-white tracking-tight">84%</span>
+                  <span className="text-4xl font-bold text-foreground tracking-tight">84%</span>
                   <span className="px-2.5 py-1 bg-emerald-500/10 text-success rounded-full text-xs font-bold flex items-center gap-1">
                     <TrendingUp size={12} strokeWidth={3} /> +5%
                   </span>
@@ -421,7 +421,7 @@ export default function MyAnnouncements({ user: propUser }) {
               
               <div className="flex items-center justify-between mt-8">
                 <div>
-                  <p className="text-[11px] uppercase font-bold text-neutral-500 mb-2 tracking-wider">Pending Approvals</p>
+                  <p className="text-[11px] uppercase font-bold text-muted-foreground mb-2 tracking-wider">Pending Approvals</p>
                   <span className="text-3xl font-bold text-amber-500 tracking-tight">2</span>
                 </div>
                 <div className="px-3 py-2 bg-[#2D2114] rounded-full border border-amber-500/10 flex items-center gap-2">
@@ -474,24 +474,24 @@ export default function MyAnnouncements({ user: propUser }) {
                 <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
                   <TriangleAlert className="text-red-500" size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   Are you sure?
                 </h3>
-                <p className="text-neutral-400 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   This action is irreversible. The broadcast and all its
                   comments will be permanently erased.
                 </p>
               </div>
-              <div className="flex border-t border-white/5 bg-white/[0.02]">
+              <div className="flex border-t border-border bg-accent">
                 <button
                   onClick={() => setDeleteId(null)}
-                  className="flex-1 py-4 text-sm font-bold text-neutral-400 hover:text-white hover:bg-white/5 transition-colors border-r border-white/5"
+                  className="flex-1 py-4 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-accent transition-colors border-r border-border"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 py-4 text-sm font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                  className="flex-1 py-4 text-sm font-bold text-red-500 hover:bg-red-500 hover:text-foreground transition-all"
                 >
                   Delete Permanently
                 </button>
@@ -523,9 +523,9 @@ export default function MyAnnouncements({ user: propUser }) {
                   <div className="p-2 bg-blue-500/10 rounded-lg">
                     <Clock className="text-blue-500" size={20} />
                   </div>
-                  <h3 className="text-lg font-bold text-white">Reschedule Announcement</h3>
+                  <h3 className="text-lg font-bold text-foreground">Reschedule Announcement</h3>
                 </div>
-                <p className="text-neutral-400 text-sm mb-4">
+                <p className="text-muted-foreground text-sm mb-4">
                   Choose a new date and time for this announcement to be sent.
                 </p>
                 <div className="mb-6">
@@ -537,19 +537,19 @@ export default function MyAnnouncements({ user: propUser }) {
                     value={rescheduleDate}
                     onChange={(e) => setRescheduleDate(e.target.value)}
                     min={new Date().toISOString().slice(0, 16)}
-                    className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setRescheduleId(null)}
-                    className="flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl font-bold transition-colors"
+                    className="flex-1 bg-accent hover:bg-white/10 text-foreground py-3 rounded-xl font-bold transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmReschedule}
-                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-bold transition-colors"
+                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-foreground py-3 rounded-xl font-bold transition-colors"
                   >
                     Reschedule
                   </button>
@@ -731,14 +731,14 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
       }}
     >
       <div className="flex items-center justify-between p-4 border-b border-white/10 bg-card shrink-0 z-20">
-        <h3 className="text-sm font-bold text-white">
+        <h3 className="text-sm font-bold text-foreground">
           {isEditingBroadcast ? "Editing Broadcast" : "Thread Details"}
         </h3>
         <div className="flex items-center gap-2">
           {!isEditingBroadcast ? (
             <button
               onClick={() => setIsEditingBroadcast(true)}
-              className="p-2 text-neutral-400 hover:text-blue-400 transition-all"
+              className="p-2 text-muted-foreground hover:text-blue-400 transition-all"
             >
               <Edit3 size={18} />
             </button>
@@ -753,7 +753,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
           )}
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white transition-all"
+            className="p-2 text-muted-foreground hover:text-foreground transition-all"
           >
             <X size={18} />
           </button>
@@ -768,24 +768,24 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-lg font-bold text-white outline-none focus:border-blue-500/50"
+                className="w-full bg-accent border border-white/10 rounded-lg p-3 text-lg font-bold text-foreground outline-none focus:border-blue-500/50"
               />
               <textarea
                 rows={6}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-[13px] text-neutral-300 outline-none focus:border-blue-500/50 resize-none"
+                className="w-full bg-accent border border-white/10 rounded-lg p-3 text-[13px] text-neutral-300 outline-none focus:border-blue-500/50 resize-none"
               />
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveBroadcast}
-                  className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-bold text-sm"
+                  className="flex-1 bg-blue-600 hover:bg-blue-500 text-foreground py-2 rounded-lg font-bold text-sm"
                 >
                   Save Changes
                 </button>
                 <button
                   onClick={() => setIsEditingBroadcast(false)}
-                  className="px-4 bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg font-bold text-sm"
+                  className="px-4 bg-accent hover:bg-white/10 text-foreground py-2 rounded-lg font-bold text-sm"
                 >
                   Cancel
                 </button>
@@ -793,7 +793,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
             </div>
           ) : (
             <>
-              <h1 className="text-xl font-bold text-white leading-tight">
+              <h1 className="text-xl font-bold text-foreground leading-tight">
                 {ann.title}
               </h1>
               <p className="text-[13px] text-neutral-300 leading-relaxed whitespace-pre-wrap">
@@ -803,8 +803,8 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
           )}
         </div>
 
-        <div className="pt-4 border-t border-white/5">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-6">
+        <div className="pt-4 border-t border-border">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6">
             Conversation
           </h4>
           <div className="space-y-6">
@@ -848,7 +848,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
                           [index]: !p[index],
                         }));
                       }}
-                      className="text-[11px] font-bold text-neutral-500 hover:text-white flex items-center gap-3 mb-2"
+                      className="text-[11px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-3 mb-2"
                     >
                       <div className="w-6 h-[1px] bg-neutral-700"></div>
                       {expandedThreads[index]
@@ -908,7 +908,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
             >
               {emojiCategories.map((cat) => (
                 <div key={cat.title} className="mb-4">
-                  <h4 className="text-[10px] text-neutral-500 uppercase font-bold mb-2">
+                  <h4 className="text-[10px] text-muted-foreground uppercase font-bold mb-2">
                     {cat.title}
                   </h4>
                   <div className="grid grid-cols-7 gap-1">
@@ -942,14 +942,14 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
                 setEditingCommentId(null);
                 setCommentText("");
               }}
-              className="text-neutral-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X size={12} />
             </button>
           </div>
         ) : replyingTo ? (
           <div className="flex items-center justify-between px-1 pb-2">
-            <span className="text-[11px] text-neutral-500 font-semibold uppercase tracking-widest">
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest">
               Replying to {replyingTo}
             </span>
             <button
@@ -957,7 +957,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
                 setReplyingTo(null);
                 setCommentText("");
               }}
-              className="text-neutral-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X size={12} />
             </button>
@@ -965,11 +965,11 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
         ) : null}
 
         <div
-          className={`flex items-center gap-3 bg-muted px-3 py-2.5 border rounded-xl transition-colors ${editingCommentId ? "border-amber-500/30" : "border-white/5"}`}
+          className={`flex items-center gap-3 bg-muted px-3 py-2.5 border rounded-xl transition-colors ${editingCommentId ? "border-amber-500/30" : "border-border"}`}
         >
           <Smile
             size={20}
-            className="text-neutral-500 cursor-pointer hover:text-white"
+            className="text-muted-foreground cursor-pointer hover:text-foreground"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           />
           <input
@@ -979,7 +979,7 @@ function LecturerSideDrawer({ ann, onClose, currentUser, onUpdate }) {
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handlePostOrUpdateComment()}
-            className="flex-1 bg-transparent text-[13px] text-white outline-none"
+            className="flex-1 bg-transparent text-[13px] text-foreground outline-none"
           />
 
           {/* Dynamic Button Text */}
@@ -1042,24 +1042,24 @@ function CommentItem({
             alt=""
           />
         ) : (
-          <UserIcon size={14} className="text-neutral-400" />
+          <UserIcon size={14} className="text-muted-foreground" />
         )}
       </div>
       <div className="flex-1 pr-14">
-        <p className="text-[13px] leading-tight text-white">
+        <p className="text-[13px] leading-tight text-foreground">
           <span className="font-bold mr-2 lowercase">{handle}</span>
           <span className="text-neutral-200">
             {renderContent(comment.content)}
           </span>
         </p>
-        <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-neutral-500 uppercase">
+        <div className="flex items-center gap-4 mt-2 text-[10px] font-bold text-muted-foreground uppercase">
           <span>now</span>
           <button
             onClick={(e) => {
               e.stopPropagation();
               onReply();
             }}
-            className="hover:text-white"
+            className="hover:text-foreground"
           >
             Reply
           </button>
@@ -1100,7 +1100,7 @@ function CommentItem({
                       onEditInit();
                       setActiveDropdown(null);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 text-[10px] font-bold text-white hover:bg-white/5 border-b border-white/5"
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-[10px] font-bold text-foreground hover:bg-accent border-b border-border"
                   >
                     <Edit3 size={12} /> Edit
                   </button>

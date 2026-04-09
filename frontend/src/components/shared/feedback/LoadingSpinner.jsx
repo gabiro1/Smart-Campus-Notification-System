@@ -21,8 +21,8 @@ export default function LoadingSpinner({
 
   const colorClasses = {
     primary: "text-blue-400",
-    white: "text-white",
-    muted: "text-neutral-500",
+    white: "text-foreground",
+    muted: "text-muted-foreground",
   };
 
   return (

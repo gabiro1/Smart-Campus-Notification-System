@@ -94,7 +94,7 @@ export default function MyClasses() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-red-400 text-lg font-semibold mb-2">Error</p>
-        <p className="text-neutral-400 max-w-md text-center">{error}</p>
+        <p className="text-muted-foreground max-w-md text-center">{error}</p>
       </div>
     );
   }
@@ -104,10 +104,10 @@ export default function MyClasses() {
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header Section */}
       <header>
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
           My Classes
         </h1>
-        <p className="text-neutral-400">
+        <p className="text-muted-foreground">
           Monitor your assigned modules and view student enrollments.
         </p>
       </header>
@@ -140,14 +140,14 @@ export default function MyClasses() {
         {!selectedClass ? (
           // Empty State: No class selected
           <div className="h-[400px] flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-16 h-16 bg-white/[0.03] rounded-full flex items-center justify-center mx-auto border border-white/5">
+            <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto border border-border">
               <Users size={28} className="text-neutral-600" />
             </div>
             <div>
-              <h3 className="text-lg font-medium text-white mb-1">
+              <h3 className="text-lg font-medium text-foreground mb-1">
                 No Class Selected
               </h3>
-              <p className="text-neutral-400 max-w-sm mx-auto">
+              <p className="text-muted-foreground max-w-sm mx-auto">
                 Select a class card above to view the detailed student roster
                 and manage course attendees.
               </p>
@@ -157,12 +157,12 @@ export default function MyClasses() {
           // Roster View
           <div className="p-2 flex flex-col h-full min-h-[400px]">
             {/* Roster Header & Search */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-border">
               <div>
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-xl font-bold text-foreground">
                   {selectedClass.name}
                 </h2>
-                <p className="text-neutral-400 text-sm">
+                <p className="text-muted-foreground text-sm">
                   {selectedClass.code} • Student Roster ({roster.length})
                 </p>
               </div>
@@ -171,7 +171,7 @@ export default function MyClasses() {
               <div className="relative w-full md:w-64">
                 <Search
                   size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 />
                 <input
                   type="text"
@@ -179,7 +179,7 @@ export default function MyClasses() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={isLoadingRoster || roster.length === 0}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2 pl-9 pr-4 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-colors disabled:opacity-50"
+                  className="w-full bg-accent border border-white/10 rounded-lg py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-neutral-600 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-colors disabled:opacity-50"
                 />
               </div>
             </div>
@@ -191,19 +191,19 @@ export default function MyClasses() {
                   className="animate-spin text-blue-400 mb-2"
                   size={32}
                 />
-                <p className="text-neutral-500 text-sm">
+                <p className="text-muted-foreground text-sm">
                   Loading student records...
                 </p>
               </div>
             ) : roster.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
-                <p className="text-neutral-500 text-center py-10">
+                <p className="text-muted-foreground text-center py-10">
                   No students are currently enrolled in this class.
                 </p>
               </div>
             ) : filteredRoster.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
-                <p className="text-neutral-500 text-center py-10">
+                <p className="text-muted-foreground text-center py-10">
                   No students found matching "{searchQuery}"
                 </p>
               </div>
@@ -212,7 +212,7 @@ export default function MyClasses() {
                 {filteredRoster.map((student) => (
                   <div
                     key={student._id}
-                    className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+                    className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-border hover:bg-accent hover:border-white/10 transition-all group"
                   >
                     <div className="flex items-center gap-4">
                       {/* Avatar Placeholder */}
@@ -220,10 +220,10 @@ export default function MyClasses() {
                         {student.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-white font-medium group-hover:text-blue-400 transition-colors">
+                        <p className="text-foreground font-medium group-hover:text-blue-400 transition-colors">
                           {student.name}
                         </p>
-                        <p className="text-neutral-500 text-xs">
+                        <p className="text-muted-foreground text-xs">
                           {student.email}
                         </p>
                       </div>
@@ -231,7 +231,7 @@ export default function MyClasses() {
 
                     <a
                       href={`mailto:${student.email}`}
-                      className="p-2 bg-white/5 hover:bg-blue-500/20 text-neutral-400 hover:text-blue-400 rounded-md transition-colors tooltip-trigger"
+                      className="p-2 bg-accent hover:bg-blue-500/20 text-muted-foreground hover:text-blue-400 rounded-md transition-colors tooltip-trigger"
                       title="Send Email"
                     >
                       <Mail size={16} />

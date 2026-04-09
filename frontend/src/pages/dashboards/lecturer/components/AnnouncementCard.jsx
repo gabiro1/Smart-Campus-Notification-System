@@ -24,24 +24,24 @@ export default function AnnouncementCard({
         <div
           className={`p-2.5 rounded-xl border ${
             isDraft
-              ? "bg-white/5 border-white/10 text-neutral-400"
+              ? "bg-accent border-white/10 text-muted-foreground"
               : "bg-blue-500/10 border-blue-500/20 text-blue-400"
           } group-hover:scale-110 transition-transform duration-300 ease-out`}
         >
           <Megaphone size={18} />
         </div>
-        <button className="text-neutral-500 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10">
+        <button className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-white/10">
           <MoreVertical size={16} />
         </button>
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col">
-        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-100 transition-colors line-clamp-2">
+        <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-blue-100 transition-colors line-clamp-2">
           {title}
         </h3>
-        <div className="flex items-center gap-2 text-xs text-neutral-400 mb-4 mt-auto">
-          <span className="px-2 py-0.5 bg-white/5 rounded-md border border-white/5">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4 mt-auto">
+          <span className="px-2 py-0.5 bg-accent rounded-md border border-border">
             {targetClass}
           </span>
           <span className="flex items-center gap-1">
@@ -51,21 +51,21 @@ export default function AnnouncementCard({
       </div>
 
       {/* Footer / Status */}
-      <div className="pt-4 border-t border-white/5 flex items-center justify-between relative z-10 mt-auto">
+      <div className="pt-4 border-t border-border flex items-center justify-between relative z-10 mt-auto">
         <span
           className={`text-xs font-semibold px-2 py-1 rounded-md border ${
             status === "Active"
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
               : status === "Archived"
                 ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                : "bg-white/5 text-neutral-400 border-white/10"
+                : "bg-accent text-muted-foreground border-white/10"
           }`}
         >
           {status}
         </span>
 
         {engagement && (
-          <div className="flex items-center gap-1.5 text-xs font-medium text-white">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
             <BarChart2 size={14} className="text-blue-400" />
             {engagement}
           </div>

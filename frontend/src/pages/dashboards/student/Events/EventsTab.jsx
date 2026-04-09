@@ -16,14 +16,14 @@ export default function EventsTab({
     <div className="w-full">
       {/* Header & Search/Filter (From Screenshot 3) */}
       <div className="mb-8 space-y-6">
-        <h1 className="text-3xl font-bold text-white tracking-tight">
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">
           University Events
         </h1>
 
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
               size={18}
             />
             <input
@@ -31,19 +31,19 @@ export default function EventsTab({
               placeholder="Search announcements, tags, or keywords..."
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              className="w-full bg-background border border-white/10 rounded-[10px] py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all text-white placeholder:text-neutral-600"
+              className="w-full bg-card border border-border rounded-[10px] py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
           <div className="relative">
             <Filter
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
               size={16}
             />
             <select
               value={eventFilter}
               onChange={(e) => setEventFilter(e.target.value)}
-              className="appearance-none bg-background border border-white/10 rounded-[10px] py-3 pl-11 pr-10 text-sm text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+              className="appearance-none bg-card border border-border rounded-[10px] py-3 pl-11 pr-10 text-sm text-foreground focus:outline-none focus:border-blue-500/50 cursor-pointer"
             >
               <option value="all">All Pulses</option>
               <option value="top">Top Matches</option>
@@ -59,14 +59,14 @@ export default function EventsTab({
           {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
-              className="h-48 bg-background border border-white/5 rounded-[15px] animate-pulse"
+              className="h-48 bg-card border border-border rounded-[15px] animate-pulse"
             />
           ))}
         </div>
       ) : events.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-16 border border-white/5 rounded-[15px] bg-background">
-          <AlertCircle size={40} className="text-neutral-600 mb-4" />
-          <h4 className="text-white font-bold text-xl">No Events Found</h4>
+        <div className="flex flex-col items-center justify-center p-16 border border-border rounded-[15px] bg-card">
+          <AlertCircle size={40} className="text-muted-foreground mb-4" />
+          <h4 className="text-foreground font-bold text-xl">No Events Found</h4>
         </div>
       ) : (
         <motion.div

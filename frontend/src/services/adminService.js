@@ -274,6 +274,18 @@ createUser: async (userData) => {
     return response.data;
   },
 
+  // Assign student to class
+  assignStudentToClass: async (classId, studentId) => {
+    const response = await apiClient.post(`/classes/${classId}/assign-student`, { studentId });
+    return response.data;
+  },
+
+  // Remove student from class
+  removeStudentFromClass: async (classId, studentId) => {
+    const response = await apiClient.delete(`/classes/${classId}/remove-student/${studentId}`);
+    return response.data;
+  },
+
 };
 
 export default adminService;

@@ -87,15 +87,15 @@ export default function LecturerSidebar(props) {
             <Command size={18} />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-white tracking-wide">UniCore</h2>
-            <p className="text-[10px] text-emerald-400/80 uppercase tracking-wider font-semibold">Lecturer</p>
+            <h2 className="text-sm font-bold text-foreground tracking-wide">UniCore</h2>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Lecturer</p>
           </div>
         </div>
       }
       footer={
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-neutral-400 hover:text-red-400 hover:bg-red-500/10 text-sm"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted-foreground hover:text-red-400 hover:bg-red-500/10 text-sm"
         >
           <LogOut size={18} />
           <span className="flex-1 text-left">Sign Out</span>

@@ -116,10 +116,10 @@ export default function DepartmentOverview() {
   return (
     <div className="space-y-6 p-4 md:p-6">
       <header className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           Department Overview
         </h1>
-        <p className="text-neutral-400 text-sm mt-1">
+        <p className="text-muted-foreground text-sm mt-1">
           {deptName} communication activity at a glance.
         </p>
       </header>
@@ -130,21 +130,21 @@ export default function DepartmentOverview() {
           Array(4).fill(0).map((_, i) => (
             <GlassCard key={i} className="p-5">
               <div className="animate-pulse space-y-3">
-                <div className="h-4 bg-white/10 rounded w-1/2" />
-                <div className="h-8 bg-white/10 rounded w-1/3" />
+                <div className="h-4 bg-accent rounded w-1/2" />
+                <div className="h-8 bg-accent rounded w-1/3" />
               </div>
             </GlassCard>
           ))
         ) : (
           statCards.map((stat, i) => (
-            <GlassCard key={i} delay={i * 0.1} className="p-5 hover:border-white/10 transition-all cursor-pointer" onClick={() => navigate(`/hod/${stat.title.toLowerCase().includes('approval') ? 'approvals' : stat.title.toLowerCase().includes('announcement') ? 'announcements' : 'lecturers'}`)}>
+            <GlassCard key={i} delay={i * 0.1} className="p-5 hover:border-border transition-all cursor-pointer" onClick={() => navigate(`/hod/${stat.title.toLowerCase().includes('approval') ? 'approvals' : stat.title.toLowerCase().includes('announcement') ? 'announcements' : 'lecturers'}`)}>
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-xl ${stat.bg}`}>
                   <stat.icon size={20} className={stat.color} />
                 </div>
                 <div>
-                  <p className="text-xs text-neutral-500 font-medium">{stat.title}</p>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground font-medium">{stat.title}</p>
+                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                 </div>
               </div>
             </GlassCard>
@@ -155,7 +155,7 @@ export default function DepartmentOverview() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <GlassCard className="p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Weekly Activity</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Weekly Activity</h3>
           <div className="h-64">
             {loading ? (
               <div className="h-full flex items-center justify-center">
@@ -181,41 +181,41 @@ export default function DepartmentOverview() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-neutral-500">No activity data</div>
+              <div className="h-full flex items-center justify-center text-muted-foreground">No activity data</div>
             )}
           </div>
         </GlassCard>
 
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
+            <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
           </div>
           <div className="space-y-3">
             <button onClick={() => navigate('/hod/broadcast')} className="w-full flex items-center justify-between p-4 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 rounded-xl transition-colors group">
               <div className="flex items-center gap-3">
                 <Megaphone size={18} className="text-blue-400" />
-                <span className="text-sm font-medium text-white">New Broadcast</span>
+                <span className="text-sm font-medium text-foreground">New Broadcast</span>
               </div>
               <ArrowRight size={16} className="text-blue-400 group-hover:translate-x-1 transition-transform" />
             </button>
             <button onClick={() => navigate('/hod/approvals')} className="w-full flex items-center justify-between p-4 bg-amber-600/10 hover:bg-amber-600/20 border border-amber-500/20 rounded-xl transition-colors group">
               <div className="flex items-center gap-3">
                 <CheckSquare size={18} className="text-amber-400" />
-                <span className="text-sm font-medium text-white">Review Pending ({stats.pendingApprovals})</span>
+                <span className="text-sm font-medium text-foreground">Review Pending ({stats.pendingApprovals})</span>
               </div>
               <ArrowRight size={16} className="text-amber-400 group-hover:translate-x-1 transition-transform" />
             </button>
             <button onClick={() => navigate('/hod/lecturers')} className="w-full flex items-center justify-between p-4 bg-purple-600/10 hover:bg-purple-600/20 border border-purple-500/20 rounded-xl transition-colors group">
               <div className="flex items-center gap-3">
                 <Users size={18} className="text-purple-400" />
-                <span className="text-sm font-medium text-white">Manage Lecturers</span>
+                <span className="text-sm font-medium text-foreground">Manage Lecturers</span>
               </div>
               <ArrowRight size={16} className="text-purple-400 group-hover:translate-x-1 transition-transform" />
             </button>
             <button onClick={() => navigate('/hod/reports')} className="w-full flex items-center justify-between p-4 bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/20 rounded-xl transition-colors group">
               <div className="flex items-center gap-3">
                 <BarChart3 size={18} className="text-emerald-400" />
-                <span className="text-sm font-medium text-white">View Reports</span>
+                <span className="text-sm font-medium text-foreground">View Reports</span>
               </div>
               <ArrowRight size={16} className="text-emerald-400 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -226,7 +226,7 @@ export default function DepartmentOverview() {
       {/* Recent Broadcasts */}
       <GlassCard className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Recent Broadcasts</h3>
+          <h3 className="text-lg font-semibold text-foreground">Recent Broadcasts</h3>
           <button onClick={() => navigate('/hod/announcements')} className="text-sm text-blue-400 hover:text-blue-300">
             View All →
           </button>
@@ -234,23 +234,23 @@ export default function DepartmentOverview() {
         {loading ? (
           <div className="py-8 text-center">
             <Loader2 className="animate-spin text-blue-500 mx-auto mb-2" size={24} />
-            <p className="text-neutral-500 text-sm">Loading broadcasts...</p>
+            <p className="text-muted-foreground text-sm">Loading broadcasts...</p>
           </div>
         ) : stats.recentBroadcasts.length === 0 ? (
           <div className="py-8 text-center">
-            <Megaphone size={32} className="text-neutral-600 mx-auto mb-2" />
-            <p className="text-neutral-400">No broadcasts yet</p>
+            <Megaphone size={32} className="text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground">No broadcasts yet</p>
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-border">
             {stats.recentBroadcasts.map((broadcast) => (
-              <div key={broadcast._id} className="py-4 hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors cursor-pointer" onClick={() => navigate('/hod/announcements')}>
+              <div key={broadcast._id} className="py-4 hover:bg-accent px-2 -mx-2 rounded-lg transition-colors cursor-pointer" onClick={() => navigate('/hod/announcements')}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-white truncate">{broadcast.title}</h4>
-                    <p className="text-xs text-neutral-500 mt-1 line-clamp-1">{broadcast.content}</p>
+                    <h4 className="text-sm font-medium text-foreground truncate">{broadcast.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{broadcast.content}</p>
                   </div>
-                  <div className="ml-4 flex items-center gap-4 text-xs text-neutral-600">
+                  <div className="ml-4 flex items-center gap-4 text-xs text-muted-foreground">
                     <span>{new Date(broadcast.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     <span>{broadcast.viewedBy?.length || 0} views</span>
                   </div>

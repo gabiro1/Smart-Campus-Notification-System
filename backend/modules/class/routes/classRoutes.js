@@ -10,7 +10,9 @@ import {
   getMyClasses,
   getClassStudents,
   updateClass,
-  deleteClass
+  deleteClass,
+  assignStudentToClass,
+  removeStudentFromClass
 } from '../controller/classController.js';
 
 import { protect, authorize } from '../../../middleware/authMiddleware.js'; 
@@ -56,5 +58,12 @@ router.route('/remove/:lecturerId/:classId')
 
 router.route('/:classId/assign-multiple')
   .put(protect, authorize('hod', 'admin'), assignLecturers);
+
+// --- STUDENT ASSIGNMENT ROUTES ---
+router.route('/:classId/assign-student')
+  .post(protect, authorize('admin', 'principal'), assignStudentToClass);
+
+router.route('/:classId/remove-student/:studentId')
+  .delete(protect, authorize('admin', 'principal'), removeStudentFromClass);
 
 export default router;

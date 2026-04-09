@@ -13,9 +13,9 @@ export default function AnalyticsChart({
     <GlassCard delay={delay} className={`${height} flex flex-col`}>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h2 className="text-lg font-bold text-white">{title}</h2>
+          <h2 className="text-lg font-bold text-foreground">{title}</h2>
           {subtitle && (
-            <p className="text-xs text-neutral-500 mt-1">{subtitle}</p>
+            <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
           )}
         </div>
         {action && <div>{action}</div>}

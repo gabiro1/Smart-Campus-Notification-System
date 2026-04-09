@@ -98,7 +98,7 @@ export default function About() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950  text-white relative overflow-hidden ">
+    <div className="min-h-screen bg-neutral-950  text-foreground relative overflow-hidden ">
       <Navbar />
 
       {/* --- LAVA LAMP BACKGROUND --- */}
@@ -110,10 +110,10 @@ export default function About() {
       <main className="relative z-10 pt-40 pb-20 px-6 max-w-6xl mx-auto space-y-32 ">
         {/* --- HERO SECTION --- */}
         <motion.section {...fadeInVariant} className="text-center space-y-6">
-          <h1 className="text-6xl md:text-8xl font-bold text-white tracking-tight">
+          <h1 className="text-6xl md:text-8xl font-bold text-foreground tracking-tight">
             About us
           </h1>
-          <p className="text-neutral-500 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed font-medium">
             UniNotify AI is a mission-critical bridge ensuring every student at
             the University of Rwanda stays informed, regardless of connectivity.
           </p>
@@ -126,15 +126,15 @@ export default function About() {
         >
           <motion.div
             whileHover={hoverEffect}
-            className="glass p-10 rounded-[40px] border border-white/5 space-y-4 cursor-default transition-colors"
+            className="glass p-10 rounded-[40px] border border-border space-y-4 cursor-default transition-colors"
           >
             <div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-500 shadow-lg shadow-blue-600/10">
               <Eye size={28} />
             </div>
-            <h2 className="text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
               Our vision
             </h2>
-            <p className="text-neutral-400 leading-relaxed font-medium italic">
+            <p className="text-muted-foreground leading-relaxed font-medium italic">
               To build a campus where information friction is zero. We envision
               a digital ecosystem where technology acts as an invisible hand,
               guiding students to academic success.
@@ -143,15 +143,15 @@ export default function About() {
 
           <motion.div
             whileHover={hoverEffect}
-            className="glass p-10 rounded-[40px] border border-white/5 space-y-4 cursor-default transition-colors"
+            className="glass p-10 rounded-[40px] border border-border space-y-4 cursor-default transition-colors"
           >
             <div className="w-12 h-12 bg-purple-600/20 rounded-2xl flex items-center justify-center text-purple-500 shadow-lg shadow-purple-600/10">
               <Target size={28} />
             </div>
-            <h2 className="text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
               Our mission
             </h2>
-            <p className="text-neutral-400 leading-relaxed font-medium italic">
+            <p className="text-muted-foreground leading-relaxed font-medium italic">
               To eliminate communication gaps through AI-driven prioritization
               and hybrid SMS routing, ensuring 100% reach for critical academic
               updates.
@@ -162,7 +162,7 @@ export default function About() {
         {/* --- IMPACT STATISTICS --- */}
         <motion.section {...fadeInVariant} className="space-y-12">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
               Project impact
             </h2>
           </div>
@@ -171,15 +171,15 @@ export default function About() {
               <motion.div
                 key={i}
                 whileHover={hoverEffect}
-                className="glass p-8 rounded-3xl border border-white/5 text-center group transition-all cursor-default"
+                className="glass p-8 rounded-3xl border border-border text-center group transition-all cursor-default"
               >
                 <div className="text-blue-500 flex justify-center mb-4 group-hover:scale-110 transition-transform">
                   {stat.icon}
                 </div>
-                <h4 className="text-4xl font-bold text-white tracking-tighter">
+                <h4 className="text-4xl font-bold text-foreground tracking-tighter">
                   {stat.value}
                 </h4>
-                <p className="text-[10px] text-neutral-500 font-bold mt-2 uppercase tracking-widest">
+                <p className="text-[10px] text-muted-foreground font-bold mt-2 uppercase tracking-widest">
                   {stat.label}
                 </p>
                 <span className="inline-block mt-4 px-3 py-1 bg-blue-600/10 text-[10px] font-bold text-blue-400 rounded-full border border-blue-500/20">
@@ -193,7 +193,7 @@ export default function About() {
         {/* --- TESTIMONIAL SECTION --- */}
         <motion.section {...fadeInVariant} className="max-w-4xl mx-auto py-10">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
               Student testimonials
             </h2>
           </div>
@@ -205,7 +205,7 @@ export default function About() {
             >
               <Quote className="absolute top-8 left-8 text-white/5" size={80} />
               <div className="relative z-10 space-y-8 text-center">
-                <p className="text-xl md:text-2xl font-medium text-neutral-200 leading-relaxed italic">
+                <p className="text-xl md:text-2xl font-medium text-muted-foreground leading-relaxed italic">
                   "{t.content}"
                 </p>
                 <div className="flex items-center justify-center gap-4">
@@ -213,7 +213,7 @@ export default function About() {
                     {t.initials}
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-white text-lg">{t.author}</p>
+                    <p className="font-bold text-foreground text-lg">{t.author}</p>
                     <p className="text-xs text-blue-500 font-bold uppercase tracking-widest">
                       {t.role}
                     </p>
@@ -227,10 +227,10 @@ export default function About() {
         {/* --- PROJECT TEAM --- */}
         <motion.section {...fadeInVariant} className="space-y-16">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
               Project team
             </h2>
-            <p className="text-neutral-500 text-sm font-medium mt-2">
+            <p className="text-muted-foreground text-sm font-medium mt-2">
               The students behind the innovation
             </p>
           </div>
@@ -247,7 +247,7 @@ export default function About() {
           className="space-y-12 max-w-3xl mx-auto"
         >
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
               Technical FAQ
             </h2>
           </div>
@@ -268,10 +268,10 @@ export default function About() {
             <div className="grid md:grid-cols-2 gap-16 relative z-10">
               <div className="space-y-8">
                 <div>
-                  <h2 className="text-4xl font-bold text-white mb-4">
+                  <h2 className="text-4xl font-bold text-foreground mb-4">
                     Contact us
                   </h2>
-                  <p className="text-neutral-500 font-medium leading-relaxed">
+                  <p className="text-muted-foreground font-medium leading-relaxed">
                     Have questions about the AI Pulse engine or want to
                     collaborate? Our team is ready to assist you.
                   </p>
@@ -299,23 +299,23 @@ export default function About() {
                   <input
                     type="text"
                     placeholder="First name"
-                    className="glass bg-white/5 border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-white"
+                    className="glass bg-accent border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-foreground"
                   />
                   <input
                     type="text"
                     placeholder="Last name"
-                    className="glass bg-white/5 border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-white"
+                    className="glass bg-accent border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-foreground"
                   />
                 </div>
                 <input
                   type="email"
                   placeholder="Institutional email"
-                  className="w-full glass bg-white/5 border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-white"
+                  className="w-full glass bg-accent border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-foreground"
                 />
                 <textarea
                   rows="4"
                   placeholder="Your message..."
-                  className="w-full glass bg-white/5 border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-white"
+                  className="w-full glass bg-accent border-white/10 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm text-foreground"
                 />
                 <button className="w-full bg-blue-600 py-4 rounded-2xl font-bold text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95 transition-transform">
                   Send message
@@ -344,7 +344,7 @@ function TeamMember({ name, role, initials }) {
         {initials}
       </div>
       <div className="text-center">
-        <h4 className="text-white font-bold text-lg italic tracking-tight">
+        <h4 className="text-foreground font-bold text-lg italic tracking-tight">
           {name}
         </h4>
         <p className="text-blue-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
@@ -362,10 +362,10 @@ function ContactDetail({ icon, title, detail }) {
         {icon}
       </div>
       <div>
-        <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
           {title}
         </p>
-        <p className="text-white font-medium">{detail}</p>
+        <p className="text-foreground font-medium">{detail}</p>
       </div>
     </div>
   );
@@ -374,12 +374,12 @@ function ContactDetail({ icon, title, detail }) {
 function FAQItem({ question, answer }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="glass rounded-[32px] border border-white/5 overflow-hidden transition-all hover:border-white/20">
+    <div className="glass rounded-[32px] border border-border overflow-hidden transition-all hover:border-white/20">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full p-8 flex items-center justify-between text-left group"
       >
-        <span className="font-bold text-neutral-200 group-hover:text-blue-400 transition-colors">
+        <span className="font-bold text-foreground group-hover:text-blue-400 transition-colors">
           {question}
         </span>
         <motion.div
@@ -398,7 +398,7 @@ function FAQItem({ question, answer }) {
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="px-8 pb-8"
           >
-            <p className="text-neutral-500 text-sm leading-relaxed border-t border-white/5 pt-6 font-medium italic">
+            <p className="text-muted-foreground text-sm leading-relaxed border-t border-border pt-6 font-medium italic">
               {answer}
             </p>
           </motion.div>

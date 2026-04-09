@@ -10,7 +10,7 @@ export default function StudentLayout() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[#050505] relative">
+    <div className="min-h-screen bg-card relative">
       {/* 1. Sidebar - Fixed on the left */}
       <StudentNav />
 

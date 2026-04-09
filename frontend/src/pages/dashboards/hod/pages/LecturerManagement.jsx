@@ -202,7 +202,7 @@ const LecturerManagement = () => {
   }, [searchQuery]);
 
   return (
-    <div className="w-full min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-background text-white p-4 md:p-8 font-sans relative overflow-hidden">
+    <div className="w-full min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-background text-foreground p-4 md:p-8 font-sans relative overflow-hidden">
       {/* Dynamic Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -212,25 +212,25 @@ const LecturerManagement = () => {
       <div className="relative z-10 max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black tracking-tighter text-white mb-2">
+            <h1 className="text-4xl font-black tracking-tighter text-foreground mb-2">
               Staff Command
             </h1>
-            <p className="text-neutral-500 text-sm">
+            <p className="text-muted-foreground text-sm">
               Orchestrate department allocations and omnichannel communications.
             </p>
           </div>
 
           {/* Tab Navigation System */}
-          <div className="flex p-1.5 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 w-fit">
+          <div className="flex p-1.5 bg-accent backdrop-blur-xl rounded-2xl border border-border w-fit">
             <button
               onClick={() => setActiveTab("manage")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === "manage" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-neutral-500 hover:text-white"}`}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === "manage" ? "bg-blue-600 text-foreground shadow-lg shadow-blue-600/20" : "text-muted-foreground hover:text-foreground"}`}
             >
               <User size={14} /> DIRECTORY
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === "history" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-neutral-500 hover:text-white"}`}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === "history" ? "bg-blue-600 text-foreground shadow-lg shadow-blue-600/20" : "text-muted-foreground hover:text-foreground"}`}
             >
               <History size={14} /> DISPATCH LOGS
             </button>
@@ -242,7 +242,7 @@ const LecturerManagement = () => {
             {/* Search & Filter Bar */}
             <div className="relative w-full md:w-96 mb-8 group">
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-blue-400 transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-400 transition-colors"
                 size={18}
               />
               <input
@@ -250,7 +250,7 @@ const LecturerManagement = () => {
                 placeholder="Search staff database..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all shadow-2xl"
+                className="w-full bg-accent border border-border rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-blue-500/50 focus:bg-accent transition-all shadow-2xl"
               />
             </div>
 
@@ -264,17 +264,17 @@ const LecturerManagement = () => {
                   {paginatedLecturers.map((lecturer) => (
                     <div
                       key={lecturer.id || lecturer._id}
-                      className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 hover:border-blue-500/30 transition-all hover:-translate-y-2 cursor-pointer relative overflow-hidden"
+                      className="group bg-accent backdrop-blur-xl border border-border rounded-[2.5rem] p-6 hover:border-blue-500/30 transition-all hover:-translate-y-2 cursor-pointer relative overflow-hidden"
                       onClick={() =>
                         setDetailsPanel({ isOpen: true, lecturer })
                       }
                     >
                       <div className="flex justify-between items-start mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center font-black text-2xl text-blue-400">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-border flex items-center justify-center font-black text-2xl text-blue-400">
                           {lecturer.name?.charAt(0)}
                         </div>
                         <div
-                          className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${lecturer.assignedClasses?.length > 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-neutral-500/10 text-neutral-400 border-neutral-500/20"}`}
+                          className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${lecturer.assignedClasses?.length > 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-neutral-500/10 text-muted-foreground border-neutral-500/20"}`}
                         >
                           {lecturer.assignedClasses?.length > 0
                             ? "ACTIVE"
@@ -285,20 +285,20 @@ const LecturerManagement = () => {
                       <h3 className="text-xl font-black mb-1 group-hover:text-blue-400 transition-colors">
                         {lecturer.name}
                       </h3>
-                      <p className="text-neutral-500 text-xs font-medium mb-6 flex items-center gap-2">
+                      <p className="text-muted-foreground text-xs font-medium mb-6 flex items-center gap-2">
                         <Mail size={12} /> {lecturer.email}
                       </p>
 
-                      <div className="bg-black/40 rounded-2xl p-4 border border-white/5 mb-8">
+                      <div className="bg-black/40 rounded-2xl p-4 border border-border mb-8">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
+                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                             Workload
                           </span>
                           <span className="text-xs font-bold text-blue-400">
                             {lecturer.assignedClasses?.length || 0} Modules
                           </span>
                         </div>
-                        <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-accent h-1.5 rounded-full overflow-hidden">
                           <div
                             className="bg-blue-600 h-full transition-all duration-1000"
                             style={{
@@ -316,7 +316,7 @@ const LecturerManagement = () => {
                           onClick={() =>
                             setSmsModal({ isOpen: true, lecturer, message: "" })
                           }
-                          className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl py-3 text-[10px] font-black flex items-center justify-center gap-2 transition-all"
+                          className="flex-1 bg-accent hover:bg-accent border border-border rounded-xl py-3 text-[10px] font-black flex items-center justify-center gap-2 transition-all"
                         >
                           <MessageSquare size={14} /> NOTIFY
                         </button>
@@ -341,11 +341,11 @@ const LecturerManagement = () => {
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="p-3 bg-white/5 border border-white/10 rounded-2xl disabled:opacity-20 hover:bg-white/10 transition-all"
+                    className="p-3 bg-accent border border-border rounded-2xl disabled:opacity-20 hover:bg-accent transition-all"
                   >
                     <ChevronLeft />
                   </button>
-                  <span className="text-xs font-black tracking-widest text-neutral-500 uppercase">
+                  <span className="text-xs font-black tracking-widest text-muted-foreground uppercase">
                     Page {currentPage} / {totalPages}
                   </span>
                   <button
@@ -353,7 +353,7 @@ const LecturerManagement = () => {
                       setCurrentPage((p) => Math.min(totalPages, p + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="p-3 bg-white/5 border border-white/10 rounded-2xl disabled:opacity-20 hover:bg-white/10 transition-all"
+                    className="p-3 bg-accent border border-border rounded-2xl disabled:opacity-20 hover:bg-accent transition-all"
                   >
                     <ChevronRight />
                   </button>
@@ -363,14 +363,14 @@ const LecturerManagement = () => {
           </>
         ) : (
           /* --- DISPATCH LOGS / HISTORY VIEW --- */
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4">
+          <div className="bg-accent backdrop-blur-xl border border-border rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4">
             {historyLoading ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="animate-spin text-blue-500" size={30} />
               </div>
             ) : (
               <table className="w-full text-left text-sm">
-                <thead className="bg-white/[0.03] text-neutral-500 uppercase text-[10px] font-black tracking-widest border-b border-white/10">
+                <thead className="bg-white/[0.03] text-muted-foreground uppercase text-[10px] font-black tracking-widest border-b border-border">
                   <tr>
                     <th className="px-8 py-6">Recipient</th>
                     <th className="px-8 py-6">Message Content</th>
@@ -378,31 +378,31 @@ const LecturerManagement = () => {
                     <th className="px-8 py-6 text-right">Channels</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-border">
                   {history.map((log) => (
                     <tr
                       key={log._id}
-                      className="hover:bg-white/[0.02] transition-colors"
+                      className="hover:bg-accent transition-colors"
                     >
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-bold text-blue-400">
+                          <div className="w-10 h-10 rounded-xl bg-accent border border-border flex items-center justify-center text-xs font-bold text-blue-400">
                             {log.studentId?.name?.charAt(0)}
                           </div>
                           <div>
-                            <p className="font-bold text-white text-xs">
+                            <p className="font-bold text-foreground text-xs">
                               {log.studentId?.name}
                             </p>
-                            <p className="text-[10px] text-neutral-500 font-medium">
+                            <p className="text-[10px] text-muted-foreground font-medium">
                               {log.studentId?.email}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-neutral-300 max-w-xs truncate italic text-xs">
+                      <td className="px-8 py-5 text-muted-foreground max-w-xs truncate italic text-xs">
                         "{log.message}"
                       </td>
-                      <td className="px-8 py-5 text-neutral-500 text-xs font-medium">
+                      <td className="px-8 py-5 text-muted-foreground text-xs font-medium">
                         {new Date(log.createdAt).toLocaleString()}
                       </td>
                       <td className="px-8 py-5 text-right">
@@ -427,7 +427,7 @@ const LecturerManagement = () => {
                     <tr>
                       <td
                         colSpan="4"
-                        className="text-center py-20 text-neutral-500 font-bold uppercase tracking-widest text-xs"
+                        className="text-center py-20 text-muted-foreground font-bold uppercase tracking-widest text-xs"
                       >
                         No dispatch records found.
                       </td>
@@ -443,18 +443,18 @@ const LecturerManagement = () => {
       {/* --- NOTIFY MODAL (OMNICHANNEL) --- */}
       {smsModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-background border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-black mb-1 flex items-center gap-2 text-white">
+          <div className="bg-background border border-border rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-black mb-1 flex items-center gap-2 text-foreground">
               <ShieldCheck className="text-blue-500" /> Dispatch Memo
             </h3>
-            <p className="text-neutral-500 text-xs font-medium mb-8">
+            <p className="text-muted-foreground text-xs font-medium mb-8">
               Send an official administrative alert to{" "}
               <b>{smsModal.lecturer.name}</b> via Email & Push.
             </p>
 
             <form onSubmit={handleSendNotification}>
               <div className="mb-6">
-                <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">
                   Official Message
                 </label>
                 <textarea
@@ -464,7 +464,7 @@ const LecturerManagement = () => {
                     setSmsModal({ ...smsModal, message: e.target.value })
                   }
                   placeholder="Type the assignment or department update here..."
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm min-h-[160px] outline-none focus:border-blue-500 transition-all text-white custom-scrollbar shadow-inner"
+                  className="w-full bg-accent border border-border rounded-2xl p-5 text-sm min-h-[160px] outline-none focus:border-blue-500 transition-all text-foreground custom-scrollbar shadow-inner"
                 />
               </div>
 
@@ -474,7 +474,7 @@ const LecturerManagement = () => {
                   onClick={() =>
                     setSmsModal({ isOpen: false, lecturer: null, message: "" })
                   }
-                  className="flex-1 py-4 text-xs font-black text-neutral-500 hover:text-white transition-all"
+                  className="flex-1 py-4 text-xs font-black text-muted-foreground hover:text-foreground transition-all"
                 >
                   CANCEL
                 </button>
@@ -503,29 +503,29 @@ const LecturerManagement = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110]"
             onClick={() => setDetailsPanel({ isOpen: false, lecturer: null })}
           ></div>
-          <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-background border-l border-white/10 z-[120] p-10 animate-in slide-in-from-right duration-500 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+          <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-background border-l border-border z-[120] p-10 animate-in slide-in-from-right duration-500 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
             <button
               onClick={() => setDetailsPanel({ isOpen: false, lecturer: null })}
-              className="absolute top-8 right-8 p-3 hover:bg-white/5 rounded-2xl transition-all text-neutral-500 hover:text-white"
+              className="absolute top-8 right-8 p-3 hover:bg-accent rounded-2xl transition-all text-muted-foreground hover:text-foreground"
             >
               <X />
             </button>
 
             <div className="flex flex-col items-center text-center mt-12 mb-12">
-              <div className="w-28 h-28 rounded-[2rem] bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-4xl font-black text-blue-400 mb-6 shadow-2xl shadow-blue-500/10">
+              <div className="w-28 h-28 rounded-[2rem] bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-border flex items-center justify-center text-4xl font-black text-blue-400 mb-6 shadow-2xl shadow-blue-500/10">
                 {detailsPanel.lecturer.name.charAt(0)}
               </div>
               <h2 className="text-3xl font-black mb-1">
                 {detailsPanel.lecturer.name}
               </h2>
-              <p className="text-neutral-500 text-sm font-medium mb-6 uppercase tracking-widest">
+              <p className="text-muted-foreground text-sm font-medium mb-6 uppercase tracking-widest">
                 Senior Faculty Member
               </p>
               <div className="flex gap-4">
-                <span className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl text-xs font-bold border border-white/10">
+                <span className="flex items-center gap-2 px-4 py-2 bg-accent rounded-xl text-xs font-bold border border-border">
                   <Mail size={12} /> EMAIL
                 </span>
-                <span className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl text-xs font-bold border border-white/10">
+                <span className="flex items-center gap-2 px-4 py-2 bg-accent rounded-xl text-xs font-bold border border-border">
                   <Phone size={12} /> CALL
                 </span>
               </div>
@@ -534,7 +534,7 @@ const LecturerManagement = () => {
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
               <div className="mb-10">
                 <div className="flex justify-between items-center mb-6">
-                  <h4 className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
+                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                     Course Allocations
                   </h4>
                   <button
@@ -554,7 +554,7 @@ const LecturerManagement = () => {
                   {detailsPanel.lecturer.assignedClasses?.map((cls) => (
                     <div
                       key={cls.id}
-                      className="group flex items-center justify-between p-5 bg-white/5 border border-white/10 rounded-3xl hover:border-blue-500/30 transition-all"
+                      className="group flex items-center justify-between p-5 bg-accent border border-border rounded-3xl hover:border-blue-500/30 transition-all"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
@@ -562,7 +562,7 @@ const LecturerManagement = () => {
                         </div>
                         <div>
                           <p className="font-black text-sm">{cls.name}</p>
-                          <p className="text-[10px] text-neutral-500 font-bold uppercase">
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase">
                             {cls.code} • Level {cls.level}
                           </p>
                         </div>
@@ -598,7 +598,7 @@ const LecturerManagement = () => {
                   message: "",
                 })
               }
-              className="mt-6 w-full py-5 bg-white/5 border border-white/10 rounded-3xl text-xs font-black tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-3"
+              className="mt-6 w-full py-5 bg-accent border border-border rounded-3xl text-xs font-black tracking-widest hover:bg-accent transition-all flex items-center justify-center gap-3"
             >
               <Send size={14} /> DISPATCH DIRECTIVE
             </button>
@@ -609,19 +609,19 @@ const LecturerManagement = () => {
       {/* --- ALLOCATE CLASS MODAL --- */}
       {assignModal.isOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-background border border-white/10 rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl">
+          <div className="bg-background border border-border rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl">
             <h3 className="text-xl font-black mb-8 flex items-center gap-3">
               <BookOpen className="text-blue-500" /> Module Allocation
             </h3>
             <form onSubmit={handleAssignClass}>
               <div className="mb-8">
-                <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">
                   Available Modules
                 </label>
                 <select
                   value={selectedClassId}
                   onChange={(e) => setSelectedClassId(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-blue-500 transition-all appearance-none text-white font-bold shadow-inner"
+                  className="w-full bg-accent border border-border rounded-2xl p-4 text-sm outline-none focus:border-blue-500 transition-all appearance-none text-foreground font-bold shadow-inner"
                 >
                   <option value="" className="bg-black">
                     Choose module...
@@ -643,7 +643,7 @@ const LecturerManagement = () => {
                   onClick={() =>
                     setAssignModal({ isOpen: false, lecturerId: null })
                   }
-                  className="flex-1 py-4 text-xs font-black text-neutral-500 hover:text-white transition-all"
+                  className="flex-1 py-4 text-xs font-black text-muted-foreground hover:text-foreground transition-all"
                 >
                   CANCEL
                 </button>
@@ -670,17 +670,17 @@ const LecturerManagement = () => {
             <div className="w-20 h-20 bg-red-500/10 border border-red-500/10 rounded-[2rem] flex items-center justify-center text-red-500 mx-auto mb-6">
               <AlertTriangle size={36} />
             </div>
-            <h3 className="text-xl font-black mb-2 text-white italic underline">
+            <h3 className="text-xl font-black mb-2 text-foreground italic underline">
               SECURITY CHECK
             </h3>
-            <p className="text-neutral-500 text-xs font-medium mb-8">
+            <p className="text-muted-foreground text-xs font-medium mb-8">
               Revoke <b>{removeModal.className}</b> from{" "}
               <b>{removeModal.lecturerName}</b>?
             </p>
             <div className="flex gap-4">
               <button
                 onClick={() => setRemoveModal({ isOpen: false })}
-                className="flex-1 py-3 text-xs font-black text-neutral-500"
+                className="flex-1 py-3 text-xs font-black text-muted-foreground"
               >
                 CANCEL
               </button>

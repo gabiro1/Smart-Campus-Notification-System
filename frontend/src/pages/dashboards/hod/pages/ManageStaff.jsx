@@ -39,10 +39,10 @@ export default function ManageStaff() {
     <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             Manage Staff
           </h1>
-          <p className="text-neutral-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Control lecturer permissions and approval workflows.
           </p>
         </div>
@@ -52,16 +52,16 @@ export default function ManageStaff() {
       </header>
 
       <GlassCard className="p-0 overflow-hidden">
-        <div className="p-4 border-b border-white/5 bg-white/[0.01]">
+        <div className="p-4 border-b border-border bg-white/[0.01]">
           <div className="relative max-w-sm">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               size={16}
             />
             <input
               type="text"
               placeholder="Search staff members..."
-              className="w-full bg-black/40 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
+              className="w-full bg-black/40 border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500/50"
             />
           </div>
         </div>
@@ -69,14 +69,14 @@ export default function ManageStaff() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-white/[0.02] border-b border-white/5 text-[11px] uppercase tracking-widest text-neutral-500">
+              <tr className="bg-white/[0.02] border-b border-border text-[11px] uppercase tracking-widest text-muted-foreground">
                 <th className="p-5 font-semibold">Lecturer Profile</th>
                 <th className="p-5 font-semibold">Assigned Courses</th>
                 <th className="p-5 font-semibold">Publishing Rights</th>
                 <th className="p-5 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-border">
               {staffList.map((staff) => (
                 <tr
                   key={staff.id}
@@ -84,20 +84,20 @@ export default function ManageStaff() {
                 >
                   <td className="p-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-sm font-bold text-white shadow-inner">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-border flex items-center justify-center text-sm font-bold text-foreground shadow-inner">
                         {staff.name.charAt(4)} {/* Quick initial grab */}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
+                        <p className="text-sm font-semibold text-foreground group-hover:text-blue-400 transition-colors">
                           {staff.name}
                         </p>
-                        <p className="text-xs text-neutral-500 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {staff.email}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-5 text-sm text-neutral-300">
+                  <td className="p-5 text-sm text-muted-foreground">
                     {staff.courses}
                   </td>
                   <td className="p-5">
@@ -119,7 +119,7 @@ export default function ManageStaff() {
                     </div>
                   </td>
                   <td className="p-5 text-right">
-                    <button className="p-2 text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                    <button className="p-2 text-muted-foreground hover:text-foreground bg-accent hover:bg-accent rounded-lg transition-all opacity-0 group-hover:opacity-100">
                       <MoreHorizontal size={18} />
                     </button>
                   </td>

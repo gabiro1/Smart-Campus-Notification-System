@@ -31,7 +31,7 @@ export default function StudentSidebar() {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen bg-card border-r border-white/5 flex flex-col z-50 transition-all duration-300 w-20 md:w-72">
+    <aside className="fixed left-0 top-0 h-screen bg-card border-r border-border flex flex-col z-50 transition-all duration-300 w-20 md:w-72">
       {/* 1. Header / Organization Branding */}
       <div className="p-4 md:p-6">
         <button className="w-full flex items-center justify-center md:justify-between p-2 rounded-xl hover:bg-muted transition-all group">
@@ -40,15 +40,15 @@ export default function StudentSidebar() {
               U
             </div>
             <div className="hidden md:flex flex-col items-start">
-              <span className="text-sm font-bold text-white tracking-tight">
+              <span className="text-sm font-bold text-foreground tracking-tight">
                 UniNotify AI
               </span>
-              <span className="text-[10px] text-neutral-500 font-medium">
+              <span className="text-[10px] text-muted-foreground font-medium">
                 Student Portal
               </span>
             </div>
           </div>
-          <div className="hidden md:flex flex-col gap-1 text-neutral-600 group-hover:text-neutral-400">
+          <div className="hidden md:flex flex-col gap-1 text-muted-foreground group-hover:text-neutral-400">
             <ChevronUp size={12} className="-mb-1" />
             <ChevronDown size={12} />
           </div>
@@ -58,7 +58,7 @@ export default function StudentSidebar() {
       {/* 2. Navigation */}
       <div className="flex-1 overflow-y-auto px-3 md:px-5 space-y-6 custom-scrollbar">
         <nav className="space-y-2 mt-4">
-          <p className="hidden md:block text-[10px] uppercase tracking-widest text-neutral-600 font-black mb-4 px-2">
+          <p className="hidden md:block text-[10px] uppercase tracking-widest text-muted-foreground font-black mb-4 px-2">
             Academic
           </p>
 
@@ -73,7 +73,7 @@ export default function StudentSidebar() {
       </div>
 
       {/* 3. Bottom Actions */}
-      <div className="p-4 md:p-5 border-t border-white/5 space-y-2 bg-card">
+      <div className="p-4 md:p-5 border-t border-border space-y-2 bg-card">
         <SidebarLink
           item={{ icon: User, label: "Profile", path: "/student/profile" }}
           active={location.pathname === "/student/profile"}
@@ -83,7 +83,7 @@ export default function StudentSidebar() {
           active={location.pathname === "/student/settings"}
         />
         
-        <button className="flex items-center justify-center md:justify-start px-3 md:px-4 py-2.5 w-full rounded-xl transition-all duration-200 relative group text-neutral-500 hover:bg-white/[0.03] hover:text-neutral-200">
+        <button className="flex items-center justify-center md:justify-start px-3 md:px-4 py-2.5 w-full rounded-xl transition-all duration-200 relative group text-muted-foreground hover:bg-accent hover:text-neutral-200">
           <div className="flex items-center gap-3">
             <Headset size={20} strokeWidth={2} />
             <span className="hidden md:inline text-sm font-semibold">
@@ -103,8 +103,8 @@ function SidebarLink({ item, active }) {
       to={item.path}
       className={`flex items-center justify-center md:justify-start px-3 md:px-4 py-2.5 rounded-xl transition-all duration-200 relative group ${
         active
-          ? "bg-white/[0.08] text-white shadow-lg"
-          : "text-neutral-500 hover:bg-white/[0.03] hover:text-neutral-200"
+          ? "bg-primary/10 text-foreground shadow-lg"
+          : "text-muted-foreground hover:bg-accent hover:text-neutral-200"
       }`}
     >
       <div className="flex items-center gap-3">

@@ -91,7 +91,7 @@ export default function CreatePulse() {
   return (
     <div className="max-w-7xl mx-auto min-h-screen text-slate-200">
       <header className="mb-10">
-        <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2 font-sans">
+        <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-2 font-sans">
           Create Pulse
         </h1>
         <p className="text-muted-foreground text-lg font-medium">
@@ -114,7 +114,7 @@ export default function CreatePulse() {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full bg-input border border-border rounded-xl px-5 py-4 text-white focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-muted-foreground text-lg font-medium"
+              className="w-full bg-input border border-border rounded-xl px-5 py-4 text-foreground focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-muted-foreground text-lg font-medium"
               placeholder="e.g. Advanced Quantum Mechanics Seminar Rescheduled"
             />
           </div>
@@ -130,7 +130,7 @@ export default function CreatePulse() {
               onChange={handleChange}
               rows={4}
               placeholder="Synthesize the core message for the AI engine..."
-              className="w-full bg-input border border-border rounded-xl px-5 py-4 text-white focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-muted-foreground resize-none text-base"
+              className="w-full bg-input border border-border rounded-xl px-5 py-4 text-foreground focus:outline-none focus:border-[#2DD4BF] focus:ring-1 focus:ring-[#2DD4BF] transition-all placeholder:text-muted-foreground resize-none text-base"
             />
           </div>
 
@@ -143,7 +143,7 @@ export default function CreatePulse() {
               {recipients.map((rec, idx) => (
                 <div key={idx} className="flex items-center gap-2 bg-[#0B2E26] border border-success/30 text-success px-3 py-1.5 rounded-lg text-sm font-semibold">
                   {rec}
-                  <button onClick={() => removeRecipient(idx)} className="hover:text-white transition-colors">
+                  <button onClick={() => removeRecipient(idx)} className="hover:text-foreground transition-colors">
                     <X size={14} />
                   </button>
                 </div>
@@ -152,7 +152,7 @@ export default function CreatePulse() {
                 onClick={() => {
                   if (!recipients.includes("New Filter")) setRecipients([...recipients, "New Filter"]);
                 }}
-                className="flex items-center gap-2 text-muted-foreground hover:text-white bg-muted/40 hover:bg-muted px-4 py-1.5 rounded-lg text-sm font-semibold transition-all border border-transparent"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted px-4 py-1.5 rounded-lg text-sm font-semibold transition-all border border-transparent"
               >
                 + Add Filter
               </button>
@@ -197,17 +197,17 @@ export default function CreatePulse() {
             
             <button 
               onClick={() => imageInputRef.current?.click()}
-              className="border-2 border-dashed border-border hover:border-[#4A5060] bg-input/50 rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground hover:text-white transition-all group"
+              className="border-2 border-dashed border-border hover:border-[#4A5060] bg-input/50 rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground hover:text-foreground transition-all group"
             >
-              <ImagePlus size={24} className="mb-3 text-muted-foreground group-hover:text-white transition-colors" />
+              <ImagePlus size={24} className="mb-3 text-muted-foreground group-hover:text-foreground transition-colors" />
               <span className="text-xs font-bold tracking-wider">ATTACH IMAGE</span>
             </button>
 
             <button 
               onClick={() => pdfInputRef.current?.click()}
-              className="border-2 border-dashed border-border hover:border-[#4A5060] bg-input/50 rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground hover:text-white transition-all group"
+              className="border-2 border-dashed border-border hover:border-[#4A5060] bg-input/50 rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground hover:text-foreground transition-all group"
             >
-              <FileText size={24} className="mb-3 text-muted-foreground group-hover:text-white transition-colors" />
+              <FileText size={24} className="mb-3 text-muted-foreground group-hover:text-foreground transition-colors" />
               <span className="text-xs font-bold tracking-wider">ATTACH PDF SYLLABUS</span>
             </button>
           </div>
@@ -219,7 +219,7 @@ export default function CreatePulse() {
                 <ShieldAlert size={24} />
               </div>
               <div>
-                <h4 className={`text-base font-bold mb-1 ${formData.isEmergency ? 'text-red-500' : 'text-white'}`}>Emergency Override</h4>
+                <h4 className={`text-base font-bold mb-1 ${formData.isEmergency ? 'text-red-500' : 'text-foreground'}`}>Emergency Override</h4>
                 <p className={`text-xs font-bold tracking-wider ${formData.isEmergency ? 'text-red-500/70' : 'text-muted-foreground'}`}>BYPASSES MUTE SETTINGS & AI FILTERS</p>
               </div>
             </div>
@@ -237,7 +237,7 @@ export default function CreatePulse() {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full bg-success hover:bg-success text-white font-bold text-lg py-5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+            className="w-full bg-success hover:bg-success text-foreground font-bold text-lg py-5 rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 size={24} className="animate-spin" /> : null}
             {isSubmitting ? "Broadcasting..." : "Send Broadcast"}
@@ -257,7 +257,7 @@ export default function CreatePulse() {
           </div>
 
           {/* Mobile Phone Mockup Card */}
-          <div className="bg-[#12141A] rounded-[2rem] border border-border overflow-hidden shadow-2xl relative max-w-sm mx-auto">
+          <div className="bg-card rounded-[2rem] border border-border overflow-hidden shadow-2xl relative max-w-sm mx-auto">
             {/* Image Header */}
             <div className="h-56 bg-gradient-to-br from-[#10B981]/20 to-[#0A0A0A] relative w-full overflow-hidden">
               {formData.posterUrl ? (
@@ -268,9 +268,9 @@ export default function CreatePulse() {
                 </div>
               )}
               {/* Overlay Badge */}
-              <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+              <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-md border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-info" />
-                <span className="text-[10px] font-bold text-white tracking-wider">98% AI MATCH</span>
+                <span className="text-[10px] font-bold text-foreground tracking-wider">98% AI MATCH</span>
               </div>
             </div>
 
@@ -284,7 +284,7 @@ export default function CreatePulse() {
                 <div className="text-muted-foreground">• 3 MINS AGO</div>
               </div>
 
-              <h2 className="text-2xl font-extrabold text-white leading-tight mb-3">
+              <h2 className="text-2xl font-extrabold text-foreground leading-tight mb-3">
                 {formData.title || "Advanced Quantum Mechanics Seminar Rescheduled"}
               </h2>
 
@@ -324,16 +324,16 @@ export default function CreatePulse() {
 
           {/* Bottom stats below preview */}
           <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto pt-4">
-            <div className="bg-[#12141A] border border-border rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
               <div>
                 <div className="text-success text-[10px] font-bold uppercase tracking-widest mb-1">Network Reach</div>
-                <div className="text-white text-xl font-bold">1,240 <span className="text-xs text-muted-foreground font-normal">Nodes</span></div>
+                <div className="text-foreground text-xl font-bold">1,240 <span className="text-xs text-muted-foreground font-normal">Nodes</span></div>
               </div>
             </div>
-            <div className="bg-[#12141A] border border-border rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
               <div>
                 <div className="text-info text-[10px] font-bold uppercase tracking-widest mb-1">Est. Visibility</div>
-                <div className="text-white text-xl font-bold">High <span className="text-xs text-muted-foreground font-normal">Priority</span></div>
+                <div className="text-foreground text-xl font-bold">High <span className="text-xs text-muted-foreground font-normal">Priority</span></div>
               </div>
             </div>
           </div>

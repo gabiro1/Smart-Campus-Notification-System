@@ -23,6 +23,7 @@ const tabs = [
   { id: "schools", label: "Schools", icon: School },
   { id: "departments", label: "Departments", icon: BookOpen },
   { id: "classes", label: "Classes", icon: Users },
+  { id: "students", label: "Assign Students", icon: GraduationCap },
 ];
 
 export default function AcademicStructure() {
@@ -32,6 +33,9 @@ export default function AcademicStructure() {
   const [schools, setSchools] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [classes, setClasses] = useState([]);
+  
+  // Users for assigning dean/principal/hod
+  const [users, setUsers] = useState([]);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,22 +49,29 @@ export default function AcademicStructure() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [collegesData, schoolsData, deptsData, classesData] = await Promise.all([
+      const [collegesData, schoolsData, deptsData, classesData, usersData] = await Promise.all([
         adminService.getColleges().catch(() => []),
         adminService.getSchools().catch(() => []),
         adminService.getDepartments().catch(() => []),
         adminService.getClasses().catch(() => []),
+        adminService.getUsers(1, 1000, {}).catch(() => ({ users: [] })),
       ]);
       setColleges(collegesData.data || collegesData || []);
       setSchools(schoolsData.data || schoolsData || []);
       setDepartments(deptsData.data || deptsData || []);
       setClasses(classesData.data || classesData || []);
+      setUsers(usersData.users || []);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Helper to get available users for each role
+  const getPrincipals = () => users.filter(u => !u.role || u.role === 'student' || u.role === 'lecturer').map(u => ({ value: u._id, label: u.name }));
+  const getDeans = () => users.filter(u => !u.role || u.role === 'student' || u.role === 'lecturer').map(u => ({ value: u._id, label: u.name }));
+  const getHoDs = () => users.filter(u => !u.role || u.role === 'student' || u.role === 'lecturer').map(u => ({ value: u._id, label: u.name }));
 
   const openAddModal = () => {
     setEditingItem(null);
@@ -159,13 +170,125 @@ export default function AcademicStructure() {
           await adminService.deleteClass(item._id);
           break;
       }
-      toast.success("Deleted successfully");
+        toast.success("Deleted successfully");
       fetchAllData();
     } catch (error) {
       toast.error(error.response?.data?.message || "Delete failed");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Student assignment state
+  const [selectedClass, setSelectedClass] = useState("");
+  const [assignedStudents, setAssignedStudents] = useState([]);
+
+  // Fetch assigned students when class is selected
+  useEffect(() => {
+    if (selectedClass) {
+      const classItem = classes.find(c => c._id === selectedClass);
+      setAssignedStudents(classItem?.students || []);
+    } else {
+      setAssignedStudents([]);
+    }
+  }, [selectedClass, classes]);
+
+  const assignStudentToClass = async (studentId) => {
+    if (!selectedClass) {
+      toast.error("Please select a class first");
+      return;
+    }
+    try {
+      await adminService.assignStudentToClass(selectedClass, studentId);
+      toast.success("Student assigned to class");
+      fetchAllData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to assign student");
+    }
+  };
+
+  const removeStudentFromClass = async (studentId) => {
+    try {
+      await adminService.removeStudentFromClass(selectedClass, studentId);
+      toast.success("Student removed from class");
+      fetchAllData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to remove student");
+    }
+  };
+
+  const renderStudentAssignment = () => {
+    const unassignedStudents = users.filter(u => u.role === 'student' && !u.class);
+    
+    return (
+      <div className="p-6 space-y-6">
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">Select Class</label>
+          <select
+            value={selectedClass}
+            onChange={(e) => setSelectedClass(e.target.value)}
+            className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
+          >
+            <option value="">Select a class</option>
+            {classes.map(c => (
+              <option key={c._id} value={c._id}>{c.name} ({c.department?.name})</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedClass && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Unassigned Students ({unassignedStudents.length})</h3>
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {unassignedStudents.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">All students are assigned</p>
+                ) : (
+                  unassignedStudents.map(student => (
+                    <div key={student._id} className="flex items-center justify-between p-3 bg-accent rounded-lg">
+                      <div>
+                        <p className="text-sm text-foreground">{student.name}</p>
+                        <p className="text-xs text-muted-foreground">{student.email}</p>
+                      </div>
+                      <button
+                        onClick={() => assignStudentToClass(student._id)}
+                        className="text-xs bg-blue-600 hover:bg-blue-500 text-foreground px-3 py-1.5 rounded-lg"
+                      >
+                        Assign
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Assigned Students ({assignedStudents.length})</h3>
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {assignedStudents.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">No students assigned</p>
+                ) : (
+                  assignedStudents.map(student => (
+                    <div key={student._id} className="flex items-center justify-between p-3 bg-accent rounded-lg">
+                      <div>
+                        <p className="text-sm text-foreground">{student.name}</p>
+                        <p className="text-xs text-muted-foreground">{student.email}</p>
+                      </div>
+                      <button
+                        onClick={() => removeStudentFromClass(student._id)}
+                        className="text-xs bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-1.5 rounded-lg"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderList = () => {
@@ -218,6 +341,8 @@ export default function AcademicStructure() {
             onDelete={() => handleDelete(cls)}
           />
         ));
+      case "students":
+        return renderStudentAssignment();
       default:
         return null;
     }
@@ -227,16 +352,16 @@ export default function AcademicStructure() {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             Academic Structure
           </h1>
-          <p className="text-neutral-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Manage colleges, schools, departments, and classes.
           </p>
         </div>
         <button
           onClick={openAddModal}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-500 text-foreground px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2"
         >
           <Plus size={18} /> Add {activeTab.slice(0, -1)}
         </button>
@@ -250,8 +375,8 @@ export default function AcademicStructure() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]"
-                : "bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10"
+                ? "bg-blue-600 text-foreground shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                : "bg-accent text-muted-foreground hover:text-foreground hover:bg-accent"
             }`}
           >
             <tab.icon size={18} />
@@ -261,22 +386,22 @@ export default function AcademicStructure() {
       </div>
 
       {/* Content */}
-      <div className="bg-card border border-white/5 rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center gap-4">
             <Activity className="animate-spin text-blue-500" size={32} />
-            <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Loading...
             </span>
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-border">
             {renderList()}
             {((activeTab === "colleges" && colleges.length === 0) ||
               (activeTab === "schools" && schools.length === 0) ||
               (activeTab === "departments" && departments.length === 0) ||
               (activeTab === "classes" && classes.length === 0)) && (
-              <div className="p-12 text-center text-neutral-500">
+              <div className="p-12 text-center text-muted-foreground">
                 No {activeTab} found. Click "Add" to create one.
               </div>
             )}
@@ -292,13 +417,13 @@ export default function AcademicStructure() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-card p-8 rounded-2xl border border-white/10 w-full max-w-lg shadow-2xl"
+              className="bg-card p-8 rounded-2xl border border-border w-full max-w-lg shadow-2xl"
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-xl font-bold text-foreground">
                   {editingItem ? "Edit" : "Add"} {activeTab.slice(0, -1)}
                 </h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-neutral-500 hover:text-white">
+                <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
                   <X size={24} />
                 </button>
               </div>
@@ -308,12 +433,13 @@ export default function AcademicStructure() {
                   <>
                     <FormInput label="College Name" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} placeholder="e.g. College of Science and Technology" />
                     <FormInput label="Code" value={formData.code} onChange={(v) => setFormData({ ...formData, code: v })} placeholder="e.g. CST" />
-                    <FormSelect label="Principal (Optional)" value={formData.principal} onChange={(v) => setFormData({ ...formData, principal: v })} options={[
-                      { value: "", label: "Select Principal" },
-                      ...colleges.flatMap(c => c.principal ? [] : []),
-                    ]}>
-                      <option value="">Select Principal (User with role 'principal')</option>
+                    <FormSelect label="Assign Principal" value={formData.principal} onChange={(v) => setFormData({ ...formData, principal: v })}>
+                      <option value="">Select User (will become Principal)</option>
+                      {getPrincipals().map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
                     </FormSelect>
+                    <p className="text-xs text-muted-foreground">Selecting a user will automatically change their role to Principal</p>
                   </>
                 )}
 
@@ -321,8 +447,19 @@ export default function AcademicStructure() {
                   <>
                     <FormInput label="School Name" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} placeholder="e.g. School of ICT" />
                     <FormInput label="Code" value={formData.code} onChange={(v) => setFormData({ ...formData, code: v })} placeholder="e.g. SOICT" />
-                    <FormSelect label="College" value={formData.college} onChange={(v) => setFormData({ ...formData, college: v })} options={colleges.map(c => ({ value: c._id, label: c.name }))} />
-                    <FormSelect label="Dean (Optional)" value={formData.dean} onChange={(v) => setFormData({ ...formData, dean: v })} options={[{ value: "", label: "Select Dean" }]} />
+                    <FormSelect label="College" value={formData.college} onChange={(v) => setFormData({ ...formData, college: v })}>
+                      <option value="">Select College</option>
+                      {colleges.map(c => (
+                        <option key={c._id} value={c._id}>{c.name}</option>
+                      ))}
+                    </FormSelect>
+                    <FormSelect label="Assign Dean" value={formData.dean} onChange={(v) => setFormData({ ...formData, dean: v })}>
+                      <option value="">Select User (will become Dean)</option>
+                      {getDeans().map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </FormSelect>
+                    <p className="text-xs text-muted-foreground">Selecting a user will automatically change their role to Dean</p>
                   </>
                 )}
 
@@ -330,8 +467,19 @@ export default function AcademicStructure() {
                   <>
                     <FormInput label="Department Name" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} placeholder="e.g. Information Technology" />
                     <FormInput label="Code" value={formData.code} onChange={(v) => setFormData({ ...formData, code: v })} placeholder="e.g. IT" />
-                    <FormSelect label="School" value={formData.school} onChange={(v) => setFormData({ ...formData, school: v })} options={schools.map(s => ({ value: s._id, label: s.name }))} />
-                    <FormSelect label="HoD (Optional)" value={formData.hod} onChange={(v) => setFormData({ ...formData, hod: v })} options={[{ value: "", label: "Select HoD" }]} />
+                    <FormSelect label="School" value={formData.school} onChange={(v) => setFormData({ ...formData, school: v })}>
+                      <option value="">Select School</option>
+                      {schools.map(s => (
+                        <option key={s._id} value={s._id}>{s.name}</option>
+                      ))}
+                    </FormSelect>
+                    <FormSelect label="Assign HoD" value={formData.hod} onChange={(v) => setFormData({ ...formData, hod: v })}>
+                      <option value="">Select User (will become HoD)</option>
+                      {getHoDs().map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </FormSelect>
+                    <p className="text-xs text-muted-foreground">Selecting a user will automatically change their role to HoD</p>
                   </>
                 )}
 
@@ -355,14 +503,14 @@ export default function AcademicStructure() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-400 hover:text-white"
+                    className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
+                    className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
                   >
                     {loading ? <Activity size={18} className="animate-spin" /> : <Save size={18} />}
                     {editingItem ? "Update" : "Create"}
@@ -379,21 +527,21 @@ export default function AcademicStructure() {
 
 function ListItem({ title, subtitle, badge, extra, onEdit, onDelete }) {
   return (
-    <div className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+    <div className="p-4 flex items-center justify-between hover:bg-accent transition-colors group">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-white truncate">{title}</p>
-        <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>
+        <p className="text-sm font-semibold text-foreground truncate">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right hidden sm:block">
-          <p className="text-xs text-neutral-400">{badge}</p>
-          <p className="text-xs text-neutral-600">{extra}</p>
+          <p className="text-xs text-muted-foreground">{badge}</p>
+          <p className="text-xs text-muted-foreground">{extra}</p>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onEdit} className="p-2 text-neutral-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all">
+          <button onClick={onEdit} className="p-2 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all">
             <Pencil size={16} />
           </button>
-          <button onClick={onDelete} className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+          <button onClick={onDelete} className="p-2 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
             <Trash2 size={16} />
           </button>
         </div>
@@ -405,12 +553,12 @@ function ListItem({ title, subtitle, badge, extra, onEdit, onDelete }) {
 function FormInput({ label, value, onChange, placeholder }) {
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">{label}</label>
+      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+        className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
       />
     </div>
   );
@@ -419,11 +567,11 @@ function FormInput({ label, value, onChange, placeholder }) {
 function FormSelect({ label, value, onChange, options, children }) {
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">{label}</label>
+      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+        className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
       >
         {children}
         {options?.map((opt) => (

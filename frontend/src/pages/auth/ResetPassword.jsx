@@ -53,7 +53,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col">
+    <div className="min-h-screen bg-card text-foreground flex flex-col">
       <Toaster position="top-right" />
       <Navbar />
 
@@ -66,14 +66,14 @@ export default function ResetPassword() {
         >
           <Link
             to="/login"
-            className="inline-flex items-center gap-2 text-neutral-400 hover:text-white mb-6 transition-colors"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Login
           </Link>
 
           <h1 className="text-3xl font-bold mb-2">Reset Password</h1>
-          <p className="text-neutral-400 mb-8">
+          <p className="text-muted-foreground mb-8">
             Enter your new password below.
           </p>
 
@@ -81,7 +81,7 @@ export default function ResetPassword() {
             <div className="bg-green-900/20 border border-green-800/30 rounded-2xl p-8 text-center">
               <CheckCircle className="mx-auto mb-4 text-green-400" size={48} />
               <h2 className="text-xl font-semibold mb-2">Password Updated!</h2>
-              <p className="text-neutral-400 text-sm">
+              <p className="text-muted-foreground text-sm">
                 Redirecting you to login...
               </p>
             </div>
@@ -89,7 +89,7 @@ export default function ResetPassword() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="relative">
                 <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                   size={18}
                 />
                 <input
@@ -100,12 +100,12 @@ export default function ResetPassword() {
                   placeholder="New password"
                   required
                   minLength={8}
-                  className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-neutral-500"
+                  className="w-full pl-12 pr-12 py-4 bg-accent border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-neutral-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -113,7 +113,7 @@ export default function ResetPassword() {
 
               <div className="relative">
                 <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                   size={18}
                 />
                 <input
@@ -124,7 +124,7 @@ export default function ResetPassword() {
                   placeholder="Confirm new password"
                   required
                   minLength={8}
-                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-neutral-500"
+                  className="w-full pl-12 pr-4 py-4 bg-accent border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-neutral-500"
                 />
               </div>
 

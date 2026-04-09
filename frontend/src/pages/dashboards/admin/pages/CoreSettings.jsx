@@ -11,7 +11,8 @@ import {
   CheckCircle,
 } from "lucide-react";
 import adminService from "../../../../services/adminService";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ThemedToaster from "../../../../components/ui/ThemedToaster";
 
 export default function CoreSettings() {
   const [loading, setLoading] = useState(true);
@@ -75,7 +76,7 @@ export default function CoreSettings() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <Activity className="animate-spin text-blue-500" size={32} />
-        <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           Loading Configurations...
         </span>
       </div>
@@ -83,8 +84,8 @@ export default function CoreSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
-      <Toaster theme="dark" position="top-right" />
+    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12">
+      <ThemedToaster />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -95,7 +96,7 @@ export default function CoreSettings() {
           <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
             <Settings className="text-blue-500" size={36} /> Core Settings
           </h1>
-          <p className="text-neutral-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             Configure integrations, AI behavior, and global security rules.
           </p>
         </motion.div>
@@ -105,7 +106,7 @@ export default function CoreSettings() {
           animate={{ opacity: 1, x: 0 }}
           onClick={handleSave}
           disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50"
+          className="bg-blue-600 hover:bg-blue-700 text-foreground px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50"
         >
           {saving ? (
             <Activity size={18} className="animate-spin" />
@@ -123,22 +124,22 @@ export default function CoreSettings() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-border rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Smartphone size={22} className="text-green-500" /> SMS Gateway
               limits
             </h2>
 
-            <div className="bg-[#111] border border-white/5 rounded-2xl p-6">
+            <div className="bg-card border border-border rounded-2xl p-6">
               <div className="flex justify-between items-end mb-4">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mb-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
                     Current Billing Cycle
                   </p>
-                  <p className="text-3xl font-black tracking-tighter text-white">
+                  <p className="text-3xl font-black tracking-tighter text-foreground">
                     {smsQuota.used.toLocaleString()}{" "}
-                    <span className="text-sm text-neutral-500 font-medium">
+                    <span className="text-sm text-muted-foreground font-medium">
                       / {smsQuota.limit.toLocaleString()} msgs
                     </span>
                   </p>
@@ -174,7 +175,7 @@ export default function CoreSettings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-border rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Zap size={22} className="text-purple-500" /> AI Engine
@@ -182,12 +183,12 @@ export default function CoreSettings() {
             </h2>
 
             <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-border rounded-xl">
                 <div>
-                  <h4 className="font-bold text-white text-sm">
+                  <h4 className="font-bold text-foreground text-sm">
                     Gemini Auto-Approve
                   </h4>
-                  <p className="text-xs text-neutral-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Allow AI to auto-approve flyers that match strict safety
                     guidelines.
                   </p>
@@ -203,13 +204,13 @@ export default function CoreSettings() {
                 />
               </div>
 
-              <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl space-y-4">
+              <div className="p-4 bg-white/[0.02] border border-border rounded-xl space-y-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-bold text-white text-sm">
+                    <h4 className="font-bold text-foreground text-sm">
                       Content Filter Strictness
                     </h4>
-                    <p className="text-xs text-neutral-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Adjust the AI OCR moderation threshold.
                     </p>
                   </div>
@@ -241,16 +242,16 @@ export default function CoreSettings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-border rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Shield size={22} className="text-blue-500" /> Security & Workflow
             </h2>
 
             <div className="space-y-4">
-              <div className="flex flex-col gap-2 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+              <div className="flex flex-col gap-2 p-4 bg-white/[0.02] border border-border rounded-xl">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-white text-sm">
+                  <h4 className="font-bold text-foreground text-sm">
                     Require HoD Approval
                   </h4>
                   <ToggleSwitch
@@ -263,15 +264,15 @@ export default function CoreSettings() {
                     }
                   />
                 </div>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-muted-foreground">
                   Force lecturer broadcasts to pass through Department Head
                   approval.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+              <div className="flex flex-col gap-2 p-4 bg-white/[0.02] border border-border rounded-xl">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-white text-sm">
+                  <h4 className="font-bold text-foreground text-sm">
                     Maintenance Mode
                   </h4>
                   <ToggleSwitch
@@ -284,16 +285,16 @@ export default function CoreSettings() {
                     }
                   />
                 </div>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-muted-foreground">
                   Temporarily block non-admins from creating new events.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                <h4 className="font-bold text-white text-sm">
+              <div className="flex flex-col gap-2 p-4 bg-white/[0.02] border border-border rounded-xl">
+                <h4 className="font-bold text-foreground text-sm">
                   Max Broadcast Reach
                 </h4>
-                <p className="text-xs text-neutral-500 mb-2">
+                <p className="text-xs text-muted-foreground mb-2">
                   Limit the maximum audience size for a single event.
                 </p>
                 <select
@@ -304,7 +305,7 @@ export default function CoreSettings() {
                       maxBroadcastReach: e.target.value,
                     })
                   }
-                  className="w-full bg-[#111] border border-white/5 rounded-xl py-3 px-4 focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer"
+                  className="w-full bg-card border border-border rounded-xl py-3 px-4 focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer"
                 >
                   <option value="department">Department Level Only</option>
                   <option value="school">School Level Only</option>

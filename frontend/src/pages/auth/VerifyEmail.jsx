@@ -33,7 +33,7 @@ export default function VerifyEmail() {
   }, [token]);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col">
+    <div className="min-h-screen bg-card text-foreground flex flex-col">
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center px-4 py-20">
@@ -47,7 +47,7 @@ export default function VerifyEmail() {
             <div className="space-y-4">
               <Loader2 className="mx-auto animate-spin text-blue-400" size={48} />
               <h1 className="text-2xl font-bold">Verifying Email...</h1>
-              <p className="text-neutral-400">Please wait while we confirm your email address.</p>
+              <p className="text-muted-foreground">Please wait while we confirm your email address.</p>
             </div>
           )}
 
@@ -55,7 +55,7 @@ export default function VerifyEmail() {
             <div className="bg-green-900/20 border border-green-800/30 rounded-2xl p-8">
               <CheckCircle className="mx-auto mb-4 text-green-400" size={48} />
               <h1 className="text-2xl font-bold mb-2">Email Verified!</h1>
-              <p className="text-neutral-400 mb-6">{message}</p>
+              <p className="text-muted-foreground mb-6">{message}</p>
               <Link
                 to="/login"
                 className="inline-block bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold transition-colors"
@@ -69,10 +69,10 @@ export default function VerifyEmail() {
             <div className="bg-red-900/20 border border-red-800/30 rounded-2xl p-8">
               <XCircle className="mx-auto mb-4 text-red-400" size={48} />
               <h1 className="text-2xl font-bold mb-2">Verification Failed</h1>
-              <p className="text-neutral-400 mb-6">{message}</p>
+              <p className="text-muted-foreground mb-6">{message}</p>
               <Link
                 to="/login"
-                className="inline-block bg-white/10 hover:bg-white/20 px-6 py-3 rounded-xl font-semibold transition-colors"
+                className="inline-block bg-accent hover:bg-accent/80 px-6 py-3 rounded-xl font-semibold transition-colors"
               >
                 Back to Login
               </Link>

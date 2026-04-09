@@ -1,4 +1,5 @@
 import College from '../model/College.js';
+import User from '../../user/model/User.js';
 
 // @desc    Create a new College
 // @route   POST /api/colleges
@@ -11,6 +12,16 @@ export const createCollege = async (req, res) => {
     const collegeExists = await College.findOne({ code });
     if (collegeExists) {
       return res.status(400).json({ message: 'College with this code already exists' });
+    }
+
+    // If principal is being assigned, update their role
+    if (principal) {
+      const principalUser = await User.findById(principal);
+      if (principalUser) {
+        principalUser.role = 'principal';
+        principalUser.college = principal;
+        await principalUser.save();
+      }
     }
 
     const college = await College.create({
@@ -49,6 +60,27 @@ export const updateCollege = async (req, res) => {
     }
 
     const { name, code, principal } = req.body;
+    
+    // Handle role change when principal is assigned
+    if (principal && principal !== college.principal?.toString()) {
+      // If there was a previous principal, revert their role
+      if (college.principal) {
+        await User.findByIdAndUpdate(college.principal, { role: 'lecturer' });
+      }
+      // Set new principal's role to principal
+      const newPrincipal = await User.findById(principal);
+      if (newPrincipal) {
+        newPrincipal.role = 'principal';
+        newPrincipal.college = college._id;
+        await newPrincipal.save();
+      }
+    }
+    
+    // Handle unassigning principal
+    if (!principal && college.principal) {
+      await User.findByIdAndUpdate(college.principal, { role: 'lecturer' });
+    }
+
     if (name) college.name = name;
     if (code) college.code = code;
     if (principal !== undefined) college.principal = principal;

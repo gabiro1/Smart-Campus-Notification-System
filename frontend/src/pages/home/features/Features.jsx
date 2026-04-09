@@ -53,7 +53,7 @@ export default function Features() {
     <div className="min-h-screen bg-neutral-950 pt-32 pb-20 px-6 relative overflow-hidden ">
       <Navbar />
       {/* Background Large Typography */}
-      <h1 className="text-[20vw] font-black text-white/[0.02] absolute top-10 left-1/2 -translate-x-1/2 pointer-events-none select-none">
+      <h1 className="text-[20vw] font-black text-foreground/[0.02] absolute top-10 left-1/2 -translate-x-1/2 pointer-events-none select-none">
         CORE
       </h1>
 
@@ -65,9 +65,9 @@ export default function Features() {
             animate={{ opacity: 1, x: 0 }}
             className="text-5xl md:text-7xl font-black text-white text-center leading-relaxed tracking-tighter  mb-4"
           >
-            Engineered for <span className="text-neutral-600">Impact.</span>
+            Engineered for <span className="text-muted-foreground">Impact.</span>
           </motion.h2>
-          <p className="text-neutral-300 max-w-xl text-lg font-medium text-center mx-auto tracking-normal">
+          <p className="text-muted-foreground max-w-xl text-lg font-medium text-center mx-auto tracking-normal">
             Technical solutions for real-world campus communication challenges.
             Built for the University of Rwanda ecosystem.
           </p>
@@ -82,15 +82,15 @@ export default function Features() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               whileHover={{ y: -5, borderColor: "rgba(37, 99, 235, 0.3)" }}
-              className="glass p-8 rounded-[40px] border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent hover:bg-white/[0.04] transition-all group"
+              className="glass p-8 rounded-[40px] border border-border bg-gradient-to-br from-white/[0.02] to-transparent hover:bg-white/[0.04] transition-all group"
             >
               <div className="w-12 h-12 bg-blue-600/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6  group-hover:text-white transition-all duration-500">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-white mb-3  tracking-tight">
+              <h3 className="text-xl font-bold text-foreground mb-3  tracking-tight">
                 {feature.title}
               </h3>
-              <p className="text-neutral-500 text-sm leading-relaxed font-medium">
+              <p className="text-muted-foreground text-sm leading-relaxed font-medium">
                 {feature.desc}
               </p>
             </motion.div>
@@ -101,7 +101,7 @@ export default function Features() {
         <div className="mt-20 text-center">
           <Link
             to="/register"
-            className="glass p-8 rounded-[40px] border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent hover:bg-white/[0.04] transition-all group  text-white inline-block  px-12 py-5 rounded-2xl  tracking-widest shadow-lg   transition-all"
+            className="glass p-8 rounded-[40px] border border-border bg-gradient-to-br from-white/[0.02] to-transparent hover:bg-white/[0.04] transition-all group  text-foreground inline-block  px-12 py-5 rounded-2xl  tracking-widest shadow-lg   transition-all"
           >
             Experience the Pulse
           </Link>

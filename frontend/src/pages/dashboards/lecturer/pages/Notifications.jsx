@@ -160,10 +160,10 @@ export default function Notifications() {
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
             Notifications
           </h1>
-          <p className="text-neutral-400">
+          <p className="text-muted-foreground">
             View system alerts and your broadcast delivery history.
           </p>
         </div>
@@ -189,8 +189,8 @@ export default function Notifications() {
             onClick={() => setActiveTab(tab.id)}
             className={`relative px-6 py-2.5 text-sm font-medium transition-colors z-10 capitalize flex items-center gap-2 ${
               activeTab === tab.id
-                ? "text-white"
-                : "text-neutral-500 hover:text-neutral-300"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-neutral-300"
             }`}
           >
             {activeTab === tab.id && (
@@ -204,7 +204,7 @@ export default function Notifications() {
             {tab.label}
             {tab.showBadge && unreadCount > 0 && (
               <span
-                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${activeTab === tab.id ? "bg-blue-500 text-white" : "bg-white/10 text-neutral-400"}`}
+                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${activeTab === tab.id ? "bg-blue-500 text-foreground" : "bg-white/10 text-muted-foreground"}`}
               >
                 {unreadCount}
               </span>
@@ -222,7 +222,7 @@ export default function Notifications() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <Loader2 size={40} className="animate-spin text-blue-500" />
-            <p className="text-neutral-500 text-sm">Loading notifications...</p>
+            <p className="text-muted-foreground text-sm">Loading notifications...</p>
           </div>
         )}
 
@@ -266,27 +266,27 @@ export default function Notifications() {
 
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-2 mb-2">
                       <h3
-                        className={`font-semibold text-base ${note.unread ? "text-white" : "text-neutral-200"}`}
+                        className={`font-semibold text-base ${note.unread ? "text-foreground" : "text-neutral-200"}`}
                       >
                         {note.title}
                       </h3>
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-500 bg-black/40 px-2.5 py-1 rounded-md border border-white/5 w-fit">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-black/40 px-2.5 py-1 rounded-md border border-border w-fit">
                         <Clock size={12} />
                         {note.time}
                       </div>
                     </div>
 
-                    <p className="text-sm text-neutral-400 leading-relaxed mb-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                       {note.desc}
                     </p>
 
                     {/* Sent History Specific Meta */}
                     {note.category === "sent" && (
-                      <div className="flex items-center gap-4 pt-4 border-t border-white/5">
+                      <div className="flex items-center gap-4 pt-4 border-t border-border">
                         <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded border border-emerald-400/20">
                           <CheckCheck size={14} /> {note.status}
                         </span>
-                        <span className="text-xs text-neutral-500">
+                        <span className="text-xs text-muted-foreground">
                           {note.viewCount || 0} views
                         </span>
                       </div>
@@ -304,10 +304,10 @@ export default function Notifications() {
               >
                 <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
                   <Bell size={32} className="text-neutral-600 mb-3" />
-                  <p className="text-neutral-400 font-medium">
+                  <p className="text-muted-foreground font-medium">
                     You're all caught up!
                   </p>
-                  <p className="text-sm text-neutral-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     No {activeTab} notifications to display right now.
                   </p>
                 </div>
@@ -327,13 +327,13 @@ export default function Notifications() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Sparkles size={20} className="text-blue-400" />
-              <span className="text-sm text-neutral-400">AI-Powered Digest</span>
+              <span className="text-sm text-muted-foreground">AI-Powered Digest</span>
             </div>
             <div className="flex items-center gap-3">
               <select
                 value={digestPeriod}
                 onChange={(e) => setDigestPeriod(e.target.value)}
-                className="bg-background border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                className="bg-background border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-blue-500/50"
               >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -342,7 +342,7 @@ export default function Notifications() {
               <button
                 onClick={generateDigest}
                 disabled={generatingDigest}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
               >
                 {generatingDigest ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -357,13 +357,13 @@ export default function Notifications() {
           {digestLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 size={40} className="animate-spin text-blue-500" />
-              <p className="text-neutral-500 text-sm mt-4">Loading digest...</p>
+              <p className="text-muted-foreground text-sm mt-4">Loading digest...</p>
             </div>
           ) : digest ? (
             <GlassCard className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FileText size={18} className="text-emerald-400" />
-                <h3 className="text-lg font-semibold text-white">Your Notification Summary</h3>
+                <h3 className="text-lg font-semibold text-foreground">Your Notification Summary</h3>
               </div>
               <div className="prose prose-invert max-w-none">
                 {typeof digest === 'string' ? (
@@ -372,14 +372,14 @@ export default function Notifications() {
                   <div className="space-y-4">
                     {digest.summary && (
                       <div>
-                        <h4 className="text-sm font-medium text-white mb-2">Summary</h4>
-                        <p className="text-neutral-400 text-sm">{digest.summary}</p>
+                        <h4 className="text-sm font-medium text-foreground mb-2">Summary</h4>
+                        <p className="text-muted-foreground text-sm">{digest.summary}</p>
                       </div>
                     )}
                     {digest.keyPoints && digest.keyPoints.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-white mb-2">Key Points</h4>
-                        <ul className="list-disc list-inside text-neutral-400 text-sm space-y-1">
+                        <h4 className="text-sm font-medium text-foreground mb-2">Key Points</h4>
+                        <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
                           {digest.keyPoints.map((point, i) => (
                             <li key={i}>{point}</li>
                           ))}
@@ -388,8 +388,8 @@ export default function Notifications() {
                     )}
                     {digest.actionItems && digest.actionItems.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-white mb-2">Action Items</h4>
-                        <ul className="list-decimal list-inside text-neutral-400 text-sm space-y-1">
+                        <h4 className="text-sm font-medium text-foreground mb-2">Action Items</h4>
+                        <ul className="list-decimal list-inside text-muted-foreground text-sm space-y-1">
                           {digest.actionItems.map((item, i) => (
                             <li key={i}>{item}</li>
                           ))}
@@ -403,8 +403,8 @@ export default function Notifications() {
           ) : (
             <GlassCard className="p-8 text-center">
               <Sparkles size={40} className="text-neutral-600 mx-auto mb-4" />
-              <p className="text-neutral-400 font-medium">No digest available</p>
-              <p className="text-sm text-neutral-500 mt-1">
+              <p className="text-muted-foreground font-medium">No digest available</p>
+              <p className="text-sm text-muted-foreground mt-1">
                 Click "Generate" to create an AI summary of your notifications
               </p>
             </GlassCard>

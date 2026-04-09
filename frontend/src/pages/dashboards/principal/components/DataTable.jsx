@@ -11,7 +11,7 @@ export default function DataTable({
     <div className="overflow-x-auto flex-1 custom-scrollbar">
       <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
-          <tr className="bg-background border-b border-white/5 text-[10px] uppercase tracking-widest text-neutral-500">
+          <tr className="bg-background border-b border-border text-[10px] uppercase tracking-widest text-muted-foreground">
             {columns.map((col, i) => (
               <th
                 key={i}
@@ -29,7 +29,7 @@ export default function DataTable({
             <tr>
               <td
                 colSpan={columns.length}
-                className="p-12 text-center text-neutral-600 font-mono text-sm"
+                className="p-12 text-center text-muted-foreground font-mono text-sm"
               >
                 {emptyMessage}
               </td>

@@ -20,8 +20,8 @@ const GlassPanel = ({ children, className = "" }) => (
   <div
     className={`
       relative overflow-hidden rounded-3xl
-      bg-white/[0.02] backdrop-blur-xl
-      border border-white/[0.05]
+      bg-accent backdrop-blur-xl
+      border border-border
       ${className}
     `}
   >
@@ -41,25 +41,25 @@ const ScheduleCard = ({ item, index }) => (
     exit={{ opacity: 0, y: -8 }}
     transition={{ delay: index * 0.05, duration: 0.3 }}
   >
-    <div className="group relative p-4 md:p-6 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] rounded-3xl transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-0.5">
+    <div className="group relative p-4 md:p-6 bg-primary/10 hover:bg-primary/10 border border-border rounded-3xl transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-0.5">
       <div className="flex items-start md:items-center gap-4 md:gap-5">
         {/* Icon - Shrinks slightly on mobile */}
-        <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white/5 flex items-center justify-center flex-shrink-0 mt-1 md:mt-0">
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-accent flex items-center justify-center flex-shrink-0 mt-1 md:mt-0">
           <BookOpen
             size={18}
-            className="text-white/40 group-hover:text-white/80 transition-colors"
+            className="text-foreground/40 group-hover:text-foreground/80 transition-colors"
           />
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-white/90 font-semibold text-sm md:text-base mb-2 md:mb-1.5 pr-6 md:pr-0 leading-tight">
+          <h3 className="text-foreground/90 font-semibold text-sm md:text-base mb-2 md:mb-1.5 pr-6 md:pr-0 leading-tight">
             {item.course}
           </h3>
 
           {/* Meta Details - Wraps on mobile */}
-          <div className="flex flex-wrap items-center gap-3 md:gap-4 text-[11px] md:text-xs text-white/30 font-medium">
-            <span className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full text-white/60">
+          <div className="flex flex-wrap items-center gap-3 md:gap-4 text-[11px] md:text-xs text-foreground/30 font-medium">
+            <span className="flex items-center gap-1.5 bg-accent px-2.5 py-1 rounded-full text-foreground/60">
               <Clock size={12} /> {item.time}
             </span>
             <span className="flex items-center gap-1.5">
@@ -72,10 +72,10 @@ const ScheduleCard = ({ item, index }) => (
         </div>
 
         {/* Arrow - Hidden on very small screens, visible on hover for desktop */}
-        <div className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
+        <div className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-accent group-hover:bg-primary/10 transition-colors">
           <ChevronRight
             size={16}
-            className="text-white/30 group-hover:text-white/80 transition-all transform group-hover:translate-x-0.5"
+            className="text-foreground/30 group-hover:text-foreground/80 transition-all transform group-hover:translate-x-0.5"
           />
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function TimeTable() {
   const currentClasses = scheduleData[selectedDay] || [];
 
   return (
-    <div className="min-h-screen bg-background text-white overflow-x-hidden">
+    <div className="min-h-screen bg-card text-foreground overflow-x-hidden">
       {/* ── Ambient Background Glow ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 left-[20%] w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[120px]" />
@@ -137,7 +137,7 @@ export default function TimeTable() {
           {/* Header */}
           <header className="mb-8 md:mb-12">
             <div className="flex items-center gap-3 mb-4 opacity-60">
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <GraduationCap size={16} />
               </div>
               <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
@@ -147,14 +147,14 @@ export default function TimeTable() {
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2 md:mb-3">
               Academic Timetable
             </h1>
-            <p className="text-white/30 text-xs md:text-sm">
+            <p className="text-foreground/30 text-xs md:text-sm">
               {user.level ? `${user.level}` : 'Academic'} Timetable
             </p>
           </header>
 
           {/* Responsive Day Selector */}
           <div className="mb-8 md:mb-12 flex justify-center md:justify-start">
-            <div className="inline-flex p-1 md:p-1.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 w-full sm:w-auto overflow-x-auto no-scrollbar">
+            <div className="inline-flex p-1 md:p-1.5 bg-accent backdrop-blur-md rounded-2xl border border-border w-full sm:w-auto overflow-x-auto no-scrollbar">
               {days.map((day) => {
                 const isActive = selectedDay === day.full;
                 return (
@@ -175,7 +175,7 @@ export default function TimeTable() {
                       />
                     )}
                     <span
-                      className={`relative z-10 ${isActive ? "text-black" : "text-white/40 hover:text-white/70"}`}
+                      className={`relative z-10 ${isActive ? "text-black" : "text-foreground/40 hover:text-foreground/70"}`}
                     >
                       {/* Short name on mobile, Full name on desktop */}
                       <span className="md:hidden">{day.short}</span>
@@ -200,9 +200,9 @@ export default function TimeTable() {
               >
                 {loading ? (
                   <>
-                    <div className="h-20 bg-white/5 rounded-3xl animate-pulse mb-4"></div>
-                    <div className="h-20 bg-white/5 rounded-3xl animate-pulse mb-4"></div>
-                    <div className="h-20 bg-white/5 rounded-3xl animate-pulse mb-4"></div>
+                    <div className="h-20 bg-accent rounded-3xl animate-pulse mb-4"></div>
+                    <div className="h-20 bg-accent rounded-3xl animate-pulse mb-4"></div>
+                    <div className="h-20 bg-accent rounded-3xl animate-pulse mb-4"></div>
                   </>
                 ) : currentClasses.length > 0 ? (
                   currentClasses.map((item, i) => (
@@ -214,13 +214,13 @@ export default function TimeTable() {
                     animate={{ opacity: 1, y: 0 }}
                   >
                     <GlassPanel className="py-20 px-6 text-center mt-4">
-                      <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
-                        <Calendar size={24} className="text-white/20" />
+                      <div className="w-16 h-16 rounded-3xl bg-accent border border-border flex items-center justify-center mx-auto mb-4">
+                        <Calendar size={24} className="text-foreground/20" />
                       </div>
-                      <h3 className="text-white/60 font-medium mb-1">
+                      <h3 className="text-foreground/60 font-medium mb-1">
                         No classes scheduled
                       </h3>
-                      <p className="text-white/20 text-xs md:text-sm">
+                      <p className="text-foreground/20 text-xs md:text-sm">
                         Enjoy your {selectedDay} off.
                       </p>
                     </GlassPanel>

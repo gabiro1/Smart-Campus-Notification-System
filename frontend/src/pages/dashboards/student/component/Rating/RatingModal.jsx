@@ -20,10 +20,10 @@ export default function RatingModal({ isOpen, onClose, eventTitle }) {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="glass w-full max-w-sm p-8 rounded-[40px] border border-white/10 z-10 text-center"
+            className="glass w-full max-w-sm p-8 rounded-[40px] border border-border z-10 text-center"
           >
             <h3 className="text-xl font-bold mb-2">How was the event?</h3>
-            <p className="text-neutral-400 text-sm mb-6">{eventTitle}</p>
+            <p className="text-muted-foreground text-sm mb-6">{eventTitle}</p>
 
             <div className="flex justify-center gap-2 mb-8">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -33,7 +33,7 @@ export default function RatingModal({ isOpen, onClose, eventTitle }) {
                     className={
                       star <= rating
                         ? "fill-yellow-400 text-yellow-400"
-                        : "text-neutral-600"
+                        : "text-muted-foreground"
                     }
                   />
                 </button>

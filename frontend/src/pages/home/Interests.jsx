@@ -10,10 +10,10 @@ const TAGS = [
 export default function Interests() {
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6 text-center">
-      <h2 className="text-3xl font-bold text-white mb-4">
+      <h2 className="text-3xl font-bold text-foreground mb-4">
         What interests you?
       </h2>
-      <p className="text-neutral-400 mb-10">We'll use this to rank your feed</p>
+      <p className="text-muted-foreground mb-10">We'll use this to rank your feed</p>
 
       <div className="flex flex-wrap justify-center gap-4 max-w-2xl">
         {TAGS.map((tag) => (

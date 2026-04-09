@@ -133,7 +133,7 @@ export default function Messages() {
               className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                 activeChatId === (contact.id || contact._id) || (!activeChatId && i === 0)
                   ? "bg-input" 
-                  : "hover:bg-[#12141A]"
+                  : "hover:bg-card"
               }`}
             >
               {/* Avatar relative container for unread dot */}
@@ -148,7 +148,7 @@ export default function Messages() {
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
-                  <h3 className="text-sm font-bold text-white truncate">{contact.name || "Dr. Sarah Vance"}</h3>
+                  <h3 className="text-sm font-bold text-foreground truncate">{contact.name || "Dr. Sarah Vance"}</h3>
                   <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap ml-2">
                     {contact.time || "10:42 AM"}
                   </span>
@@ -218,8 +218,8 @@ export default function Messages() {
                 {msg.text || msg.content ? (
                   <div className={`p-4 rounded-[20px] text-sm leading-relaxed ${
                     isMe 
-                      ? "bg-muted text-[#E2E8F0] rounded-br-[4px] border border-[#3B4252]" 
-                      : "bg-[#12141A] text-muted-foreground rounded-bl-[4px] border border-input"
+                      ? "bg-muted text-foreground rounded-br-[4px] border border-[#3B4252]" 
+                      : "bg-card text-muted-foreground rounded-bl-[4px] border border-input"
                   }`}>
                     {msg.text || msg.content}
                   </div>
@@ -230,13 +230,13 @@ export default function Messages() {
                   <div className={`mt-2 p-4 rounded-xl border flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity ${
                     isMe 
                       ? "bg-muted border-[#3B4252] rounded-br-none" 
-                      : "bg-[#12141A] border-input"
+                      : "bg-card border-input"
                   }`}>
                     <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
                       <FileText size={20} />
                     </div>
                     <div>
-                      <p className="text-white text-sm font-bold mb-0.5">{msg.fileTitle || msg.file?.name}</p>
+                      <p className="text-foreground text-sm font-bold mb-0.5">{msg.fileTitle || msg.file?.name}</p>
                       <p className="text-muted-foreground text-xs">{msg.fileSize || `${Math.round((msg.file?.size||0)/1000)} KB`}</p>
                     </div>
                   </div>
@@ -254,11 +254,11 @@ export default function Messages() {
 
         {/* Input Bar */}
         <div className="p-6 shrink-0 z-10 relative">
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0A0A0A] to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-card to-transparent pointer-events-none" />
           
           <form 
             onSubmit={handleSendMessage} 
-            className="flex items-center gap-2 bg-[#12141A] border border-input p-2 rounded-full relative z-20 shadow-2xl"
+            className="flex items-center gap-2 bg-card border border-input p-2 rounded-full relative z-20 shadow-2xl"
           >
             <button type="button" className="p-3 text-muted-foreground hover:text-white transition-colors rounded-full hover:bg-input">
               <Paperclip size={20} />
@@ -294,10 +294,10 @@ export default function Messages() {
       {/* RIGHT PANEL: CONTACT INFO / DETAILS */}
       <div className="w-[320px] border-l border-input flex flex-col bg-background overflow-y-auto">
         <div className="p-8 flex flex-col items-center border-b border-input">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-bl from-blue-900 via-[#1A1D24] to-[#0A0A0A] border border-border mb-4 flex items-center justify-center text-2xl font-black shadow-xl">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-bl from-blue-900 to-card border border-border mb-4 flex items-center justify-center text-2xl font-black shadow-xl">
             Dr
           </div>
-          <h2 className="text-xl font-extrabold text-white mb-1">Dr. Sarah Vance</h2>
+          <h2 className="text-xl font-extrabold text-foreground mb-1">Dr. Sarah Vance</h2>
           <p className="text-xs text-muted-foreground font-medium mb-4">Professor of Computational Ethics</p>
           
           <div className="flex gap-2">

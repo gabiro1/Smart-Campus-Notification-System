@@ -22,7 +22,8 @@ import {
   Line,
 } from "recharts";
 import adminService from "../../../../services/adminService"; // Adjust path
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ThemedToaster from "../../../../components/ui/ThemedToaster";
 
 export default function FullAnalytics() {
   const [activeTab, setActiveTab] = useState("analytics"); // 'analytics', 'engagement', 'audit'
@@ -101,7 +102,7 @@ export default function FullAnalytics() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <Activity className="animate-spin text-purple-500" size={40} />
-        <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs">
+        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
           Compiling Analytics...
         </p>
       </div>
@@ -109,11 +110,11 @@ export default function FullAnalytics() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
-      <Toaster theme="dark" position="top-right" />
+    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12">
+      <ThemedToaster />
 
       {/* Header & Tabs */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-white/5 pb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-border pb-6">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -121,7 +122,7 @@ export default function FullAnalytics() {
           <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
             <BarChart3 className="text-purple-500" size={36} /> Intelligence
           </h1>
-          <p className="text-neutral-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             System performance, engagement metrics, and audit trails.
           </p>
         </motion.div>
@@ -129,7 +130,7 @@ export default function FullAnalytics() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex bg-card border border-white/5 rounded-2xl p-1"
+          className="flex bg-card border border-border rounded-2xl p-1"
         >
           <TabButton
             active={activeTab === "analytics"}
@@ -164,7 +165,7 @@ export default function FullAnalytics() {
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Chart: Event Creation Trends */}
-              <div className="bg-card border border-white/5 p-6 rounded-[24px] shadow-xl h-[400px]">
+              <div className="bg-card border border-border p-6 rounded-[24px] shadow-xl h-[400px]">
                 <h3 className="text-lg font-bold mb-6 text-neutral-300">
                   Event Volume
                 </h3>
@@ -211,7 +212,7 @@ export default function FullAnalytics() {
               </div>
 
               {/* Chart: Ratings Distribution */}
-              <div className="bg-card border border-white/5 p-6 rounded-[24px] shadow-xl h-[400px]">
+              <div className="bg-card border border-border p-6 rounded-[24px] shadow-xl h-[400px]">
                 <h3 className="text-lg font-bold mb-6 text-neutral-300 flex items-center gap-2">
                   <Star size={18} className="text-yellow-500" /> Supervised
                   Learning (Ratings)
@@ -272,8 +273,8 @@ export default function FullAnalytics() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div className="bg-card border border-white/5 rounded-[24px] overflow-hidden shadow-2xl">
-              <div className="p-6 border-b border-white/5 flex items-center gap-3">
+            <div className="bg-card border border-border rounded-[24px] overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-border flex items-center gap-3">
                 <PieIcon className="text-blue-500" size={20} />
                 <h3 className="text-lg font-bold text-neutral-300">
                   AI Engagement & Read Rates by Department
@@ -281,7 +282,7 @@ export default function FullAnalytics() {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-neutral-500 tracking-widest border-b border-white/5">
+                  <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-muted-foreground tracking-widest border-b border-border">
                     <tr>
                       <th className="p-6">Department</th>
                       <th className="p-6">User Base</th>
@@ -296,10 +297,10 @@ export default function FullAnalytics() {
                         key={idx}
                         className="hover:bg-white/[0.02] transition-colors"
                       >
-                        <td className="p-6 font-bold text-white">
+                        <td className="p-6 font-bold text-foreground">
                           {dept.department || "Unassigned"}
                         </td>
-                        <td className="p-6 text-neutral-400 font-medium">
+                        <td className="p-6 text-muted-foreground font-medium">
                           {dept.totalUsers.toLocaleString()}
                         </td>
                         <td className="p-6 text-blue-400 font-black">
@@ -307,7 +308,7 @@ export default function FullAnalytics() {
                         </td>
                         <td className="p-6">
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-black text-white w-12">
+                            <span className="text-sm font-black text-foreground w-12">
                               {dept.readRate}%
                             </span>
                             <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
@@ -346,7 +347,7 @@ export default function FullAnalytics() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div className="bg-[#111] border border-white/5 p-4 rounded-xl text-sm flex items-start gap-3 mb-6 text-neutral-400">
+            <div className="bg-card border border-border p-4 rounded-xl text-sm flex items-start gap-3 mb-6 text-muted-foreground">
               <ShieldCheck
                 size={18}
                 className="shrink-0 mt-0.5 text-blue-500"
@@ -358,18 +359,18 @@ export default function FullAnalytics() {
               </p>
             </div>
 
-            <div className="bg-card border border-white/5 rounded-[24px] overflow-hidden shadow-2xl">
+            <div className="bg-card border border-border rounded-[24px] overflow-hidden shadow-2xl">
 
               {/* Filter Bar */}
-              <div className="p-6 border-b border-white/5 flex flex-wrap gap-4 items-end">
+              <div className="p-6 border-b border-border flex flex-wrap gap-4 items-end">
                 <div className="flex-1 min-w-[200px]">
-                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                  <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                     Action
                   </label>
                   <select
                     value={auditFilters.action}
                     onChange={(e) => handleFilterChange('action', e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-accent border border-white/10 rounded-lg px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">All Actions</option>
                     <option value="CREATE_USER">Create User</option>
@@ -392,7 +393,7 @@ export default function FullAnalytics() {
                 </div>
 
                 <div className="flex-1 min-w-[200px]">
-                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                  <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                     User Email/ID
                   </label>
                   <input
@@ -400,37 +401,37 @@ export default function FullAnalytics() {
                     value={auditFilters.adminId}
                     onChange={(e) => handleFilterChange('adminId', e.target.value)}
                     placeholder="Filter by user email or ID..."
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-accent border border-white/10 rounded-lg px-4 py-2.5 text-sm text-foreground placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="flex-1 min-w-[180px]">
-                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                  <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={auditFilters.startDate}
                     onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-accent border border-white/10 rounded-lg px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="flex-1 min-w-[180px]">
-                  <label className="block text-xs font-bold uppercase text-neutral-500 mb-2">
+                  <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">
                     End Date
                   </label>
                   <input
                     type="date"
                     value={auditFilters.endDate}
                     onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-accent border border-white/10 rounded-lg px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-lg text-sm font-bold transition-colors border border-white/10"
+                  className="px-6 py-2.5 bg-white/10 hover:bg-white/15 text-foreground rounded-lg text-sm font-bold transition-colors border border-white/10"
                 >
                   Clear Filters
                 </button>
@@ -438,7 +439,7 @@ export default function FullAnalytics() {
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-neutral-500 tracking-widest border-b border-white/5">
+                  <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-muted-foreground tracking-widest border-b border-border">
                     <tr>
                       <th className="p-6">Timestamp</th>
                       <th className="p-6">Actor (Admin)</th>
@@ -451,7 +452,7 @@ export default function FullAnalytics() {
                       <tr>
                         <td
                           colSpan="4"
-                          className="p-8 text-center text-neutral-500"
+                          className="p-8 text-center text-muted-foreground"
                         >
                           No logs found.
                         </td>
@@ -462,14 +463,14 @@ export default function FullAnalytics() {
                           key={log._id}
                           className="hover:bg-white/[0.02] transition-colors"
                         >
-                          <td className="p-6 text-xs text-neutral-500 font-mono">
+                          <td className="p-6 text-xs text-muted-foreground font-mono">
                             {new Date(log.createdAt).toLocaleString()}
                           </td>
                           <td className="p-6">
-                            <div className="text-sm font-bold text-white">
+                            <div className="text-sm font-bold text-foreground">
                               {log.adminId?.name || "System"}
                             </div>
-                            <div className="text-[10px] text-neutral-500 uppercase">
+                            <div className="text-[10px] text-muted-foreground uppercase">
                               {log.adminId?.email}
                             </div>
                           </td>
@@ -500,15 +501,15 @@ export default function FullAnalytics() {
 
               {/* Audit Log Pagination */}
               {auditTotalPages > 1 && (
-                <div className="p-4 border-t border-white/5 flex items-center justify-between bg-white/[0.01]">
-                  <span className="text-xs font-bold uppercase text-neutral-500 tracking-wider pl-4">
+                <div className="p-4 border-t border-border flex items-center justify-between bg-white/[0.01]">
+                  <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider pl-4">
                     Page {auditPage} of {auditTotalPages}
                   </span>
                   <div className="flex gap-2 pr-2">
                     <button
                       onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
                       disabled={auditPage === 1}
-                      className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg text-sm font-bold transition-colors"
+                      className="px-4 py-2 bg-accent hover:bg-white/10 disabled:opacity-30 rounded-lg text-sm font-bold transition-colors"
                     >
                       Previous
                     </button>
@@ -517,7 +518,7 @@ export default function FullAnalytics() {
                         setAuditPage((p) => Math.min(auditTotalPages, p + 1))
                       }
                       disabled={auditPage === auditTotalPages}
-                      className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg text-sm font-bold transition-colors"
+                      className="px-4 py-2 bg-accent hover:bg-white/10 disabled:opacity-30 rounded-lg text-sm font-bold transition-colors"
                     >
                       Next
                     </button>
@@ -539,8 +540,8 @@ function TabButton({ active, onClick, icon, label }) {
       onClick={onClick}
       className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
         active
-          ? "bg-white/10 text-white shadow-sm"
-          : "text-neutral-500 hover:text-neutral-300 hover:bg-white/5"
+          ? "bg-white/10 text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-neutral-300 hover:bg-accent"
       }`}
     >
       {icon} {label}

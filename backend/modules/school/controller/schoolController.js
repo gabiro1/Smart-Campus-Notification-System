@@ -1,5 +1,6 @@
 import School from '../model/School.js';
 import College from '../../college/model/College.js';
+import User from '../../user/model/User.js';
 
 // @desc    Create a new School
 // @route   POST /api/schools
@@ -18,6 +19,16 @@ export const createSchool = async (req, res) => {
     const schoolExists = await School.findOne({ code });
     if (schoolExists) {
       return res.status(400).json({ message: 'School with this code already exists' });
+    }
+
+    // If dean is being assigned, update their role
+    if (dean) {
+      const deanUser = await User.findById(dean);
+      if (deanUser) {
+        deanUser.role = 'dean';
+        deanUser.school = req.body.id;
+        await deanUser.save();
+      }
     }
 
     const school = await School.create({
@@ -64,6 +75,27 @@ export const updateSchool = async (req, res) => {
     }
 
     const { name, code, college, dean } = req.body;
+    
+    // Handle role change when dean is assigned
+    if (dean && dean !== school.dean?.toString()) {
+      // If there was a previous dean, revert their role
+      if (school.dean) {
+        await User.findByIdAndUpdate(school.dean, { role: 'lecturer' });
+      }
+      // Set new dean's role to dean
+      const newDean = await User.findById(dean);
+      if (newDean) {
+        newDean.role = 'dean';
+        newDean.school = school._id;
+        await newDean.save();
+      }
+    }
+    
+    // Handle unassigning dean
+    if (!dean && school.dean) {
+      await User.findByIdAndUpdate(school.dean, { role: 'lecturer' });
+    }
+
     if (name) school.name = name;
     if (code) school.code = code;
     if (college) school.college = college;

@@ -30,31 +30,31 @@ export default function Sidebar({
   brand,
   menuItems = [],
   footer,
-  width = "w-64",
-  bgClass = "bg-background/95 backdrop-blur-3xl",
+  width = "w-72",
+  bgClass = "bg-card/95 backdrop-blur-3xl",
   showCloseButton = true,
 }) {
   const sidebarContent = (
-    <div className={`flex flex-col h-full ${bgClass} border-r border-white/10 ${width}`}>
+    <div className={`flex flex-col h-full ${bgClass} border-r border-border ${width}`}>
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-white/5 shrink-0">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-border shrink-0">
         {brand || (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Command size={18} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white tracking-wide">
+              <h2 className="text-sm font-bold text-foreground tracking-wide">
                 UniCore OS
               </h2>
-              <p className="text-[10px] text-blue-400/80 uppercase tracking-wider font-semibold">
+              <p className="text-[10px] text-primary/80 uppercase tracking-wider font-semibold">
                 Portal
               </p>
             </div>
           </div>
         )}
         {isMobile && showCloseButton && (
-          <button className="text-neutral-400 hover:text-white" onClick={() => setIsOpen(false)}>
+          <button className="text-muted-foreground hover:text-foreground" onClick={() => setIsOpen(false)}>
             <X size={20} />
           </button>
         )}
@@ -70,8 +70,8 @@ export default function Sidebar({
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
                 isActive
-                  ? "bg-white/10 text-white font-semibold"
-                  : "text-neutral-400 hover:text-white hover:bg-white/[0.03]"
+                  ? "bg-primary text-primary-foreground font-semibold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
               }`
             }
           >
@@ -80,7 +80,7 @@ export default function Sidebar({
                 <item.icon size={20} className={isActive ? "drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" : ""} />
                 <span className="flex-1 text-sm">{item.label}</span>
                 {item.badge && (
-                  <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                     {item.badge}
                   </span>
                 )}
@@ -91,7 +91,7 @@ export default function Sidebar({
       </nav>
 
       {/* Footer (Profile, Settings, etc.) */}
-      {footer && <div className="p-4 border-t border-white/5 shrink-0">{footer}</div>}
+      {footer && <div className="p-4 border-t border-border shrink-0">{footer}</div>}
     </div>
   );
 

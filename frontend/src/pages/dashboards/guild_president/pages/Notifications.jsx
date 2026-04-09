@@ -1,97 +1,146 @@
+import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/shared";
-import { Bell, AlertCircle, CheckCircle2, Megaphone } from "lucide-react";
-
-const notifications = [
-  {
-    id: 1,
-    type: "alert",
-    title: "Admin Meeting Moved",
-    time: "10 mins ago",
-    desc: "The monthly campus admin sync has been moved to 3 PM.",
-    unread: true,
-    icon: AlertCircle,
-    color: "text-amber-400",
-    bg: "bg-amber-400/10",
-  },
-  {
-    id: 2,
-    type: "campaign",
-    title: "Tech Symposium Blast Sent",
-    time: "2 hours ago",
-    desc: "Successfully delivered to 4,200 Engineering students.",
-    unread: false,
-    icon: Megaphone,
-    color: "text-blue-400",
-    bg: "bg-blue-400/10",
-  },
-  {
-    id: 3,
-    type: "system",
-    title: "System Maintenance",
-    time: "Yesterday",
-    desc: "Student portal will be down from 2 AM - 4 AM on Sunday.",
-    unread: false,
-    icon: Bell,
-    color: "text-neutral-400",
-    bg: "bg-white/5",
-  },
-];
+import { Bell, AlertCircle, CheckCircle2, Megaphone, Loader2, Check } from "lucide-react";
+import notificationService from "../../../../services/notificationService";
+import toast from "react-hot-toast";
 
 export default function Notifications() {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const data = await notificationService.getNotifications();
+      setNotifications(data || []);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      toast.success("All notifications marked as read");
+      fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+      toast.error("Failed to mark notifications as read");
+    }
+  };
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await notificationService.markAsRead(id);
+      setNotifications(notifications.map(n => 
+        n._id === id ? { ...n, isRead: true } : n
+      ));
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+    }
+  };
+
+  const getIcon = (type) => {
+    switch (type) {
+      case 'alert': return AlertCircle;
+      case 'campaign': return Megaphone;
+      default: return Bell;
+    }
+  };
+
+  const getColor = (type) => {
+    switch (type) {
+      case 'alert': return "text-amber-500";
+      case 'campaign': return "text-blue-500";
+      default: return "text-muted-foreground";
+    }
+  };
+
+  const getBg = (type) => {
+    switch (type) {
+      case 'alert': return "bg-amber-500/10";
+      case 'campaign': return "bg-blue-500/10";
+      default: return "bg-accent";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <header className="mb-8 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
             Communication Center
           </h1>
-          <p className="text-neutral-400">
+          <p className="text-muted-foreground">
             Manage alerts and student campaign history.
           </p>
         </div>
-        <button className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium">
+        <button 
+          onClick={handleMarkAllRead}
+          className="text-sm text-blue-500 hover:text-blue-400 transition-colors font-medium"
+        >
           Mark all as read
         </button>
       </header>
 
-      <GlassCard className="p-8">
-        <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-          {notifications.map((note, index) => (
-            <div
-              key={note.id}
-              className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
-            >
-              {/* Timeline dot */}
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full border border-white/10 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 ${note.bg} ${note.unread ? "shadow-[0_0_15px_rgba(59,130,246,0.3)]" : ""}`}
-              >
-                <note.icon size={18} className={note.color} />
-              </div>
-
-              {/* Content Card */}
-              <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all duration-300 relative">
-                {note.unread && (
-                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                  </span>
-                )}
-                <div className="flex items-center justify-between mb-1">
-                  <h3
-                    className={`font-semibold ${note.unread ? "text-white" : "text-neutral-300"}`}
-                  >
-                    {note.title}
-                  </h3>
-                  <span className="text-xs font-medium text-neutral-500">
-                    {note.time}
-                  </span>
+      {notifications.length === 0 ? (
+        <GlassCard className="p-8 text-center">
+          <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground">No Notifications</h3>
+          <p className="text-muted-foreground">You're all caught up!</p>
+        </GlassCard>
+      ) : (
+        <GlassCard className="p-8">
+          <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+            {notifications.map((note, index) => {
+              const Icon = getIcon(note.type);
+              const color = getColor(note.type);
+              const bg = getBg(note.type);
+              
+              return (
+                <div key={note._id || index} className="relative flex items-start group">
+                  <div className="absolute left-0 md:left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center z-10">
+                    <Icon size={18} className={color} />
+                  </div>
+                  <div className={`ml-14 md:ml-0 w-[calc(100%-3.5rem)] md:w-[calc(50%-2rem)] p-4 rounded-xl border border-border bg-card hover:bg-accent/50 transition-colors ${!note.isRead ? 'border-l-4 border-l-blue-500' : ''}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-semibold text-foreground">{note.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{note.message || note.content}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {note.createdAt ? new Date(note.createdAt).toLocaleString() : 'Just now'}
+                        </p>
+                      </div>
+                      {!note.isRead && (
+                        <button
+                          onClick={() => handleMarkAsRead(note._id)}
+                          className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Check size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-neutral-400">{note.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </GlassCard>
+              );
+            })}
+          </div>
+        </GlassCard>
+      )}
     </div>
   );
 }

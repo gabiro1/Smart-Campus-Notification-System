@@ -152,7 +152,7 @@ export default function Settings() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-blue-500" size={40} />
-        <p className="text-neutral-500 text-sm animate-pulse">Synchronizing preferences...</p>
+        <p className="text-muted-foreground text-sm animate-pulse">Synchronizing preferences...</p>
       </div>
     );
   }
@@ -160,10 +160,10 @@ export default function Settings() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-10">
       <header className="mb-8">
-        <h1 className="text-3xl font-black tracking-tight text-white mb-2">
+        <h1 className="text-3xl font-black tracking-tight text-foreground mb-2">
           Account Settings
         </h1>
-        <p className="text-neutral-400 font-medium">
+        <p className="text-muted-foreground font-medium">
           Manage your personal profile, availability, and notification parameters.
         </p>
       </header>
@@ -181,7 +181,7 @@ export default function Settings() {
                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-sm ${
                   isActive
                     ? "bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                    : "text-neutral-400 hover:text-white hover:bg-white/[0.03] font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03] font-medium"
                 }`}
               >
                 <tab.icon
@@ -201,8 +201,8 @@ export default function Settings() {
             {activeTab === "profile" && (
               <div className="animate-in fade-in slide-in-from-right-2 duration-300">
                 <div className="border-b border-white/10 pb-4 mb-6">
-                  <h2 className="text-lg font-bold text-white">Profile Details</h2>
-                  <p className="text-sm text-neutral-400 mt-1">Information displayed to students and staff.</p>
+                  <h2 className="text-lg font-bold text-foreground">Profile Details</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Information displayed to students and staff.</p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,18 +217,18 @@ export default function Settings() {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all"
                     />
                   </FormField>
 
                   {/* Profile Picture Upload */}
                   <div className="md:col-span-2">
-                    <label className="block text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2">
+                    <label className="block text-[11px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                       Profile Picture
                     </label>
                     <div className="flex items-center gap-6">
                       <div className="relative group">
-                        <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center">
+                        <div className="w-24 h-24 rounded-2xl bg-accent border border-white/10 overflow-hidden flex items-center justify-center">
                           {formData.profileUrl ? (
                             <img 
                               src={formData.profileUrl} 
@@ -248,7 +248,7 @@ export default function Settings() {
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
                           disabled={uploadingImage}
-                          className="absolute -bottom-2 -right-2 p-2 bg-blue-600 hover:bg-blue-500 rounded-full text-white shadow-lg transition-all hover:scale-110"
+                          className="absolute -bottom-2 -right-2 p-2 bg-blue-600 hover:bg-blue-500 rounded-full text-foreground shadow-lg transition-all hover:scale-110"
                         >
                           <Camera size={14} />
                         </button>
@@ -261,8 +261,8 @@ export default function Settings() {
                         />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-white font-medium mb-1">Upload a new photo</p>
-                        <p className="text-xs text-neutral-500">JPG, PNG or GIF. Max 5MB.</p>
+                        <p className="text-sm text-foreground font-medium mb-1">Upload a new photo</p>
+                        <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 5MB.</p>
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
@@ -280,15 +280,15 @@ export default function Settings() {
             {activeTab === "availability" && (
               <div className="animate-in fade-in slide-in-from-right-2 duration-300">
                 <div className="border-b border-white/10 pb-4 mb-6">
-                  <h2 className="text-lg font-bold text-white">Office Hours & Availability</h2>
-                  <p className="text-sm text-neutral-400 mt-1">Let students know when you are available for consultations.</p>
+                  <h2 className="text-lg font-bold text-foreground">Office Hours & Availability</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Let students know when you are available for consultations.</p>
                 </div>
 
                 <div className="space-y-8">
-                  <div className="flex items-center justify-between group p-4 border border-white/5 bg-white/[0.02] rounded-xl hover:border-white/10 transition-colors">
+                  <div className="flex items-center justify-between group p-4 border border-border bg-white/[0.02] rounded-xl hover:border-white/10 transition-colors">
                     <div>
-                      <p className="text-white font-bold text-sm">Currently In Office</p>
-                      <p className="text-neutral-500 text-xs mt-1 max-w-sm">
+                      <p className="text-foreground font-bold text-sm">Currently In Office</p>
+                      <p className="text-muted-foreground text-xs mt-1 max-w-sm">
                         Toggle this on when you are physically in your office to allow walk-ins.
                       </p>
                     </div>
@@ -299,13 +299,13 @@ export default function Settings() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide">Standard Office Hours</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide">Standard Office Hours</label>
                     <input
                       type="text"
                       value={formData.officeHours}
                       onChange={(e) => setFormData({ ...formData, officeHours: e.target.value })}
                       placeholder="e.g. Mon & Wed, 2PM - 4PM"
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all"
                     />
                   </div>
                 </div>
@@ -315,17 +315,17 @@ export default function Settings() {
             {activeTab === "notifications" && (
               <div className="animate-in fade-in slide-in-from-right-2 duration-300">
                 <div className="border-b border-white/10 pb-4 mb-6">
-                  <h2 className="text-lg font-bold text-white">Notification Parameters</h2>
-                  <p className="text-sm text-neutral-400 mt-1">Control how and when the system alerts you.</p>
+                  <h2 className="text-lg font-bold text-foreground">Notification Parameters</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Control how and when the system alerts you.</p>
                 </div>
 
                 <div className="space-y-6">
                   <div className="flex items-center justify-between group">
                     <div>
-                      <p className="text-white font-bold text-sm group-hover:text-blue-200 transition-colors">
+                      <p className="text-foreground font-bold text-sm group-hover:text-blue-200 transition-colors">
                         Email Alerts for Comments
                       </p>
-                      <p className="text-neutral-500 text-xs mt-1.5">
+                      <p className="text-muted-foreground text-xs mt-1.5">
                         Receive an email notifying you when a student comments on your announcements.
                       </p>
                     </div>
@@ -337,10 +337,10 @@ export default function Settings() {
 
                   <div className="flex items-center justify-between group">
                     <div>
-                      <p className="text-white font-bold text-sm group-hover:text-red-300 transition-colors">
+                      <p className="text-foreground font-bold text-sm group-hover:text-red-300 transition-colors">
                         Push Alerts for HOD Directives
                       </p>
-                      <p className="text-neutral-500 text-xs mt-1.5">
+                      <p className="text-muted-foreground text-xs mt-1.5">
                         Allow high-priority emergency notifications from the Head of Department.
                       </p>
                     </div>
@@ -356,45 +356,45 @@ export default function Settings() {
             {activeTab === "security" && (
               <div className="animate-in fade-in slide-in-from-right-2 duration-300">
                 <div className="border-b border-white/10 pb-4 mb-6">
-                  <h2 className="text-lg font-bold text-white">Security Controls</h2>
-                  <p className="text-sm text-neutral-400 mt-1">Update your authentication credentials.</p>
+                  <h2 className="text-lg font-bold text-foreground">Security Controls</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Update your authentication credentials.</p>
                 </div>
 
                 <div className="space-y-5 max-w-sm">
                   <div>
-                    <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide">Current Password</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide">Current Password</label>
                     <input 
                       type="password" 
                       placeholder="••••••••" 
                       value={formData.currentPassword}
                       onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" 
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide">New Password</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide">New Password</label>
                     <input 
                       type="password" 
                       placeholder="••••••••" 
                       value={formData.newPassword}
                       onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" 
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide">Confirm Password</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide">Confirm Password</label>
                     <input 
                       type="password" 
                       placeholder="••••••••" 
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" 
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all" 
                     />
                   </div>
                   <button 
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="w-full mt-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98]"
+                    className="w-full mt-4 py-3 rounded-xl bg-accent border border-white/10 text-foreground font-bold text-sm hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98]"
                   >
                     Change Password
                   </button>
@@ -405,13 +405,13 @@ export default function Settings() {
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
-            <button className="px-6 py-3 rounded-xl text-sm font-bold text-neutral-500 hover:text-white hover:bg-white/[0.05] transition-colors border border-transparent hover:border-white/10">
+            <button className="px-6 py-3 rounded-xl text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-colors border border-transparent hover:border-white/10">
               Discard Changes
             </button>
             <button 
               onClick={handleSave} 
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl text-sm font-black transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:shadow-none"
+              className="bg-blue-600 hover:bg-blue-500 text-foreground px-8 py-3 rounded-xl text-sm font-black transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:shadow-none"
             >
               {isSaving ? (
                 <>
@@ -448,16 +448,16 @@ export default function Settings() {
             <div className="p-2 bg-red-500/10 rounded-lg">
               <AlertTriangle size={20} className="text-red-400" />
             </div>
-            <h3 className="text-lg font-bold text-white">Danger Zone</h3>
+            <h3 className="text-lg font-bold text-foreground">Danger Zone</h3>
           </div>
-          <p className="text-sm text-neutral-400 mb-6">
+          <p className="text-sm text-muted-foreground mb-6">
             These actions are irreversible. Please proceed with caution.
           </p>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-background/50 border border-white/5 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-background/50 border border-border rounded-xl">
               <div>
-                <p className="text-sm font-medium text-white">Delete Account</p>
-                <p className="text-xs text-neutral-500 mt-1">Permanently delete your account and all associated data.</p>
+                <p className="text-sm font-medium text-foreground">Delete Account</p>
+                <p className="text-xs text-muted-foreground mt-1">Permanently delete your account and all associated data.</p>
               </div>
               <button className="px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/30 rounded-lg text-sm font-medium transition-colors">
                 Delete Account

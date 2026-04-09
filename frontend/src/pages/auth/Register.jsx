@@ -142,7 +142,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-card text-foreground flex flex-col relative overflow-hidden">
       <Toaster />
       <Navbar />
 
@@ -164,13 +164,13 @@ export default function Register() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="glass p-8 md:p-12 rounded-[40px] border border-white/10 w-full max-w-3xl shadow-2xl relative overflow-hidden"
+          className="glass p-8 md:p-12 rounded-[40px] border border-border w-full max-w-3xl shadow-2xl relative overflow-hidden"
         >
           <div className="mb-10 text-center md:text-left">
-            <h2 className="text-4xl font-bold tracking-tight text-white mb-2">
+            <h2 className="text-4xl font-bold tracking-tight text-foreground mb-2">
               Create your profile
             </h2>
-            <p className="text-neutral-500 font-medium italic">
+            <p className="text-muted-foreground font-medium italic">
               Join the next generation of academic communication.
             </p>
           </div>
@@ -226,7 +226,7 @@ export default function Register() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-blue-500"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-blue-500"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -245,7 +245,7 @@ export default function Register() {
 
             {/* --- Dynamic dropdowns --- */}
             {dropdowns.loading ? (
-              <div className="md:col-span-2 text-center text-neutral-500">
+              <div className="md:col-span-2 text-center text-muted-foreground">
                 Loading schools & departments...
               </div>
             ) : dropdowns.error ? (
@@ -316,7 +316,7 @@ export default function Register() {
                 )}
               </button>
 
-              <p className="text-center mt-6 text-neutral-500 text-sm">
+              <p className="text-center mt-6 text-muted-foreground text-sm">
                 Already have an account?{" "}
                 <Link
                   to="/login"
@@ -339,7 +339,7 @@ export default function Register() {
 function InputGroup({ icon, name, placeholder, type, onChange, disabled }) {
   return (
     <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-blue-500 transition-colors">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-500 transition-colors">
         {icon}
       </div>
       <input
@@ -349,7 +349,7 @@ function InputGroup({ icon, name, placeholder, type, onChange, disabled }) {
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white outline-none focus:border-blue-500 transition-all placeholder:text-neutral-600 disabled:opacity-60"
+        className="w-full bg-accent border border-border p-4 pl-12 rounded-2xl text-foreground outline-none focus:border-blue-500 transition-all placeholder:text-neutral-600 disabled:opacity-60"
       />
     </div>
   );
@@ -358,14 +358,14 @@ function InputGroup({ icon, name, placeholder, type, onChange, disabled }) {
 function SelectGroup({ icon, name, children, onChange, disabled }) {
   return (
     <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 group-focus-within:text-blue-500 transition-colors z-10">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-500 transition-colors z-10">
         {icon}
       </div>
       <select
         name={name}
         onChange={onChange}
         disabled={disabled}
-        className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl text-white outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer bg-neutral-900 disabled:opacity-60"
+        className="w-full bg-accent border border-border p-4 pl-12 rounded-2xl text-foreground outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer bg-neutral-900 disabled:opacity-60"
       >
         {children}
       </select>

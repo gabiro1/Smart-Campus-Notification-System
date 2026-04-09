@@ -9,7 +9,7 @@ router.route('/')
   .get(protect, getColleges);   // GET /api/colleges
 
 router.route('/:id')
-  .put(protect, authorize('admin'), updateCollege)
+  .put(protect, authorize('admin', 'principal'), updateCollege)
   .delete(protect, authorize('admin'), deleteCollege);
 
 export default router;

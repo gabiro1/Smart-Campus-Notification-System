@@ -22,7 +22,7 @@ export default function DashboardLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] relative">
+    <div className="min-h-screen bg-card relative">
       {/* Mobile Menu Toggle - Only visible on mobile */}
       {isMobile && (
         <button

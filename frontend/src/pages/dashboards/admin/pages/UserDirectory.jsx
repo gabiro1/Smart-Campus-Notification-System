@@ -22,7 +22,8 @@ import {
   Eye,
 } from "lucide-react";
 import adminService from "../../../../services/adminService";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ThemedToaster from "../../../../components/ui/ThemedToaster";
 
 export default function UserDirectory() {
   const [users, setUsers] = useState([]);
@@ -158,8 +159,8 @@ export default function UserDirectory() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-white p-8 lg:p-12 overflow-x-hidden relative w-full">
-      <Toaster theme="dark" position="top-right" />
+    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12 overflow-x-hidden relative w-full">
+      <ThemedToaster />
 
       {/* Header */}
       <motion.div
@@ -168,7 +169,7 @@ export default function UserDirectory() {
         className="mb-10"
       >
         <h1 className="text-4xl font-black tracking-tight">Global Directory</h1>
-        <p className="text-neutral-500 mt-1">
+        <p className="text-muted-foreground mt-1">
           Search and manage all contacts across the university network.
         </p>
       </motion.div>
@@ -181,7 +182,7 @@ export default function UserDirectory() {
       >
         <div className="relative flex-1">
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
             size={20}
           />
           <input
@@ -191,7 +192,7 @@ export default function UserDirectory() {
               setPage(1);
             }}
             placeholder="Search students, lecturers, admins by name or email..."
-            className="w-full bg-card border border-white/5 rounded-2xl py-4 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm shadow-xl"
+            className="w-full bg-card border border-border rounded-2xl py-4 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm shadow-xl"
           />
         </div>
 
@@ -199,7 +200,7 @@ export default function UserDirectory() {
         <div className="flex gap-4">
           <div className="relative w-40">
             <Filter
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
               size={16}
             />
             <select
@@ -208,7 +209,7 @@ export default function UserDirectory() {
                 setRoleFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full bg-card border border-white/5 rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider appearance-none cursor-pointer"
+              className="w-full bg-card border border-border rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider appearance-none cursor-pointer"
             >
               <option value="">All Roles</option>
               <option value="student">Student</option>
@@ -221,7 +222,7 @@ export default function UserDirectory() {
           </div>
           <div className="relative w-48">
             <MapPin
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
               size={16}
             />
             <input
@@ -231,25 +232,25 @@ export default function UserDirectory() {
                 setDeptFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full bg-card border border-white/5 rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider"
+              className="w-full bg-card border border-border rounded-2xl py-4 pl-10 pr-4 focus:border-blue-500 outline-none transition-all text-xs font-bold uppercase tracking-wider"
             />
           </div>
         </div>
       </motion.div>
 
       {/* DIRECTORY DATA TABLE */}
-      <div className="bg-card border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+      <div className="bg-card border border-border rounded-sm overflow-hidden shadow-2xl">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center gap-4">
             <Activity className="animate-spin text-blue-500" size={32} />
-            <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Scanning Directory...
             </span>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-neutral-500 tracking-widest border-b border-white/5">
+              <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-muted-foreground tracking-widest border-b border-border">
                 <tr>
                   <th className="p-6">User Profile</th>
                   <th className="p-6">Role</th>
@@ -263,7 +264,7 @@ export default function UserDirectory() {
                     <tr>
                       <td
                         colSpan="4"
-                        className="p-12 text-center text-neutral-500 font-bold uppercase tracking-widest"
+                        className="p-12 text-center text-muted-foreground font-bold uppercase tracking-widest"
                       >
                         No contacts found matching your criteria.
                       </td>
@@ -293,10 +294,10 @@ export default function UserDirectory() {
                               )}
                             </div>
                             <div>
-                              <div className="font-bold text-white group-hover:text-blue-400 transition-colors">
+                              <div className="font-bold text-foreground group-hover:text-blue-400 transition-colors">
                                 {user.name}
                               </div>
-                              <div className="text-xs text-neutral-500 mt-0.5">
+                              <div className="text-xs text-muted-foreground mt-0.5">
                                 {user.email}
                               </div>
                             </div>
@@ -314,7 +315,7 @@ export default function UserDirectory() {
                                     : user.role === "hod" ||
                                         user.role === "lecturer"
                                       ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                      : "bg-neutral-800 text-neutral-400 border-neutral-700"
+                                      : "bg-neutral-800 text-muted-foreground border-neutral-700"
                             }`}
                           >
                             {user.role.replace("_", " ")}
@@ -324,7 +325,7 @@ export default function UserDirectory() {
                           <div className="text-sm text-neutral-300 font-medium">
                             {user.department || "N/A"}
                           </div>
-                          <div className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider mt-1">
+                          <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-1">
                             {user.college ? `${user.college} - ` : ""}{" "}
                             {user.school || "No School"}
                           </div>
@@ -336,7 +337,7 @@ export default function UserDirectory() {
                                 e.stopPropagation();
                                 openProfile(user._id, false);
                               }}
-                              className="p-2.5 text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
+                              className="p-2.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
                               title="View Profile"
                             >
                               <Eye size={18} />
@@ -346,7 +347,7 @@ export default function UserDirectory() {
                                 e.stopPropagation();
                                 openProfile(user._id, true);
                               }}
-                              className="p-2.5 text-neutral-500 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
+                              className="p-2.5 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
                               title="Edit User"
                             >
                               <Edit3 size={18} />
@@ -364,22 +365,22 @@ export default function UserDirectory() {
 
         {/* Pagination Footer */}
         {!loading && totalPages > 1 && (
-          <div className="p-4 border-t border-white/5 flex items-center justify-between bg-white/[0.01]">
-            <span className="text-xs font-bold uppercase text-neutral-500 tracking-wider pl-4">
+          <div className="p-4 border-t border-border flex items-center justify-between bg-white/[0.01]">
+            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider pl-4">
               Page {page} of {totalPages}
             </span>
             <div className="flex gap-2 pr-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg"
+                className="p-2 bg-accent hover:bg-white/10 disabled:opacity-30 rounded-lg"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="p-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg"
+                className="p-2 bg-accent hover:bg-white/10 disabled:opacity-30 rounded-lg"
               >
                 <ChevronRight size={16} />
               </button>
@@ -418,10 +419,10 @@ export default function UserDirectory() {
               ) : (
                 <>
                   {/* Drawer Header */}
-                  <div className="p-8 border-b border-white/5 relative bg-[#111]">
+                  <div className="p-8 border-b border-border relative bg-card">
                     <button
                       onClick={closeProfile}
-                      className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-neutral-400 hover:text-white"
+                      className="absolute top-6 right-6 p-2 bg-accent hover:bg-white/10 rounded-full transition-colors text-muted-foreground hover:text-foreground"
                     >
                       <X size={18} />
                     </button>
@@ -429,7 +430,7 @@ export default function UserDirectory() {
                     <div className="flex flex-col items-center mt-4 text-center">
                       {/* EDITABLE AVATAR */}
                       <div className="relative group mb-4">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-black text-white text-3xl shadow-xl shadow-blue-500/20 overflow-hidden border-2 border-[#111]">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-black text-foreground text-3xl shadow-xl shadow-blue-500/20 overflow-hidden border-2 border-[#111]">
                           {imagePreview ? (
                             <img
                               src={imagePreview}
@@ -448,7 +449,7 @@ export default function UserDirectory() {
                             onClick={() => fileInputRef.current?.click()}
                             className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                           >
-                            <Camera size={24} className="text-white" />
+                            <Camera size={24} className="text-foreground" />
                           </button>
                         )}
                         <input
@@ -460,7 +461,7 @@ export default function UserDirectory() {
                         />
                       </div>
 
-                      <h2 className="text-2xl font-black text-white">
+                      <h2 className="text-2xl font-black text-foreground">
                         {detailedUser.user.name}
                       </h2>
                       <span className="inline-block mt-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
@@ -472,16 +473,16 @@ export default function UserDirectory() {
                   {/* Drawer Body (Scrollable) */}
                   <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                     {/* Toggle View/Edit */}
-                    <div className="flex bg-[#111] p-1 rounded-xl mb-6 border border-white/5">
+                    <div className="flex bg-card p-1 rounded-xl mb-6 border border-border">
                       <button
                         onClick={() => setIsEditMode(false)}
-                        className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${!isEditMode ? "bg-[#222] text-white shadow-md" : "text-neutral-500 hover:text-neutral-300"}`}
+                        className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${!isEditMode ? "bg-[#222] text-foreground shadow-md" : "text-muted-foreground hover:text-neutral-300"}`}
                       >
                         Profile
                       </button>
                       <button
                         onClick={() => setIsEditMode(true)}
-                        className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${isEditMode ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-neutral-500 hover:text-neutral-300"}`}
+                        className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${isEditMode ? "bg-blue-600 text-foreground shadow-md shadow-blue-900/20" : "text-muted-foreground hover:text-neutral-300"}`}
                       >
                         <Edit3 size={14} /> Edit
                       </button>
@@ -492,7 +493,7 @@ export default function UserDirectory() {
                       <div className="space-y-8">
                         {/* Contact Info */}
                         <div className="space-y-4">
-                          <h3 className="text-[10px] uppercase font-black tracking-widest text-neutral-500">
+                          <h3 className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
                             Contact Information
                           </h3>
                           <div className="space-y-3">
@@ -518,11 +519,11 @@ export default function UserDirectory() {
                           </div>
                         </div>
 
-                        <hr className="border-white/5" />
+                        <hr className="border-border" />
 
                         {/* Academic Placement */}
                         <div className="space-y-4">
-                          <h3 className="text-[10px] uppercase font-black tracking-widest text-neutral-500">
+                          <h3 className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
                             Academic Placement
                           </h3>
                           <InfoRow
@@ -544,11 +545,11 @@ export default function UserDirectory() {
                           />
                         </div>
 
-                        <hr className="border-white/5" />
+                        <hr className="border-border" />
 
                         {/* Communication History Stats */}
                         <div className="space-y-4">
-                          <h3 className="text-[10px] uppercase font-black tracking-widest text-neutral-500">
+                          <h3 className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
                             Communication History
                           </h3>
                           <div className="grid grid-cols-2 gap-4">
@@ -586,7 +587,7 @@ export default function UserDirectory() {
                       /* EDIT MODE FORM */
                       <form onSubmit={handleUpdateUser} className="space-y-4">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                             Full Name
                           </label>
                           <input
@@ -598,13 +599,13 @@ export default function UserDirectory() {
                                 name: e.target.value,
                               })
                             }
-                            className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                            className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                           />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                               Email Address
                             </label>
                             <input
@@ -617,11 +618,11 @@ export default function UserDirectory() {
                                   email: e.target.value,
                                 })
                               }
-                              className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                              className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                               Phone Number
                             </label>
                             <input
@@ -633,13 +634,13 @@ export default function UserDirectory() {
                                 })
                               }
                               placeholder="+250..."
-                              className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                              className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                             />
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                             System Role
                           </label>
                           <select
@@ -650,7 +651,7 @@ export default function UserDirectory() {
                                 role: e.target.value,
                               })
                             }
-                            className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer text-white"
+                            className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer text-foreground"
                           >
                             <option value="student">Student</option>
                             <option value="guild_president">
@@ -663,9 +664,9 @@ export default function UserDirectory() {
                             <option value="admin">System Admin</option>
                           </select>
                         </div>
-                        <hr className="border-white/5 my-4" />
+                        <hr className="border-border my-4" />
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                             College
                           </label>
                           <input
@@ -677,11 +678,11 @@ export default function UserDirectory() {
                                 college: e.target.value,
                               })
                             }
-                            className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                            className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                             School
                           </label>
                           <input
@@ -693,11 +694,11 @@ export default function UserDirectory() {
                                 school: e.target.value,
                               })
                             }
-                            className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                            className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                             Department
                           </label>
                           <input
@@ -709,14 +710,14 @@ export default function UserDirectory() {
                                 department: e.target.value,
                               })
                             }
-                            className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                            className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                           />
                         </div>
 
                         <button
                           type="submit"
                           disabled={isUpdating}
-                          className="w-full bg-blue-600 text-white p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-6 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-blue-900/20"
+                          className="w-full bg-blue-600 text-foreground p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-6 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-blue-900/20"
                         >
                           {isUpdating ? (
                             <Activity className="animate-spin" size={18} />
@@ -741,13 +742,13 @@ export default function UserDirectory() {
 // Subcomponents for Drawer
 function InfoRow({ icon, label, value }) {
   return (
-    <div className="flex items-start gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-colors">
-      <div className="text-neutral-500 mt-0.5">{icon}</div>
+    <div className="flex items-start gap-3 p-3 bg-white/[0.02] border border-border rounded-xl hover:bg-white/[0.04] transition-colors">
+      <div className="text-muted-foreground mt-0.5">{icon}</div>
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
-        <p className="text-sm font-medium text-white mt-0.5">{value}</p>
+        <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
       </div>
     </div>
   );
@@ -755,7 +756,7 @@ function InfoRow({ icon, label, value }) {
 
 function StatBox({ icon, label, value, bg }) {
   return (
-    <div className="bg-[#111] border border-white/5 p-4 rounded-2xl flex flex-col gap-2 shadow-inner">
+    <div className="bg-card border border-border p-4 rounded-2xl flex flex-col gap-2 shadow-inner">
       <div
         className={`w-8 h-8 rounded-lg flex items-center justify-center ${bg}`}
       >
@@ -763,7 +764,7 @@ function StatBox({ icon, label, value, bg }) {
       </div>
       <div>
         <p className="text-2xl font-black">{value}</p>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mt-1 leading-tight">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 leading-tight">
           {label}
         </p>
       </div>

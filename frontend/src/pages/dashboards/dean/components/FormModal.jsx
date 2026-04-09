@@ -24,13 +24,13 @@ export default function FormModal({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="relative w-full max-w-md bg-background border border-white/10 rounded-2xl p-6 shadow-2xl z-10"
+            className="relative w-full max-w-md bg-background border border-border rounded-2xl p-6 shadow-2xl z-10"
           >
             <div className="flex justify-between items-start mb-6">
-              <h2 className="text-lg font-bold text-white">{title}</h2>
+              <h2 className="text-lg font-bold text-foreground">{title}</h2>
               <button
                 onClick={onClose}
-                className="text-neutral-500 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X size={18} />
               </button>
@@ -41,7 +41,7 @@ export default function FormModal({
             <div className="flex gap-3 justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-neutral-300 hover:bg-white/5 rounded-xl transition-colors"
+                className="px-4 py-2 text-sm font-medium text-neutral-300 hover:bg-accent rounded-xl transition-colors"
               >
                 Cancel
               </button>

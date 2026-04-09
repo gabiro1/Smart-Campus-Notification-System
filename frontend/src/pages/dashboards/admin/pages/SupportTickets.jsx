@@ -110,8 +110,8 @@ export default function SupportTickets() {
               <HelpCircle className="text-cyan-400" size={24} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Support Tickets</h1>
-              <p className="text-sm text-neutral-500">Manage student reports and issues</p>
+              <h1 className="text-2xl font-bold text-foreground">Support Tickets</h1>
+              <p className="text-sm text-muted-foreground">Manage student reports and issues</p>
             </div>
           </div>
         </div>
@@ -124,12 +124,12 @@ export default function SupportTickets() {
             { key: "resolved", label: "Resolved", icon: CheckCircle },
             { key: "total", label: "Total", icon: HelpCircle }
           ].map((stat) => (
-            <div key={stat.key} className="bg-card border border-white/5 rounded-2xl p-4">
+            <div key={stat.key} className="bg-card border border-border rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-1">
-                <stat.icon size={16} className="text-neutral-500" />
-                <span className="text-xs text-neutral-500 uppercase tracking-wider">{stat.label}</span>
+                <stat.icon size={16} className="text-muted-foreground" />
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">{stat.label}</span>
               </div>
-              <p className="text-2xl font-bold text-white">{counts[stat.key] || 0}</p>
+              <p className="text-2xl font-bold text-foreground">{counts[stat.key] || 0}</p>
             </div>
           ))}
         </div>
@@ -137,19 +137,19 @@ export default function SupportTickets() {
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input
               type="text"
               placeholder="Search tickets..."
               value={searchQ}
               onChange={(e) => setSearchQ(e.target.value)}
-              className="w-full bg-card border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-neutral-600 focus:outline-none focus:border-cyan-500/50"
+              className="w-full bg-card border border-border rounded-xl py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50"
             />
           </div>
           <select
             value={filters.status}
             onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-            className="bg-card border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
+            className="bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none"
           >
             <option value="all">All Status</option>
             <option value="open">Open</option>
@@ -160,7 +160,7 @@ export default function SupportTickets() {
           <select
             value={filters.category}
             onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-            className="bg-card border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
+            className="bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none"
           >
             <option value="all">All Categories</option>
             <option value="bug">Bug</option>
@@ -177,9 +177,9 @@ export default function SupportTickets() {
             <Loader2 className="animate-spin text-cyan-500" size={40} />
           </div>
         ) : filteredTickets.length === 0 ? (
-          <div className="text-center py-20 border border-white/5 rounded-2xl bg-card">
-            <HelpCircle size={40} className="text-neutral-600 mx-auto mb-3" />
-            <p className="text-neutral-400">No tickets found</p>
+          <div className="text-center py-20 border border-border rounded-2xl bg-card">
+            <HelpCircle size={40} className="text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">No tickets found</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -197,17 +197,17 @@ export default function SupportTickets() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xs font-bold text-neutral-500">#{ticket.ticketNumber}</span>
+                      <span className="text-xs font-bold text-muted-foreground">#{ticket.ticketNumber}</span>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${colors.bg} ${colors.text}`}>
                         {ticket.status?.replace('_', ' ') || 'open'}
                       </span>
-                      <span className="px-2 py-0.5 bg-white/5 rounded text-[10px] text-neutral-400">
+                      <span className="px-2 py-0.5 bg-accent rounded text-[10px] text-muted-foreground">
                         {CATEGORY_LABELS[ticket.category] || ticket.category || 'Other'}
                       </span>
                     </div>
-                    <h3 className="font-bold text-white mb-1">{ticket.subject || 'No subject'}</h3>
-                    <p className="text-sm text-neutral-500 line-clamp-2">{ticket.description || 'No description'}</p>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-neutral-600">
+                    <h3 className="font-bold text-foreground mb-1">{ticket.subject || 'No subject'}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{ticket.description || 'No description'}</p>
+                      <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <User size={12} />
                           {ticket.userId?.name || "Unknown"}
@@ -243,27 +243,27 @@ export default function SupportTickets() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card border border-white/10 rounded-3xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-card border border-border rounded-3xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-neutral-500">#{selectedTicket.ticketNumber}</span>
+                  <span className="text-xs font-bold text-muted-foreground">#{selectedTicket.ticketNumber}</span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${STATUS_COLORS[selectedTicket.status]?.bg} ${STATUS_COLORS[selectedTicket.status]?.text}`}>
                     {selectedTicket.status.replace('_', ' ')}
                   </span>
-                  <span className="px-2 py-0.5 bg-white/5 rounded text-[10px] text-neutral-400">
+                  <span className="px-2 py-0.5 bg-accent rounded text-[10px] text-muted-foreground">
                     {CATEGORY_LABELS[selectedTicket.category]}
                   </span>
                 </div>
-                <button onClick={() => setSelectedTicket(null)} className="text-neutral-500 hover:text-white">
+                <button onClick={() => setSelectedTicket(null)} className="text-muted-foreground hover:text-foreground">
                   <X size={20} />
                 </button>
               </div>
 
-              <h2 className="text-xl font-bold text-white mb-2">{selectedTicket.subject}</h2>
+              <h2 className="text-xl font-bold text-foreground mb-2">{selectedTicket.subject}</h2>
               
-              <div className="flex items-center gap-4 text-xs text-neutral-500 mb-4">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
                 <span className="flex items-center gap-1">
                   <Mail size={12} />
                   {selectedTicket.userId?.email}
@@ -275,44 +275,44 @@ export default function SupportTickets() {
                 <span>{new Date(selectedTicket.createdAt).toLocaleString()}</span>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4 mb-4">
-                <p className="text-sm text-neutral-300 whitespace-pre-wrap">{selectedTicket.description}</p>
+              <div className="bg-accent rounded-xl p-4 mb-4">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedTicket.description}</p>
               </div>
 
               {selectedTicket.adminReply && (
                 <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-4">
                   <p className="text-xs font-bold text-green-400 mb-2">Admin Reply:</p>
-                  <p className="text-sm text-neutral-300 whitespace-pre-wrap">{selectedTicket.adminReply}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedTicket.adminReply}</p>
                 </div>
               )}
 
-              <div className="border-t border-white/5 pt-4">
-                <p className="text-xs text-neutral-500 mb-2">Reply to this ticket:</p>
+              <div className="border-t border-border pt-4">
+                <p className="text-xs text-muted-foreground mb-2">Reply to this ticket:</p>
                 <textarea
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Type your reply..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-neutral-600 text-sm focus:outline-none focus:border-cyan-500/50 min-h-[100px] resize-none mb-3"
+                  className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:border-cyan-500/50 min-h-[100px] resize-none mb-3"
                 />
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleReply("in_review")}
                     disabled={sending}
-                    className="flex-1 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
+                    className="flex-1 py-2 bg-yellow-600 hover:bg-yellow-500 text-foreground rounded-xl font-bold text-sm transition-colors disabled:opacity-50"
                   >
                     Mark In Review
                   </button>
                   <button
                     onClick={() => handleReply("resolved")}
                     disabled={sending}
-                    className="flex-1 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-2 bg-green-600 hover:bg-green-500 text-foreground rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {sending ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                     Resolve
                   </button>
                   <button
                     onClick={() => handleDelete(selectedTicket._id)}
-                    className="py-2 px-4 bg-red-600/50 hover:bg-red-600 text-white rounded-xl font-bold text-sm transition-colors"
+                    className="py-2 px-4 bg-red-600/50 hover:bg-red-600 text-foreground rounded-xl font-bold text-sm transition-colors"
                   >
                     Delete
                   </button>

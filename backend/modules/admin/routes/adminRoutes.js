@@ -22,8 +22,8 @@ import { getAcademicHierarchy } from '../controller/adminController.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
 
-// All admin routes require authentication and admin role
-router.use(protect, authorize('admin'));
+// All admin routes require authentication and admin or principal role
+router.use(protect, authorize('admin', 'principal'));
 
 /**
  * @route   GET /api/admin/metrics

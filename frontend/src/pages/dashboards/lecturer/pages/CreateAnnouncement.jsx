@@ -219,7 +219,7 @@ const LecturerCreateAnnouncement = () => {
   const selectedCourse = myCourses.find((c) => c._id === formData.courseId);
 
   return (
-    <div className="w-full min-h-screen bg-background text-white p-4 md:p-8 font-sans">
+    <div className="w-full min-h-screen bg-background text-foreground p-4 md:p-8 font-sans">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -231,16 +231,16 @@ const LecturerCreateAnnouncement = () => {
         }}
       />
 
-      <div className="mb-10 pb-6 border-b border-white/5 flex items-start gap-6">
+      <div className="mb-10 pb-6 border-b border-border flex items-start gap-6">
         <button
           onClick={() => navigate('/lecturer/announcements')}
-          className="mt-1 p-3 bg-input shadow-md hover:bg-muted border border-border rounded-2xl text-neutral-400 hover:text-white transition-all group"
+          className="mt-1 p-3 bg-input shadow-md hover:bg-muted border border-border rounded-2xl text-muted-foreground hover:text-foreground transition-all group"
           title="Go back to announcements"
         >
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         </button>
         <div>
-          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">
+          <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight mb-2">
             Broadcast Announcement
           </h1>
           <p className="text-muted-foreground font-medium max-w-2xl text-sm">
@@ -251,19 +251,19 @@ const LecturerCreateAnnouncement = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
         {/* FORM SECTION */}
-        <div className="lg:col-span-3 bg-background border border-white/5 rounded-3xl p-8 shadow-2xl">
+        <div className="lg:col-span-3 bg-background border border-border rounded-3xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                  <Book size={16} className="text-neutral-500" /> Target Course
+                  <Book size={16} className="text-muted-foreground" /> Target Course
                 </label>
                 <select
                   name="courseId"
                   value={formData.courseId}
                   onChange={handleChange}
                   disabled={loadingCourses}
-                  className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none disabled:opacity-50"
+                  className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none disabled:opacity-50"
                   required
                 >
                   <option value="" disabled>
@@ -282,14 +282,14 @@ const LecturerCreateAnnouncement = () => {
 
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                  <Tag size={16} className="text-neutral-500" /> Announcement
+                  <Tag size={16} className="text-muted-foreground" /> Announcement
                   Type
                 </label>
                 <select
                   name="type"
                   value={formData.type}
                   onChange={handleChange}
-                  className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
+                  className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
                 >
                   <option value="General">General Update</option>
                   <option value="Urgent">Urgent Alert</option>
@@ -320,7 +320,7 @@ const LecturerCreateAnnouncement = () => {
                     <AlertTriangle size={16} />
                     Emergency Alert (Requires Acknowledgment)
                   </label>
-                  <p className="text-xs text-neutral-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Students must explicitly acknowledge this alert before it can be dismissed.
                     Use only for critical campus-wide emergencies.
                   </p>
@@ -330,7 +330,7 @@ const LecturerCreateAnnouncement = () => {
 
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                <Type size={16} className="text-neutral-500" /> Title
+                <Type size={16} className="text-muted-foreground" /> Title
               </label>
               <input
                 type="text"
@@ -338,7 +338,7 @@ const LecturerCreateAnnouncement = () => {
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="e.g., Chapter 4 Lecture Notes"
-                className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600"
+                className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600"
                 required
               />
             </div>
@@ -351,15 +351,15 @@ const LecturerCreateAnnouncement = () => {
                     <span className="text-lg">✨</span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white">AI Assistant</h4>
-                    <p className="text-xs text-neutral-500">Transform rough notes into professional announcements</p>
+                    <h4 className="text-sm font-bold text-foreground">AI Assistant</h4>
+                    <p className="text-xs text-muted-foreground">Transform rough notes into professional announcements</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
                     Draft Notes
                   </label>
                   <textarea
@@ -367,7 +367,7 @@ const LecturerCreateAnnouncement = () => {
                     onChange={(e) => setDraftNotes(e.target.value)}
                     placeholder="Jot down your raw ideas, key points, or informal notes here... (e.g., 'hey students, quiz 2 is next week, study chapter 5, bring calculator')"
                     rows="3"
-                    className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-600 resize-none"
+                    className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-foreground outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-600 resize-none"
                   />
                 </div>
 
@@ -376,7 +376,7 @@ const LecturerCreateAnnouncement = () => {
                     type="button"
                     onClick={handleAISuggest}
                     disabled={aiLoading || !draftNotes.trim()}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-white/10 disabled:to-white/10 disabled:text-white/50 text-white text-sm font-bold rounded-lg transition-all shadow-lg disabled:shadow-none"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-white/10 disabled:to-white/10 disabled:text-foreground/50 text-foreground text-sm font-bold rounded-lg transition-all shadow-lg disabled:shadow-none"
                   >
                     {aiLoading ? (
                       <>
@@ -389,7 +389,7 @@ const LecturerCreateAnnouncement = () => {
                       </>
                     )}
                   </button>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-muted-foreground">
                     AI will rewrite your notes into a polished academic announcement.
                   </span>
                 </div>
@@ -398,7 +398,7 @@ const LecturerCreateAnnouncement = () => {
 
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                <AlignLeft size={16} className="text-neutral-500" /> Announcement Message
+                <AlignLeft size={16} className="text-muted-foreground" /> Announcement Message
               </label>
               <textarea
                 name="content"
@@ -406,17 +406,17 @@ const LecturerCreateAnnouncement = () => {
                 onChange={handleChange}
                 placeholder="Write the details here... (You can use the AI assistant above to help draft this)"
                 rows="5"
-                className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600 resize-none"
+                className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600 resize-none"
                 required
               ></textarea>
-              <p className="text-xs text-neutral-500 mt-1.5">
+              <p className="text-xs text-muted-foreground mt-1.5">
                 Use the AI assistant above to transform rough notes, then edit as needed.
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
-                <Paperclip size={16} className="text-neutral-500" /> Attach
+                <Paperclip size={16} className="text-muted-foreground" /> Attach
                 Documents (Optional)
               </label>
 
@@ -431,11 +431,11 @@ const LecturerCreateAnnouncement = () => {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
-                  className="px-4 py-2.5 bg-input hover:bg-muted border border-border rounded-xl text-sm font-bold text-muted-foreground hover:text-white transition-all flex items-center gap-2 group"
+                  className="px-4 py-2.5 bg-input hover:bg-muted border border-border rounded-xl text-sm font-bold text-muted-foreground hover:text-foreground transition-all flex items-center gap-2 group"
                 >
                   <Paperclip size={16} className="group-hover:-rotate-12 transition-transform" /> Choose Files
                 </button>
-                <span className="text-xs text-neutral-500">
+                <span className="text-xs text-muted-foreground">
                   Supported: PDF, DOCX, PPTX, JPG (Max 5MB)
                 </span>
               </div>
@@ -452,10 +452,10 @@ const LecturerCreateAnnouncement = () => {
                           <FileText size={16} />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-white truncate">
+                          <p className="text-xs font-semibold text-foreground truncate">
                             {file.name}
                           </p>
-                          <p className="text-[10px] text-neutral-500 mt-0.5">
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
                             {(file.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         </div>
@@ -463,7 +463,7 @@ const LecturerCreateAnnouncement = () => {
                       <button
                         type="button"
                         onClick={() => removeAttachment(index)}
-                        className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
+                        className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
                       >
                         <X size={14} />
                       </button>
@@ -474,7 +474,7 @@ const LecturerCreateAnnouncement = () => {
             </div>
 
             {/* SCHEDULE SECTION */}
-            <div className="pt-4 border-t border-white/5">
+            <div className="pt-4 border-t border-border">
               <div className="flex items-start gap-3 mb-4">
                 <button
                   type="button"
@@ -493,7 +493,7 @@ const LecturerCreateAnnouncement = () => {
                   <label className="text-sm font-medium text-neutral-300 flex items-center gap-2">
                     <Calendar size={16} /> Send Later
                   </label>
-                  <p className="text-xs text-neutral-500 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Schedule this announcement to be sent at a specific date and time.
                   </p>
                 </div>
@@ -514,7 +514,7 @@ const LecturerCreateAnnouncement = () => {
                     value={formData.scheduledAt}
                     onChange={handleChange}
                     min={new Date().toISOString().slice(0, 16)}
-                    className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
+                    className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none"
                   />
                   <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
                     <AlertTriangle size={12} />
@@ -524,11 +524,11 @@ const LecturerCreateAnnouncement = () => {
               )}
             </div>
 
-            <div className="pt-4 border-t border-white/5 flex justify-end">
+            <div className="pt-4 border-t border-border flex justify-end">
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.courseId}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20 hover:-translate-y-0.5"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-foreground rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20 hover:-translate-y-0.5"
               >
                 {isSubmitting ? (
                   <Loader2 className="animate-spin" size={18} />
@@ -544,7 +544,7 @@ const LecturerCreateAnnouncement = () => {
         {/* PREVIEW SECTION */}
         <div className="lg:col-span-2">
           <div className="sticky top-8">
-            <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
               <Eye size={16} /> Student Feed Preview
             </h3>
 
@@ -558,15 +558,15 @@ const LecturerCreateAnnouncement = () => {
                   {previewStyles.icon}
                   {formData.type}
                 </div>
-                <span className="text-xs font-bold text-neutral-500">
+                <span className="text-xs font-bold text-muted-foreground">
                   {selectedCourse ? selectedCourse.code : "Course Code"}
                 </span>
               </div>
 
-              <h4 className="text-lg font-bold text-white mb-2 break-words">
+              <h4 className="text-lg font-bold text-foreground mb-2 break-words">
                 {formData.title || "Announcement Title"}
               </h4>
-              <p className="text-sm text-neutral-400 line-clamp-4 break-words leading-relaxed mb-4">
+              <p className="text-sm text-muted-foreground line-clamp-4 break-words leading-relaxed mb-4">
                 {formData.content ||
                   "The announcement details will appear here. Students will see this in their feed."}
               </p>
@@ -580,12 +580,12 @@ const LecturerCreateAnnouncement = () => {
                 </div>
               )}
 
-              <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
+              <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-2">
                     <div className="w-6 h-6 rounded-full bg-neutral-800 border-2 border-border"></div>
                   </div>
-                  <span className="text-xs text-neutral-500 font-medium">
+                  <span className="text-xs text-muted-foreground font-medium">
                     Q&A Thread
                   </span>
                 </div>

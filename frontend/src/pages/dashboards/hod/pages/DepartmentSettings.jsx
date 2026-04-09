@@ -13,7 +13,7 @@ const LiquidToggle = ({ enabled, onChange }) => (
     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-500 focus:outline-none ${
       enabled
         ? "bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)] border border-blue-400/50"
-        : "bg-black/50 border border-white/10 hover:border-white/20"
+        : "bg-black/50 border border-border hover:border-white/20"
     }`}
   >
     <span
@@ -114,7 +114,7 @@ export default function DepartmentSettings() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-blue-500" size={40} />
-        <p className="text-neutral-500 text-sm animate-pulse">Loading settings...</p>
+        <p className="text-muted-foreground text-sm animate-pulse">Loading settings...</p>
       </div>
     );
   }
@@ -122,10 +122,10 @@ export default function DepartmentSettings() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-10">
       <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           Department Settings
         </h1>
-        <p className="text-neutral-400 text-sm mt-1">
+        <p className="text-muted-foreground text-sm mt-1">
           Configure global policies for department communications.
         </p>
       </header>
@@ -142,7 +142,7 @@ export default function DepartmentSettings() {
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-sm ${
                   isActive
                     ? "bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                    : "text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.03] font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent font-medium"
                 }`}
               >
                 <tab.icon size={18} />
@@ -156,11 +156,11 @@ export default function DepartmentSettings() {
         <div className="md:col-span-8 space-y-6">
           {activeTab === "workflow" && (
             <GlassCard className="space-y-6">
-              <div className="border-b border-white/10 pb-4">
-                <h2 className="text-lg font-semibold text-white">
+              <div className="border-b border-border pb-4">
+                <h2 className="text-lg font-semibold text-foreground">
                   Approval Workflow
                 </h2>
-                <p className="text-sm text-neutral-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Manage how announcements go live.
                 </p>
               </div>
@@ -168,10 +168,10 @@ export default function DepartmentSettings() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="pr-4">
-                    <p className="text-white font-medium text-sm">
+                    <p className="text-foreground font-medium text-sm">
                       Require HoD Approval
                     </p>
-                    <p className="text-neutral-500 text-xs mt-1 leading-relaxed">
+                    <p className="text-muted-foreground text-xs mt-1 leading-relaxed">
                       All lecturer announcements must be approved by the HoD
                       before being sent to students.
                     </p>
@@ -187,18 +187,18 @@ export default function DepartmentSettings() {
 
           {activeTab === "profile" && (
             <GlassCard className="space-y-6">
-              <div className="border-b border-white/10 pb-4">
-                <h2 className="text-lg font-semibold text-white">
+              <div className="border-b border-border pb-4">
+                <h2 className="text-lg font-semibold text-foreground">
                   Your Profile
                 </h2>
-                <p className="text-sm text-neutral-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   This information is displayed to staff and students.
                 </p>
               </div>
 
               <div className="flex items-center gap-6">
                 <div className="relative group">
-                  <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-2xl bg-accent border border-border overflow-hidden flex items-center justify-center">
                     {profile.profileUrl ? (
                       <img 
                         src={profile.profileUrl} 
@@ -206,7 +206,7 @@ export default function DepartmentSettings() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <User size={32} className="text-neutral-600" />
+                      <User size={32} className="text-muted-foreground" />
                     )}
                     {uploadingImage && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -218,7 +218,7 @@ export default function DepartmentSettings() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingImage}
-                    className="absolute -bottom-2 -right-2 p-2 bg-blue-600 hover:bg-blue-500 rounded-full text-white shadow-lg transition-all hover:scale-110"
+                    className="absolute -bottom-2 -right-2 p-2 bg-blue-600 hover:bg-blue-500 rounded-full text-foreground shadow-lg transition-all hover:scale-110"
                   >
                     <Camera size={14} />
                   </button>
@@ -232,37 +232,37 @@ export default function DepartmentSettings() {
                 </div>
                 <div className="flex-1 space-y-3">
                   <div>
-                    <label className="block text-xs font-medium text-neutral-400 mb-1">Name</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
                     <input
                       type="text"
                       value={profile.name}
                       onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50"
+                      className="w-full bg-black/40 border border-border rounded-xl px-4 py-2.5 text-foreground focus:outline-none focus:border-blue-500/50"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-neutral-400 mb-1">Email</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Email</label>
                     <input
                       type="email"
                       value={profile.email}
                       disabled
-                      className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2.5 text-neutral-500 cursor-not-allowed"
+                      className="w-full bg-black/20 border border-border rounded-xl px-4 py-2.5 text-muted-foreground cursor-not-allowed"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-neutral-400 mb-1">Department</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">Department</label>
                     <input
                       type="text"
                       value={profile.department}
                       disabled
-                      className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2.5 text-neutral-500 cursor-not-allowed"
+                      className="w-full bg-black/20 border border-border rounded-xl px-4 py-2.5 text-muted-foreground cursor-not-allowed"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-end pt-4">
-                <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2">
+                <button className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2">
                   <Save size={16} /> Save Profile
                 </button>
               </div>
@@ -271,17 +271,17 @@ export default function DepartmentSettings() {
 
           {activeTab === "policies" && (
             <GlassCard className="space-y-6">
-              <div className="border-b border-white/10 pb-4">
-                <h2 className="text-lg font-semibold text-white">
+              <div className="border-b border-border pb-4">
+                <h2 className="text-lg font-semibold text-foreground">
                   Communication Policies
                 </h2>
               </div>
               <div className="flex items-center justify-between">
                 <div className="pr-4">
-                  <p className="text-white font-medium text-sm">
+                  <p className="text-foreground font-medium text-sm">
                     Allow Student Replies to Broadcasts
                   </p>
-                  <p className="text-neutral-500 text-xs mt-1 leading-relaxed">
+                  <p className="text-muted-foreground text-xs mt-1 leading-relaxed">
                     If enabled, students can reply directly to HoD official
                     broadcasts.
                   </p>
@@ -298,7 +298,7 @@ export default function DepartmentSettings() {
             <button 
               onClick={handleSaveSettings}
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2 disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2 disabled:opacity-50"
             >
               {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               Save Changes

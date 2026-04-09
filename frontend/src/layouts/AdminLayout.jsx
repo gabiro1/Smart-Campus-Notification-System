@@ -22,12 +22,12 @@ export default function AdminLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] relative">
+    <div className="min-h-screen bg-background relative">
       {/* Mobile Menu Toggle */}
       {isMobile && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-background/90 border border-white/10 text-white hover:bg-white/10 transition-colors"
+          className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-card/90 border border-border text-foreground hover:bg-accent transition-colors"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="6" x2="21" y2="6" />

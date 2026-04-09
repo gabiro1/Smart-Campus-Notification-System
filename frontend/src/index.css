@@ -15,14 +15,42 @@
 }
 
 :root {
-  /* Adjusted for a cleaner light mode, but focusing on the Dark Mode for your design */
+  /* Professional Light Mode - Clean White Theme */
   --radius: 0.75rem;
-  /* Slightly more rounded like the reference */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.1 0 0);
-  --card: oklch(0.98 0 0);
-  --border: oklch(0.9 0 0);
-  --primary: oklch(0.2 0 0);
+  --background: #fafafa;
+  --foreground: #0f172a;
+  
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  
+  --primary: #0f172a;
+  --primary-foreground: #fafafa;
+  
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f172a;
+  
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-primary: #0f172a;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  
+  --radius: 0.75rem;
   --site-font: 'Outfit', 'Poppins', 'Geist', Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif, "Noto Color Emoji";
   
 }
@@ -63,7 +91,12 @@
   --ring: oklch(1 0 0 / 20%);
 
   --sidebar: oklch(0.12 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  --sidebar-accent: oklch(0.25 0 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
 }
 
 @layer base {
@@ -83,7 +116,13 @@
   .bg-muted { background-color: var(--muted); }
   .bg-accent { background-color: var(--accent); }
   .bg-sidebar { background-color: var(--sidebar); }
-
+  
+  /* Dark backgrounds for dark mode components */
+  .bg-dark-900 { background-color: #0a0a0a; }
+  .bg-dark-800 { background-color: #111111; }
+  .bg-dark-700 { background-color: #171717; }
+  .bg-dark-card { background-color: #121212; }
+  
   /* Text colors */
   .text-foreground { color: var(--foreground); }
   .text-card-foreground { color: var(--card-foreground); }
@@ -91,13 +130,22 @@
   .text-primary-foreground { color: var(--primary-foreground); }
   .text-secondary-foreground { color: var(--secondary-foreground); }
   .text-accent-foreground { color: var(--accent-foreground); }
-
+  
+  /* Semantic text colors */
+  .text-white-fixed { color: #ffffff; }
+  .text-muted-light { color: #9ca3af; }
+  .text-neutral-muted { color: #737373; }
+  
   /* Borders */
   .border-border { border-color: var(--border); }
   .border-input { border-color: var(--input); }
   .border-ring { border-color: var(--ring); }
   .border-sidebar { border-color: var(--sidebar-border); }
-
+  
+  /* Dark mode borders */
+  .border-white-5 { border-color: rgba(255,255,255,0.05); }
+  .border-white-10 { border-color: rgba(255,255,255,0.10); }
+  
   /* Accent colors (semantic) */
   .text-success { color: #10b981; }
   .bg-success { background-color: #10b981; }

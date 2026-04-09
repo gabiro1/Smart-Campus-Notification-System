@@ -25,7 +25,7 @@ export default function StudentHeader() {
         <button
           onClick={() => navigate('/student/bookmarks')}
           title="Saved Events"
-          className="p-2.5 rounded-xl text-neutral-500 hover:bg-white/[0.05] hover:text-blue-400 border border-transparent transition-all duration-200 group"
+          className="p-2.5 rounded-xl text-muted-foreground hover:bg-accent hover:text-blue-400 border border-transparent transition-all duration-200 group"
         >
           <Bookmark size={20} className="group-hover:scale-110 transition-transform" />
         </button>
@@ -37,7 +37,7 @@ export default function StudentHeader() {
             className={`p-2.5 rounded-xl transition-all duration-200 relative group flex items-center justify-center ${
               isNotifOpen
                 ? "bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
-                : "text-neutral-500 hover:bg-white/[0.05] hover:text-neutral-200 border border-transparent"
+                : "text-muted-foreground hover:bg-accent hover:text-neutral-200 border border-transparent"
             }`}
           >
             <Bell size={20} strokeWidth={isNotifOpen ? 2.5 : 2} className="transition-transform group-hover:scale-110" />

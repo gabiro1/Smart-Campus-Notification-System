@@ -81,7 +81,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-card text-foreground flex flex-col relative overflow-hidden">
       <Toaster />
       <Navbar />
 
@@ -98,11 +98,11 @@ export default function Login() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/[0.03] backdrop-blur-xl p-10 rounded-[40px] border border-white/10 w-full max-w-md shadow-2xl"
+          className="bg-white/[0.03] backdrop-blur-xl p-10 rounded-[40px] border border-border w-full max-w-md shadow-2xl"
         >
           <div className="mb-8 text-center">
             <h2 className="text-4xl font-bold">Welcome back</h2>
-            <p className="text-neutral-500 mt-2">Login to UniNotify AI</p>
+            <p className="text-muted-foreground mt-2">Login to UniNotify AI</p>
           </div>
 
           {/*  INLINE ERROR */}
@@ -115,7 +115,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* EMAIL */}
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 name="email"
                 type="email"
@@ -124,13 +124,13 @@ export default function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Institutional email"
-                className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-2xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none disabled:opacity-60"
+                className="w-full bg-accent border border-border p-4 pl-12 rounded-2xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none disabled:opacity-60"
               />
             </div>
 
             {/* PASSWORD */}
             <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 name="password"
                 type={showPassword ? "text" : "password"}
@@ -139,13 +139,13 @@ export default function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Password"
-                className="w-full bg-white/5 border border-white/10 p-4 pl-12 pr-12 rounded-2xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none disabled:opacity-60"
+                className="w-full bg-accent border border-border p-4 pl-12 pr-12 rounded-2xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none disabled:opacity-60"
               />
 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -156,7 +156,7 @@ export default function Login() {
               <Link to="/forgot-password" className="text-blue-400 hover:underline">
                 Forgot password?
               </Link>
-              <Link to="/verify-email/resend" className="text-neutral-400 hover:text-white">
+              <Link to="/verify-email/resend" className="text-muted-foreground hover:text-foreground">
                 Verify email?
               </Link>
             </div>
@@ -176,7 +176,7 @@ export default function Login() {
               )}
             </button>
 
-            <p className="text-center text-neutral-500 text-sm">
+            <p className="text-center text-muted-foreground text-sm">
               Don't have an account?{" "}
               <Link to="/register" className="text-blue-400 hover:underline">
                 Create one

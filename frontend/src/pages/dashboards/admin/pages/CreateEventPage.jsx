@@ -10,7 +10,8 @@ import {
   AlertTriangle,
   CalendarDays,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ThemedToaster from "../../../../components/ui/ThemedToaster";
 import adminService from "../../../../services/adminService";
 
 export default function CreateEventPage() {
@@ -66,8 +67,8 @@ export default function CreateEventPage() {
     setFormData({
       ...formData,
       targetCollege: e.target.value,
-      targetSchool: "", // Reset school when college changes
-      targetDept: "", // Reset dept when college changes
+      targetSchool: "",
+      targetDept: "",
     });
   };
 
@@ -75,7 +76,7 @@ export default function CreateEventPage() {
     setFormData({
       ...formData,
       targetSchool: e.target.value,
-      targetDept: "", // Reset dept when school changes
+      targetDept: "",
     });
   };
   // ------------------------------------
@@ -127,14 +128,14 @@ export default function CreateEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
-      <Toaster theme="dark" position="top-right" />
+    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12">
+      <ThemedToaster />
 
       <div className="max-w-5xl mx-auto">
         {/* Back Arrow Navigation */}
         <button
           onClick={() => navigate("/admin/events")}
-          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8 text-xs font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg w-fit"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 text-xs font-bold uppercase tracking-widest bg-accent hover:bg-accent px-4 py-2 rounded-lg w-fit"
         >
           <ArrowLeft size={16} /> Back
         </button>
@@ -145,7 +146,7 @@ export default function CreateEventPage() {
           className="mb-10"
         >
           <h1 className="text-4xl font-black tracking-tight">Create Event</h1>
-          <p className="text-neutral-500 mt-2">
+          <p className="text-muted-foreground mt-2">
             Publish an event to the campus calendar.
           </p>
         </motion.div>
@@ -181,17 +182,17 @@ export default function CreateEventPage() {
                     <div className="w-16 h-16 bg-purple-500/10 border border-purple-500/20 rounded-2xl flex items-center justify-center text-purple-400 mb-6">
                       <Sparkles size={28} />
                     </div>
-                    <h3 className="font-bold text-white mb-2 text-lg">
+                    <h3 className="font-bold text-foreground mb-2 text-lg">
                       AI Flyer Auto-Fill
                     </h3>
-                    <p className="text-xs text-neutral-400 mb-8 leading-relaxed">
+                    <p className="text-xs text-muted-foreground mb-8 leading-relaxed">
                       Upload a poster. Our AI will automatically extract
                       details.
                     </p>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold transition-all w-full flex justify-center gap-2"
+                      className="bg-accent hover:bg-accent text-foreground px-6 py-3 rounded-xl font-bold transition-all w-full flex justify-center gap-2"
                     >
                       <UploadCloud size={18} /> Select Image
                     </button>
@@ -205,11 +206,11 @@ export default function CreateEventPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="xl:col-span-2 bg-card border border-white/5 rounded-[24px] p-8 shadow-2xl"
+            className="xl:col-span-2 bg-card border-border rounded-[24px] p-8 shadow-2xl"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
                   Event Title *
                 </label>
                 <input
@@ -219,13 +220,13 @@ export default function CreateEventPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                  className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-1.5 md:col-span-1">
-                  <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
                     Date *
                   </label>
                   <input
@@ -235,11 +236,11 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, date: e.target.value })
                     }
-                    className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                    className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
                   />
                 </div>
                 <div className="space-y-1.5 md:col-span-1">
-                  <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
                     Time *
                   </label>
                   <input
@@ -249,11 +250,11 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, time: e.target.value })
                     }
-                    className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                    className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
                   />
                 </div>
                 <div className="space-y-1.5 md:col-span-1">
-                  <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
                     Location *
                   </label>
                   <input
@@ -263,13 +264,13 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
-                    className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                    className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
                   Description *
                 </label>
                 <textarea
@@ -279,14 +280,14 @@ export default function CreateEventPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full bg-background border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-white"
+                  className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-foreground"
                 />
               </div>
 
-              <hr className="border-white/5 my-8" />
+              <hr className="border-border my-8" />
 
               <div className="bg-blue-500/[0.02] border border-blue-500/10 p-6 rounded-2xl">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
                   <AlertTriangle size={18} className="text-blue-500" /> Target
                   Audience
                 </h3>
@@ -294,7 +295,7 @@ export default function CreateEventPage() {
                   <select
                     value={formData.targetCollege}
                     onChange={handleCollegeChange}
-                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer"
+                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer"
                   >
                     <option value="">All Colleges</option>
                     {Object.keys(academicStructure).map((c) => (
@@ -307,7 +308,7 @@ export default function CreateEventPage() {
                     value={formData.targetSchool}
                     onChange={handleSchoolChange}
                     disabled={!formData.targetCollege}
-                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50"
+                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer disabled:opacity-50"
                   >
                     <option value="">All Schools</option>
                     {availableSchools.map((s) => (
@@ -322,7 +323,7 @@ export default function CreateEventPage() {
                       setFormData({ ...formData, targetDept: e.target.value })
                     }
                     disabled={!formData.targetSchool}
-                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50"
+                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer disabled:opacity-50"
                   >
                     <option value="">All Departments</option>
                     {availableDepartments.map((d) => (
@@ -338,7 +339,7 @@ export default function CreateEventPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, targetLevel: e.target.value })
                     }
-                    className="bg-background border border-white/5 p-3.5 rounded-xl outline-none text-sm text-white"
+                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground"
                   />
                 </div>
               </div>

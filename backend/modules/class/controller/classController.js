@@ -319,3 +319,71 @@ export const deleteClass = async (req, res) => {
     res.status(500).json({ message: "Failed to delete class." });
   }
 };
+
+// ==========================================
+// 4. STUDENT ASSIGNMENT FUNCTIONS
+// ==========================================
+
+/**
+ * @desc    Assign a student to a class
+ * @route   POST /api/classes/:classId/assign-student
+ */
+export const assignStudentToClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { studentId } = req.body;
+
+    const classItem = await Class.findById(classId);
+    if (!classItem) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (student.role !== 'student') {
+      return res.status(400).json({ message: "User is not a student" });
+    }
+
+    if (classItem.students.includes(studentId)) {
+      return res.status(400).json({ message: "Student already enrolled in this class" });
+    }
+
+    classItem.students.push(studentId);
+    await classItem.save();
+
+    res.status(200).json({ message: "Student assigned to class successfully", class: classItem });
+  } catch (error) {
+    console.error("Assign Student Error:", error);
+    res.status(500).json({ message: "Failed to assign student to class." });
+  }
+};
+
+/**
+ * @desc    Remove a student from a class
+ * @route   DELETE /api/classes/:classId/remove-student/:studentId
+ */
+export const removeStudentFromClass = async (req, res) => {
+  try {
+    const { classId, studentId } = req.params;
+
+    const classItem = await Class.findById(classId);
+    if (!classItem) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    if (!classItem.students.includes(studentId)) {
+      return res.status(400).json({ message: "Student not enrolled in this class" });
+    }
+
+    classItem.students = classItem.students.filter(id => id.toString() !== studentId);
+    await classItem.save();
+
+    res.status(200).json({ message: "Student removed from class successfully", class: classItem });
+  } catch (error) {
+    console.error("Remove Student Error:", error);
+    res.status(500).json({ message: "Failed to remove student from class." });
+  }
+};

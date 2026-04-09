@@ -12,7 +12,7 @@ export default function Approvals() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="text-center">
-        <p className="text-neutral-400">Redirecting to Governance page...</p>
+        <p className="text-muted-foreground">Redirecting to Governance page...</p>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { createPortal } from "react-dom"; // <-- Import createPortal
 import { CheckCircle2, AlertCircle, X } from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
 
 const ToastContext = createContext();
 
@@ -18,6 +19,7 @@ export const ToastProvider = ({ children }) => {
     message: "",
     type: "success",
   });
+  const { isDarkMode } = useTheme();
 
   const showToast = useCallback((message, type = "success") => {
     console.log(`[Toast Triggered]: ${message} (${type})`); // Debug log to ensure function runs
@@ -38,19 +40,23 @@ export const ToastProvider = ({ children }) => {
           : "translate-y-10 opacity-0 pointer-events-none"
       } ${
         toast.type === "success"
-          ? "bg-background border-green-500/30 text-green-400" // Adjusted colors for dark theme contrast
-          : "bg-background border-red-500/30 text-red-400"
+          ? isDarkMode 
+            ? "bg-card border-green-500/30 text-green-400" 
+            : "bg-card border-green-600/30 text-green-600"
+          : isDarkMode
+            ? "bg-card border-red-500/30 text-red-400"
+            : "bg-card border-red-600/30 text-red-600"
       }`}
     >
       {toast.type === "success" ? (
-        <CheckCircle2 size={20} className="text-green-500" />
+        <CheckCircle2 size={20} className={isDarkMode ? "text-green-500" : "text-green-600"} />
       ) : (
-        <AlertCircle size={20} className="text-red-500" />
+        <AlertCircle size={20} className={isDarkMode ? "text-red-500" : "text-red-600"} />
       )}
-      <p className="text-sm font-medium text-white">{toast.message}</p>
+      <p className="text-sm font-medium text-foreground">{toast.message}</p>
       <button
         onClick={() => setToast({ ...toast, visible: false })}
-        className="ml-2 hover:text-white/70 transition-colors text-neutral-400"
+        className="ml-2 hover:text-foreground/70 transition-colors text-muted-foreground"
       >
         <X size={16} />
       </button>

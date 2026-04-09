@@ -123,17 +123,17 @@ export default function DepartmentReports() {
     <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             Analytics & Reports
           </h1>
-          <p className="text-neutral-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Generate comprehensive reports on department communication.
           </p>
         </div>
         <div className="flex gap-2">
           <button 
             onClick={exportCSV}
-            className="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+            className="bg-accent hover:bg-accent border-border text-foreground px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
           >
             <Download size={16} /> CSV
           </button>
@@ -146,8 +146,8 @@ export default function DepartmentReports() {
           {[1,2,3,4].map(i => (
             <GlassCard key={i} className="p-5">
               <div className="animate-pulse space-y-3">
-                <div className="h-4 bg-white/10 rounded w-1/2" />
-                <div className="h-8 bg-white/10 rounded w-1/3" />
+                <div className="h-4 bg-accent rounded w-1/2" />
+                <div className="h-8 bg-accent rounded w-1/3" />
               </div>
             </GlassCard>
           ))}
@@ -160,8 +160,8 @@ export default function DepartmentReports() {
                 <FileText size={18} />
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Announcements</p>
-                <p className="text-2xl font-bold text-white">{stats.totalAnnouncements}</p>
+                <p className="text-xs text-muted-foreground">Announcements</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalAnnouncements}</p>
               </div>
             </div>
           </GlassCard>
@@ -171,8 +171,8 @@ export default function DepartmentReports() {
                 <Users size={18} />
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Students</p>
-                <p className="text-2xl font-bold text-white">{stats.totalStudents}</p>
+                <p className="text-xs text-muted-foreground">Students</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalStudents}</p>
               </div>
             </div>
           </GlassCard>
@@ -182,8 +182,8 @@ export default function DepartmentReports() {
                 <TrendingUp size={18} />
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Avg Views</p>
-                <p className="text-2xl font-bold text-white">{stats.avgViews}</p>
+                <p className="text-xs text-muted-foreground">Avg Views</p>
+                <p className="text-2xl font-bold text-foreground">{stats.avgViews}</p>
               </div>
             </div>
           </GlassCard>
@@ -193,8 +193,8 @@ export default function DepartmentReports() {
                 <BarChart2 size={18} />
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Engagement</p>
-                <p className="text-2xl font-bold text-white">{stats.engagementRate}%</p>
+                <p className="text-xs text-muted-foreground">Engagement</p>
+                <p className="text-2xl font-bold text-foreground">{stats.engagementRate}%</p>
               </div>
             </div>
           </GlassCard>
@@ -208,7 +208,7 @@ export default function DepartmentReports() {
             <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
               <BarChart2 size={18} />
             </div>
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-foreground">
               Announcements by Lecturer
             </h3>
           </div>
@@ -217,7 +217,7 @@ export default function DepartmentReports() {
               <Loader2 className="animate-spin text-blue-500" size={32} />
             </div>
           ) : lecturerData.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-neutral-500">
+            <div className="flex-1 flex items-center justify-center text-muted-foreground">
               No data available
             </div>
           ) : (
@@ -262,7 +262,7 @@ export default function DepartmentReports() {
             <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
               <TrendingUp size={18} />
             </div>
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-foreground">
               Activity Over Time
             </h3>
           </div>

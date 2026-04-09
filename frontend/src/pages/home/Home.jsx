@@ -45,11 +45,11 @@ export default function Home() {
         <motion.h2
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-3xl font-extrabold text-white"
+          className="text-3xl font-extrabold text-foreground"
         >
           Your Personalized Feed
         </motion.h2>
-        <p className="text-neutral-500">Based on your level and interests</p>
+        <p className="text-muted-foreground">Based on your level and interests</p>
       </header>
 
       {/* Bento Grid Layout */}
@@ -61,19 +61,19 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             whileHover={{ scale: 0.98 }}
-            className={`relative glass overflow-hidden rounded-[32px] border border-white/5 p-6 flex flex-col justify-between shadow-2xl ${
+            className={`relative glass overflow-hidden rounded-[32px] border border-border p-6 flex flex-col justify-between shadow-2xl ${
               event.size === "large" ? "col-span-2 h-56" : "col-span-1 h-64"
             } bg-gradient-to-br ${event.color}`}
           >
             {/* Match Badge */}
             <div className="flex justify-between items-start">
-              <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white border border-white/10">
+              <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-foreground border border-white/10">
                 {event.score}% MATCH
               </span>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-white leading-tight">
+              <h3 className="text-xl font-bold text-foreground leading-tight">
                 {event.title}
               </h3>
               <div className="flex gap-2">

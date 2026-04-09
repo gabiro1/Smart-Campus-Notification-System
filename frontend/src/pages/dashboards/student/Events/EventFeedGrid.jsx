@@ -64,7 +64,7 @@ export default function EventFeedGrid({
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <div
                 key={n}
-                className="h-48 w-full bg-background border border-white/5 rounded-[8px] animate-pulse"
+                className="h-48 w-full bg-card border border-border rounded-[8px] animate-pulse"
               />
             ))}
           </div>
@@ -100,7 +100,7 @@ export default function EventFeedGrid({
         {/* --- HEADER: TITLE, SEARCH & FILTER --- */}
         <div className="mb-8 md:mb-10 space-y-5 md:space-y-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight flex items-center gap-3">
               <Sparkles className="text-blue-500" />
               Campus Events
             </h1>
@@ -110,7 +110,7 @@ export default function EventFeedGrid({
             {/* Search Bar */}
             <div className="relative flex-1">
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                 size={18}
               />
               <input
@@ -118,20 +118,20 @@ export default function EventFeedGrid({
                 placeholder="Search events, tags, or keywords..."
                 value={localSearch}
                 onChange={handleSearchChange}
-                className="w-full bg-background border border-white/10 rounded-xl py-3 md:py-3.5 pl-12 pr-4 text-sm focus:outline-none transition-all text-white placeholder:text-neutral-600 focus:border-white/20"
+                className="w-full bg-card border border-border rounded-xl py-3 md:py-3.5 pl-12 pr-4 text-sm focus:outline-none transition-all text-foreground placeholder:text-muted-foreground focus:border-border"
               />
             </div>
 
             {/* AI-Powered Filter Dropdown */}
             <div className="relative w-full md:w-auto md:min-w-[200px]">
               <Filter
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <select
                 value={activeFilter}
                 onChange={handleFilterChange}
-                className="appearance-none w-full bg-background border border-white/10 rounded-xl py-3 md:py-3.5 pl-11 pr-10 text-sm text-white focus:outline-none cursor-pointer focus:border-white/20"
+                className="appearance-none w-full bg-card border border-border rounded-xl py-3 md:py-3.5 pl-11 pr-10 text-sm text-foreground focus:outline-none cursor-pointer focus:border-border"
               >
                 <option value="all">All Events</option>
                 <option value="top">Top AI Matches</option>
@@ -168,13 +168,13 @@ export default function EventFeedGrid({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center p-12 md:p-20 border border-white/5 rounded-[15px] bg-background"
+            className="flex flex-col items-center justify-center p-12 md:p-20 border border-border rounded-[15px] bg-card"
           >
-            <AlertCircle size={40} className="text-neutral-600 mb-4" />
-            <h4 className="text-white font-bold text-lg md:text-xl">
+            <AlertCircle size={40} className="text-muted-foreground mb-4" />
+            <h4 className="text-foreground font-bold text-lg md:text-xl">
               No Matches Found
             </h4>
-            <p className="text-neutral-500 text-xs md:text-sm mt-2 text-center max-w-sm">
+            <p className="text-muted-foreground text-xs md:text-sm mt-2 text-center max-w-sm">
               Try adjusting your search terms or clearing your filters to see
               more events.
             </p>
@@ -182,7 +182,7 @@ export default function EventFeedGrid({
         ) : (
           <>
             {/* --- RESULTS COUNT --- */}
-            <p className="text-neutral-500 text-xs mb-4">
+            <p className="text-muted-foreground text-xs mb-4">
               Showing {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''}
             </p>
 
@@ -223,7 +223,7 @@ export default function EventFeedGrid({
                 <button
                   onClick={handleLoadMore}
                   disabled={isSpinning}
-                  className="flex items-center gap-2 px-6 md:px-8 py-3 bg-background border border-white/5 rounded-lg text-xs md:text-sm font-bold text-neutral-400 hover:text-white hover:border-white/20 hover:bg-background transition-all disabled:opacity-50 disabled:cursor-wait"
+                  className="flex items-center gap-2 px-6 md:px-8 py-3 bg-card border border-border rounded-lg text-xs md:text-sm font-bold text-muted-foreground hover:text-foreground hover:border-border hover:bg-card transition-all disabled:opacity-50 disabled:cursor-wait"
                 >
                   {isSpinning ? (
                     <>

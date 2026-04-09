@@ -65,7 +65,7 @@ export default function StudentDashboard() {
   const displayEvents = events && events.length > 0 ? events : fallbackEvents;
 
   return (
-    <div className="min-h-screen bg-background text-white flex">
+    <div className="min-h-screen bg-card text-foreground flex">
       {/* 1. Sidebar - Persistent on the left */}
       <StudentSidebar />
 
@@ -74,10 +74,10 @@ export default function StudentDashboard() {
         {/* Header Section */}
         <header className="flex justify-between items-center mb-10">
           <div>
-            <div className="flex items-center gap-2 text-[11px] text-neutral-500 tracking-widest mb-1">
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground tracking-widest mb-1">
               <span>STUDENT</span>
               <span>/</span>
-              <span className="text-white uppercase">Personal Pulse</span>
+              <span className="text-foreground uppercase">Personal Pulse</span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
               Academic Dashboard
@@ -85,9 +85,9 @@ export default function StudentDashboard() {
           </div>
 
           <div className="flex gap-3">
-            <div className="glass px-4 py-2 rounded-[7px] border border-white/5 flex items-center gap-2">
+            <div className="glass px-4 py-2 rounded-[7px] border border-border flex items-center gap-2">
               <Zap size={14} className="text-blue-500" />
-              <span className="text-[10px] font-black uppercase text-neutral-400">
+              <span className="text-[10px] font-black uppercase text-muted-foreground">
                 AI Synced
               </span>
             </div>
@@ -111,10 +111,10 @@ export default function StudentDashboard() {
                   navigate(`/student/search?q=${encodeURIComponent(searchQuery.trim())}`);
                 }
               }}
-              className="w-full bg-background border border-white/10 rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-800"
+              className="w-full bg-card border border-border rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-800"
             />
           </div>
-          <button className="bg-background border border-white/5 px-4 py-2.5 rounded-[7px] text-xs font-bold text-neutral-300 flex items-center gap-2 hover:border-white/20">
+          <button className="bg-card border border-border px-4 py-2.5 rounded-[7px] text-xs font-bold text-muted-foreground flex items-center gap-2 hover:border-border">
             <Filter size={14} /> Filter View
           </button>
         </div>
@@ -145,11 +145,11 @@ export default function StudentDashboard() {
         {/* Main Bento Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           {/* LEFT: AI RANKED FEED */}
-          <div className="lg:col-span-2 bg-card border border-white/5 rounded-[10px] p-8">
+          <div className="lg:col-span-2 bg-card border border-border rounded-[10px] p-8">
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h3 className="text-lg font-bold">Recommended for You</h3>
-                <p className="text-xs text-neutral-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   AI-ranked pulses from your department
                 </p>
               </div>
@@ -168,7 +168,7 @@ export default function StudentDashboard() {
                   <motion.div
                     key={event._id}
                     whileHover={{ y: -2, backgroundColor: "#121212" }}
-                    className={`p-6 rounded-[15px] border border-white/5 bg-background transition-all relative group flex flex-col justify-between ${
+                    className={`p-6 rounded-[15px] border border-border bg-card transition-all relative group flex flex-col justify-between ${
                       event.aiMatchScore > 85
                         ? "md:col-span-2 border-blue-500/20"
                         : "col-span-1"
@@ -202,22 +202,22 @@ export default function StudentDashboard() {
                         </div>
                       </div>
                       <h4
-                        className={`font-bold text-white mb-2 ${
+                        className={`font-bold text-foreground mb-2 ${
                           event.aiMatchScore > 85 ? "text-xl" : "text-md"
                         }`}
                       >
                         {event?.title || 'Untitled Event'}
                       </h4>
-                      <p className="text-xs text-neutral-500 line-clamp-2 mb-6">
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-6">
                         {event?.description || "No description available."}
                       </p>
                     </div>
 
-                    <div className="flex justify-between items-center mt-auto border-t border-white/5 pt-4">
-                      <button className="text-[10px] font-bold text-neutral-400 hover:text-white flex items-center gap-1 transition-colors">
+                    <div className="flex justify-between items-center mt-auto border-t border-border pt-4">
+                      <button className="text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                         <Heart size={12} /> Save
                       </button>
-                      <button className="bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-colors">
+                      <button className="bg-accent hover:bg-accent p-2 rounded-lg transition-colors">
                         <ArrowRight size={16} />
                       </button>
                     </div>
@@ -232,7 +232,7 @@ export default function StudentDashboard() {
             {/* MESSAGES BENTO BOX */}
             <motion.div
               whileHover={{ backgroundColor: "#0F0F0F" }}
-              className="bg-card border border-white/5 rounded-[10px] p-7"
+              className="bg-card border border-border rounded-[10px] p-7"
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-sm font-bold flex items-center gap-2">
@@ -259,7 +259,7 @@ export default function StudentDashboard() {
                 ].map((msg, i) => (
                   <div
                     key={i}
-                    className="p-3 bg-background border border-white/5 rounded-[10px] hover:border-blue-500/30 transition-all cursor-pointer"
+                    className="p-3 bg-card border border-border rounded-[10px] hover:border-blue-500/30 transition-all cursor-pointer"
                   >
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-xs font-bold">{msg.sender}</span>
@@ -267,19 +267,19 @@ export default function StudentDashboard() {
                         {msg.role}
                       </span>
                     </div>
-                    <p className="text-[11px] text-neutral-500 line-clamp-1 italic">
+                    <p className="text-[11px] text-muted-foreground line-clamp-1 italic">
                       "{msg.text}"
                     </p>
                   </div>
                 ))}
               </div>
-              <button className="w-full mt-4 text-[10px] font-bold text-neutral-600 hover:text-white transition-colors">
+              <button className="w-full mt-4 text-[10px] font-bold text-neutral-600 hover:text-foreground transition-colors">
                 Open All Messages
               </button>
             </motion.div>
 
             {/* TIMETABLE BOX */}
-            <div className="bg-card border border-white/5 rounded-[10px] p-7 flex-1">
+            <div className="bg-card border border-border rounded-[10px] p-7 flex-1">
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <Clock size={16} className="text-emerald-500" /> Today's Class
@@ -296,7 +296,7 @@ export default function StudentDashboard() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="flex gap-4 items-center p-4 bg-background rounded-[10px] border border-white/5"
+                    className="flex gap-4 items-center p-4 bg-card rounded-[10px] border border-border"
                   >
                     <div className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">
                       {item.time}
@@ -322,10 +322,10 @@ function StatCard({ title, value, change, color, icon }) {
   return (
     <motion.div
       whileHover={{ y: -4, backgroundColor: "#0F0F0F" }}
-      className="bg-card p-7 rounded-[10px] border border-white/5 transition-all shadow-sm"
+      className="bg-card p-7 rounded-[10px] border border-border transition-all shadow-sm"
     >
       <div className="flex justify-between items-start mb-4">
-        <p className="text-white font-black text-xs uppercase tracking-widest opacity-60">
+        <p className="text-foreground font-black text-xs uppercase tracking-widest opacity-60">
           {title}
         </p>
         <div className={color}>{icon}</div>
@@ -333,7 +333,7 @@ function StatCard({ title, value, change, color, icon }) {
       <h2 className={`text-4xl font-bold tracking-tighter ${color} mb-4`}>
         {value}
       </h2>
-      <div className="bg-white/5 text-[9px] font-bold px-2 py-1 rounded-md text-neutral-400 border border-white/5 w-fit">
+      <div className="bg-accent text-[9px] font-bold px-2 py-1 rounded-md text-muted-foreground border border-border w-fit">
         {change}
       </div>
     </motion.div>

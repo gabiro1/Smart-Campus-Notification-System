@@ -32,15 +32,15 @@ export default function Notifications() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-white flex flex-col">
+    <div className="min-h-screen bg-card text-foreground flex flex-col">
       <Navbar />
       <main className="flex-1 p-6 md:p-12 pt-32 max-w-4xl mx-auto w-full space-y-8">
-        <header className="flex justify-between items-end border-b border-white/5 pb-6">
+        <header className="flex justify-between items-end border-b border-border pb-6">
           <div>
             <h1 className="text-4xl font-black tracking-tight">
               Notifications
             </h1>
-            <p className="text-neutral-500 font-medium mt-1">
+            <p className="text-muted-foreground font-medium mt-1">
               Stay updated with verified campus pulses.
             </p>
           </div>
@@ -51,7 +51,7 @@ export default function Notifications() {
 
         <div className="space-y-4">
           {loading ? (
-            <div className="text-center py-20 text-neutral-600 animate-pulse uppercase text-xs font-bold tracking-widest">
+            <div className="text-center py-20 text-muted-foreground animate-pulse uppercase text-xs font-bold tracking-widest">
               Synchronizing Pulses...
             </div>
           ) : (
@@ -65,7 +65,7 @@ export default function Notifications() {
                   className={`glass p-5 rounded-[28px] border flex gap-5 items-start transition-all ${
                     notif.status === "unread"
                       ? "border-blue-500/30 bg-blue-500/5"
-                      : "border-white/5 opacity-70"
+                      : "border-border opacity-70"
                   }`}
                 >
                   <div
@@ -84,7 +84,7 @@ export default function Notifications() {
 
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-bold text-sm text-white">
+                      <h4 className="font-bold text-sm text-foreground">
                         {notif.title}
                       </h4>
                       {notif.isVerified && (
@@ -93,15 +93,15 @@ export default function Notifications() {
                         </span>
                       )}
                     </div>
-                    <p className="text-neutral-400 text-xs leading-relaxed">
+                    <p className="text-muted-foreground text-xs leading-relaxed">
                       {notif.message}
                     </p>
-                    <span className="text-[10px] text-neutral-600 font-bold mt-2 block uppercase">
+                    <span className="text-[10px] text-muted-foreground font-bold mt-2 block uppercase">
                       {notif.timeAgo}
                     </span>
                   </div>
 
-                  <button className="p-2 text-neutral-600 hover:text-white transition-colors">
+                  <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
                     <Check size={16} />
                   </button>
                 </motion.div>

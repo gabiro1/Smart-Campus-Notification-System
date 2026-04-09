@@ -10,7 +10,8 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ThemedToaster from "../../../../components/ui/ThemedToaster";
 import adminService from "../../../../services/adminService"; // Adjust path
 
 export default function Maintenance() {
@@ -131,13 +132,13 @@ export default function Maintenance() {
       case "api":
         return "text-blue-400";
       default:
-        return "text-neutral-400";
+        return "text-muted-foreground";
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-white p-8 lg:p-12">
-      <Toaster theme="dark" position="top-right" />
+    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12">
+      <ThemedToaster />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -148,7 +149,7 @@ export default function Maintenance() {
           <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
             <Activity className="text-red-500" size={36} /> Maintenance
           </h1>
-          <p className="text-neutral-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             System diagnostics, connection tests, and raw server logs.
           </p>
         </motion.div>
@@ -158,7 +159,7 @@ export default function Maintenance() {
           animate={{ opacity: 1, x: 0 }}
           onClick={handleRunDiagnostics}
           disabled={isTesting}
-          className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          className="bg-white/10 hover:bg-white/20 text-foreground px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
         >
           {isTesting ? (
             <Activity className="animate-spin" size={18} />
@@ -175,15 +176,15 @@ export default function Maintenance() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-card border border-white/5 rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-border rounded-[24px] p-8 shadow-xl"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Server size={22} className="text-blue-500" /> Service Health
             </h2>
 
             {!testResults && !isTesting ? (
-              <div className="p-8 text-center border border-white/5 border-dashed rounded-2xl bg-white/[0.02]">
-                <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest">
+              <div className="p-8 text-center border border-border border-dashed rounded-2xl bg-white/[0.02]">
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
                   Awaiting Test Execution
                 </p>
               </div>
@@ -192,7 +193,7 @@ export default function Maintenance() {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="h-14 bg-white/5 rounded-xl animate-pulse"
+                    className="h-14 bg-accent rounded-xl animate-pulse"
                   />
                 ))}
               </div>
@@ -233,9 +234,9 @@ export default function Maintenance() {
           className="lg:col-span-2 bg-background border border-white/10 rounded-[24px] overflow-hidden shadow-2xl flex flex-col h-[600px]"
         >
           {/* Terminal Header */}
-          <div className="bg-[#111] p-4 border-b border-white/5 flex items-center justify-between">
+          <div className="bg-card p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Terminal size={18} className="text-neutral-500" />
+              <Terminal size={18} className="text-muted-foreground" />
               <span className="text-sm font-bold font-mono text-neutral-300">
                 server_syslog.tail
               </span>
@@ -249,8 +250,8 @@ export default function Maintenance() {
                   onClick={() => setLogFilter(filter)}
                   className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${
                     logFilter === filter
-                      ? "bg-white/10 text-white"
-                      : "text-neutral-500 hover:text-white hover:bg-white/5"
+                      ? "bg-white/10 text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
                 >
                   {filter}
@@ -288,7 +289,7 @@ export default function Maintenance() {
                   </div>
                 ))}
                 {/* Simulated Cursor */}
-                <div className="w-2 h-4 bg-white/50 animate-pulse mt-4" />
+                <div className="w-2 h-4 bg-accent0 animate-pulse mt-4" />
               </div>
             )}
           </div>
@@ -307,7 +308,7 @@ function TestResultRow({ label, result, icon }) {
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      className="p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between"
+      className="p-4 bg-white/[0.02] border border-border rounded-xl flex items-center justify-between"
     >
       <div className="flex items-center gap-3">
         <div
@@ -322,15 +323,15 @@ function TestResultRow({ label, result, icon }) {
           )}
         </div>
         <div>
-          <h4 className="font-bold text-white text-sm flex items-center gap-2">
+          <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
             {label}
           </h4>
-          <p className="text-[10px] text-neutral-500 uppercase tracking-widest mt-0.5">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">
             {result.message}
           </p>
         </div>
       </div>
-      <span className="text-xs font-mono text-neutral-400 bg-white/5 px-2 py-1 rounded">
+      <span className="text-xs font-mono text-muted-foreground bg-accent px-2 py-1 rounded">
         {result.latency}
       </span>
     </motion.div>

@@ -1,289 +1,276 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/shared";
-import { Search, Filter, Eye, Check, X, ShieldAlert } from "lucide-react";
+import { Search, Filter, Eye, Check, X, ShieldAlert, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Initial Mock Data
-const initialApprovals = [
-  {
-    id: 1,
-    hod: "Dr. A. Smith",
-    dept: "Computer Science",
-    title: "Urgent: Server Maintenance",
-    target: "All CS Students",
-    date: "Oct 24, 2026",
-    status: "Pending Dean",
-  },
-  {
-    id: 2,
-    hod: "Prof. M. Johnson",
-    dept: "Engineering",
-    title: "Workshop Relocation",
-    target: "Year 3 & 4",
-    date: "Oct 24, 2026",
-    status: "Pending Dean",
-  },
-  {
-    id: 3,
-    hod: "Dr. K. Lee",
-    dept: "Mathematics",
-    title: "Math Olympiad Registration",
-    target: "All Math Students",
-    date: "Oct 23, 2026",
-    status: "Pending Dean",
-  },
-  {
-    id: 4,
-    hod: "Dr. A. Smith",
-    dept: "Computer Science",
-    title: "Hackathon Guidelines",
-    target: "Year 2",
-    date: "Oct 22, 2026",
-    status: "Pending Dean",
-  },
-];
+import toast from "react-hot-toast";
+import governanceService from "../../../../services/governanceService";
+import { useAuth } from "../../../../context/AuthContext";
 
 export default function HoDApprovals() {
-  // Functional State
-  const [approvals, setApprovals] = useState(initialApprovals);
+  const { user } = useAuth();
+  const [approvals, setApprovals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
   const [selectedItem, setSelectedItem] = useState(null);
+  const [processing, setProcessing] = useState(null);
 
-  // Filter Logic
+  useEffect(() => {
+    fetchPendingApprovals();
+  }, []);
+
+  const fetchPendingApprovals = async () => {
+    try {
+      setLoading(true);
+      const data = await governanceService.getPending();
+      setApprovals(data || []);
+    } catch (error) {
+      console.error("Failed to fetch pending approvals:", error);
+      toast.error("Failed to load pending approvals");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      setProcessing(id);
+      await governanceService.review(id, "approve");
+      toast.success("Announcement approved successfully");
+      setApprovals(approvals.filter(a => a._id !== id));
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Approve failed:", error);
+      toast.error(error.response?.data?.message || "Failed to approve announcement");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      setProcessing(id);
+      const reason = prompt("Enter rejection reason:");
+      if (!reason) {
+        setProcessing(null);
+        return;
+      }
+      await governanceService.review(id, "reject", reason);
+      toast.success("Announcement rejected");
+      setApprovals(approvals.filter(a => a._id !== id));
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Reject failed:", error);
+      toast.error(error.response?.data?.message || "Failed to reject announcement");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   const filteredApprovals = approvals.filter((item) => {
     const matchesSearch =
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.hod.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDept = selectedDept === "All" || item.dept === selectedDept;
+      item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.author?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDept = selectedDept === "All" || item.department?.name === selectedDept;
     return matchesSearch && matchesDept;
   });
 
-  // Action Logic (CRUD Simulation)
-  const handleApprove = (id) => {
-    setApprovals(approvals.filter((a) => a.id !== id));
-    setSelectedItem(null); // close modal if open
-  };
+  const departments = [...new Set(approvals.map(a => a.department?.name).filter(Boolean))];
 
-  const handleReject = (id) => {
-    setApprovals(approvals.filter((a) => a.id !== id));
-    setSelectedItem(null);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
             HoD Approvals
           </h1>
-          <p className="text-neutral-400 text-sm mt-1">
-            Review and authorize cross-departmental broadcasts.
+          <p className="text-muted-foreground text-sm mt-1">
+            Review and approve announcements submitted by Heads of Department
           </p>
         </div>
-        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 w-fit">
-          <ShieldAlert size={16} /> {approvals.length} Pending Actions
+        <div className="flex items-center gap-2">
+          <span className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-sm font-medium">
+            {approvals.length} Pending
+          </span>
         </div>
       </header>
 
-      <GlassCard className="p-0 overflow-hidden flex flex-col min-h-[600px]">
-        {/* Functional Toolbar */}
-        <div className="p-4 md:p-5 border-b border-white/5 bg-white/[0.01] grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          <div className="md:col-span-6 relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"
-              size={16}
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by HoD name or title..."
-              className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors"
-            />
-          </div>
-          <div className="md:col-span-4">
-            <select
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-blue-500/50 appearance-none"
-            >
-              <option value="All">All Departments</option>
-              <option value="Computer Science">Computer Science</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Mathematics">Mathematics</option>
-            </select>
-          </div>
-          <div className="md:col-span-2 flex justify-end">
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 w-full bg-white/5 border border-white/10 rounded-xl text-sm text-neutral-300 hover:text-white hover:bg-white/10 transition-colors">
-              <Filter size={16} /> Filters
-            </button>
-          </div>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search by title or author..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
         </div>
+        <div className="relative">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <select
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
+            className="pl-10 pr-8 py-3 rounded-xl bg-card border border-border text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            <option value="All">All Departments</option>
+            {departments.map(dept => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-        {/* Dynamic Table */}
-        <div className="overflow-x-auto flex-1 custom-scrollbar">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-white/[0.02] border-b border-white/5 text-[11px] uppercase tracking-widest text-neutral-500">
-                <th className="p-5 font-semibold">HoD & Department</th>
-                <th className="p-5 font-semibold">Announcement Info</th>
-                <th className="p-5 font-semibold">Target Group</th>
-                <th className="p-5 font-semibold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              <AnimatePresence>
-                {filteredApprovals.map((item) => (
-                  <motion.tr
-                    key={item.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{
-                      opacity: 0,
-                      x: -20,
-                      backgroundColor: "rgba(239, 68, 68, 0.1)",
-                    }}
-                    className="hover:bg-white/[0.02] transition-colors group"
-                  >
-                    <td className="p-5">
-                      <p className="text-sm font-semibold text-white">
-                        {item.hod}
-                      </p>
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        {item.dept}
-                      </p>
-                    </td>
-                    <td className="p-5">
-                      <p className="text-sm text-neutral-200 group-hover:text-blue-400 transition-colors">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        Submitted: {item.date}
-                      </p>
-                    </td>
-                    <td className="p-5">
-                      <span className="px-2.5 py-1 text-xs font-medium bg-white/5 rounded-md border border-white/5 text-neutral-300">
-                        {item.target}
+      {/* Approvals List */}
+      {filteredApprovals.length === 0 ? (
+        <div className="text-center py-16">
+          <ShieldAlert className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground">No Pending Approvals</h3>
+          <p className="text-muted-foreground">All announcements have been reviewed</p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          <AnimatePresence>
+            {filteredApprovals.map((item) => (
+              <motion.div
+                key={item._id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="p-6 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors"
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="px-2 py-1 bg-yellow-600/20 text-yellow-400 rounded text-xs font-medium">
+                        Pending Dean
                       </span>
-                    </td>
-                    <td className="p-5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setSelectedItem(item)}
-                          className="p-2 text-neutral-400 hover:text-blue-400 bg-white/5 hover:bg-blue-500/10 rounded-lg transition-all"
-                          title="Review"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleApprove(item.id)}
-                          className="p-2 text-neutral-400 hover:text-emerald-400 bg-white/5 hover:bg-emerald-500/10 rounded-lg transition-all"
-                          title="Approve"
-                        >
-                          <Check size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleReject(item.id)}
-                          className="p-2 text-neutral-400 hover:text-rose-400 bg-white/5 hover:bg-rose-500/10 rounded-lg transition-all"
-                          title="Reject"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
-
-              {filteredApprovals.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="p-12 text-center text-neutral-500">
-                    <CheckCircle2
-                      size={32}
-                      className="mx-auto mb-3 text-neutral-600"
-                    />
-                    <p className="font-medium text-white">All caught up!</p>
-                    <p className="text-sm mt-1">
-                      No pending approvals match your criteria.
+                      {item.department && (
+                        <span className="text-sm text-muted-foreground">
+                          {item.department.name}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {item.content?.substring(0, 100)}...
                     </p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>By: {item.author?.name || "Unknown"}</span>
+                      <span>•</span>
+                      <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="p-2 rounded-lg bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleApprove(item._id)}
+                      disabled={processing === item._id}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition-colors disabled:opacity-50"
+                    >
+                      {processing === item._id ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Check size={16} />
+                      )}
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleReject(item._id)}
+                      disabled={processing === item._id}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium transition-colors disabled:opacity-50"
+                    >
+                      <X size={16} />
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      </GlassCard>
+      )}
 
-      {/* Interactive Functional Modal */}
+      {/* Preview Modal */}
       <AnimatePresence>
         {selectedItem && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedItem(null)}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedItem(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-background border border-white/10 rounded-2xl p-6 shadow-2xl z-10"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-2xl bg-card rounded-2xl border border-border p-6 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">
-                    {selectedItem.title}
-                  </h2>
-                  <p className="text-sm text-neutral-400">
-                    Request by:{" "}
-                    <span className="text-white">{selectedItem.hod}</span> •{" "}
-                    {selectedItem.dept}
+                  <h2 className="text-2xl font-bold text-foreground">{selectedItem.title}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    By {selectedItem.author?.name} • {selectedItem.department?.name}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="text-neutral-500 hover:text-white bg-white/5 p-1.5 rounded-lg"
+                  className="p-2 rounded-lg hover:bg-accent text-muted-foreground"
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               </div>
-
-              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-5 min-h-[150px] text-sm text-neutral-300 leading-relaxed mb-6">
-                <p className="mb-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                  Message Content:
-                </p>
-                Please be advised that the main server cluster will undergo
-                emergency maintenance tonight. All virtual environments will be
-                inaccessible from 23:00 to 02:00. Plan your final project
-                submissions accordingly.
+              <div className="prose prose-invert max-w-none mb-6">
+                <p className="text-foreground whitespace-pre-wrap">{selectedItem.content}</p>
               </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-neutral-500 font-medium">
-                  Target: {selectedItem.target}
-                </span>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleReject(selectedItem.id)}
-                    className="px-5 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/20 transition-colors"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleApprove(selectedItem.id)}
-                    className="px-6 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all flex items-center gap-2"
-                  >
-                    <Check size={16} /> Approve & Publish
-                  </button>
-                </div>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {selectedItem.targetAudience?.map((audience, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-accent rounded-full text-sm text-foreground">
+                    {audience}
+                  </span>
+                ))}
+                {selectedItem.priority && (
+                  <span className={`px-3 py-1 rounded-full text-sm ${
+                    selectedItem.priority === 'urgent' ? 'bg-red-600/20 text-red-400' : 'bg-blue-600/20 text-blue-400'
+                  }`}>
+                    {selectedItem.priority}
+                  </span>
+                )}
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => handleReject(selectedItem._id)}
+                  className="px-6 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() => handleApprove(selectedItem._id)}
+                  className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+                >
+                  Approve
+                </button>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

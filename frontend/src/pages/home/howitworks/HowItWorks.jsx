@@ -40,7 +40,7 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <div className="min-h-screen bg-neutral-950 text-white relative overflow-hidden">
+    <div className="min-h-screen bg-neutral-950 text-foreground relative overflow-hidden">
       <Navbar />
       {/* --- SHADER-LIKE MOVING BACKGROUND --- */}
       <div className="fixed inset-0 pointer-events-none">
@@ -59,10 +59,10 @@ export default function HowItWorks() {
           viewport={{ once: true }}
           className="text-6xl md:text-8xl font-black tracking-tighter mb-6"
         >
-          The Mechanics<span className="text-neutral-600"> <br />of Truth.</span>{" "}
+          The Mechanics<span className="text-muted-foreground"> <br />of Truth.</span>{" "}
           <br />
         </motion.h1>
-        <p className="text-white max-w-lg mx-auto font-medium">
+        <p className="text-foreground max-w-lg mx-auto font-medium">
           Behind every notification is a complex sequence of AI ranking and
           hybrid routing.
         </p>
@@ -96,7 +96,7 @@ function ScrollItem({ step, index }) {
     >
       {/* Visual Identity */}
       <div className="relative">
-        <div className="text-[12rem] font-black text-white/[0.03] leading-none select-none">
+        <div className="text-[12rem] font-black text-foreground/[0.03] leading-none select-none">
           {step.id}
         </div>
         <div
@@ -109,7 +109,7 @@ function ScrollItem({ step, index }) {
       {/* Content */}
       <div className="flex-1 space-y-4 text-center md:text-left">
         <h3 className="text-3xl font-bold tracking-tight">{step.title}</h3>
-        <p className="text-neutral-400 text-lg leading-relaxed font-medium">
+        <p className="text-muted-foreground text-lg leading-relaxed font-medium">
           {step.desc}
         </p>
         <div className="h-1 w-20 bg-blue-600/20 rounded-full mx-auto md:mx-0" />

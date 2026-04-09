@@ -89,12 +89,12 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />
               <AlertTriangle size={20} strokeWidth={2.5} />
             </div>
-            <h2 className="text-xl font-black text-white tracking-tight">Urgent Dispatch</h2>
+            <h2 className="text-xl font-black text-foreground tracking-tight">Urgent Dispatch</h2>
           </div>
           <button 
             disabled={isSubmitting}
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
           >
             <X size={20} />
           </button>
@@ -105,9 +105,9 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
           
           {/* Target Class Selection */}
           <div>
-            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 flex justify-between">
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 flex justify-between">
               <span>Target class / Course <span className="text-red-500">*</span></span>
-              {isLoadingCourses && <Loader2 size={14} className="animate-spin text-neutral-500" />}
+              {isLoadingCourses && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
             </label>
             <div className="relative">
               <select
@@ -115,7 +115,7 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
                 disabled={isLoadingCourses || isSubmitting}
-                className="w-full appearance-none bg-muted border border-white/10 hover:border-white/20 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 rounded-xl px-4 py-3.5 text-white text-sm font-medium transition-all outline-none disabled:opacity-50"
+                className="w-full appearance-none bg-muted border border-white/10 hover:border-white/20 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 rounded-xl px-4 py-3.5 text-foreground text-sm font-medium transition-all outline-none disabled:opacity-50"
               >
                 <option value="" disabled>
                   {isLoadingCourses ? "Loading courses..." : "Select course to notify..."}
@@ -126,13 +126,13 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
                   </option>
                 ))}
               </select>
-              <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
+              <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             </div>
           </div>
 
           {/* Quick Templates */}
           <div>
-            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
               Quick Templates
             </label>
             <div className="flex flex-col gap-2">
@@ -142,9 +142,9 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
                   type="button"
                   onClick={() => handleTemplateClick(tpl.text)}
                   disabled={isSubmitting}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted border border-[#2A2A2A] hover:border-red-500/50 hover:bg-red-500/5 text-sm font-semibold text-neutral-300 hover:text-white transition-all active:scale-[0.98] disabled:opacity-50 group"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted border border-[#2A2A2A] hover:border-red-500/50 hover:bg-red-500/5 text-sm font-semibold text-neutral-300 hover:text-foreground transition-all active:scale-[0.98] disabled:opacity-50 group"
                 >
-                  <tpl.icon size={16} className="text-neutral-500 group-hover:text-red-400 transition-colors" />
+                  <tpl.icon size={16} className="text-muted-foreground group-hover:text-red-400 transition-colors" />
                   {tpl.label}
                 </button>
               ))}
@@ -153,7 +153,7 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
 
           {/* Message Area */}
           <div>
-             <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">
+             <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
               Dispatch Message <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -163,7 +163,7 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
               onChange={(e) => setMessage(e.target.value)}
               disabled={isSubmitting}
               placeholder="Type urgent notice here..."
-              className="w-full bg-muted border border-white/10 hover:border-white/20 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 rounded-xl px-4 py-3 text-white text-sm font-medium transition-all outline-none resize-none custom-scrollbar disabled:opacity-50"
+              className="w-full bg-muted border border-white/10 hover:border-white/20 focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 rounded-xl px-4 py-3 text-foreground text-sm font-medium transition-all outline-none resize-none custom-scrollbar disabled:opacity-50"
             />
           </div>
 
@@ -173,14 +173,14 @@ export default function UrgentAlertModal({ isOpen, onClose }) {
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-6 py-3.5 rounded-xl bg-input border border-border hover:bg-muted text-sm font-bold text-muted-foreground hover:text-white transition-all w-1/3 disabled:opacity-50"
+              className="px-6 py-3.5 rounded-xl bg-input border border-border hover:bg-muted text-sm font-bold text-muted-foreground hover:text-foreground transition-all w-1/3 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !selectedCourse || !message.trim()}
-              className="flex-1 px-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-black tracking-wide shadow-[0_0_20px_rgba(220,38,38,0.4)] disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
+              className="flex-1 px-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-foreground text-sm font-black tracking-wide shadow-[0_0_20px_rgba(220,38,38,0.4)] disabled:opacity-50 disabled:shadow-none transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
             >
               {isSubmitting ? (
                 <>

@@ -41,13 +41,13 @@ export default function AlertCarousel() {
               <div className="p-2 bg-red-500/20 rounded-xl text-red-400">
                 <AlertCircle size={18} />
               </div>
-              <span className="text-[10px] text-neutral-500 flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                 <Clock size={10} /> {alert.time}
               </span>
             </div>
 
-            <h4 className="text-white font-bold text-lg mb-1">{alert.title}</h4>
-            <p className="text-neutral-400 text-sm">{alert.desc}</p>
+            <h4 className="text-foreground font-bold text-lg mb-1">{alert.title}</h4>
+            <p className="text-muted-foreground text-sm">{alert.desc}</p>
           </motion.div>
         ))}
       </motion.div>

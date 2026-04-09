@@ -38,15 +38,15 @@ export default function Reports() {
     <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
             Executive Reports
           </h1>
-          <p className="text-neutral-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Generate and export college-wide communication summaries.
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
+          <button className="bg-accent hover:bg-white/10 border border-border text-neutral-300 hover:text-foreground px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2">
             <FileSpreadsheet size={16} /> CSV
           </button>
           <button className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2">
@@ -62,12 +62,12 @@ export default function Reports() {
             <TrendingUp size={28} />
           </div>
           <div>
-            <p className="text-sm text-neutral-400 font-medium">
+            <p className="text-sm text-muted-foreground font-medium">
               Overall Engagement Growth
             </p>
-            <h3 className="text-3xl font-bold text-white tracking-tight mt-1">
+            <h3 className="text-3xl font-bold text-foreground tracking-tight mt-1">
               +14.2%{" "}
-              <span className="text-sm font-normal text-neutral-500 ml-2">
+              <span className="text-sm font-normal text-muted-foreground ml-2">
                 vs last quarter
               </span>
             </h3>
@@ -79,12 +79,12 @@ export default function Reports() {
             <Trophy size={28} />
           </div>
           <div>
-            <p className="text-sm text-neutral-400 font-medium">
+            <p className="text-sm text-muted-foreground font-medium">
               Top Performing Department
             </p>
-            <h3 className="text-2xl font-bold text-white tracking-tight mt-1">
+            <h3 className="text-2xl font-bold text-foreground tracking-tight mt-1">
               Computer Science{" "}
-              <span className="text-sm font-normal text-neutral-500 ml-2">
+              <span className="text-sm font-normal text-muted-foreground ml-2">
                 92% Impact
               </span>
             </h3>
@@ -97,7 +97,7 @@ export default function Reports() {
         <GlassCard delay={0.3} className="h-[400px] flex flex-col">
           <div className="flex items-center gap-3 mb-6">
             <FileText size={18} className="text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-foreground">
               Department Performance Ranking
             </h3>
           </div>
@@ -147,7 +147,7 @@ export default function Reports() {
         <GlassCard delay={0.4} className="h-[400px] flex flex-col">
           <div className="flex items-center gap-3 mb-6">
             <TrendingUp size={18} className="text-purple-400" />
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-foreground">
               Announcement Impact Trends
             </h3>
           </div>

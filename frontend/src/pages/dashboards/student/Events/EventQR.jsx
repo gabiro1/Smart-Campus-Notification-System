@@ -33,9 +33,9 @@ export default function EventQR({ eventId }) {
 
   if (loading) {
     return (
-      <div className="glass p-8 rounded-[40px] border border-white/10 flex flex-col items-center text-center">
-        <div className="w-48 h-48 bg-white/10 rounded-3xl mb-6 animate-pulse flex items-center justify-center">
-          <span className="text-neutral-400 text-xs">Loading...</span>
+      <div className="glass p-8 rounded-[40px] border border-border flex flex-col items-center text-center">
+        <div className="w-48 h-48 bg-primary/10 rounded-3xl mb-6 animate-pulse flex items-center justify-center">
+          <span className="text-muted-foreground text-xs">Loading...</span>
         </div>
       </div>
     );
@@ -43,11 +43,11 @@ export default function EventQR({ eventId }) {
 
   if (!studentId) {
     return (
-      <div className="glass p-8 rounded-[40px] border border-white/10 flex flex-col items-center text-center">
-        <div className="w-48 h-48 bg-white/10 rounded-3xl mb-6 flex items-center justify-center">
-          <span className="text-neutral-400 text-sm">N/A</span>
+      <div className="glass p-8 rounded-[40px] border border-border flex flex-col items-center text-center">
+        <div className="w-48 h-48 bg-primary/10 rounded-3xl mb-6 flex items-center justify-center">
+          <span className="text-muted-foreground text-sm">N/A</span>
         </div>
-        <h4 className="text-white font-bold">Check-in at Event</h4>
+        <h4 className="text-foreground font-bold">Check-in at Event</h4>
         <p className="text-red-400 text-xs mt-2">
           Unable to generate QR. Please log in as a student.
         </p>
@@ -56,7 +56,7 @@ export default function EventQR({ eventId }) {
   }
 
   return (
-    <div className="glass p-8 rounded-[40px] border border-white/10 flex flex-col items-center text-center">
+    <div className="glass p-8 rounded-[40px] border border-border flex flex-col items-center text-center">
       <div className="w-48 h-48 bg-white rounded-3xl p-4 mb-6 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
         <QRCodeSVG
           value={qrData}
@@ -66,8 +66,8 @@ export default function EventQR({ eventId }) {
           className="w-full h-full"
         />
       </div>
-      <h4 className="text-white font-bold">Check-in at Event</h4>
-      <p className="text-neutral-500 text-xs mt-2">
+      <h4 className="text-foreground font-bold">Check-in at Event</h4>
+      <p className="text-muted-foreground text-xs mt-2">
         Show this QR to the event organizer to confirm your attendance.
       </p>
     </div>

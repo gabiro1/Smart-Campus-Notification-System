@@ -18,7 +18,7 @@ export default function FormLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className={`block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide ${className}`}
+      className={`block text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wide ${className}`}
     >
       {children}
       {required && <span className="text-red-400 ml-1">*</span>}

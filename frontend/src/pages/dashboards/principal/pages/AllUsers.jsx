@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/shared";
 import {
   Search,
@@ -9,276 +9,319 @@ import {
   Ban,
   X,
   Activity,
+  Loader2,
+  UserCheck,
+  UserX,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Massive Mock DB Simulation
-const userDatabase = [
-  {
-    id: 101,
-    name: "Emily Watson",
-    role: "Student",
-    dept: "Computer Science",
-    year: "Year 3",
-    status: "Active",
-    lastLogin: "2 mins ago",
-    health: "100%",
-  },
-  {
-    id: 102,
-    name: "Dr. Gregory House",
-    role: "Lecturer",
-    dept: "Medicine",
-    year: "N/A",
-    status: "Active",
-    lastLogin: "1 hr ago",
-    health: "98%",
-  },
-  {
-    id: 103,
-    name: "Michael Chang",
-    role: "Guild President",
-    dept: "Engineering",
-    year: "Year 4",
-    status: "Active",
-    lastLogin: "Today",
-    health: "100%",
-  },
-  {
-    id: 104,
-    name: "Sarah Connor",
-    role: "Student",
-    dept: "Physics",
-    year: "Year 1",
-    status: "Suspended",
-    lastLogin: "2 weeks ago",
-    health: "0%",
-  },
-  {
-    id: 105,
-    name: "Prof. Albus D.",
-    role: "Dean",
-    dept: "Arts",
-    year: "N/A",
-    status: "Active",
-    lastLogin: "5 mins ago",
-    health: "100%",
-  },
-];
+import toast from "react-hot-toast";
+import adminService from "../../../../services/adminService";
 
 export default function AllUsers() {
-  const [users, setUsers] = useState(userDatabase);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRole, setSelectedRole] = useState("All");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [processingId, setProcessingId] = useState(null);
 
-  const [inspectUser, setInspectUser] = useState(null);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.dept.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = selectedRole === "All" || user.role === selectedRole;
-    return matchesSearch && matchesRole;
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getUsers(1, 100, {});
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      toast.error("Failed to load users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBanUser = async (userId) => {
+    try {
+      setProcessingId(userId);
+      await adminService.updateUser(userId, { isActive: false });
+      toast.success("User has been suspended");
+      fetchUsers();
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Failed to suspend user:", error);
+      toast.error(error.response?.data?.message || "Failed to suspend user");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleActivateUser = async (userId) => {
+    try {
+      setProcessingId(userId);
+      await adminService.updateUser(userId, { isActive: true });
+      toast.success("User has been activated");
+      fetchUsers();
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Failed to activate user:", error);
+      toast.error(error.response?.data?.message || "Failed to activate user");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    const matchesStatus = statusFilter === "all" || 
+      (statusFilter === "active" && user.isActive !== false) ||
+      (statusFilter === "suspended" && user.isActive === false);
+    return matchesSearch && matchesRole && matchesStatus;
   });
+
+  const getRoleBadge = (role) => {
+    const colors = {
+      student: "bg-blue-500/20 text-blue-400",
+      lecturer: "bg-purple-500/20 text-purple-400",
+      hod: "bg-amber-500/20 text-amber-400",
+      dean: "bg-emerald-500/20 text-emerald-400",
+      principal: "bg-cyan-500/20 text-cyan-400",
+      admin: "bg-red-500/20 text-red-400",
+      guild_president: "bg-pink-500/20 text-pink-400",
+    };
+    return colors[role] || "bg-gray-500/20 text-gray-400";
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight">
-          System Directory
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">
+          All Users
         </h1>
-        <p className="text-neutral-400 text-sm mt-1">
-          Master table of all provisioned accounts across the network.
+        <p className="text-muted-foreground text-sm mt-1">
+          Manage and monitor all users across the system.
         </p>
       </header>
 
-      <GlassCard className="p-0 overflow-hidden flex flex-col min-h-[600px]">
-        {/* Advanced Toolbar */}
-        <div className="p-4 md:p-5 border-b border-white/5 bg-white/[0.01] flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex-1 flex gap-4 w-full">
-            <div className="relative w-full max-w-md">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"
-                size={16}
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search user ID, name, or department..."
-                className="w-full bg-background border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
-              />
-            </div>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="bg-background border border-white/10 rounded-xl px-4 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-emerald-500/50 appearance-none w-48 hidden md:block"
-            >
-              <option value="All">All Entities</option>
-              <option value="Student">Students</option>
-              <option value="Lecturer">Lecturers</option>
-              <option value="HoD">HoDs</option>
-              <option value="Dean">Deans</option>
-            </select>
-          </div>
-          <button className="flex items-center gap-2 bg-white/5 border border-white/10 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:bg-white/10 w-full md:w-auto justify-center">
-            <Filter size={16} /> Advanced Filter
-          </button>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
         </div>
+        <div className="flex gap-2">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-card border border-border text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            <option value="all">All Roles</option>
+            <option value="student">Students</option>
+            <option value="lecturer">Lecturers</option>
+            <option value="hod">HoDs</option>
+            <option value="dean">Deans</option>
+            <option value="principal">Principal</option>
+            <option value="admin">Admin</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-card border border-border text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+      </div>
 
-        {/* Master User Table */}
-        <div className="overflow-x-auto flex-1 custom-scrollbar">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
+      {/* Users Table */}
+      <GlassCard className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
             <thead>
-              <tr className="bg-white/[0.02] border-b border-white/5 text-[11px] uppercase tracking-widest text-neutral-500">
-                <th className="p-5 font-bold">Identity</th>
-                <th className="p-5 font-bold">System Role</th>
-                <th className="p-5 font-bold">Domain</th>
-                <th className="p-5 font-bold">Status / Node</th>
-                <th className="p-5 font-bold text-right">Admin Actions</th>
+              <tr className="border-b border-border">
+                <th className="text-left p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">User</th>
+                <th className="text-left p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Role</th>
+                <th className="text-left p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</th>
+                <th className="text-left p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="text-left p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Login</th>
+                <th className="text-left p-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
-              {filteredUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-white/[0.02] transition-colors group cursor-default"
-                >
-                  <td className="p-5">
-                    <p className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
-                      {user.name}
-                    </p>
-                    <p className="text-[10px] text-neutral-500 mt-0.5 font-mono">
-                      UID: {user.id}
-                    </p>
-                  </td>
-                  <td className="p-5">
-                    <span
-                      className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded border ${
-                        user.role === "Student"
-                          ? "bg-white/5 text-neutral-300 border-white/10"
-                          : user.role === "Guild President"
-                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            : "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="p-5 text-sm text-neutral-400">
-                    {user.dept}{" "}
-                    <span className="text-neutral-600 ml-1 text-xs">
-                      {user.year !== "N/A" && `(${user.year})`}
-                    </span>
-                  </td>
-                  <td className="p-5">
-                    <div className="flex flex-col gap-1">
-                      <span
-                        className={`flex items-center gap-1.5 text-xs font-bold ${user.status === "Active" ? "text-emerald-400" : "text-rose-400"}`}
-                      >
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full ${user.status === "Active" ? "bg-emerald-400" : "bg-rose-400"}`}
-                        />
-                        {user.status}
-                      </span>
-                      <span className="text-[10px] text-neutral-500">
-                        Last Seen: {user.lastLogin}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-5 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setInspectUser(user)}
-                        className="p-2 text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all border border-white/5"
-                        title="Inspect Node"
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </div>
+            <tbody>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    No users found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user._id} className="border-b border-border hover:bg-accent/50">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
+                          {user.name?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{user.name}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadge(user.role)}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm text-foreground">
+                      {user.department?.name || user.school?.name || user.college?.name || '-'}
+                    </td>
+                    <td className="p-4">
+                      <span className={`flex items-center gap-1 text-xs ${user.isActive !== false ? 'text-emerald-500' : 'text-red-500'}`}>
+                        <Activity size={12} />
+                        {user.isActive !== false ? 'Active' : 'Suspended'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm text-muted-foreground">
+                      {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedUser(user)}
+                          className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        {user.isActive !== false ? (
+                          <button
+                            onClick={() => handleBanUser(user._id)}
+                            disabled={processingId === user._id}
+                            className="p-2 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
+                          >
+                            {processingId === user._id ? <Loader2 size={16} className="animate-spin" /> : <Ban size={16} />}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleActivateUser(user._id)}
+                            disabled={processingId === user._id}
+                            className="p-2 rounded-lg hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-500 transition-colors"
+                          >
+                            {processingId === user._id ? <Loader2 size={16} className="animate-spin" /> : <UserCheck size={16} />}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </GlassCard>
 
-      {/* User Inspection Modal */}
+      {/* User Detail Modal */}
       <AnimatePresence>
-        {inspectUser && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {selectedUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedUser(null)}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setInspectUser(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-2xl bg-background border border-white/10 rounded-2xl p-8 shadow-2xl z-10"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md bg-card rounded-2xl border border-border p-6"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-start mb-6 border-b border-white/10 pb-6">
+              <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-600 to-blue-600 p-[2px]">
-                    <div className="w-full h-full bg-[#111] rounded-full flex items-center justify-center font-bold text-white text-lg">
-                      {inspectUser.name.charAt(0)}
-                    </div>
+                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xl font-bold">
+                    {selectedUser.name?.charAt(0) || 'U'}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
-                      {inspectUser.name}
-                    </h2>
-                    <p className="text-sm text-neutral-400 font-mono">
-                      UID: {inspectUser.id} • {inspectUser.role}
-                    </p>
+                    <h3 className="text-xl font-bold text-foreground">{selectedUser.name}</h3>
+                    <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setInspectUser(null)}
-                  className="text-neutral-500 hover:text-white bg-white/5 p-2 rounded-xl border border-white/10"
+                  onClick={() => setSelectedUser(null)}
+                  className="p-2 rounded-lg hover:bg-accent text-muted-foreground"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="bg-[#111] p-4 rounded-xl border border-white/5">
-                  <p className="text-xs text-neutral-500 uppercase font-bold tracking-wider mb-1">
-                    Account Health
-                  </p>
-                  <p className="text-lg font-bold text-emerald-400 flex items-center gap-2">
-                    <Activity size={18} /> {inspectUser.health}
-                  </p>
+              <div className="space-y-4">
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Role</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadge(selectedUser.role)}`}>
+                    {selectedUser.role}
+                  </span>
                 </div>
-                <div className="bg-[#111] p-4 rounded-xl border border-white/5">
-                  <p className="text-xs text-neutral-500 uppercase font-bold tracking-wider mb-1">
-                    Node Status
-                  </p>
-                  <p
-                    className={`text-lg font-bold flex items-center gap-2 ${inspectUser.status === "Active" ? "text-emerald-400" : "text-rose-400"}`}
-                  >
-                    <div
-                      className={`w-2 h-2 rounded-full ${inspectUser.status === "Active" ? "bg-emerald-400" : "bg-rose-400"}`}
-                    />{" "}
-                    {inspectUser.status}
-                  </p>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Department</span>
+                  <span className="text-foreground">{selectedUser.department?.name || selectedUser.school?.name || selectedUser.college?.name || '-'}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Status</span>
+                  <span className={selectedUser.isActive !== false ? 'text-emerald-500' : 'text-red-500'}>
+                    {selectedUser.isActive !== false ? 'Active' : 'Suspended'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Joined</span>
+                  <span className="text-foreground">
+                    {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : '-'}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex gap-3 justify-end border-t border-white/10 pt-6">
-                <button className="px-5 py-2.5 text-sm font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl transition-colors border border-rose-500/20 flex items-center gap-2">
-                  <Ban size={16} /> Suspend Account
-                </button>
-                <button className="px-6 py-2.5 text-sm font-bold bg-white text-black rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:bg-neutral-200 transition-all">
-                  Manage RBAC Rules
-                </button>
+              <div className="flex gap-3 mt-6">
+                {selectedUser.isActive !== false ? (
+                  <button
+                    onClick={() => handleBanUser(selectedUser._id)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium"
+                  >
+                    <Ban size={18} />
+                    Suspend User
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleActivateUser(selectedUser._id)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+                  >
+                    <UserCheck size={18} />
+                    Activate User
+                  </button>
+                )}
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

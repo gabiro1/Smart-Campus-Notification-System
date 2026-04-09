@@ -75,14 +75,14 @@ export const NotificationsTab = ({
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
             <button
-              className="bg-transparent border border-gray-800 rounded-[10px] px-4 py-[9px] text-gray-400 text-[13px] font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-gray-800/50 hover:text-gray-300 transition-colors"
+              className="bg-transparent border border-border rounded-[10px] px-4 py-[9px] text-gray-400 text-[13px] font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-gray-800/50 hover:text-gray-300 transition-colors"
               onClick={markAllRead}
             >
               <Icon icon={icons.check} width={14} height={14} /> Mark all read
             </button>
           )}
           <button
-            className="bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-[10px] px-4 py-[9px] text-white text-[13px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-blue-600 hover:bg-blue-700 border border-blue-500 rounded-[10px] px-4 py-[9px] text-foreground text-[13px] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleGenerateDigest}
             disabled={digestLoading}
           >
@@ -116,7 +116,7 @@ export const NotificationsTab = ({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-[#0d1117] border border-gray-800 rounded-2xl p-5"
+              className="bg-card border border-border rounded-2xl p-5"
             >
               <Skeleton h={16} w="50%" />
               <div className="mt-2">
@@ -126,7 +126,7 @@ export const NotificationsTab = ({
           ))}
         </div>
       ) : filteredNotifs.length === 0 ? (
-        <div className="bg-[#0d1117] border border-gray-800 rounded-2xl p-12 text-center">
+        <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <Icon
             icon={icons.bell}
             width={36}
@@ -141,7 +141,7 @@ export const NotificationsTab = ({
             <div
               key={n._id}
               onClick={() => markRead(n)}
-              className={`bg-[#0d1117] border border-gray-800 border-l-[3px] rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:bg-[#161b22] 
+              className={`bg-card border border-border border-l-[3px] rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:bg-accent 
                 ${n.status === "unread" ? "border-l-blue-500" : "border-l-transparent"} 
                 ${n.status === "read" ? "opacity-70" : "opacity-100"}`}
             >
@@ -180,11 +180,11 @@ export const NotificationsTab = ({
       {/* AI Digest Modal */}
       {showDigestModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
-          <div className="bg-[#0d1117] border border-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+          <div className="bg-card border border-border rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
             {/* Modal Header */}
-            <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#111]">
+            <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-card">
               <div>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                   <Icon icon="mdi:sparkles" className="text-blue-400" width={20} />
                   AI Digest Summary
                 </h3>
@@ -194,7 +194,7 @@ export const NotificationsTab = ({
               </div>
               <button
                 onClick={() => setShowDigestModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-foreground transition-colors"
               >
                 <Icon icon={icons.x} width={20} />
               </button>
@@ -228,7 +228,7 @@ export const NotificationsTab = ({
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/10 rounded-full mb-4">
                     <Icon icon="mdi:alert-circle" className="text-red-500" width={32} />
                   </div>
-                  <h4 className="text-lg font-bold text-white mb-2">
+                  <h4 className="text-lg font-bold text-foreground mb-2">
                     Unable to Generate Digest
                   </h4>
                   <p className="text-gray-400 text-sm max-w-md mx-auto">
@@ -253,13 +253,13 @@ export const NotificationsTab = ({
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-gray-800 bg-[#111] flex justify-between items-center">
+            <div className="p-4 border-t border-gray-800 bg-card flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <label className="text-gray-400 text-xs font-medium">Period:</label>
                 <select
                   value={digestPeriod}
                   onChange={(e) => setDigestPeriod(e.target.value)}
-                  className="bg-[#0d1117] border border-gray-800 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-blue-500"
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -269,14 +269,14 @@ export const NotificationsTab = ({
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDigestModal(false)}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                  className="px-4 py-2 text-sm text-gray-400 hover:text-foreground transition-colors"
                 >
                   Close
                 </button>
                 {!digestLoading && !digestSummary && (
                   <button
                     onClick={handleGenerateDigest}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                    className="bg-blue-600 hover:bg-blue-700 text-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                   >
                     <Icon icon="mdi:refresh" width={14} />
                     Regenerate

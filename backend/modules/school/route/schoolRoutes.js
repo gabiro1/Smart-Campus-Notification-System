@@ -9,7 +9,7 @@ router.route('/')
   .get(protect, getSchools);   // GET /api/schools
 
 router.route('/:id')
-  .put(protect, authorize('admin'), updateSchool)
+  .put(protect, authorize('admin', 'principal'), updateSchool)
   .delete(protect, authorize('admin'), deleteSchool);
 
 export default router;

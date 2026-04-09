@@ -79,7 +79,7 @@ export default function SystemOverview() {
       <div className="h-full min-h-[80vh] flex items-center justify-center w-full">
         <div className="flex flex-col items-center gap-4">
           <Activity size={40} className="animate-spin text-blue-500" />
-          <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs">
+          <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
             Syncing Data...
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function SystemOverview() {
         className="mb-10"
       >
         <h1 className="text-4xl font-black tracking-tight">System Overview</h1>
-        <p className="text-neutral-500 mt-1">
+        <p className="text-muted-foreground mt-1">
           Real-time pulse of the Smart Campus Notification System.
         </p>
       </motion.div>
@@ -167,7 +167,7 @@ export default function SystemOverview() {
               <AlertTriangle size={20} className="text-red-500" />
               <span className="text-red-500">Active Emergency Alerts</span>
             </h2>
-            <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
               Live acknowledgment status
             </span>
           </div>
@@ -179,10 +179,10 @@ export default function SystemOverview() {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-white mb-1 line-clamp-2">
+                    <h3 className="text-base font-bold text-foreground mb-1 line-clamp-2">
                       {emergency.title}
                     </h3>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-muted-foreground">
                       By {emergency.lecturer} • {new Date(emergency.createdAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -190,7 +190,7 @@ export default function SystemOverview() {
                     <div className="text-2xl font-black text-red-400">
                       {emergency.stats.acknowledgedRate}%
                     </div>
-                    <div className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">
+                    <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                       Acknowledged
                     </div>
                   </div>
@@ -198,14 +198,14 @@ export default function SystemOverview() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-neutral-400">
+                    <span className="text-muted-foreground">
                       {emergency.stats.acknowledged} of {emergency.stats.totalSent} users
                     </span>
                     <span className={emergency.stats.pending > 0 ? "text-amber-400" : "text-green-500"}>
                       {emergency.stats.pending > 0 ? `${emergency.stats.pending} pending` : "Complete"}
                     </span>
                   </div>
-                  <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-3 bg-accent rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${emergency.stats.acknowledgedRate}%` }}
@@ -231,7 +231,7 @@ export default function SystemOverview() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="lg:col-span-2 bg-card border border-white/5 p-6 rounded-[24px] shadow-2xl"
+          className="lg:col-span-2 bg-card border border-border p-6 rounded-[24px] shadow-2xl"
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold flex items-center gap-2">
@@ -290,7 +290,7 @@ export default function SystemOverview() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-card border border-white/5 p-6 rounded-[24px] shadow-xl"
+            className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
           >
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <PieIcon size={18} className="text-purple-500" /> Read Engagement
@@ -299,7 +299,7 @@ export default function SystemOverview() {
               <span className="text-5xl font-black text-purple-400 tracking-tighter">
                 {readRate}%
               </span>
-              <span className="text-sm text-neutral-500 mb-2 font-bold uppercase tracking-widest">
+              <span className="text-sm text-muted-foreground mb-2 font-bold uppercase tracking-widest">
                 Rate
               </span>
             </div>
@@ -312,7 +312,7 @@ export default function SystemOverview() {
               <StatRow
                 label="Unread Notifications"
                 value={data.notificationStats.unread}
-                color="text-neutral-500"
+                color="text-muted-foreground"
               />
             </div>
           </motion.div>
@@ -321,7 +321,7 @@ export default function SystemOverview() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-card border border-white/5 p-6 rounded-[24px] shadow-xl"
+            className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
           >
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Users size={18} className="text-green-500" /> User Roles
@@ -330,12 +330,12 @@ export default function SystemOverview() {
               {data.usersByRole.map((roleObj, idx) => (
                 <div
                   key={idx}
-                  className="flex justify-between items-center p-3 bg-white/[0.02] hover:bg-white/[0.05] transition-colors rounded-xl border border-white/5"
+                  className="flex justify-between items-center p-3 bg-white/[0.02] hover:bg-white/[0.05] transition-colors rounded-xl border border-border"
                 >
-                  <span className="text-sm font-medium uppercase tracking-wider text-neutral-400 text-[11px]">
+                  <span className="text-sm font-medium uppercase tracking-wider text-muted-foreground text-[11px]">
                     {roleObj._id}
                   </span>
-                  <span className="text-sm font-bold text-white bg-white/10 px-3 py-1 rounded-lg">
+                  <span className="text-sm font-bold text-foreground bg-accent px-3 py-1 rounded-lg">
                     {roleObj.count}
                   </span>
                 </div>
@@ -352,10 +352,10 @@ function KPICard({ title, value = 0, icon, color, bg }) {
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="bg-card border border-white/5 p-6 rounded-[24px] shadow-xl cursor-pointer transition-colors hover:border-white/10 flex flex-col justify-between min-h-[140px]"
+      className="bg-card border border-border p-6 rounded-[24px] shadow-xl cursor-pointer transition-colors hover:border-border flex flex-col justify-between min-h-[140px]"
     >
       <div className="flex justify-between items-start mb-4 gap-2">
-        <h4 className="text-[11px] uppercase tracking-widest text-neutral-500 font-bold leading-snug w-2/3">
+        <h4 className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold leading-snug w-2/3">
           {title}
         </h4>
         <div
@@ -365,7 +365,7 @@ function KPICard({ title, value = 0, icon, color, bg }) {
         </div>
       </div>
       <div>
-        <p className="text-4xl font-black tracking-tighter text-white">
+        <p className="text-4xl font-black tracking-tighter text-foreground">
           {value ? value.toLocaleString() : 0}
         </p>
       </div>
@@ -375,8 +375,8 @@ function KPICard({ title, value = 0, icon, color, bg }) {
 
 function StatRow({ label, value = 0, color }) {
   return (
-    <div className="flex justify-between items-center p-3 bg-white/[0.02] rounded-xl border border-white/5">
-      <span className="text-sm text-neutral-400 font-medium">{label}</span>
+    <div className="flex justify-between items-center p-3 bg-white/[0.02] rounded-xl border border-border">
+      <span className="text-sm text-muted-foreground font-medium">{label}</span>
       <span className={`text-sm font-black ${color}`}>
         {value ? value.toLocaleString() : 0}
       </span>

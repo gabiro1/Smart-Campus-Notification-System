@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/shared";
 import {
   Send,
@@ -8,62 +8,97 @@ import {
   AlertCircle,
   X,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
+import governanceService from "../../../../services/governanceService";
+import adminService from "../../../../services/adminService";
 
 export default function SchoolBroadcast() {
   const [title, setTitle] = useState("");
-  const [message, setMessage] = useState("");
-  const [targetDept, setTargetDept] = useState("All Departments");
+  const [content, setContent] = useState("");
+  const [targetDept, setTargetDept] = useState("");
+  const [priority, setPriority] = useState("normal");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSent, setIsSent] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [departments, setDepartments] = useState([]);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const data = await adminService.getDepartments();
+      setDepartments(data.data || data || []);
+    } catch (error) {
+      console.error("Failed to fetch departments:", error);
+    }
+  };
 
   const handleSend = (e) => {
     e.preventDefault();
     setIsModalOpen(true);
   };
 
-  const confirmBroadcast = () => {
-    setIsSent(true);
-    setTimeout(() => {
+  const confirmBroadcast = async () => {
+    try {
+      setIsSending(true);
+      await governanceService.create({
+        title,
+        content,
+        department: targetDept || undefined,
+        priority,
+        targetAudience: ["all"],
+        sendEmail: true,
+        status: "pending",
+      });
+      toast.success("Announcement submitted for approval");
       setIsModalOpen(false);
-      setIsSent(false);
       setTitle("");
-      setMessage("");
-    }, 2000);
+      setContent("");
+      setTargetDept("");
+      setPriority("normal");
+    } catch (error) {
+      console.error("Failed to create announcement:", error);
+      toast.error(error.response?.data?.message || "Failed to submit announcement");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
     <div className="space-y-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight">
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">
           School Broadcast
         </h1>
-        <p className="text-neutral-400 text-sm mt-1">
-          Send executive announcements across all or specific departments.
+        <p className="text-muted-foreground text-sm mt-1">
+          Create and distribute announcements to departments.
         </p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         {/* Form Area */}
         <GlassCard className="lg:col-span-7 space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-white/5">
-            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+          <div className="flex items-center gap-3 pb-4 border-b border-border">
+            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
               <Globe size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">
-                Compose Global Message
+              <h2 className="text-lg font-semibold text-foreground">
+                Compose Announcement
               </h2>
-              <p className="text-xs text-neutral-500">
-                This message will be distributed network-wide.
+              <p className="text-xs text-muted-foreground">
+                Submit for approval before distribution.
               </p>
             </div>
           </div>
 
           <form onSubmit={handleSend} className="space-y-5">
             <div>
-              <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
+              <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
                 Subject Line
               </label>
               <input
@@ -72,105 +107,110 @@ export default function SchoolBroadcast() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Campus Closure Notice"
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-600"
+                className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-muted-foreground"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                  Target Departments
+                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                  Target Department
                 </label>
                 <select
                   value={targetDept}
                   onChange={(e) => setTargetDept(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 appearance-none"
+                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
                 >
-                  <option value="All Departments">All Departments</option>
-                  <option value="Sciences">
-                    Sciences (Physics, Bio, Chem)
-                  </option>
-                  <option value="Engineering">Engineering & CS</option>
-                  <option value="Arts">Arts & Humanities</option>
+                  <option value="">All Departments</option>
+                  {departments.map(dept => (
+                    <option key={dept._id} value={dept._id}>{dept.name}</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                  Target Year Levels
+                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                  Priority Level
                 </label>
-                <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 appearance-none">
-                  <option value="all">All Students</option>
-                  <option value="undergrad">Undergraduates Only</option>
-                  <option value="postgrad">Postgraduates Only</option>
-                  <option value="staff">Staff & Faculty Only</option>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
-                Official Message
+              <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                Message Content
               </label>
               <textarea
                 required
-                rows="6"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-600 resize-none"
-                placeholder="Draft the executive announcement..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Write your announcement here..."
+                rows={8}
+                className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-muted-foreground resize-none"
               />
             </div>
 
-            <div className="pt-6 border-t border-white/5 flex justify-end">
+            <div className="flex items-center justify-between pt-4">
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded border-border" />
+                  <span className="text-sm text-muted-foreground">Send via Email</span>
+                </label>
+              </div>
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] flex items-center gap-2 active:scale-95"
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all"
               >
-                <Send size={18} /> Distribute Broadcast
+                <Send size={18} />
+                Submit for Approval
               </button>
             </div>
           </form>
         </GlassCard>
 
-        {/* Live Preview Pane */}
-        <div className="lg:col-span-5 space-y-4">
-          <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider px-2">
-            End-User Preview
-          </h3>
-          <GlassCard
-            hover={false}
-            delay={0.2}
-            className="relative overflow-hidden border-blue-500/20"
-          >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-blue-600/10 rounded-full blur-[50px] pointer-events-none" />
-
-            <div className="flex items-center gap-3 mb-5 relative z-10">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-[2px]">
-                <div className="w-full h-full bg-background rounded-full flex items-center justify-center text-xs font-bold text-white">
-                  Dean
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white flex items-center gap-2">
-                  Office of the Dean{" "}
-                  <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px] uppercase border border-blue-500/20">
-                    University Notice
-                  </span>
+        {/* Quick Stats */}
+        <div className="lg:col-span-5 space-y-6">
+          <GlassCard>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Broadcast Guidelines
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle size={16} className="text-amber-500 mt-1" />
+                <p className="text-sm text-muted-foreground">
+                  All announcements require approval before distribution.
                 </p>
-                <p className="text-xs text-neutral-500">Target: {targetDept}</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock size={16} className="text-blue-500 mt-1" />
+                <p className="text-sm text-muted-foreground">
+                  Review typically takes 24-48 hours during business days.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <Globe size={16} className="text-purple-500 mt-1" />
+                <p className="text-sm text-muted-foreground">
+                  Select a department to target specific audiences.
+                </p>
               </div>
             </div>
+          </GlassCard>
 
-            <h2 className="text-xl font-bold text-white mb-3 relative z-10 break-words">
-              {title || "Your executive subject line..."}
-            </h2>
-            <p className="text-sm text-neutral-300 leading-relaxed mb-6 relative z-10 whitespace-pre-wrap break-words min-h-[100px]">
-              {message ||
-                "The body of your official broadcast will appear here exactly as students and faculty will see it..."}
-            </p>
-
-            <div className="flex items-center gap-2 text-xs text-neutral-500 bg-black/40 p-2.5 rounded-lg w-fit border border-white/5 relative z-10">
-              <Clock size={14} /> Will be sent immediately upon confirmation
+          <GlassCard>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Recent Submissions
+            </h3>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground text-sm">
+                No recent submissions
+              </p>
             </div>
           </GlassCard>
         </div>
@@ -179,65 +219,63 @@ export default function SchoolBroadcast() {
       {/* Confirmation Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => !isSending && setIsModalOpen(false)}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md bg-background border border-white/10 rounded-2xl p-8 shadow-2xl z-10 text-center"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md bg-card rounded-2xl border border-border p-6"
+              onClick={(e) => e.stopPropagation()}
             >
-              {isSent ? (
-                <motion.div
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  className="flex flex-col items-center"
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Send size={32} className="text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Confirm Broadcast</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Are you sure you want to submit this announcement?
+                </p>
+              </div>
+              
+              <div className="bg-accent rounded-xl p-4 mb-6">
+                <p className="font-medium text-foreground">{title}</p>
+                <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{content}</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  disabled={isSending}
+                  className="flex-1 px-4 py-3 rounded-xl border border-border text-foreground font-medium hover:bg-accent transition-colors"
                 >
-                  <div className="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
-                    <CheckCircle2 size={32} />
-                  </div>
-                  <h2 className="text-xl font-bold text-white mb-2">
-                    Broadcast Initiated
-                  </h2>
-                  <p className="text-sm text-neutral-400">
-                    Message is being distributed to {targetDept}.
-                  </p>
-                </motion.div>
-              ) : (
-                <>
-                  <div className="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
-                    <AlertCircle size={32} />
-                  </div>
-                  <h2 className="text-xl font-bold text-white mb-2">
-                    Confirm Distribution
-                  </h2>
-                  <p className="text-sm text-neutral-400 mb-8 leading-relaxed">
-                    You are about to send an official broadcast to{" "}
-                    <strong>{targetDept}</strong>. This action cannot be undone.
-                  </p>
-                  <div className="flex gap-3 justify-center">
-                    <button
-                      onClick={() => setIsModalOpen(false)}
-                      className="px-5 py-2.5 text-sm font-medium text-neutral-300 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/10 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={confirmBroadcast}
-                      className="px-6 py-2.5 text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all"
-                    >
-                      Yes, Distribute Now
-                    </button>
-                  </div>
-                </>
-              )}
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmBroadcast}
+                  disabled={isSending}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors disabled:opacity-50"
+                >
+                  {isSending ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={18} />
+                      Confirm
+                    </>
+                  )}
+                </button>
+              </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

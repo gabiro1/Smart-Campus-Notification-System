@@ -23,32 +23,32 @@ export default function ApprovalModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-2xl bg-background border border-white/10 rounded-2xl p-6 shadow-2xl z-10"
+            className="relative w-full max-w-2xl bg-background border border-border rounded-2xl p-6 shadow-2xl z-10"
           >
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">
+                <h2 className="text-xl font-bold text-foreground mb-1">
                   {item.title}
                 </h2>
-                <p className="text-sm text-neutral-400">
-                  Request by: <span className="text-white">{item.hod}</span> •{" "}
+                <p className="text-sm text-muted-foreground">
+                  Request by: <span className="text-foreground">{item.hod}</span> •{" "}
                   {item.dept}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="text-neutral-500 hover:text-white bg-white/5 p-1.5 rounded-lg"
+                className="text-muted-foreground hover:text-foreground bg-accent p-1.5 rounded-lg"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="bg-white/[0.03] border border-white/5 rounded-xl p-5 min-h-[150px] text-sm text-neutral-300 leading-relaxed mb-6">
+            <div className="bg-white/[0.03] border border-border rounded-xl p-5 min-h-[150px] text-sm text-neutral-300 leading-relaxed mb-6">
               {item.message || "[Message Content Preview]"}
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-xs text-neutral-500 font-medium">
+              <span className="text-xs text-muted-foreground font-medium">
                 Target: {item.target}
               </span>
               <div className="flex gap-3">

@@ -47,7 +47,7 @@ export default function CalendarExport({ event }) {
     <button
       onClick={handleExport}
       disabled={loading}
-      className={`flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-xs font-bold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`flex items-center gap-2 px-4 py-2 bg-accent hover:bg-primary/10 rounded-xl border border-border text-xs font-bold transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <CalendarPlus size={16} className="text-blue-500" />
       {loading ? 'Exporting...' : 'Sync to My Calendar'}

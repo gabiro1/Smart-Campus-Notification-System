@@ -167,7 +167,7 @@ export default function EventDetails() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-card">
         <Loader2 className="animate-spin w-10 h-10 text-blue-500" />
       </div>
     );
@@ -175,8 +175,8 @@ export default function EventDetails() {
 
   if (error || !event) {
     return (
-      <div className="p-8 min-h-screen bg-background">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-blue-400 mb-6 hover:text-white transition-colors">
+      <div className="p-8 min-h-screen bg-card">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-blue-400 mb-6 hover:text-foreground transition-colors">
           <ArrowLeft size={20} /> Back
         </button>
         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-red-400 flex items-center gap-3">
@@ -190,13 +190,13 @@ export default function EventDetails() {
   const isUrgent = event.priority === "high" || event.priority === "urgent";
 
   return (
-    <div className="min-h-screen bg-background text-white">
+    <div className="min-h-screen bg-card text-foreground">
       <div className="max-w-4xl mx-auto p-6 md:p-10">
         {/* Back Button */}
         <motion.button
           whileHover={{ x: -4 }}
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8 group"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 group"
         >
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-sm font-bold uppercase tracking-widest">Back to Events</span>
@@ -227,10 +227,10 @@ export default function EventDetails() {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">{event.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">{event.title}</h1>
 
             {/* Meta */}
-            <div className="flex flex-wrap gap-5 text-sm text-neutral-400">
+            <div className="flex flex-wrap gap-5 text-sm text-muted-foreground">
               {eventDate && (
                 <span className="flex items-center gap-2">
                   <Calendar size={15} className="text-blue-500" />
@@ -246,13 +246,13 @@ export default function EventDetails() {
 
             {/* Poster */}
             {event.posterUrl && (
-              <img src={event.posterUrl} alt={event.title} className="w-full rounded-2xl object-cover max-h-72 border border-white/5" />
+              <img src={event.posterUrl} alt={event.title} className="w-full rounded-2xl object-cover max-h-72 border border-border" />
             )}
 
             {/* Description */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-3">About this Event</h3>
-              <p className="text-neutral-300 leading-relaxed">{event.description || "No description provided."}</p>
+            <div className="bg-accent border border-border rounded-2xl p-6">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">About this Event</h3>
+              <p className="text-muted-foreground leading-relaxed">{event.description || "No description provided."}</p>
             </div>
 
             {/* Tags */}
@@ -273,8 +273,8 @@ export default function EventDetails() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-4"
           >
-            <div className="bg-card border border-white/5 rounded-[24px] p-6 sticky top-6 space-y-5">
-              <h3 className="text-sm font-black uppercase tracking-widest text-neutral-400">Quick Actions</h3>
+            <div className="bg-card border border-border rounded-[24px] p-6 sticky top-6 space-y-5">
+              <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Quick Actions</h3>
 
               {/* Bookmark Button */}
               <button
@@ -282,7 +282,7 @@ export default function EventDetails() {
                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm border transition-all ${
                   isBookmarked
                     ? "bg-blue-600/20 border-blue-500 text-blue-400"
-                    : "bg-white/[0.03] border-white/5 text-neutral-400 hover:text-white hover:border-white/20"
+                    : "bg-primary/10 border-border text-muted-foreground hover:text-foreground hover:border-border"
                 }`}
               >
                 <Bookmark size={16} fill={isBookmarked ? "currentColor" : "none"} />
@@ -298,7 +298,7 @@ export default function EventDetails() {
               ) : (
                 <button
                   onClick={() => setShowQRModal(true)}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-purple-600 border border-transparent text-white hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-purple-600 border border-transparent text-foreground hover:opacity-90 transition-all"
                 >
                   <QrCode size={16} />
                   Show QR to Check In
@@ -308,7 +308,7 @@ export default function EventDetails() {
               {/* Add to Calendar Button */}
               <button
                 onClick={handleAddToCalendar}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-white/[0.03] border border-white/10 text-neutral-400 hover:text-white hover:border-white/20 transition-all"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-primary/10 border border-border text-muted-foreground hover:text-foreground hover:border-border transition-all"
               >
                 <CalendarPlus size={16} />
                 Add to Calendar
@@ -316,7 +316,7 @@ export default function EventDetails() {
 
               {/* Rating */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">
                   {userRating > 0 ? "Your Rating" : "Rate this Event"}
                 </p>
                 <div className="flex gap-1.5 justify-center" onMouseLeave={() => setHoveredStar(0)}>
@@ -339,7 +339,7 @@ export default function EventDetails() {
                   ))}
                 </div>
                 {event.ratings?.length > 0 && (
-                  <p className="text-[10px] text-center text-neutral-600 mt-2 font-bold">
+                  <p className="text-[10px] text-center text-muted-foreground mt-2 font-bold">
                     {(event.ratings.reduce((s, r) => s + (r.rating || 0), 0) / event.ratings.length).toFixed(1)} / 5 ({event.ratings.length} {event.ratings.length === 1 ? 'rating' : 'ratings'})
                   </p>
                 )}
@@ -352,11 +352,11 @@ export default function EventDetails() {
 
               {/* Created By */}
               {event.createdBy?.name && (
-                <div className="pt-4 border-t border-white/5">
-                  <p className="text-[10px] uppercase tracking-widest text-neutral-600 font-black mb-1">Posted by</p>
-                  <p className="text-sm font-bold text-white">{event.createdBy.name}</p>
+                <div className="pt-4 border-t border-border">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black mb-1">Posted by</p>
+                  <p className="text-sm font-bold text-foreground">{event.createdBy.name}</p>
                   {event.createdBy.department && (
-                    <p className="text-xs text-neutral-500">{event.createdBy.department}</p>
+                    <p className="text-xs text-muted-foreground">{event.createdBy.department}</p>
                   )}
                 </div>
               )}
@@ -371,10 +371,10 @@ export default function EventDetails() {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-card border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center"
+          className="bg-card border border-border rounded-3xl p-8 max-w-sm w-full text-center"
         >
-          <h2 className="text-xl font-bold text-white mb-2">Event Check-In</h2>
-          <p className="text-neutral-400 text-sm mb-6">Show this QR code to the event organizer</p>
+          <h2 className="text-xl font-bold text-foreground mb-2">Event Check-In</h2>
+          <p className="text-muted-foreground text-sm mb-6">Show this QR code to the event organizer</p>
           
           {/* QR Code Display */}
           <div className="bg-white p-4 rounded-2xl inline-block mb-6">
@@ -391,10 +391,10 @@ export default function EventDetails() {
           </div>
           
           {/* Event Info */}
-          <div className="mb-6 p-3 bg-white/5 rounded-xl border border-white/5">
-            <p className="text-white font-semibold text-sm">{event?.title}</p>
+          <div className="mb-6 p-3 bg-accent rounded-xl border border-border">
+            <p className="text-foreground font-semibold text-sm">{event?.title}</p>
             {eventDate && (
-              <p className="text-neutral-400 text-xs mt-1">
+              <p className="text-muted-foreground text-xs mt-1">
                 {eventDate.toLocaleDateString()}
               </p>
             )}
@@ -404,7 +404,7 @@ export default function EventDetails() {
           <button
             onClick={handleQRCheckIn}
             disabled={checkingIn}
-            className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-emerald-500 text-foreground hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {checkingIn ? (
               <>
@@ -422,13 +422,13 @@ export default function EventDetails() {
           {/* Cancel Button */}
           <button
             onClick={() => setShowQRModal(false)}
-            className="w-full mt-3 py-3 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all"
+            className="w-full mt-3 py-3 rounded-xl font-bold text-sm bg-accent border border-border text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all"
           >
             Cancel
           </button>
           
           {/* Help Text */}
-          <p className="text-neutral-600 text-xs mt-4">
+          <p className="text-muted-foreground text-xs mt-4">
             Have the organizer scan this QR code to confirm your attendance
           </p>
         </motion.div>

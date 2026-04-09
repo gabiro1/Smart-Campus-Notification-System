@@ -17,7 +17,7 @@ export default function LoadingCard({
   return (
     <GlassCard className={`space-y-4 ${className}`}>
       {showImage && (
-        <div className="w-full h-40 rounded-lg bg-white/5 animate-pulse" />
+        <div className="w-full h-40 rounded-lg bg-accent animate-pulse" />
       )}
       <div className="space-y-3">
         <LoadingSkeleton variant="text" width="w-3/4" />

@@ -1,5 +1,6 @@
 import Department from '../model/Department.js';
 import School from '../../school/model/School.js';
+import User from '../../user/model/User.js';
 
 // @desc    Create a new Department
 // @route   POST /api/departments
@@ -18,6 +19,16 @@ export const createDepartment = async (req, res) => {
     const deptExists = await Department.findOne({ code });
     if (deptExists) {
       return res.status(400).json({ message: 'Department with this code already exists' });
+    }
+
+    // If HoD is being assigned, update their role
+    if (hod) {
+      const hodUser = await User.findById(hod);
+      if (hodUser) {
+        hodUser.role = 'hod';
+        hodUser.department = req.body.id;
+        await hodUser.save();
+      }
     }
 
     const department = await Department.create({
@@ -68,6 +79,27 @@ export const updateDepartment = async (req, res) => {
     }
 
     const { name, code, school, hod } = req.body;
+    
+    // Handle role change when HoD is assigned
+    if (hod && hod !== department.hod?.toString()) {
+      // If there was a previous HoD, revert their role
+      if (department.hod) {
+        await User.findByIdAndUpdate(department.hod, { role: 'lecturer' });
+      }
+      // Set new HoD's role to hod
+      const newHoD = await User.findById(hod);
+      if (newHoD) {
+        newHoD.role = 'hod';
+        newHoD.department = department._id;
+        await newHoD.save();
+      }
+    }
+    
+    // Handle unassigning HoD
+    if (!hod && department.hod) {
+      await User.findByIdAndUpdate(department.hod, { role: 'lecturer' });
+    }
+
     if (name) department.name = name;
     if (code) department.code = code;
     if (school) department.school = school;

@@ -17,7 +17,8 @@ import {
   Save,
   Camera,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ThemedToaster from "../../../../components/ui/ThemedToaster";
 import adminService from "../../../../services/adminService";
 
 export default function UserManagement() {
@@ -219,8 +220,8 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-white p-8 lg:p-12 relative overflow-hidden w-full">
-      <Toaster theme="dark" position="top-right" />
+    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12 relative overflow-hidden w-full">
+      <ThemedToaster />
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -229,7 +230,7 @@ export default function UserManagement() {
           animate={{ opacity: 1, x: 0 }}
         >
           <h1 className="text-4xl font-black tracking-tight">Access Control</h1>
-          <p className="text-neutral-500 mt-1">
+          <p className="text-muted-foreground mt-1">
             Manage institutional accounts, roles, and permissions.
           </p>
         </motion.div>
@@ -238,7 +239,7 @@ export default function UserManagement() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20"
+          className="bg-blue-600 hover:bg-blue-700 text-foreground px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20"
         >
           <Plus size={18} /> Add User
         </motion.button>
@@ -248,7 +249,7 @@ export default function UserManagement() {
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1 max-w-md">
           <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
             size={18}
           />
           <input
@@ -258,12 +259,12 @@ export default function UserManagement() {
               setPage(1);
             }}
             placeholder="Search by name or email..."
-            className="w-full bg-card border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-[#111] outline-none transition-all text-sm shadow-xl"
+            className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-card outline-none transition-all text-sm shadow-xl"
           />
         </div>
         <div className="relative">
           <Filter
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
             size={18}
           />
           <select
@@ -272,7 +273,7 @@ export default function UserManagement() {
               setRoleFilter(e.target.value);
               setPage(1);
             }}
-            className="w-full md:w-48 bg-card border border-white/5 rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer shadow-xl"
+            className="w-full md:w-48 bg-card border border-border rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer shadow-xl"
           >
             <option value="">All Roles</option>
             <option value="student">Student</option>
@@ -287,18 +288,18 @@ export default function UserManagement() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-card border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+      <div className="bg-card border border-border rounded-sm overflow-hidden shadow-2xl">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center gap-4">
             <Activity className="animate-spin text-blue-500" size={32} />
-            <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Querying Database...
             </span>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-neutral-500 tracking-widest border-b border-white/5">
+              <thead className="bg-accent text-[10px] uppercase font-black text-muted-foreground tracking-widest border-b border-border">
                 <tr>
                   <th className="p-6">User Profile</th>
                   <th className="p-6">Role & Permissions</th>
@@ -306,13 +307,13 @@ export default function UserManagement() {
                   <th className="p-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-border">
                 <AnimatePresence>
                   {users.length === 0 ? (
                     <tr>
                       <td
                         colSpan="4"
-                        className="p-12 text-center text-neutral-500 font-bold uppercase tracking-widest"
+                        className="p-12 text-center text-muted-foreground font-bold uppercase tracking-widest"
                       >
                         No users found matching your criteria.
                       </td>
@@ -326,7 +327,7 @@ export default function UserManagement() {
                         exit={{ opacity: 0 }}
                         key={user._id}
                         onClick={() => openDrawer(user, false)}
-                        className="hover:bg-white/[0.04] transition-colors group cursor-pointer"
+                        className="hover:bg-accent transition-colors group cursor-pointer"
                       >
                         <td className="p-6">
                           <div className="flex items-center gap-4">
@@ -343,10 +344,10 @@ export default function UserManagement() {
                               )}
                             </div>
                             <div>
-                              <div className="font-bold text-white group-hover:text-blue-400 transition-colors">
+                              <div className="font-bold text-foreground group-hover:text-blue-400 transition-colors">
                                 {user.name}
                               </div>
-                              <div className="text-xs text-neutral-500 mt-0.5">
+                              <div className="text-xs text-muted-foreground mt-0.5">
                                 {user.email}
                               </div>
                             </div>
@@ -369,7 +370,7 @@ export default function UserManagement() {
                                     : user.role === "hod" ||
                                         user.role === "lecturer"
                                       ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                      : "bg-neutral-800 text-neutral-400 border-neutral-700 hover:bg-neutral-700"
+                                      : "bg-neutral-800 text-muted-foreground border-neutral-700 hover:bg-neutral-700"
                             }`}
                           >
                             <option value="student">Student</option>
@@ -384,10 +385,10 @@ export default function UserManagement() {
                           </select>
                         </td>
                         <td className="p-6">
-                          <div className="text-sm text-neutral-300 font-medium">
+                          <div className="text-sm text-foreground font-medium">
                             {user.department || "N/A"}
                           </div>
-                          <div className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider mt-1">
+                          <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-1">
                             {user.college ? `${user.college} - ` : ""}{" "}
                             {user.school || "No School"}
                           </div>
@@ -400,7 +401,7 @@ export default function UserManagement() {
                                 e.stopPropagation();
                                 openDrawer(user, true);
                               }}
-                              className="p-2.5 text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
+                              className="p-2.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
                               title="Edit User"
                             >
                               <Edit3 size={18} />
@@ -410,7 +411,7 @@ export default function UserManagement() {
                               onClick={(e) =>
                                 handleDelete(user._id, user.name, e)
                               }
-                              className="p-2.5 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                              className="p-2.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                               title="Purge User"
                             >
                               <Trash2 size={18} />
@@ -428,22 +429,22 @@ export default function UserManagement() {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="p-4 border-t border-white/5 flex items-center justify-between bg-white/[0.01]">
-            <span className="text-xs font-bold uppercase text-neutral-500 tracking-wider pl-4">
+          <div className="p-4 border-t border-border flex items-center justify-between bg-accent">
+            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider pl-4">
               Page {page} of {totalPages}
             </span>
             <div className="flex gap-2 pr-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg"
+                className="p-2 bg-accent hover:bg-primary/10 disabled:opacity-30 rounded-lg"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="p-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 rounded-lg"
+                className="p-2 bg-accent hover:bg-primary/10 disabled:opacity-30 rounded-lg"
               >
                 <ChevronRight size={16} />
               </button>
@@ -471,13 +472,13 @@ export default function UserManagement() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md bg-background border-l border-white/10 z-50 shadow-2xl flex flex-col"
+              className="fixed top-0 right-0 h-full w-full max-w-md bg-background border-l border-border z-50 shadow-2xl flex flex-col"
             >
               {/* Drawer Header */}
-              <div className="p-8 border-b border-white/5 relative bg-[#111]">
+              <div className="p-8 border-b border-border relative bg-card">
                 <button
                   onClick={closeDrawer}
-                  className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-neutral-400 hover:text-white"
+                  className="absolute top-6 right-6 p-2 bg-accent hover:bg-primary/10 rounded-full transition-colors text-muted-foreground hover:text-foreground"
                 >
                   <X size={18} />
                 </button>
@@ -485,7 +486,7 @@ export default function UserManagement() {
                 <div className="flex flex-col items-center mt-4 text-center">
                   {/* EDITABLE AVATAR */}
                   <div className="relative group mb-4">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-black text-white text-3xl shadow-xl shadow-blue-500/20 overflow-hidden border-2 border-[#111]">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-black text-foreground text-3xl shadow-xl shadow-blue-500/20 overflow-hidden border-2 border-[#111]">
                       {imagePreview ? (
                         <img
                           src={imagePreview}
@@ -504,7 +505,7 @@ export default function UserManagement() {
                         onClick={() => fileInputRef.current?.click()}
                         className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                       >
-                        <Camera size={24} className="text-white" />
+                        <Camera size={24} className="text-foreground" />
                       </button>
                     )}
                     <input
@@ -516,7 +517,7 @@ export default function UserManagement() {
                     />
                   </div>
 
-                  <h2 className="text-xl font-black text-white">
+                  <h2 className="text-xl font-black text-foreground">
                     {selectedUser.name}
                   </h2>
                   <span className="inline-block mt-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
@@ -528,16 +529,16 @@ export default function UserManagement() {
               {/* Drawer Body */}
               <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                 {/* Toggle View/Edit */}
-                <div className="flex bg-[#111] p-1 rounded-xl mb-6 border border-white/5">
+                <div className="flex bg-card p-1 rounded-xl mb-6 border border-border">
                   <button
                     onClick={() => setIsEditMode(false)}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${!isEditMode ? "bg-[#222] text-white shadow-md" : "text-neutral-500 hover:text-neutral-300"}`}
+                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${!isEditMode ? "bg-accent text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"}`}
                   >
                     Profile Details
                   </button>
                   <button
                     onClick={() => setIsEditMode(true)}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${isEditMode ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" : "text-neutral-500 hover:text-neutral-300"}`}
+                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${isEditMode ? "bg-blue-600 text-foreground shadow-md shadow-blue-900/20" : "text-muted-foreground hover:text-foreground"}`}
                   >
                     <Edit3 size={14} /> Edit User
                   </button>
@@ -546,7 +547,7 @@ export default function UserManagement() {
                 {!isEditMode ? (
                   <div className="space-y-6">
                     <div className="space-y-4">
-                      <h3 className="text-[10px] uppercase font-black tracking-widest text-neutral-500">
+                      <h3 className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
                         Contact Information
                       </h3>
                       <InfoRow
@@ -560,9 +561,9 @@ export default function UserManagement() {
                         value={selectedUser.email}
                       />
                     </div>
-                    <hr className="border-white/5" />
+                    <hr className="border-border" />
                     <div className="space-y-4">
-                      <h3 className="text-[10px] uppercase font-black tracking-widest text-neutral-500">
+                      <h3 className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
                         Academic Placement
                       </h3>
                       <InfoRow
@@ -585,7 +586,7 @@ export default function UserManagement() {
                 ) : (
                   <form onSubmit={handleUpdateUser} className="space-y-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                         Full Name
                       </label>
                       <input
@@ -597,11 +598,11 @@ export default function UserManagement() {
                             name: e.target.value,
                           })
                         }
-                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                         Email Address
                       </label>
                       <input
@@ -614,11 +615,11 @@ export default function UserManagement() {
                             email: e.target.value,
                           })
                         }
-                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                         System Role
                       </label>
                       <select
@@ -629,7 +630,7 @@ export default function UserManagement() {
                             role: e.target.value,
                           })
                         }
-                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer text-white"
+                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer text-foreground"
                       >
                         <option value="student">Student</option>
                         <option value="guild_president">Guild President</option>
@@ -640,9 +641,9 @@ export default function UserManagement() {
                         <option value="admin">System Admin</option>
                       </select>
                     </div>
-                    <hr className="border-white/5 my-4" />
+                    <hr className="border-border my-4" />
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                         College
                       </label>
                       <input
@@ -654,11 +655,11 @@ export default function UserManagement() {
                             college: e.target.value,
                           })
                         }
-                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                         School
                       </label>
                       <input
@@ -670,11 +671,11 @@ export default function UserManagement() {
                             school: e.target.value,
                           })
                         }
-                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                         Department
                       </label>
                       <input
@@ -686,14 +687,14 @@ export default function UserManagement() {
                             department: e.target.value,
                           })
                         }
-                        className="w-full bg-[#111] border border-white/5 p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={isUpdating}
-                      className="w-full bg-blue-600 text-white p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-6 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-blue-900/20"
+                      className="w-full bg-blue-600 text-foreground p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-6 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-blue-900/20"
                     >
                       {isUpdating ? (
                         <Activity className="animate-spin" size={18} />
@@ -720,18 +721,18 @@ export default function UserManagement() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-card p-8 rounded-[24px] border border-white/10 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+              className="bg-card p-8 rounded-[24px] border border-border w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-6 right-6 text-neutral-500 hover:text-white"
+                className="absolute top-6 right-6 text-muted-foreground hover:text-foreground"
               >
                 <X size={24} />
               </button>
               <h2 className="text-2xl font-black mb-2 tracking-tight">
                 Register User
               </h2>
-              <p className="text-sm text-neutral-500 mb-8">
+              <p className="text-sm text-muted-foreground mb-8">
                 Add a new institutional account directly to the database.
               </p>
 
@@ -744,7 +745,7 @@ export default function UserManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                    className="bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                   />
                   <input
                     required
@@ -754,7 +755,7 @@ export default function UserManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                    className="bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                   />
                 </div>
 
@@ -766,11 +767,11 @@ export default function UserManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
+                  className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
                 />
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                     Initial Role
                   </label>
                   <select
@@ -778,7 +779,7 @@ export default function UserManagement() {
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
-                    className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                    className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
                   >
                     <option value="student">Student</option>
                     <option value="guild_president">Guild President</option>
@@ -790,18 +791,18 @@ export default function UserManagement() {
                   </select>
                 </div>
 
-                <hr className="border-white/5 my-4" />
+                <hr className="border-border my-4" />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                       College
                     </label>
                     <select
                       value={formData.college}
                       onChange={(e) => setFormData({ ...formData, college: e.target.value, school: "", department: "" })}
                       disabled={loadingHierarchy}
-                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                      className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
                     >
                       <option value="">{loadingHierarchy ? "Loading..." : "Select College"}</option>
                       {collegeOptions.map(col => (
@@ -810,14 +811,14 @@ export default function UserManagement() {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                       School
                     </label>
                     <select
                       value={formData.school}
                       onChange={(e) => setFormData({ ...formData, school: e.target.value, department: "" })}
                       disabled={!formData.college || loadingHierarchy}
-                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                      className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
                     >
                       <option value="">{!formData.college ? "Select college first" : "Select School"}</option>
                       {schoolOptions.map(sch => (
@@ -828,14 +829,14 @@ export default function UserManagement() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                     Department
                   </label>
                   <select
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     disabled={!formData.school || loadingHierarchy}
-                    className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                    className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
                   >
                     <option value="">{!formData.school ? "Select school first" : "Select Department"}</option>
                     {departmentOptions.map(dept => (
@@ -846,13 +847,13 @@ export default function UserManagement() {
 
                 {(formData.role === "student") && (
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
                       Year / Level
                     </label>
                     <select
                       value={formData.level}
                       onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                      className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
                     >
                       <option value="">Select Year</option>
                       <option value="Year 1">Year 1</option>
@@ -867,7 +868,7 @@ export default function UserManagement() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-blue-600 text-white p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-4 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center"
+                  className="w-full bg-blue-600 text-foreground p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-4 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center"
                 >
                   {isSubmitting ? (
                     <Activity className="animate-spin" size={20} />
@@ -887,13 +888,13 @@ export default function UserManagement() {
 // Sub-component for Drawer Display Data
 function InfoRow({ icon, label, value }) {
   return (
-    <div className="flex items-start gap-4 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-colors">
-      <div className="text-neutral-500 mt-0.5">{icon}</div>
+    <div className="flex items-start gap-4 p-3 bg-accent border border-border rounded-xl hover:bg-accent transition-colors">
+      <div className="text-muted-foreground mt-0.5">{icon}</div>
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
-        <p className="text-sm font-medium text-white mt-0.5">{value}</p>
+        <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
       </div>
     </div>
   );

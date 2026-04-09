@@ -7,7 +7,7 @@
  */
 export default function FormHelperText({ children, className = "" }) {
   return (
-    <p className={`text-xs text-neutral-500 mt-1 ${className}`}>
+    <p className={`text-xs text-muted-foreground mt-1 ${className}`}>
       {children}
     </p>
   );

@@ -15,7 +15,7 @@ export default function AnnouncementTable({
       <div className="overflow-x-auto flex-1 custom-scrollbar">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr className="bg-white/[0.02] border-b border-white/5 text-[11px] uppercase tracking-widest text-neutral-500">
+            <tr className="bg-white/[0.02] border-b border-border text-[11px] uppercase tracking-widest text-muted-foreground">
               {columns.map((col, i) => (
                 <th
                   key={i}
@@ -26,14 +26,14 @@ export default function AnnouncementTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-border">
             {data.length > 0 ? (
               data.map((item, index) => renderRow(item, index))
             ) : (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="p-12 text-center text-neutral-500"
+                  className="p-12 text-center text-muted-foreground"
                 >
                   {emptyMessage}
                 </td>
