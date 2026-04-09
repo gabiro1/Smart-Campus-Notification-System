@@ -9,9 +9,23 @@ const eventService = {
       const response = await apiClient.get('/events/feed', {
         params: { page, limit },
       });
-      // We return exactly what the UI needs: the array of events
-      return response.data.events || response.data;
+      
+      // Handle both formats: { success, events, total } or direct array
+      let events = [];
+      if (response.data) {
+        if (Array.isArray(response.data)) {
+          events = response.data;
+        } else if (response.data.events) {
+          events = response.data.events;
+        } else if (response.data.data) {
+          events = response.data.data;
+        }
+      }
+      
+      console.log('[eventService] Fetched events:', events.length);
+      return events;
     } catch (error) {
+      console.error("Feed error:", error);
       throw new Error(error.response?.data?.message || "Couldn't load your feed.");
     }
   },

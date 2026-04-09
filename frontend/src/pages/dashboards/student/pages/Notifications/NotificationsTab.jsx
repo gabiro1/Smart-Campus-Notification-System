@@ -42,17 +42,18 @@ export const NotificationsTab = ({
       setDigestSummary(null);
 
       const result = await notificationService.generateDigest(digestPeriod);
+      console.log('Digest result:', result);
 
-      if (result.success && result.summary) {
-        setDigestSummary(result.summary);
-        toast.success('AI digest generated and sent to your email!');
+      if (result.success) {
+        setDigestSummary(result.summary || 'No notifications to summarize. You\'re all caught up!');
+        toast.success('AI digest generated successfully!');
       } else {
-        setDigestError(result.message || 'No unread notifications to summarize.');
-        toast.info(result.message || 'No unread notifications to summarize.');
+        setDigestError(result.message || 'Failed to generate digest');
+        toast.error(result.message || 'Failed to generate digest');
       }
     } catch (error) {
       console.error('Digest generation failed:', error);
-      const errorMsg = error.response?.data?.message || 'Failed to generate digest. Please try again.';
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to generate digest. Please try again.';
       setDigestError(errorMsg);
       toast.error(errorMsg);
     } finally {

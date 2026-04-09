@@ -13,7 +13,9 @@ import {
     getEventMonitor,
     getDepartmentStats,
     getEngagementByDepartment,
-    getActiveEmergencies
+    getActiveEmergencies,
+    getSystemSettings,
+    updateSystemSettings
 } from '../controller/adminController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 import { getAcademicHierarchy } from '../controller/adminController.js';
@@ -110,5 +112,9 @@ router.get('/engagement', getEngagementByDepartment);
 router.post('/users', validateBody(schemas.adminUserCreation), auditLog('user'), createUser);
 
 router.get('/hierarchy', getAcademicHierarchy);
+
+// Settings routes
+router.get('/settings', getSystemSettings);
+router.put('/settings', updateSystemSettings);
 
 export default router;

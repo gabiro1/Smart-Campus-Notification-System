@@ -26,6 +26,15 @@ const governanceService = {
         apiClient
             .put(`${BASE}/${id}/review`, { action, rejectionReason })
             .then((r) => r.data),
+
+    /** Get all departments */
+    getDepartments: () => apiClient.get('/departments').then((r) => r.data),
+
+    /** Delete a governance announcement */
+    delete: (id) => apiClient.delete(`${BASE}/${id}`).then((r) => r.data),
+
+    /** Update a governance announcement */
+    update: (id, data) => apiClient.put(`${BASE}/${id}`, data).then((r) => r.data),
 };
 
 export default governanceService;

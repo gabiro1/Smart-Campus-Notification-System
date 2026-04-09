@@ -10,8 +10,13 @@ import {
   Loader2,
   ShieldCheck,
   Zap,
+  QrCode,
+  CheckCircle2,
+  XCircle,
+  CalendarPlus,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
 import apiClient from "../../../../services/apiClient";
 import eventService from "../../../../services/eventService";
 import toast from "react-hot-toast";
@@ -24,12 +29,44 @@ export default function EventDetails() {
   const [error, setError] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [checkedIn, setCheckedIn] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // Load user from localStorage
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      setUser(storedUser);
+    } catch (e) {
+      console.error('Failed to load user:', e);
+    }
+
     const fetchEvent = async () => {
       try {
         const response = await apiClient.get(`/events/${eventId}`);
-        setEvent(response.data);
+        const eventData = response.data;
+        setEvent(eventData);
+        
+        // Check if user already checked in
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (storedUser._id) {
+          // Check checked in
+          const isCheckedIn = eventData.checkedInBy?.some(
+            c => c.studentId?.toString() === storedUser._id.toString()
+          );
+          if (isCheckedIn) setCheckedIn(true);
+          
+          // Check user's existing rating
+          const existingRating = eventData.ratings?.find(
+            r => r.studentId?.toString() === storedUser._id.toString()
+          );
+          if (existingRating) {
+            setUserRating(existingRating.rating);
+          }
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Event not found");
       } finally {
@@ -55,10 +92,70 @@ export default function EventDetails() {
 
   const handleRate = async (star) => {
     try {
-      await apiClient.post(`/events/${eventId}/rate`, { rating: star });
-      toast.success("Rating submitted!");
-    } catch {
-      toast.error("Rating failed");
+      const response = await apiClient.post(`/events/${eventId}/rate`, { rating: star });
+      const data = response.data;
+      
+      // Update local rating state
+      setUserRating(star);
+      
+      // Update event with new rating in the list
+      if (event) {
+        const updatedRatings = [
+          ...(event.ratings || []).filter(r => r.studentId?.toString() !== user?._id?.toString()),
+          { studentId: user?._id, rating: star }
+        ];
+        setEvent({ ...event, ratings: updatedRatings });
+      }
+      
+      toast.success(data.message || "Rating submitted!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Rating failed");
+    }
+  };
+
+  // QR Check-in Handler
+  const handleQRCheckIn = async () => {
+    if (!user || !user.studentID) {
+      toast.error("Student ID not found. Please log in again.");
+      return;
+    }
+    
+    setCheckingIn(true);
+    try {
+      await apiClient.post(`/events/${eventId}/check-in`, {
+        studentId: user._id,
+        studentIdentifier: user.studentID || user.email
+      });
+      setCheckedIn(true);
+      toast.success("Check-in successful! Attendance recorded.");
+      setShowQRModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Check-in failed. Please try again.");
+    } finally {
+      setCheckingIn(false);
+    }
+  };
+
+  // Calendar Export Handler
+  const handleAddToCalendar = async () => {
+    try {
+      const response = await apiClient.get(`/events/${eventId}/calendar`, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${event.title.replace(/\s+/g, '_')}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Event added to calendar!");
+    } catch (err) {
+      toast.error("Failed to export calendar. Please try again.");
     }
   };
 
@@ -192,9 +289,36 @@ export default function EventDetails() {
                 {isBookmarked ? "Saved" : "Save Event"}
               </button>
 
+              {/* QR Check-in Button */}
+              {checkedIn ? (
+                <div className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-emerald-500/20 border border-emerald-500/30 text-emerald-400">
+                  <CheckCircle2 size={16} />
+                  Checked In
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowQRModal(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-purple-600 border border-transparent text-white hover:opacity-90 transition-all"
+                >
+                  <QrCode size={16} />
+                  Show QR to Check In
+                </button>
+              )}
+
+              {/* Add to Calendar Button */}
+              <button
+                onClick={handleAddToCalendar}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-white/[0.03] border border-white/10 text-neutral-400 hover:text-white hover:border-white/20 transition-all"
+              >
+                <CalendarPlus size={16} />
+                Add to Calendar
+              </button>
+
               {/* Rating */}
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-3">Rate this Event</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-3">
+                  {userRating > 0 ? "Your Rating" : "Rate this Event"}
+                </p>
                 <div className="flex gap-1.5 justify-center" onMouseLeave={() => setHoveredStar(0)}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -206,7 +330,9 @@ export default function EventDetails() {
                       <Star
                         size={22}
                         className={`transition-colors ${
-                          star <= hoveredStar ? "fill-yellow-400 text-yellow-400" : "text-neutral-700 hover:text-yellow-400"
+                          star <= (hoveredStar || userRating) 
+                            ? "fill-yellow-400 text-yellow-400" 
+                            : "text-neutral-700 hover:text-yellow-400"
                         }`}
                       />
                     </button>
@@ -214,7 +340,12 @@ export default function EventDetails() {
                 </div>
                 {event.ratings?.length > 0 && (
                   <p className="text-[10px] text-center text-neutral-600 mt-2 font-bold">
-                    {(event.ratings.reduce((s, r) => s + r.rating, 0) / event.ratings.length).toFixed(1)} / 5 ({event.ratings.length} ratings)
+                    {(event.ratings.reduce((s, r) => s + (r.rating || 0), 0) / event.ratings.length).toFixed(1)} / 5 ({event.ratings.length} {event.ratings.length === 1 ? 'rating' : 'ratings'})
+                  </p>
+                )}
+                {userRating > 0 && (
+                  <p className="text-[10px] text-center text-emerald-400 mt-1 font-medium">
+                    Thanks for rating!
                   </p>
                 )}
               </div>
@@ -231,8 +362,78 @@ export default function EventDetails() {
               )}
             </div>
           </motion.div>
-        </div>
       </div>
+    </div>
+
+    {/* QR Code Check-in Modal */}
+    {showQRModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-card border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center"
+        >
+          <h2 className="text-xl font-bold text-white mb-2">Event Check-In</h2>
+          <p className="text-neutral-400 text-sm mb-6">Show this QR code to the event organizer</p>
+          
+          {/* QR Code Display */}
+          <div className="bg-white p-4 rounded-2xl inline-block mb-6">
+            <QRCodeSVG
+              value={JSON.stringify({
+                e: eventId,
+                s: user?.studentID || user?._id,
+                n: user?.name
+              })}
+              size={180}
+              level="H"
+              includeMargin={true}
+            />
+          </div>
+          
+          {/* Event Info */}
+          <div className="mb-6 p-3 bg-white/5 rounded-xl border border-white/5">
+            <p className="text-white font-semibold text-sm">{event?.title}</p>
+            {eventDate && (
+              <p className="text-neutral-400 text-xs mt-1">
+                {eventDate.toLocaleDateString()}
+              </p>
+            )}
+          </div>
+          
+          {/* Check-in Button */}
+          <button
+            onClick={handleQRCheckIn}
+            disabled={checkingIn}
+            className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {checkingIn ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={16} />
+                Confirm Check-In
+              </>
+            )}
+          </button>
+          
+          {/* Cancel Button */}
+          <button
+            onClick={() => setShowQRModal(false)}
+            className="w-full mt-3 py-3 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-neutral-400 hover:text-white hover:bg-white/10 transition-all"
+          >
+            Cancel
+          </button>
+          
+          {/* Help Text */}
+          <p className="text-neutral-600 text-xs mt-4">
+            Have the organizer scan this QR code to confirm your attendance
+          </p>
+        </motion.div>
+      </div>
+      )}
     </div>
   );
 }

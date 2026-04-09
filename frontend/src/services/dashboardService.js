@@ -6,14 +6,29 @@ const dashboardService = {
    * @returns {Object} { stats: {}, schedule: [], recentMessages: [] }
    */
   getStudentSummary: async () => {
-  try {
-    const response = await apiClient.get('/student/dashboard'); 
-    return response.data;
-  } catch (error) {
+    try {
+      const response = await apiClient.get('/student/dashboard'); 
+      return response.data;
+    } catch (error) {
       console.error("Dashboard Service Error:", error);
       throw error;
     }
-},
+  },
+
+  /**
+   * @desc Fetches the student's timetable based on their class assignment.
+   * @param {string} dayOfWeek - Optional day filter (e.g., 'Monday')
+   */
+  getStudentTimetable: async (dayOfWeek) => {
+    try {
+      const params = dayOfWeek ? { dayOfWeek } : {};
+      const response = await apiClient.get('/student/timetable', { params });
+      return response.data;
+    } catch (error) {
+      console.error("Timetable Service Error:", error);
+      throw error;
+    }
+  },
 
   /**
    * @desc Logs a student's presence at an event (QR scan or Acknowledge)

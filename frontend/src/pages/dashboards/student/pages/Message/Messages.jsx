@@ -40,7 +40,8 @@ export default function Messages() {
 
   // 1. Initialize Real-Time WebSocket Connection
   useEffect(() => {
-    socketRef.current = io(import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || "http://localhost:5000", {
+    const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace('/api', '');
+    socketRef.current = io(API_URL, {
       query: { userId: currentUser._id || currentUser.id },
       transports: ["websocket"]
     });

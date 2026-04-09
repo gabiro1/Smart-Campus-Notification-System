@@ -91,7 +91,7 @@ export default function ClassCard({ cls, onClick, isSelected }) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/lecturer/classes/${_id || "demo"}`);
+            if (onClick) onClick();
           }}
           className="flex-1 bg-input hover:bg-muted border border-border text-muted-foreground hover:text-white py-2.5 px-4 rounded-[12px] text-[13px] font-bold transition-all flex items-center justify-center gap-2 group/btn"
         >
@@ -104,7 +104,7 @@ export default function ClassCard({ cls, onClick, isSelected }) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/lecturer/dashboard?modal=urgent`); // Open the urgent dispatch externally if needed
+            navigate(`/lecturer/create`);
           }}
           className="p-2.5 bg-blue-600 hover:bg-blue-500 border border-blue-500 hover:border-blue-400 text-white rounded-[12px] transition-all shadow-[0_4px_15px_rgba(59,130,246,0.3)] tooltip-trigger group/alert active:scale-95"
           title="Post Alert"

@@ -1,6 +1,6 @@
 import express from 'express';
 import { sendSMS } from '../controller/smsController.js';
-import { protect, authorize } from '../../middleware/authMiddleware.js';
+import { protect, authorize } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 

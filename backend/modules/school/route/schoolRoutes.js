@@ -1,10 +1,15 @@
 import express from 'express';
-import { createSchool, getSchools } from '../controller/schoolController.js';
+import { createSchool, getSchools, updateSchool, deleteSchool } from '../controller/schoolController.js';
+import { protect, authorize } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.route('/')
-  .post(createSchool) // POST /api/schools
-  .get(getSchools);   // GET /api/schools
+  .post(protect, authorize('admin'), createSchool) // POST /api/schools
+  .get(protect, getSchools);   // GET /api/schools
+
+router.route('/:id')
+  .put(protect, authorize('admin'), updateSchool)
+  .delete(protect, authorize('admin'), deleteSchool);
 
 export default router;

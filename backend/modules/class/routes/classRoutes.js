@@ -8,11 +8,11 @@ import {
   removeClassFromLecturer,
   updateLecturerInfo,
   getMyClasses,
-  getClassStudents 
+  getClassStudents,
+  updateClass,
+  deleteClass
 } from '../controller/classController.js';
 
-// IMPORTANT: You need your auth middleware here to populate req.user 
-// and restrict access based on roles.
 import { protect, authorize } from '../../../middleware/authMiddleware.js'; 
 
 const router = express.Router();
@@ -21,22 +21,25 @@ const router = express.Router();
 // STATIC ROUTES (Must come BEFORE dynamic /:id routes)
 // ==========================================
 
-// --- LECTURER ROUTES ---
-// Requires standard login (Lecturer role)
-router.get('/my-classes', protect, authorize('lecturer'), getMyClasses);
+// --- LECTURER & HOD ROUTES ---
+router.get('/my-classes', protect, authorize('lecturer', 'hod'), getMyClasses);
 
 // --- HOD / ADMIN ROUTES ---
-// Requires Admin/HOD privileges
 router.get('/lecturers', protect, authorize('hod', 'admin'), getLecturers);
 
 // ==========================================
-// DYNAMIC ROUTES (Containing parameters like :id)
+// DYNAMIC ROUTES
 // ==========================================
 
 // --- MIXED/GENERAL CLASSES ROUTES ---
 router.route('/')
-  .get(protect, getClasses) // Maybe all logged-in users can view classes? Adjust auth as needed.
+  .get(protect, getClasses)
   .post(protect, authorize('hod', 'admin'), createClass);
+
+// --- UPDATE/DELETE CLASS ---
+router.route('/:id')
+  .put(protect, authorize('hod', 'admin'), updateClass)
+  .delete(protect, authorize('hod', 'admin'), deleteClass);
 
 // --- LECTURER SPECIFIC DYNAMIC ROUTES ---
 router.get('/:classId/students', protect, authorize('lecturer'), getClassStudents);

@@ -20,7 +20,8 @@ import {
     parseFlyer,
     exportCalendar,
     toggleBookmark,
-    getBookmarkedEvents
+    getBookmarkedEvents,
+    studentCheckIn
 } from '../controller/eventController.js';
 
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
@@ -105,6 +106,9 @@ router.post('/:id/bookmark', protect, toggleBookmark);
 
 /* ================= ATTENDANCE SCANNING ================= */
 router.post('/:id/scan-attendance', protect, authorize('admin', 'lecturer', 'hod', 'dean', 'principal'), scanAttendance);
+
+/* ================= STUDENT QR CHECK-IN ================= */
+router.post('/:id/check-in', protect, studentCheckIn);
 
 /* ================= PENDING APPROVALS ================= */
 router.get('/approvals/pending', protect, authorize('dean', 'principal', 'lecturer'), getPendingApprovals);

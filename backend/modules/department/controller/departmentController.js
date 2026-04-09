@@ -56,3 +56,46 @@ export const getDepartments = async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
+
+// @desc    Update Department
+// @route   PUT /api/departments/:id
+// @access  Private (Admin only)
+export const updateDepartment = async (req, res) => {
+  try {
+    const department = await Department.findById(req.params.id);
+    if (!department) {
+      return res.status(404).json({ message: 'Department not found' });
+    }
+
+    const { name, code, school, hod } = req.body;
+    if (name) department.name = name;
+    if (code) department.code = code;
+    if (school) department.school = school;
+    if (hod !== undefined) department.hod = hod;
+
+    await department.save();
+    const updated = await Department.findById(req.params.id)
+      .populate({ path: 'school', select: 'name code', populate: { path: 'college', select: 'name code' } })
+      .populate('hod', 'name email');
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Delete Department
+// @route   DELETE /api/departments/:id
+// @access  Private (Admin only)
+export const deleteDepartment = async (req, res) => {
+  try {
+    const department = await Department.findById(req.params.id);
+    if (!department) {
+      return res.status(404).json({ message: 'Department not found' });
+    }
+
+    await department.deleteOne();
+    res.status(200).json({ message: 'Department deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};

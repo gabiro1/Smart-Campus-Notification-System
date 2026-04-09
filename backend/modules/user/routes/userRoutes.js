@@ -1,9 +1,10 @@
 import express from 'express';
 const router = express.Router();
-import { register, login, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyEmail, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding } from '../controller/authController.js';
+import { register, login, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyEmail, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto } from '../controller/authController.js';
 import { protect, authorize  } from '../../../middleware/authMiddleware.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
+import upload from '../../../middleware/uploadMiddleware.js';
 
 // Public auth endpoints with validation
 router.post('/register', validateBody(schemas.userRegistration), auditLog('user'), register);
@@ -24,6 +25,7 @@ router.post('/logout', protect, auditLog('user', { customAction: 'LOGOUT' }), lo
 // Private routes (Must be logged in)
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, validateBody(schemas.userProfileUpdate), auditLog('user', { captureChanges: true }), updateProfile);
+router.post('/profile/photo', protect, upload.single('profilePicture'), uploadProfilePhoto);
 router.put('/notification-preferences', protect, updateNotificationPreferences);
 router.put('/onboarding', protect, authorize('student'), completeOnboarding);
 router.delete('/profile/:id', protect, auditLog('user'), deleteUser);

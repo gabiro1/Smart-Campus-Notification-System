@@ -27,22 +27,22 @@ const router = express.Router();
 router.use(protect);
 
 // ==========================================
-// 1. LECTURER DASHBOARD ROUTES
+// 1. LECTURER & HOD DASHBOARD ROUTES
 // ==========================================
-router.get("/lecturer-manage", authorize("lecturer"), getLecturerAnnouncements);
-router.get("/dashboard-stats", authorize("lecturer"), getLecturerStats);
+router.get("/lecturer-manage", authorize("lecturer", "hod"), getLecturerAnnouncements);
+router.get("/dashboard-stats", authorize("lecturer", "hod"), getLecturerStats);
 
 // Create Announcement (Accepts up to 5 file attachments)
-router.post("/create", authorize("lecturer"), upload.array("attachments", 5), validateBody(schemas.announcementCreation), auditLog('announcement'), createAnnouncement);
+router.post("/create", authorize("lecturer", "hod"), upload.array("attachments", 5), validateBody(schemas.announcementCreation), auditLog('announcement'), createAnnouncement);
 
 // Edit and Delete Announcements
-router.patch("/:id", authorize("lecturer"), validateBody(schemas.announcementUpdate), auditLog('announcement', { captureChanges: true }), updateAnnouncement);
-router.delete("/:id", authorize("lecturer"), auditLog('announcement'), deleteAnnouncement);
+router.patch("/:id", authorize("lecturer", "hod"), validateBody(schemas.announcementUpdate), auditLog('announcement', { captureChanges: true }), updateAnnouncement);
+router.delete("/:id", authorize("lecturer", "hod"), auditLog('announcement'), deleteAnnouncement);
 
 // Scheduled Announcements Management
-router.get("/scheduled", authorize("lecturer"), getScheduledAnnouncements);
-router.delete("/scheduled/:id/cancel", authorize("lecturer"), cancelScheduledAnnouncement);
-router.patch("/scheduled/:id/reschedule", authorize("lecturer"), rescheduleAnnouncement);
+router.get("/scheduled", authorize("lecturer", "hod"), getScheduledAnnouncements);
+router.delete("/scheduled/:id/cancel", authorize("lecturer", "hod"), cancelScheduledAnnouncement);
+router.patch("/scheduled/:id/reschedule", authorize("lecturer", "hod"), rescheduleAnnouncement);
 
 // ==========================================
 // 2. STUDENT FEED ROUTES

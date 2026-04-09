@@ -12,6 +12,9 @@ import CoreSettings from "../pages/dashboards/Admin/pages/CoreSettings";
 import Maintenance from "../pages/dashboards/Admin/pages/Maintenance";
 import Backups from "../pages/dashboards/Admin/pages/Backups";
 import MessagesTab from "../pages/Message/MessagesTab";
+import SupportTickets from "../pages/dashboards/Admin/pages/SupportTickets";
+import GovernancePage from "../pages/dashboards/shared/GovernancePage";
+import AcademicStructure from "../pages/dashboards/Admin/pages/AcademicStructure";
 
 export const adminRoutes = [
   <Route key="index" index element={<Navigate to="overview" replace />} />,
@@ -111,6 +114,33 @@ export const adminRoutes = [
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <MessagesTab />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="support"
+    path="support"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <SupportTickets />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="governance"
+    path="governance"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <GovernancePage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="academic"
+    path="academic"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <AcademicStructure />
       </ProtectedRoute>
     }
   />,

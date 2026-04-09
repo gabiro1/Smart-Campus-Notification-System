@@ -10,6 +10,7 @@ import LecturerAnalytics from "../pages/dashboards/lecturer/pages/Analytics";
 import LecturerSettings from "../pages/dashboards/lecturer/Settings";
 import MessagesTab from "../pages/Message/MessagesTab";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
+import SupportPage from "../pages/dashboards/shared/SupportPage";
 
 export const lecturerRoutes = [
   <Route key="index" index element={<Navigate to="console" replace />} />,
@@ -91,6 +92,15 @@ export const lecturerRoutes = [
     element={
       <ProtectedRoute allowedRoles={["lecturer"]}>
         <GovernancePage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="support"
+    path="support"
+    element={
+      <ProtectedRoute allowedRoles={["lecturer", "hod", "dean", "principal", "admin"]}>
+        <SupportPage />
       </ProtectedRoute>
     }
   />,

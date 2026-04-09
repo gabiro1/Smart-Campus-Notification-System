@@ -52,3 +52,46 @@ export const getSchools = async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
+
+// @desc    Update School
+// @route   PUT /api/schools/:id
+// @access  Private (Admin only)
+export const updateSchool = async (req, res) => {
+  try {
+    const school = await School.findById(req.params.id);
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+
+    const { name, code, college, dean } = req.body;
+    if (name) school.name = name;
+    if (code) school.code = code;
+    if (college) school.college = college;
+    if (dean !== undefined) school.dean = dean;
+
+    await school.save();
+    const updated = await School.findById(req.params.id)
+      .populate('college', 'name code')
+      .populate('dean', 'name email');
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Delete School
+// @route   DELETE /api/schools/:id
+// @access  Private (Admin only)
+export const deleteSchool = async (req, res) => {
+  try {
+    const school = await School.findById(req.params.id);
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+
+    await school.deleteOne();
+    res.status(200).json({ message: 'School deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};

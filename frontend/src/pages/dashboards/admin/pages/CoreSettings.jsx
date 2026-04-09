@@ -32,15 +32,18 @@ export default function CoreSettings() {
     const fetchSettings = async () => {
       try {
         setLoading(true);
-        // Fetch SMS quota using your existing service
-        const quotaData = await adminService.getSMSQuota();
-
-        setSmsQuota({
-          used: quotaData?.used || 4250, // Fallback dummy data for visualization
-          limit: quotaData?.limit || 10000,
-        });
-
-        // In a full implementation, you'd fetch 'configs' from a GET /settings endpoint here
+        const settingsData = await adminService.getSMSQuota();
+        
+        if (settingsData?.data) {
+          setConfigs({
+            aiAutoApprove: settingsData.data.aiAutoApprove || false,
+            aiStrictness: settingsData.data.aiStrictness || 75,
+            requireHodApproval: settingsData.data.requireHodApproval ?? true,
+            maintenanceMode: settingsData.data.maintenanceMode || false,
+            maxBroadcastReach: settingsData.data.maxBroadcastReach || "all",
+          });
+          setSmsQuota(settingsData.data.smsQuota || { used: 0, limit: 10000 });
+        }
       } catch (error) {
         toast.error("Failed to load system settings");
       } finally {
@@ -54,8 +57,7 @@ export default function CoreSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Simulate saving to backend (You'll map this to an updateSettings controller later)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await adminService.updateSettings(configs);
       toast.success("System configurations updated successfully");
     } catch (error) {
       toast.error("Failed to save settings");

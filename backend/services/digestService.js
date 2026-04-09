@@ -4,17 +4,6 @@ import { sendPushNotification } from '../config/firebaseAdmin.js';
 import { summarizeNotifications } from './aiProvider.js';
 import nodemailer from 'nodemailer';
 
-// Email transporter (replicated from notificationController to avoid circular deps)
-const getTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_APP_PASSWORD,
-    },
-  });
-};
-
 const escapeHTML = (str) => {
   if (!str) return '';
   return str.replace(/[&<>"']/g, (m) => ({
@@ -26,127 +15,131 @@ const escapeHTML = (str) => {
   }[m]));
 };
 
+const getTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
+};
+
 /**
  * Generate and send a digest for a single user.
- * @param {Object} user - User object with _id, email, name, fcmToken
- * @param {Object} options - { period: 'daily'|'weekly', filterPriority: 'low' }
- * @returns {Object} - { success: boolean, summary?: string, notificationCount?: number, error?: string }
+ * Now works with ALL unread notifications (not just low-priority)
  */
-export const generateAndSendDigest = async (user, { period = 'daily', filterPriority = 'low' } = {}) => {
+export const generateAndSendDigest = async (user, { period = 'weekly' } = {}) => {
   try {
-    // Validate user has email
-    if (!user.email) {
-      return { success: false, error: 'User has no email address' };
-    }
-
     // Calculate date range based on period
     const now = new Date();
     let hoursBack;
     switch (period) {
-      case 'daily':
-        hoursBack = 24;
-        break;
-      case 'weekly':
-        hoursBack = 24 * 7;
-        break;
-      default:
-        hoursBack = 24;
+      case 'daily': hoursBack = 24; break;
+      case 'weekly': hoursBack = 24 * 7; break;
+      case 'monthly': hoursBack = 24 * 30; break;
+      default: hoursBack = 24 * 7;
     }
     const startDate = new Date(now);
     startDate.setHours(startDate.getHours() - hoursBack);
-    startDate.setMinutes(0, 0, 0);
 
-    // Find unread, low-priority notifications that haven't been digested
+    // Find ALL unread notifications that haven't been digested
     const notifications = await NotificationLog.find({
       studentId: user._id,
       status: 'unread',
-      priority: filterPriority,
       digestedAt: null,
       createdAt: { $gte: startDate },
     })
-      .sort({ createdAt: -1 })
-      .lean();
+    .sort({ createdAt: -1 })
+    .limit(50)
+    .lean();
 
-    if (notifications.length === 0) {
-      return { success: true, summary: null, notificationCount: 0, skipped: true };
+    // Even if no unread, we can still generate a summary from recent notifications
+    let notificationsToDigest = notifications;
+    
+    // If still no unread, get recent read notifications for summary
+    if (notificationsToDigest.length === 0) {
+      notificationsToDigest = await NotificationLog.find({
+        studentId: user._id,
+        createdAt: { $gte: startDate },
+      })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
     }
 
-    // Format notifications for AI
-    const notifData = notifications.map((n) => ({
-      type: n.type || 'NOTICE',
-      title: n.title,
-      message: n.message,
-      createdAt: n.createdAt,
-    }));
+    // Generate summary even if no notifications (for onboarding users)
+    let summary;
+    if (notificationsToDigest.length === 0) {
+      summary = "You have no recent notifications. You're all caught up! Check back later for updates from your lecturers and the campus community.";
+    } else {
+      // Format notifications for AI
+      const notifData = notificationsToDigest.map((n) => ({
+        type: n.type || 'NOTICE',
+        title: n.title,
+        message: n.message,
+        createdAt: n.createdAt,
+      }));
 
-    // Generate summary using AI
-    const summary = await summarizeNotifications(notifData);
+      // Generate summary using AI
+      summary = await summarizeNotifications(notifData);
+    }
 
-    // Prepare email content
-    const periodLabel = period === 'daily' ? 'Daily' : 'Weekly';
-    const htmlEmail = `
-      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-        <h2 style="color: #1e40af;">Your ${periodLabel} Notification Digest</h2>
-        <p>Hello ${user.name || 'there'},</p>
-        <p>Here's a summary of your unread low-priority notifications from the past ${hoursBack} hour(s):</p>
-        <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #1e40af; color: #1e293b; margin: 15px 0; white-space: pre-line;">
-          ${escapeHTML(summary)}
-        </div>
-        <p style="color: #64748b; font-size: 12px;">
-          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/student/notifications" style="color: #1e40af;">View all notifications</a>
-          &nbsp;|&nbsp;
-          <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/student/notifications?markAllRead=true" style="color: #1e40af;">Mark all as read</a>
-        </p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="color: #94a3b8; font-size: 11px;">
-          This email was automatically generated by UniNotify AI.
-        </p>
-      </div>
-    `;
-
-    // Send email
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: `"UniNotify AI" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: `Your ${periodLabel} Notification Digest`,
-      html: htmlEmail,
+    // Cache digest summary on user profile for in-app viewing
+    await User.findByIdAndUpdate(user._id, {
+      lastDigestSummary: summary,
+      lastDigestAt: new Date(),
     });
 
-    // Send push notification if token available
-    if (user.fcmToken) {
+    // Try to send email if credentials configured
+    if (user.email && process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
       try {
-        const pushTitle = `${periodLabel} Notification Digest`;
-        const pushBody = summary.substring(0, 150) + (summary.length > 150 ? '...' : '');
-        await sendPushNotification(user.fcmToken, pushTitle, pushBody);
-      } catch (pushErr) {
-        console.warn(`[DigestService] Push failed for ${user.name || user._id}:`, pushErr.message);
-        // Don't fail the whole digest if push fails
+        const periodLabel = period === 'daily' ? 'Daily' : period === 'monthly' ? 'Monthly' : 'Weekly';
+        const htmlEmail = `
+          <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+            <h2 style="color: #1e40af;">Your ${periodLabel} Notification Digest</h2>
+            <p>Hello ${user.name || 'there'},</p>
+            <p>Here's a summary of your recent notifications:</p>
+            <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #1e40af; color: #1e293b; margin: 15px 0; white-space: pre-line;">
+              ${escapeHTML(summary)}
+            </div>
+            <p>You have <strong>${notifications.length}</strong> unread notification(s).</p>
+            <p style="color: #64748b; font-size: 12px;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/student/notifications" style="color: #1e40af;">View all notifications</a>
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="color: #94a3b8; font-size: 11px;">
+              This email was automatically generated by UniNotify AI.
+            </p>
+          </div>
+        `;
+
+        const transporter = getTransporter();
+        await transporter.sendMail({
+          from: `"UniNotify AI" <${process.env.EMAIL_USER}>`,
+          to: user.email,
+          subject: `Your ${periodLabel} Notification Digest`,
+          html: htmlEmail,
+        });
+      } catch (emailErr) {
+        console.warn(`[DigestService] Email failed for ${user.email}:`, emailErr.message);
       }
     }
 
-    // Mark notifications as digested
-    const notificationIds = notifications.map((n) => n._id);
-    await NotificationLog.updateMany(
-      { _id: { $in: notificationIds } },
-      { digestedAt: new Date() }
-    );
-
-    // Cache digest summary on user profile for in-app viewing
-    try {
-      await User.findByIdAndUpdate(user._id, {
-        lastDigestSummary: summary,
-        lastDigestAt: new Date(),
-      });
-    } catch (cacheErr) {
-      console.warn('[DigestService] Failed to cache digest summary:', cacheErr.message);
-      // Non-critical, continue
+    // Mark unread notifications as digested
+    if (notifications.length > 0) {
+      const notificationIds = notifications.map((n) => n._id);
+      await NotificationLog.updateMany(
+        { _id: { $in: notificationIds } },
+        { digestedAt: new Date() }
+      );
     }
 
     return {
       success: true,
       summary,
-      notificationCount: notifications.length,
+      notificationCount: notificationsToDigest.length,
+      unreadCount: notifications.length,
     };
   } catch (error) {
     console.error(`[DigestService] Error generating digest for user ${user._id}:`, error);

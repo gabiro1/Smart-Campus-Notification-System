@@ -101,7 +101,13 @@ createUser: async (userData) => {
 
   // Get SMS quota
   getSMSQuota: async () => {
-    const response = await apiClient.get('/admin/sms-quota');
+    const response = await apiClient.get('/admin/settings');
+    return response.data.data?.smsQuota || { used: 0, limit: 10000 };
+  },
+
+  // Update system settings
+  updateSettings: async (settings) => {
+    const response = await apiClient.put('/admin/settings', settings);
     return response.data;
   },
 
@@ -189,6 +195,82 @@ createUser: async (userData) => {
   // Get active emergency broadcasts with acknowledgment statistics
   getActiveEmergencies: async () => {
     const response = await apiClient.get('/admin/announcements/active-emergencies');
+    return response.data;
+  },
+
+  // ==========================================
+  // ACADEMIC STRUCTURE CRUD
+  // ==========================================
+
+  // Colleges
+  getColleges: async () => {
+    const response = await apiClient.get('/colleges');
+    return response.data;
+  },
+  createCollege: async (data) => {
+    const response = await apiClient.post('/colleges', data);
+    return response.data;
+  },
+  updateCollege: async (id, data) => {
+    const response = await apiClient.put(`/colleges/${id}`, data);
+    return response.data;
+  },
+  deleteCollege: async (id) => {
+    const response = await apiClient.delete(`/colleges/${id}`);
+    return response.data;
+  },
+
+  // Schools
+  getSchools: async () => {
+    const response = await apiClient.get('/schools');
+    return response.data;
+  },
+  createSchool: async (data) => {
+    const response = await apiClient.post('/schools', data);
+    return response.data;
+  },
+  updateSchool: async (id, data) => {
+    const response = await apiClient.put(`/schools/${id}`, data);
+    return response.data;
+  },
+  deleteSchool: async (id) => {
+    const response = await apiClient.delete(`/schools/${id}`);
+    return response.data;
+  },
+
+  // Departments
+  getDepartments: async () => {
+    const response = await apiClient.get('/departments');
+    return response.data;
+  },
+  createDepartment: async (data) => {
+    const response = await apiClient.post('/departments', data);
+    return response.data;
+  },
+  updateDepartment: async (id, data) => {
+    const response = await apiClient.put(`/departments/${id}`, data);
+    return response.data;
+  },
+  deleteDepartment: async (id) => {
+    const response = await apiClient.delete(`/departments/${id}`);
+    return response.data;
+  },
+
+  // Classes
+  getClasses: async () => {
+    const response = await apiClient.get('/classes');
+    return response.data;
+  },
+  createClass: async (data) => {
+    const response = await apiClient.post('/classes', data);
+    return response.data;
+  },
+  updateClass: async (id, data) => {
+    const response = await apiClient.put(`/classes/${id}`, data);
+    return response.data;
+  },
+  deleteClass: async (id) => {
+    const response = await apiClient.delete(`/classes/${id}`);
     return response.data;
   },
 

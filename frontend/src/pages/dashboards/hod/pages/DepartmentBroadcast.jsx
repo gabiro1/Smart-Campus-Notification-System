@@ -1,10 +1,104 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { GlassCard } from "@/components/shared";
-import { Send, UploadCloud, Clock, Radio } from "lucide-react";
+import { Send, UploadCloud, Clock, Radio, Loader2 } from "lucide-react";
+import classService from "@/services/classService";
+import toast from "react-hot-toast";
 
 export default function DepartmentBroadcast() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [targetLevel, setTargetLevel] = useState("all");
+  const [schedule, setSchedule] = useState("now");
+  const [loading, setLoading] = useState(false);
+  const [classes, setClasses] = useState([]);
+
+  const user = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}'); }
+    catch { return {}; }
+  }, []);
+
+  const deptName = user?.department?.name || user?.department || "Department";
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const data = await classService.getMyClasses();
+        setClasses(data.data || data || []);
+      } catch (error) {
+        console.error("Failed to fetch classes:", error);
+      }
+    };
+    fetchClasses();
+  }, []);
+
+  const handleBroadcast = async () => {
+    if (!title.trim() || !message.trim()) {
+      toast.error("Please enter both title and message");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const allStudents = [];
+      classes.forEach(cls => {
+        if (cls.students) {
+          cls.students.forEach(student => {
+            if (!allStudents.find(s => s._id === student._id)) {
+              allStudents.push(student);
+            }
+          });
+        }
+      });
+
+      let filteredStudents = allStudents;
+      if (targetLevel !== "all") {
+        filteredStudents = allStudents.filter(s => s.year === parseInt(targetLevel.replace('year', '')));
+      }
+
+      const results = await Promise.allSettled(
+        filteredStudents.map(student => 
+          fetch('/api/messages/notify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({
+              targetUserId: student._id,
+              email: student.email,
+              name: student.name,
+              message,
+              title: `${title} - ${deptName}`,
+              priority: schedule === "now" ? "normal" : "low",
+              category: "events"
+            })
+          }).then(res => res.json())
+        )
+      );
+
+      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      toast.success(`Broadcast sent to ${successCount} students!`);
+      setTitle("");
+      setMessage("");
+    } catch (error) {
+      console.error("Broadcast error:", error);
+      toast.error("Failed to send broadcast");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const studentCount = useMemo(() => {
+    let total = 0;
+    classes.forEach(cls => {
+      total += cls.students?.length || 0;
+    });
+    if (targetLevel === "all") return total;
+    return classes.reduce((acc, cls) => {
+      const levelStudents = (cls.students || []).filter(s => s.year === parseInt(targetLevel.replace('year', '')));
+      return acc + levelStudents.length;
+    }, 0);
+  }, [classes, targetLevel]);
 
   return (
     <div className="space-y-6">
@@ -66,9 +160,15 @@ export default function DepartmentBroadcast() {
                 <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
                   Target Level
                 </label>
-                <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 appearance-none">
-                  <option value="all">All CS Students</option>
+                <select 
+                  value={targetLevel}
+                  onChange={(e) => setTargetLevel(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 appearance-none"
+                >
+                  <option value="all">All CS Students ({studentCount})</option>
                   <option value="year1">Year 1 Only</option>
+                  <option value="year2">Year 2 Only</option>
+                  <option value="year3">Year 3 Only</option>
                   <option value="year4">Final Year (Year 4)</option>
                 </select>
               </div>
@@ -76,7 +176,11 @@ export default function DepartmentBroadcast() {
                 <label className="block text-xs font-medium text-neutral-400 mb-2 uppercase tracking-wider">
                   Schedule
                 </label>
-                <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 appearance-none">
+                <select 
+                  value={schedule}
+                  onChange={(e) => setSchedule(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 appearance-none"
+                >
                   <option value="now">Send Immediately</option>
                   <option value="later">Schedule for later...</option>
                 </select>
@@ -97,8 +201,13 @@ export default function DepartmentBroadcast() {
           </div>
 
           <div className="pt-6 border-t border-white/5 flex justify-end">
-            <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] flex items-center gap-2 active:scale-95">
-              <Send size={18} /> Broadcast Now
+            <button 
+              onClick={handleBroadcast}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+              {loading ? "Sending..." : "Broadcast Now"}
             </button>
           </div>
         </GlassCard>
@@ -106,7 +215,7 @@ export default function DepartmentBroadcast() {
         {/* Live Preview */}
         <div className="lg:col-span-5 space-y-4">
           <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider px-2">
-            Student View Preview
+            Student View Preview ({studentCount} recipients)
           </h3>
           <GlassCard
             hover={false}
@@ -126,7 +235,7 @@ export default function DepartmentBroadcast() {
                     Official
                   </span>
                 </p>
-                <p className="text-xs text-neutral-500">Computer Science</p>
+                <p className="text-xs text-neutral-500">{deptName}</p>
               </div>
             </div>
 
@@ -139,7 +248,7 @@ export default function DepartmentBroadcast() {
             </p>
 
             <div className="flex items-center gap-2 text-xs text-neutral-500 bg-black/40 p-2.5 rounded-lg w-fit border border-white/5 relative z-10">
-              <Clock size={14} /> To be sent immediately
+              <Clock size={14} /> {schedule === "now" ? "To be sent immediately" : "Scheduled for later"}
             </div>
           </GlassCard>
         </div>

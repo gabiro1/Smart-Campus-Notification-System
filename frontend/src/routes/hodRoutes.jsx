@@ -2,15 +2,14 @@ import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 import DepartmentOverview from "../pages/dashboards/hod/pages/DepartmentOverview";
-import Approvals from "../pages/dashboards/hod/pages/Approvals";
 import DepartmentBroadcast from "../pages/dashboards/hod/pages/DepartmentBroadcast";
 import AllAnnouncements from "../pages/dashboards/hod/pages/AllAnnouncements";
-import ManageStaff from "../pages/dashboards/hod/pages/ManageStaff";
 import LecturerManagement from "../pages/dashboards/hod/pages/LecturerManagement";
 import DepartmentReports from "../pages/dashboards/hod/pages/DepartmentReports";
 import DepartmentSettings from "../pages/dashboards/hod/pages/DepartmentSettings";
 import MessagesTab from "../pages/Message/MessagesTab";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
+import NotificationsPage from "../pages/dashboards/lecturer/pages/Notifications";
 
 export const hodRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -20,15 +19,6 @@ export const hodRoutes = [
     element={
       <ProtectedRoute allowedRoles={["hod"]}>
         <DepartmentOverview />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="approvals"
-    path="approvals"
-    element={
-      <ProtectedRoute allowedRoles={["hod"]}>
-        <Approvals />
       </ProtectedRoute>
     }
   />,
@@ -47,15 +37,6 @@ export const hodRoutes = [
     element={
       <ProtectedRoute allowedRoles={["hod"]}>
         <AllAnnouncements />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="staff"
-    path="staff"
-    element={
-      <ProtectedRoute allowedRoles={["hod"]}>
-        <ManageStaff />
       </ProtectedRoute>
     }
   />,
@@ -83,6 +64,15 @@ export const hodRoutes = [
     element={
       <ProtectedRoute allowedRoles={["hod"]}>
         <DepartmentSettings />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="notifications"
+    path="notifications"
+    element={
+      <ProtectedRoute allowedRoles={["hod"]}>
+        <NotificationsPage />
       </ProtectedRoute>
     }
   />,

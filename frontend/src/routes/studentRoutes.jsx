@@ -3,9 +3,8 @@ import ProtectedRoute from "../components/ProtectedRoute";
 
 // --- STUDENT IMPORTS ---
 import EnhancedStudentDashboard from "../pages/dashboards/student/pages/Dashboard/EnhancedStudentDashboard";
-// ✅ IMPORT THE NEW PAGE HERE (Adjust the folder path to match where you saved it)
 import AnnouncementsPage from "../pages/dashboards/student/pages/announcement/AnnouncementsPage";
-import { NotificationsTab } from "../pages/dashboards/student/pages/Notifications/NotificationsTab";
+import NotificationsPage from "../pages/dashboards/student/pages/Notifications/NotificationsPage";
 import EventsPage from "../pages/dashboards/student/Events/EventsPage";
 import BookmarksPage from "../pages/dashboards/student/Events/BookmarksPage";
 import EventDetails from "../pages/dashboards/student/Events/EventDetails";
@@ -22,7 +21,7 @@ export const studentRoutes = [
     key="dash"
     path="dashboard"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <EnhancedStudentDashboard />
       </ProtectedRoute>
     }
@@ -32,7 +31,7 @@ export const studentRoutes = [
     key="announcements"
     path="announcements"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <AnnouncementsPage />
       </ProtectedRoute>
     }
@@ -41,7 +40,7 @@ export const studentRoutes = [
     key="events"
     path="events"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <EventsPage />
       </ProtectedRoute>
     }
@@ -50,7 +49,7 @@ export const studentRoutes = [
     key="bookmarks"
     path="bookmarks"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <BookmarksPage />
       </ProtectedRoute>
     }
@@ -59,7 +58,7 @@ export const studentRoutes = [
     key="event-details"
     path="events/:eventId"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <EventDetails />
       </ProtectedRoute>
     }
@@ -68,7 +67,7 @@ export const studentRoutes = [
     key="search"
     path="search"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <SearchResults />
       </ProtectedRoute>
     }
@@ -77,7 +76,7 @@ export const studentRoutes = [
     key="reminders"
     path="reminders"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <RemindersTab />
       </ProtectedRoute>
     }
@@ -86,7 +85,7 @@ export const studentRoutes = [
     key="timetable"
     path="timetable"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <TimeTable />
       </ProtectedRoute>
     }
@@ -95,8 +94,17 @@ export const studentRoutes = [
     key="messages"
     path="messages"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <MessagesTab />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="notifications"
+    path="notifications"
+    element={
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+        <NotificationsPage />
       </ProtectedRoute>
     }
   />,
@@ -104,7 +112,7 @@ export const studentRoutes = [
     key="profile"
     path="profile"
     element={
-      <ProtectedRoute allowedRoles={["student", "admin"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "admin"]}>
         <Profile />
       </ProtectedRoute>
     }
@@ -113,7 +121,7 @@ export const studentRoutes = [
     key="settings"
     path="settings"
     element={
-      <ProtectedRoute allowedRoles={["student"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
         <Settings />
       </ProtectedRoute>
     }

@@ -206,10 +206,10 @@ export default function StudentDashboard() {
                           event.aiMatchScore > 85 ? "text-xl" : "text-md"
                         }`}
                       >
-                        {event.title}
+                        {event?.title || 'Untitled Event'}
                       </h4>
                       <p className="text-xs text-neutral-500 line-clamp-2 mb-6">
-                        {event.description}
+                        {event?.description || "No description available."}
                       </p>
                     </div>
 

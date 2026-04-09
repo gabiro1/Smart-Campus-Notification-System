@@ -36,6 +36,8 @@ import './workers/eventReminderWorker.js'; // 👷 Start the Event Reminder Work
 import auditRoutes from './modules/audit/routes/auditRoutes.js'; // For the new audit logging system
 import analyticsRoutes from './modules/analytics/routes/analyticsRoutes.js'; // Analytics dashboard
 import searchRoutes from './modules/search/routes/searchRoutes.js'; // Smart search with AI
+import supportRoutes from './modules/support/routes/supportRoutes.js'; // Support Tickets
+import smsRoutes from './modules/sms/routes/messageRoutes.js'; // SMS Module
 
 const app = express();
 const httpServer = createServer(app);
@@ -169,6 +171,8 @@ app.use('/api/copilot', copilotRoutes);
 app.use('/api/ai', aiRoutes); // AI Announcement Suggester
 app.use('/api/governance/announcements', governanceRoutes); // Governance Engine
 app.use('/api/admin/audit-logs', auditRoutes);
+app.use('/api/support', supportRoutes); // Support Tickets
+app.use('/api/messages', smsRoutes); // SMS Module (under messages)
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {

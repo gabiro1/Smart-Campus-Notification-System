@@ -9,6 +9,9 @@ import {
   ChevronDown,
   Headset,
   Megaphone,
+  Bell,
+  User,
+  Bookmark,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -19,7 +22,9 @@ const studentItems = [
   { icon: Calendar, label: "Time Table", path: "/student/timetable" },
   { icon: MessageSquare, label: "Messages", path: "/student/messages" },
   { icon: Sparkles, label: "Events", path: "/student/events" },
+  { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
   { icon: Clock, label: "Reminders", path: "/student/reminders" },
+  { icon: Bell, label: "Notifications", path: "/student/notifications" },
 ];
 
 export default function StudentSidebar() {
@@ -69,6 +74,10 @@ export default function StudentSidebar() {
 
       {/* 3. Bottom Actions */}
       <div className="p-4 md:p-5 border-t border-white/5 space-y-2 bg-card">
+        <SidebarLink
+          item={{ icon: User, label: "Profile", path: "/student/profile" }}
+          active={location.pathname === "/student/profile"}
+        />
         <SidebarLink
           item={{ icon: Settings, label: "Settings", path: "/student/settings" }}
           active={location.pathname === "/student/settings"}

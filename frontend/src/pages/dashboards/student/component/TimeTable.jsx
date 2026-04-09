@@ -11,6 +11,8 @@ import {
   GraduationCap,
 } from "lucide-react";
 
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+
 // ─────────────────────────────────────────────
 // Reusable Glass Panel
 // ─────────────────────────────────────────────
@@ -100,7 +102,7 @@ export default function TimeTable() {
 
   useEffect(() => {
     setLoading(true);
-    apiClient.get('/timetable', { params: { dayOfWeek: selectedDay } })
+    apiClient.get('/student/timetable', { params: { dayOfWeek: selectedDay } })
       .then(res => { 
         const data = res.data?.data || res.data || []; 
         setScheduleData(prev => ({ 
@@ -146,7 +148,7 @@ export default function TimeTable() {
               Academic Timetable
             </h1>
             <p className="text-white/30 text-xs md:text-sm">
-              Level 4 Information Technology
+              {user.level ? `${user.level}` : 'Academic'} Timetable
             </p>
           </header>
 

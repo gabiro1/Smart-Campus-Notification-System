@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../../../../context/AuthContext';
 import apiClient from '../../../../../services/apiClient';
 import toast from 'react-hot-toast';
 import { 
   Mail, Phone, BookOpen, GraduationCap, Building, 
-  Loader2, Edit3, X, Plus, Check, Hash 
+  Loader2, Edit3, X, Plus, Check, Hash,
+  Camera, Ticket, CheckCircle, XCircle, 
+  Clock, Calendar, User, Shield, Building2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,22 +15,26 @@ export default function Profile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: '',
-    interests: []
+    interests: [],
+    level: ''
   });
   
   const [newInterest, setNewInterest] = useState('');
+  const fileInputRef = useRef(null);
 
-  // Sync state whenever user context updates and we are not actively in edit mode
+  // Sync state whenever user context updates
   useEffect(() => {
     if (user && !isEditing) {
       setFormData({
         name: user.name || '',
         phoneNumber: user.phoneNumber || '',
-        interests: user.interests || []
+        interests: user.interests || [],
+        level: user.level || ''
       });
     }
   }, [user, isEditing]);
@@ -47,6 +53,45 @@ export default function Profile() {
     if (typeof refObj === 'object' && refObj.name) return refObj.name;
     if (typeof refObj === 'string' && refObj.length > 0) return 'Not assigned'; 
     return 'Not assigned';
+  };
+
+  // Handle photo upload
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const response = await apiClient.post('/users/profile/photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (response.data?.user) {
+        updateUser(response.data.user);
+        toast.success('Profile photo updated!');
+      } else {
+        toast.success('Photo uploaded!');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload photo');
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   const handleAddInterest = () => {
@@ -71,7 +116,6 @@ export default function Profile() {
       setSaving(true);
       const res = await apiClient.put('/users/profile', formData);
       
-      // Update the main app user context with the new data
       if (res.data && res.data.user) {
         updateUser(res.data.user);
       } else {
@@ -84,6 +128,16 @@ export default function Profile() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Format dates
+  const formatDate = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
   if (!user) {
@@ -104,24 +158,78 @@ export default function Profile() {
         {/* --- HEADER --- */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10 w-full relative">
           
+          {/* Avatar with Photo Upload */}
           <div className="flex-shrink-0 relative">
-            <div className="w-28 h-28 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 rounded-full flex items-center justify-center p-1 shadow-2xl">
-              <div className="w-full h-full bg-neutral-900 rounded-full flex items-center justify-center text-4xl font-black text-white tracking-tighter">
-                {getInitials(user.name)}
-              </div>
+            <div 
+              className="w-28 h-28 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 rounded-full flex items-center justify-center p-1 shadow-2xl cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {user.profilePicture ? (
+                <img 
+                  src={user.profilePicture} 
+                  alt={user.name} 
+                  className="w-full h-full rounded-full object-cover bg-neutral-900"
+                />
+              ) : (
+                <div className="w-full h-full bg-neutral-900 rounded-full flex items-center justify-center text-4xl font-black text-white tracking-tighter">
+                  {getInitials(user.name)}
+                </div>
+              )}
             </div>
+            {/* Camera Overlay */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-1 right-1 w-8 h-8 bg-blue-600 hover:bg-blue-500 border-2 border-neutral-900 rounded-full flex items-center justify-center transition-colors"
+              title="Change photo"
+            >
+              {uploadingPhoto ? (
+                <Loader2 size={14} className="animate-spin text-white" />
+              ) : (
+                <Camera size={14} className="text-white" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
             {/* Online Indicator */}
-            <div className="absolute bottom-1 right-2 w-6 h-6 bg-green-500 border-4 border-neutral-900 rounded-full" />
+            <div className="absolute -bottom-1 left-1 w-5 h-5 bg-green-500 border-4 border-neutral-900 rounded-full" />
           </div>
 
           <div className="flex-1 text-center sm:text-left pt-2 w-full">
             {!isEditing ? (
               <>
                 <h1 className="text-3xl font-black text-white tracking-tight mb-2">{user.name}</h1>
-                <p className="text-blue-400 font-medium flex items-center justify-center sm:justify-start gap-2">
-                  <GraduationCap size={18} />
-                  Student • {user.level || 'Level Not Set'}
-                </p>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                  <p className="text-blue-400 font-medium flex items-center gap-2">
+                    <GraduationCap size={18} />
+                    Student • {user.level || 'Level Not Set'}
+                  </p>
+                  {/* Student ID Badge */}
+                  {user.studentID && (
+                    <span className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 rounded-full text-sm font-bold">
+                      <Ticket size={14} />
+                      {user.studentID}
+                    </span>
+                  )}
+                </div>
+                {/* Email Verification Badge */}
+                <div className="mt-2 flex items-center justify-center sm:justify-start gap-2">
+                  {user.emailVerified ? (
+                    <span className="flex items-center gap-1.5 text-emerald-400 text-sm">
+                      <CheckCircle size={16} />
+                      Email Verified
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-red-400 text-sm">
+                      <XCircle size={16} />
+                      Not Verified
+                    </span>
+                  )}
+                </div>
               </>
             ) : (
               <div className="space-y-4 w-full pr-0 sm:pr-40">
@@ -133,6 +241,22 @@ export default function Profile() {
                     onChange={(e) => setFormData(p => ({...p, name: e.target.value}))}
                     className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-bold"
                   />
+                </div>
+                {/* Level Dropdown */}
+                <div>
+                  <label className="text-xs text-neutral-400 font-bold uppercase tracking-widest pl-1 mb-1 block text-left">Level / Year</label>
+                  <select
+                    value={formData.level}
+                    onChange={(e) => setFormData(p => ({...p, level: e.target.value}))}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                  >
+                    <option value="">Select Level</option>
+                    <option value="Year 1">Year 1</option>
+                    <option value="Year 2">Year 2</option>
+                    <option value="Year 3">Year 3</option>
+                    <option value="Year 4">Year 4</option>
+                    <option value="Year 5">Year 5</option>
+                  </select>
                 </div>
               </div>
             )}
@@ -169,11 +293,10 @@ export default function Profile() {
                 </div>
              )}
           </div>
-
         </div>
 
-        {/* --- DETAILS GRID --- */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 w-full">
+        {/* --- PERSONAL INFO GRID --- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 w-full">
           
           <div className="bg-black/30 border border-white/5 p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
             <div className="bg-white/5 p-3 rounded-full text-neutral-400 mt-1 flex-shrink-0">
@@ -204,9 +327,25 @@ export default function Profile() {
               )}
             </div>
           </div>
+        </div>
 
+        {/* --- ACADEMIC INFO GRID --- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 w-full">
+          
+          {/* College */}
           <div className="bg-black/30 border border-white/5 p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
-            <div className="bg-white/5 p-3 rounded-full text-neutral-400 mt-1 flex-shrink-0">
+            <div className="bg-white/5 p-3 rounded-full text-purple-400 mt-1 flex-shrink-0">
+              <Building2 size={18} />
+            </div>
+            <div className="w-full overflow-hidden">
+              <label className="text-xs text-neutral-500 font-bold uppercase tracking-widest pl-1">College</label>
+              <div className="text-white font-medium truncate mt-1">{getRefName(user.college)}</div>
+            </div>
+          </div>
+
+          {/* School */}
+          <div className="bg-black/30 border border-white/5 p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+            <div className="bg-white/5 p-3 rounded-full text-blue-400 mt-1 flex-shrink-0">
               <Building size={18} />
             </div>
             <div className="w-full overflow-hidden">
@@ -215,8 +354,9 @@ export default function Profile() {
             </div>
           </div>
 
+          {/* Department */}
           <div className="bg-black/30 border border-white/5 p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
-            <div className="bg-white/5 p-3 rounded-full text-neutral-400 mt-1 flex-shrink-0">
+            <div className="bg-white/5 p-3 rounded-full text-emerald-400 mt-1 flex-shrink-0">
               <BookOpen size={18} />
             </div>
             <div className="w-full overflow-hidden">
@@ -225,6 +365,18 @@ export default function Profile() {
             </div>
           </div>
 
+          {/* Class */}
+          <div className="bg-black/30 border border-white/5 p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+            <div className="bg-white/5 p-3 rounded-full text-amber-400 mt-1 flex-shrink-0">
+              <GraduationCap size={18} />
+            </div>
+            <div className="w-full overflow-hidden">
+              <label className="text-xs text-neutral-500 font-bold uppercase tracking-widest pl-1">Class</label>
+              <div className="text-white font-medium truncate mt-1">
+                {user.classId?.name ? `${user.classId.name} (${user.classId.code || ''})` : 'Not assigned'}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* --- INTERESTS --- */}
@@ -232,7 +384,7 @@ export default function Profile() {
            <label className="text-xs text-neutral-500 font-bold uppercase tracking-widest flex items-center gap-2 mb-4">
               <Hash size={14} />
               Interests & Academic Tags
-           </label>
+           </label> 
 
            <div className="flex flex-wrap gap-2.5 items-center">
               <AnimatePresence>
@@ -256,13 +408,12 @@ export default function Profile() {
                     )}
                   </motion.span>
                 ))}
-              </AnimatePresence>
+              </AnimatePresence> 
 
               {(!user?.interests?.length && !formData.interests?.length && !isEditing) && (
                 <span className="text-neutral-600 text-sm italic py-2">No interests added yet. Click edit to add tags.</span>
               )}
 
-              {/* Add Interest Input Tracker */}
               {isEditing && (
                 <div className="flex items-center gap-2 mt-1 sm:mt-0">
                   <input
@@ -284,13 +435,57 @@ export default function Profile() {
                       handleAddInterest();
                     }}
                     disabled={!newInterest.trim()}
-                    className="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white p-2 rounded-full transition-all disabled:opacity-30 disabled:hover:bg-blue-600/20 disabled:hover:text-blue-400"
+                    className="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white p-2 rounded-full transition-all disabled:opacity-30"
                   >
                     <Plus size={16} />
                   </button>
                 </div>
               )}
            </div>
+        </div>
+
+        {/* --- ACCOUNT INFO --- */}
+        <div className="pt-8 border-t border-white/5 w-full mt-8">
+          <label className="text-xs text-neutral-500 font-bold uppercase tracking-widest flex items-center gap-2 mb-4">
+            <Shield size={14} />
+            Account Info
+          </label>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-black/30 border border-white/5 p-4 rounded-xl text-center">
+              <div className="flex items-center justify-center gap-2 text-neutral-400 mb-2">
+                <User size={16} />
+              </div>
+              <div className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Role</div>
+              <div className="text-white font-medium text-sm capitalize">{user.role?.replace('_', ' ')}</div>
+            </div>
+
+            <div className="bg-black/30 border border-white/5 p-4 rounded-xl text-center">
+              <div className="flex items-center justify-center gap-2 text-neutral-400 mb-2">
+                <Calendar size={16} />
+              </div>
+              <div className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Joined</div>
+              <div className="text-white font-medium text-sm">{formatDate(user.createdAt)}</div>
+            </div>
+
+            <div className="bg-black/30 border border-white/5 p-4 rounded-xl text-center">
+              <div className="flex items-center justify-center gap-2 text-neutral-400 mb-2">
+                <Clock size={16} />
+              </div>
+              <div className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Last Active</div>
+              <div className="text-white font-medium text-sm">{formatDate(user.lastActiveAt)}</div>
+            </div>
+
+            <div className="bg-black/30 border border-white/5 p-4 rounded-xl text-center">
+              <div className="flex items-center justify-center gap-2 text-neutral-400 mb-2">
+                <CheckCircle size={16} />
+              </div>
+              <div className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Onboarding</div>
+              <div className={`font-medium text-sm ${user.hasCompletedOnboarding ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {user.hasCompletedOnboarding ? 'Completed' : 'Pending'}
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

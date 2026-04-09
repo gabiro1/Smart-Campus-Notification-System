@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { GlassCard, FormField, FormHelperText } from "@/components/shared";
-import { User, Bell, Clock, Shield, Save, Loader2, CheckCircle2 } from "lucide-react";
-import axios from "axios";
+import { User, Bell, Clock, Shield, Save, Loader2, LogOut, Upload, Camera, AlertTriangle, Trash2 } from "lucide-react";
+import authService from "../../../services/authService";
 import toast from "react-hot-toast";
-import useFormValidation from "../../../hooks/useFormValidation";
+import { useNavigate } from "react-router-dom";
+import apiClient from "../../../services/apiClient";
 
 // Custom Liquid Toggle Switch
 const LiquidToggle = ({ enabled, onChange }) => (
@@ -25,95 +26,123 @@ const LiquidToggle = ({ enabled, onChange }) => (
 );
 
 export default function Settings() {
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  // States
   const [formData, setFormData] = useState({
     name: "",
     title: "",
     profileUrl: "",
+    profilePicture: null,
     currentlyInOffice: false,
     officeHours: "",
     emailAlertsComments: false,
     pushAlertsHOD: false,
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
     { id: "availability", label: "Availability", icon: Clock },
-    { id: "notifications", label: "Notification Preferences", icon: Bell },
+    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "security", label: "Security", icon: Shield },
   ];
 
-  // API Intercept
-  const API_URL = "http://localhost:5000/api/users/settings"; // Replace with your actual backend URL
-
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchProfile = async () => {
       try {
         setIsLoading(true);
-        const { data } = await axios.get(API_URL, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`
-          }
-        });
+        const user = await authService.getCurrentUser();
         
-        setFormData({
-          name: data.name || "Dr. Sarah Jenkins",
-          title: data.title || "Senior Lecturer",
-          profileUrl: data.profileUrl || "",
-          currentlyInOffice: data.availability?.currentlyInOffice || false,
-          officeHours: data.availability?.officeHours || "Mon & Wed, 2PM - 4PM",
-          emailAlertsComments: data.notificationPreferences?.emailAlertsComments || false,
-          pushAlertsHOD: data.notificationPreferences?.pushAlertsHOD || true,
-        });
+        setFormData(prev => ({
+          ...prev,
+          name: user.name || "",
+          profileUrl: user.profilePicture || "",
+        }));
       } catch (error) {
-        console.error("Failed to fetch settings, using default mock data", error);
-        // Using Fallback for demonstration
-        setFormData({
-          name: "Dr. Sarah Jenkins",
-          title: "Senior Lecturer",
-          profileUrl: "",
-          currentlyInOffice: false,
-          officeHours: "Mon & Wed, 2PM - 4PM",
-          emailAlertsComments: true,
-          pushAlertsHOD: true,
-        });
+        console.error("Failed to fetch profile:", error);
+        toast.error("Could not load profile");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchSettings();
+    fetchProfile();
   }, []);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('profilePicture', file);
+
+      const response = await apiClient.post('/users/profile/photo', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (response.data?.user?.profilePicture) {
+        setFormData(prev => ({ ...prev, profileUrl: response.data.user.profilePicture }));
+        toast.success('Profile picture updated!');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await axios.patch(API_URL, {
-        name: formData.name,
-        title: formData.title,
-        profileUrl: formData.profileUrl,
-        availability: {
-          currentlyInOffice: formData.currentlyInOffice,
-          officeHours: formData.officeHours,
-        },
-        notificationPreferences: {
+      if (activeTab === "profile") {
+        await authService.updateProfile({
+          name: formData.name,
+          profilePicture: formData.profileUrl,
+        });
+      }
+      
+      if (activeTab === "notifications") {
+        await authService.updateNotificationPreferences({
           emailAlertsComments: formData.emailAlertsComments,
           pushAlertsHOD: formData.pushAlertsHOD,
+        });
+      }
+      
+      if (activeTab === "security" && formData.newPassword) {
+        if (formData.newPassword !== formData.confirmPassword) {
+          toast.error("Passwords do not match");
+          setIsSaving(false);
+          return;
         }
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`
-        }
-      });
+        await authService.updateProfile({
+          currentPassword: formData.currentPassword,
+          password: formData.newPassword,
+        });
+      }
       
       toast.success("Settings saved successfully!");
     } catch (error) {
-       // Mock success logic since endpoint might not exist locally:
-       toast.success("Settings saved perfectly (Mock Update)");
+      toast.error(error.message || "Failed to save settings");
     } finally {
       setIsSaving(false);
     }
@@ -191,35 +220,58 @@ export default function Settings() {
                       className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all"
                     />
                   </FormField>
-                  <FormField
-                    label="Title"
-                    htmlFor="title"
-                    required
-                    helper="e.g. Senior Lecturer, Professor"
-                  >
-                    <input
-                      id="title"
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all"
-                    />
-                  </FormField>
+
+                  {/* Profile Picture Upload */}
                   <div className="md:col-span-2">
-                    <FormField
-                      label="Profile Picture URL"
-                      htmlFor="profileUrl"
-                      helper="Optional: link to your avatar image"
-                    >
-                      <input
-                        id="profileUrl"
-                        type="text"
-                        value={formData.profileUrl}
-                        onChange={(e) => setFormData({ ...formData, profileUrl: e.target.value })}
-                        placeholder="https://example.com/avatar.png"
-                        className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all font-mono text-sm"
-                      />
-                    </FormField>
+                    <label className="block text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2">
+                      Profile Picture
+                    </label>
+                    <div className="flex items-center gap-6">
+                      <div className="relative group">
+                        <div className="w-24 h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center">
+                          {formData.profileUrl ? (
+                            <img 
+                              src={formData.profileUrl} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User size={32} className="text-neutral-600" />
+                          )}
+                          {uploadingImage && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <Loader2 size={24} className="animate-spin text-blue-500" />
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingImage}
+                          className="absolute -bottom-2 -right-2 p-2 bg-blue-600 hover:bg-blue-500 rounded-full text-white shadow-lg transition-all hover:scale-110"
+                        >
+                          <Camera size={14} />
+                        </button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-white font-medium mb-1">Upload a new photo</p>
+                        <p className="text-xs text-neutral-500">JPG, PNG or GIF. Max 5MB.</p>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="mt-3 flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+                        >
+                          <Upload size={14} /> Choose File
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -311,17 +363,39 @@ export default function Settings() {
                 <div className="space-y-5 max-w-sm">
                   <div>
                     <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide">Current Password</label>
-                    <input type="password" placeholder="••••••••" className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" />
+                    <input 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={formData.currentPassword}
+                      onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" 
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide">New Password</label>
-                    <input type="password" placeholder="••••••••" className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" />
+                    <input 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={formData.newPassword}
+                      onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" 
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wide">Confirm Password</label>
-                    <input type="password" placeholder="••••••••" className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" />
+                    <input 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-all" 
+                    />
                   </div>
-                  <button className="w-full mt-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98]">
+                  <button 
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="w-full mt-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 hover:border-white/20 transition-all active:scale-[0.98]"
+                  >
                     Change Password
                   </button>
                 </div>
@@ -349,6 +423,46 @@ export default function Settings() {
                 </>
               )}
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Logout Button */}
+      <div className="flex justify-center mt-8">
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            navigate("/login");
+          }}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors border border-red-500/20 hover:border-red-500/40"
+        >
+          <LogOut size={18} /> Sign Out
+        </button>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="max-w-5xl mx-auto mt-8">
+        <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-red-500/10 rounded-lg">
+              <AlertTriangle size={20} className="text-red-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Danger Zone</h3>
+          </div>
+          <p className="text-sm text-neutral-400 mb-6">
+            These actions are irreversible. Please proceed with caution.
+          </p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-background/50 border border-white/5 rounded-xl">
+              <div>
+                <p className="text-sm font-medium text-white">Delete Account</p>
+                <p className="text-xs text-neutral-500 mt-1">Permanently delete your account and all associated data.</p>
+              </div>
+              <button className="px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/30 rounded-lg text-sm font-medium transition-colors">
+                Delete Account
+              </button>
+            </div>
           </div>
         </div>
       </div>

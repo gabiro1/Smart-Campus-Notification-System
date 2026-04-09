@@ -41,10 +41,15 @@ const notificationService = {
 
   // Get AI digest summary
   generateDigest: async (period = 'weekly') => {
-    const response = await apiClient.get('/notifications/digest', {
-      params: { period }
-    });
-    return response.data;
+    try {
+      const response = await apiClient.get('/notifications/digest', {
+        params: { period }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Digest API error:', error);
+      throw error;
+    }
   },
 
   // Get latest cached digest (from cron or previous generation)

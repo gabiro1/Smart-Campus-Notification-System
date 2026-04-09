@@ -22,6 +22,7 @@ import {
 import { useAuth } from "../../../../../context/AuthContext";
 import eventService from "../../../../../services/eventService";
 import dashboardService from "../../../../../services/dashboardService";
+import apiClient from "../../../../../services/apiClient";
 import toast from "react-hot-toast";
 
 export default function EnhancedStudentDashboard() {
@@ -71,10 +72,32 @@ export default function EnhancedStudentDashboard() {
     // 2. Fetch Events Feed SEPARATELY (Decoupled so it doesn't break the whole page)
     try {
       const feedData = await eventService.getFeed();
-      setEvents(feedData || []);
+      console.log('[Dashboard] Events received:', feedData?.length || 0);
+      
+      // If AI feed is empty, try fetching all approved events
+      if (!feedData || feedData.length === 0) {
+        try {
+          const allEventsResponse = await apiClient.get('/events');
+          const allEvents = allEventsResponse.data?.events || allEventsResponse.data || [];
+          console.log('[Dashboard] Fallback - All events:', allEvents.length);
+          setEvents(allEvents);
+        } catch (fallbackError) {
+          console.log('[Dashboard] Fallback also failed:', fallbackError);
+          setEvents([]);
+        }
+      } else {
+        setEvents(feedData);
+      }
     } catch (error) {
       console.error("Failed to load Events Feed:", error);
-      // We fail silently here to not spam the user if just the event feed goes down
+      // Try fallback
+      try {
+        const allEventsResponse = await apiClient.get('/events');
+        const allEvents = allEventsResponse.data?.events || allEventsResponse.data || [];
+        setEvents(allEvents);
+      } catch (e) {
+        setEvents([]);
+      }
     }
 
     setLoading(false);
@@ -303,7 +326,10 @@ export default function EnhancedStudentDashboard() {
                     </div>
                   )}
                 </div>
-                <button className="w-full mt-4 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/student/timetable')}
+                  className="w-full mt-4 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors"
+                >
                   View Full Timetable
                 </button>
               </GlassCard>

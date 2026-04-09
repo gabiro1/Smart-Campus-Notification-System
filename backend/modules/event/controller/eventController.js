@@ -274,39 +274,81 @@ export const createEvent = async (req, res) => {
 export const getStudentFeed = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
     const levelNumber = Number(user.level);
-    const orConditions = [{ targetSchool: user.school }, { targetLevel: 0 }];
+    
+    // Build query conditions - match user's school, department, level, or events with no restrictions
+    const orConditions = [
+      { targetSchool: user.school?.toString() }, 
+      { targetLevel: 0 },
+      { targetLevel: null },
+      { targetLevel: undefined }
+    ];
 
-    if (!isNaN(levelNumber)) {
+    if (!isNaN(levelNumber) && levelNumber > 0) {
       orConditions.push({
-        targetDept: user.department,
+        targetDept: user.department?.toString(),
         targetLevel: levelNumber,
       });
     }
 
+    // Query for APPROVED events OR events with no target restrictions (public events)
+    // Also include events created by the user themselves
     const events = await Event.find({
-      status: "approved",
-      $or: orConditions,
-    });
+      $and: [
+        {
+          $or: [
+            { status: "approved" },
+            { createdBy: user._id } // User can see their own events even if pending
+          ]
+        },
+        {
+          $or: orConditions
+        }
+      ]
+    }).populate('createdBy', 'name email');
+
+    // If no events found with targeting, fetch all approved events as fallback
+    let rankedFeed = events;
+    if (rankedFeed.length === 0) {
+      const fallbackEvents = await Event.find({ status: "approved" })
+        .populate('createdBy', 'name email');
+      
+      rankedFeed = fallbackEvents;
+    }
 
     // Fetch this user's bookmarked event IDs for annotation
     const userBookmarks = await Bookmark.find({ userId: req.user.id }).select('eventId').lean();
     const bookmarkedIds = new Set(userBookmarks.map(b => b.eventId.toString()));
 
-    const rankedFeed = events
-      .map((event) => ({
-        ...event._doc,
-        aiMatchScore: calculateMatchScore(user, event),
-        isBookmarked: bookmarkedIds.has(event._id.toString()),
-      }))
+    // Calculate AI match scores and sort
+    rankedFeed = rankedFeed
+      .map((event) => {
+        // Calculate average rating
+        const avgRating = event.ratings && event.ratings.length > 0
+          ? parseFloat((event.ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / event.ratings.length).toFixed(1))
+          : 0;
+        
+        return {
+          ...event._doc,
+          aiMatchScore: calculateMatchScore(user, event),
+          isBookmarked: bookmarkedIds.has(event._id.toString()),
+          avgRating,
+          ratingCount: event.ratings?.length || 0,
+        };
+      })
       .sort((a, b) => b.aiMatchScore - a.aiMatchScore);
 
-    res.json(rankedFeed);
+    // Return in consistent format with events key
+    res.json({ 
+      success: true, 
+      events: rankedFeed,
+      total: rankedFeed.length
+    });
   } catch (error) {
     console.error("Feed Error:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -349,17 +391,44 @@ export const rateEvent = async (req, res) => {
 
     if (!event) return res.status(404).json({ message: "Event not found" });
 
-    event.ratings.push({ studentId: user._id, rating });
+    // Check if user already rated this event
+    const existingRatingIndex = event.ratings.findIndex(
+      r => r.studentId?.toString() === user._id.toString()
+    );
+
+    if (existingRatingIndex !== -1) {
+      // Update existing rating
+      event.ratings[existingRatingIndex].rating = rating;
+      event.markModified('ratings');
+    } else {
+      // Add new rating
+      event.ratings.push({ studentId: user._id, rating });
+    }
     await event.save();
 
+    // Update user's interest weights based on rating
     const adjustment = rating >= 4 ? 2 : rating <= 2 ? -2 : 0;
-    event.tags.forEach((tag) => {
-      const currentWeight = user.interestWeights.get(tag) || 0;
-      user.interestWeights.set(tag, Math.max(0, currentWeight + adjustment));
-    });
+    if (event.tags && event.tags.length > 0) {
+      event.tags.forEach((tag) => {
+        if (!user.interestWeights) user.interestWeights = new Map();
+        const currentWeight = user.interestWeights.get(tag) || 0;
+        user.interestWeights.set(tag, Math.max(0, currentWeight + adjustment));
+      });
+      await user.save();
+    }
 
-    await user.save();
-    res.json({ message: "Rating submitted. AI updated." });
+    // Calculate updated stats
+    const avgRating = event.ratings.length > 0
+      ? parseFloat((event.ratings.reduce((sum, r) => sum + r.rating, 0) / event.ratings.length).toFixed(1))
+      : 0;
+
+    res.json({ 
+      success: true, 
+      message: existingRatingIndex !== -1 ? "Rating updated!" : "Rating submitted!",
+      avgRating,
+      ratingCount: event.ratings.length,
+      userRating: rating
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -899,5 +968,63 @@ export const getBookmarkedEvents = async (req, res) => {
   } catch (error) {
     console.error("Get Bookmarked Events Error:", error);
     res.status(500).json({ success: false, message: "Server Error", error: error.message });
+  }
+};
+
+/* =========================================================
+   STUDENT QR CHECK-IN
+========================================================= */
+export const studentCheckIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { studentId, studentIdentifier } = req.body;
+    const userId = req.user.id;
+
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    // Check if already checked in
+    const alreadyCheckedIn = event.checkedInBy.some(
+      checkin => checkin.studentId?.toString() === userId.toString()
+    );
+
+    if (alreadyCheckedIn) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You have already checked in to this event" 
+      });
+    }
+
+    // Add check-in record
+    event.checkedInBy.push({
+      studentId: userId,
+      studentIdentifier: studentIdentifier || studentId,
+      checkedInAt: new Date()
+    });
+
+    await event.save();
+
+    // Update user's attendance rate
+    const user = await User.findById(userId);
+    if (user) {
+      const totalEvents = await Event.countDocuments({
+        'checkedInBy.studentId': userId
+      });
+      // Calculate attendance rate (simplified - based on total events attended)
+      user.attendanceRate = Math.min(100, totalEvents * 5); // 5% per event, max 100%
+      await user.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Check-in successful! Attendance recorded.",
+      checkedInAt: new Date()
+    });
+
+  } catch (error) {
+    console.error("Check-in Error:", error);
+    res.status(500).json({ success: false, message: "Check-in failed", error: error.message });
   }
 };

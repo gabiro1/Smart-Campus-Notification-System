@@ -85,6 +85,7 @@ export const getPendingAnnouncements = async (req, res) => {
             pendingApprovalFromRole: reviewerRole === 'admin' ? { $exists: true } : reviewerRole,
         })
         .populate('authorId', 'name email profilePicture')
+        .populate('departmentId', 'name code')
         .sort({ createdAt: -1 });
 
         return res.status(200).json({
@@ -188,11 +189,92 @@ export const getPublishedFeed = async (req, res) => {
 export const getMyGovernanceAnnouncements = async (req, res) => {
     try {
         const mine = await GovernanceAnnouncement.find({ authorId: req.user._id })
+            .populate('departmentId', 'name code')
             .sort({ createdAt: -1 });
 
         return res.status(200).json({ success: true, data: mine });
     } catch (error) {
         console.error('getMyGovernanceAnnouncements:', error);
+        return res.status(500).json({ success: false, message: 'Server error.' });
+    }
+};
+
+// ============================================================
+// CONTROLLER 6: Delete Own Announcement
+// DELETE /api/governance/announcements/:id
+// ============================================================
+export const deleteGovernanceAnnouncement = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const announcement = await GovernanceAnnouncement.findById(id);
+        if (!announcement) {
+            return res.status(404).json({ success: false, message: 'Announcement not found.' });
+        }
+
+        // Only the author can delete their own announcement
+        if (announcement.authorId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'You can only delete your own announcements.' });
+        }
+
+        // Prevent deleting published announcements
+        if (announcement.status === 'published') {
+            return res.status(400).json({ success: false, message: 'Cannot delete published announcements.' });
+        }
+
+        await GovernanceAnnouncement.findByIdAndDelete(id);
+
+        return res.status(200).json({ success: true, message: 'Announcement deleted successfully.' });
+    } catch (error) {
+        console.error('deleteGovernanceAnnouncement:', error);
+        return res.status(500).json({ success: false, message: 'Server error.' });
+    }
+};
+
+// ============================================================
+// CONTROLLER 7: Update Own Announcement
+// PUT /api/governance/announcements/:id
+// ============================================================
+export const updateGovernanceAnnouncement = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, content, priority, targetScope, departmentId, schoolId, collegeId } = req.body;
+        
+        const announcement = await GovernanceAnnouncement.findById(id);
+        if (!announcement) {
+            return res.status(404).json({ success: false, message: 'Announcement not found.' });
+        }
+
+        // Only the author can update their own announcement
+        if (announcement.authorId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'You can only edit your own announcements.' });
+        }
+
+        // Prevent editing published announcements
+        if (announcement.status === 'published') {
+            return res.status(400).json({ success: false, message: 'Cannot edit published announcements.' });
+        }
+
+        // Update fields
+        if (title) announcement.title = title;
+        if (content) announcement.content = content;
+        if (priority) announcement.priority = priority;
+        if (targetScope) {
+            announcement.targetScope = targetScope;
+            // Re-determine approval flow if scope changed
+            const { status, pendingApprovalFromRole } = determineApprovalFlow(req.user.role, targetScope);
+            announcement.status = status;
+            announcement.pendingApprovalFromRole = pendingApprovalFromRole;
+        }
+        if (departmentId) announcement.departmentId = departmentId;
+        if (schoolId) announcement.schoolId = schoolId;
+        if (collegeId) announcement.collegeId = collegeId;
+
+        await announcement.save();
+
+        return res.status(200).json({ success: true, message: 'Announcement updated.', data: announcement });
+    } catch (error) {
+        console.error('updateGovernanceAnnouncement:', error);
         return res.status(500).json({ success: false, message: 'Server error.' });
     }
 };

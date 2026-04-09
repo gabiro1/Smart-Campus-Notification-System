@@ -63,8 +63,7 @@ export const getAcademicHierarchy = async (req, res) => {
 // @desc    Create new user (Admin only)
 export const createUser = async (req, res) => {
     try {
-        // ADDED college
-        const { name, email, password, role, college, school, department } = req.body;
+        const { name, email, password, role, college, school, department, level } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -80,9 +79,10 @@ export const createUser = async (req, res) => {
             email,
             password,
             role: userRole,
-            college, // <-- Added
+            college,
             school,
-            department
+            department,
+            level
         });
 
         res.status(201).json({
@@ -608,5 +608,48 @@ export const getActiveEmergencies = async (req, res) => {
   } catch (error) {
     console.error("Get Active Emergencies Error:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+// ==========================================
+// SYSTEM SETTINGS
+// ==========================================
+
+// In-memory store for settings (in production, use a database collection)
+let systemSettings = {
+  aiAutoApprove: false,
+  aiStrictness: 75,
+  requireHodApproval: true,
+  maintenanceMode: false,
+  maxBroadcastReach: "all",
+  smsQuota: { used: 0, limit: 10000 }
+};
+
+/**
+ * @desc    Get system settings
+ * @route   GET /api/admin/settings
+ */
+export const getSystemSettings = async (req, res) => {
+  try {
+    res.json({ success: true, data: systemSettings });
+  } catch (error) {
+    console.error("Get System Settings Error:", error);
+    res.status(500).json({ message: "Failed to fetch system settings" });
+  }
+};
+
+/**
+ * @desc    Update system settings
+ * @route   PUT /api/admin/settings
+ */
+export const updateSystemSettings = async (req, res) => {
+  try {
+    const updates = req.body;
+    systemSettings = { ...systemSettings, ...updates };
+    await logAuditAction(req.user._id, 'UPDATE_SETTINGS', null, 'system', 'System settings updated', updates);
+    res.json({ success: true, message: "Settings updated successfully", data: systemSettings });
+  } catch (error) {
+    console.error("Update System Settings Error:", error);
+    res.status(500).json({ message: "Failed to update system settings" });
   }
 };

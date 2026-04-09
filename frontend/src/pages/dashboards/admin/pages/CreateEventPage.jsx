@@ -19,16 +19,24 @@ export default function CreateEventPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isParsingAI, setIsParsingAI] = useState(false);
+  const [loadingStructure, setLoadingStructure] = useState(true);
+  const [academicStructure, setAcademicStructure] = useState({});
 
-  // Dummy structure (replace with your fetch logic as needed)
-  const academicStructure = {
-    "College of Science and Technology (CST)": {
-      "School of ICT": ["IT", "CS", "SE"],
-    },
-    "College of Business and Economics (CBE)": {
-      "School of Business": ["Finance", "Accounting"],
-    },
-  };
+  useEffect(() => {
+    const fetchStructure = async () => {
+      try {
+        setLoadingStructure(true);
+        const data = await adminService.getHierarchy();
+        setAcademicStructure(data.data || {});
+      } catch (error) {
+        console.error("Failed to fetch hierarchy:", error);
+        toast.error("Failed to load academic structure");
+      } finally {
+        setLoadingStructure(false);
+      }
+    };
+    fetchStructure();
+  }, []);
 
   const [formData, setFormData] = useState({
     title: "",

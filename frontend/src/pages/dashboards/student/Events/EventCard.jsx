@@ -9,6 +9,7 @@ import {
   Clock,
   MapPin,
   Bookmark,
+  Sparkles,
 } from "lucide-react";
 import eventService from "../../../../services/eventService";
 import toast from "react-hot-toast";
@@ -92,6 +93,16 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
                 <AlertCircle size={12} /> Urgent
               </div>
             )}
+            
+            {/* AI Match Score Badge */}
+            {event.aiMatchScore > 0 && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">
+                <Sparkles size={10} className="text-blue-400" />
+                <span className="text-blue-400 text-[9px] font-black uppercase">
+                  {Math.round(event.aiMatchScore)}% Match
+                </span>
+              </div>
+            )}
           </div>
 
           <button
@@ -120,42 +131,51 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
 
         {/* --- Text Content --- */}
         <h3 className="text-base md:text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
-          {event.title}
+          {event?.title || 'Untitled Event'}
         </h3>
         <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2 mb-6">
-          {event.description}
+          {event?.description || "No description available."}
         </p>
       </div>
 
-      {/* --- Footer: Rating & Action Button --- */}
+        {/* --- Footer: Rating & Action Button --- */}
       <div className="flex items-center justify-between pt-4 border-t border-white/5 mt-auto">
         <div className="flex items-center gap-3">
           <div
             className="flex gap-0.5"
-            onClick={(e) => e.stopPropagation()} // Keep stars clickable without triggering navigation
+            onClick={(e) => e.stopPropagation()}
             onMouseLeave={() => setHoveredStar(0)}
           >
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                onMouseEnter={() => setHoveredStar(star)}
-                onClick={(e) => handleRateClick(e, star)}
-                className="hover:scale-125 transition-transform focus:outline-none p-0.5"
-              >
-                <Star
-                  size={14}
-                  className={`transition-colors duration-200 ${
-                    star <= (hoveredStar || event.averageRating || 0)
-                      ? "fill-yellow-500 text-yellow-500"
-                      : "text-neutral-700 hover:text-yellow-500"
-                  }`}
-                />
-              </button>
-            ))}
+            {[1, 2, 3, 4, 5].map((star) => {
+              // Calculate average rating from ratings array
+              const avgRating = event.ratings && event.ratings.length > 0
+                ? event.ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / event.ratings.length
+                : 0;
+              
+              return (
+                <button
+                  key={star}
+                  onMouseEnter={() => setHoveredStar(star)}
+                  onClick={(e) => handleRateClick(e, star)}
+                  className="hover:scale-125 transition-transform focus:outline-none p-0.5"
+                >
+                  <Star
+                    size={14}
+                    className={`transition-colors duration-200 ${
+                      star <= (hoveredStar || Math.round(avgRating))
+                        ? "fill-yellow-500 text-yellow-500"
+                        : "text-neutral-700 hover:text-yellow-500"
+                    }`}
+                  />
+                </button>
+              );
+            })}
           </div>
-          <span className="text-[9px] md:text-[10px] font-bold text-neutral-600 uppercase tracking-widest hidden sm:inline-block">
-            Rate
-          </span>
+          {event.ratings && event.ratings.length > 0 && (
+            <span className="text-[9px] md:text-[10px] text-neutral-500 hidden sm:inline">
+              ({event.ratings.length})
+            </span>
+          )}
         </div>
 
         <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-blue-600 text-neutral-400 group-hover:text-white transition-colors">

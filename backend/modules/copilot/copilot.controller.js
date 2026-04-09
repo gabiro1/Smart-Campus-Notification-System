@@ -107,16 +107,17 @@ INSTRUCTIONS:
     // ─────────────────────────────
     // STEP 4: STRUCTURE RESPONSE
     // ─────────────────────────────
+    // We return the AI reply directly as a string for the message bubble,
+    // and include metadata for any advanced UI features.
     const responsePayload = {
       success: true,
-      reply: {
-        // greeting: `Hi ${user.name}! 👋`,
-        greeting: "Hello! ",
-        message: "Here are your latest notifications and updates:",
+      reply: aiReply, 
+      metadata: {
+        greeting: "Hello!",
+        systemMessage: "Here are your latest updates:",
         notifications,
-        nextSteps: "Let me know if you want more details or need help with anything else!",
-        aiGeneratedText: aiReply // optional, raw AI explanation if needed
-      },
+        nextSteps: "Let me know if you want more details!"
+      }
     };
 
     return res.status(200).json(responsePayload);

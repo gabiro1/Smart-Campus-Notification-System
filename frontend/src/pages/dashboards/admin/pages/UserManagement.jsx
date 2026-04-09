@@ -41,7 +41,33 @@ export default function UserManagement() {
     college: "",
     school: "",
     department: "",
+    level: "",
   });
+
+  // Academic hierarchy data
+  const [hierarchy, setHierarchy] = useState({});
+  const [loadingHierarchy, setLoadingHierarchy] = useState(false);
+
+  // Fetch hierarchy on mount
+  useEffect(() => {
+    const fetchHierarchy = async () => {
+      try {
+        setLoadingHierarchy(true);
+        const data = await adminService.getHierarchy();
+        setHierarchy(data.data || {});
+      } catch (error) {
+        console.error("Failed to fetch hierarchy:", error);
+      } finally {
+        setLoadingHierarchy(false);
+      }
+    };
+    fetchHierarchy();
+  }, []);
+
+  // Computed options based on selections
+  const collegeOptions = Object.keys(hierarchy);
+  const schoolOptions = hierarchy[formData.college] ? Object.keys(hierarchy[formData.college]) : [];
+  const departmentOptions = hierarchy[formData.college]?.[formData.school] || [];
 
   // View/Edit Drawer State
   const [selectedUser, setSelectedUser] = useState(null);
@@ -93,6 +119,7 @@ export default function UserManagement() {
         college: "",
         school: "",
         department: "",
+        level: "",
       });
       fetchUsers();
     } catch (error) {
@@ -770,27 +797,33 @@ export default function UserManagement() {
                     <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
                       College
                     </label>
-                    <input
-                      placeholder="e.g. CST"
+                    <select
                       value={formData.college}
-                      onChange={(e) =>
-                        setFormData({ ...formData, college: e.target.value })
-                      }
-                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
-                    />
+                      onChange={(e) => setFormData({ ...formData, college: e.target.value, school: "", department: "" })}
+                      disabled={loadingHierarchy}
+                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                    >
+                      <option value="">{loadingHierarchy ? "Loading..." : "Select College"}</option>
+                      {collegeOptions.map(col => (
+                        <option key={col} value={col}>{col}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
                       School
                     </label>
-                    <input
-                      placeholder="e.g. School of ICT"
+                    <select
                       value={formData.school}
-                      onChange={(e) =>
-                        setFormData({ ...formData, school: e.target.value })
-                      }
-                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
-                    />
+                      onChange={(e) => setFormData({ ...formData, school: e.target.value, department: "" })}
+                      disabled={!formData.college || loadingHierarchy}
+                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                    >
+                      <option value="">{!formData.college ? "Select college first" : "Select School"}</option>
+                      {schoolOptions.map(sch => (
+                        <option key={sch} value={sch}>{sch}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -798,15 +831,38 @@ export default function UserManagement() {
                   <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
                     Department
                   </label>
-                  <input
-                    placeholder="e.g. Information Technology"
+                  <select
                     value={formData.department}
-                    onChange={(e) =>
-                      setFormData({ ...formData, department: e.target.value })
-                    }
-                    className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white"
-                  />
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    disabled={!formData.school || loadingHierarchy}
+                    className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                  >
+                    <option value="">{!formData.school ? "Select school first" : "Select Department"}</option>
+                    {departmentOptions.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
                 </div>
+
+                {(formData.role === "student") && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider pl-1">
+                      Year / Level
+                    </label>
+                    <select
+                      value={formData.level}
+                      onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                      className="w-full bg-[#111] border border-white/5 p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-white appearance-none cursor-pointer"
+                    >
+                      <option value="">Select Year</option>
+                      <option value="Year 1">Year 1</option>
+                      <option value="Year 2">Year 2</option>
+                      <option value="Year 3">Year 3</option>
+                      <option value="Year 4">Year 4</option>
+                      <option value="Year 5">Year 5</option>
+                    </select>
+                  </div>
+                )}
 
                 <button
                   type="submit"

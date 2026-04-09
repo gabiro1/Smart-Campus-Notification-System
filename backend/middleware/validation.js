@@ -113,9 +113,15 @@ export const userProfileUpdateSchema = Joi.object({
       'string.pattern.base': 'Invalid phone number format.'
     }),
   interests: Joi.array().items(Joi.string()).optional(),
-  profilePicture: Joi.string().uri().optional().allow(''),
+  profilePicture: Joi.string().optional().allow(''),
   level: Joi.string().valid('Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5').optional().allow(''),
   languagePreference: Joi.string().valid('en', 'rw').optional().default('en'),
+  quietHours: Joi.object({
+    startTime: Joi.string().allow(null, '').optional(),
+    endTime: Joi.string().allow(null, '').optional()
+  }).optional(),
+  digestEnabled: Joi.boolean().optional(),
+  password: Joi.string().min(8).optional().allow(''),
   notificationPreferences: Joi.object({
     push: Joi.boolean().optional(),
     email: Joi.boolean().optional(),

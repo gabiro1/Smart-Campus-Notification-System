@@ -161,7 +161,11 @@ export default function FloatingCopilot() {
                         : "bg-muted text-neutral-200 rounded-[18px] rounded-bl-none border border-white/5"
                     }`}
                   >
-                     <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <div className="whitespace-pre-wrap">
+                      {typeof msg.content === "string" 
+                        ? msg.content 
+                        : (msg.content?.aiGeneratedText || msg.content?.reply || "AI response could not be parsed.")}
+                    </div>
                   </div>
                 </motion.div>
               ))}

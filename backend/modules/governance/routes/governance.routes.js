@@ -12,6 +12,8 @@ import {
     reviewAnnouncement,
     getPublishedFeed,
     getMyGovernanceAnnouncements,
+    deleteGovernanceAnnouncement,
+    updateGovernanceAnnouncement,
 } from '../controller/governance.controller.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 
@@ -66,6 +68,26 @@ router.get(
     '/feed',
     protect,
     getPublishedFeed
+);
+
+// ---------------------------------------------------------------
+// AUTHOR CRUD ROUTES (Own announcements only)
+// ---------------------------------------------------------------
+
+// DELETE /api/governance/announcements/:id  -- Delete own announcement
+router.delete(
+    '/:id',
+    protect,
+    authorize('lecturer', 'hod', 'dean', 'principal', 'admin'),
+    deleteGovernanceAnnouncement
+);
+
+// PUT /api/governance/announcements/:id  -- Update own announcement
+router.put(
+    '/:id',
+    protect,
+    authorize('lecturer', 'hod', 'dean', 'principal', 'admin'),
+    updateGovernanceAnnouncement
 );
 
 export default router;

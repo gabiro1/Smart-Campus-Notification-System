@@ -5,11 +5,12 @@
  * Includes smart UX: live escalation preview based on role + scope selection.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, AlertTriangle, CheckCircle, XCircle, ChevronDown, Loader2, Megaphone } from 'lucide-react';
+import { Send, AlertTriangle, CheckCircle, XCircle, ChevronDown, Loader2, Megaphone, Building2, Sparkles, Wand2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import governanceService from '../../services/governanceService';
+import copilotService from '../../services/copilotService';
 
 // ============================================================
 // CONSTANTS
@@ -64,26 +65,93 @@ export default function AnnouncementForm({ onSuccess }) {
         catch { return {}; }
     }, []);
 
-    const [form, setForm]         = useState({ title: '', content: '', priority: 'medium', targetScope: '' });
-    const [submitting, setSub]    = useState(false);
+    const [form, setForm] = useState({ title: '', content: '', priority: 'medium', targetScope: '', targetDepartment: '' });
+    const [submitting, setSub] = useState(false);
+    const [departments, setDepartments] = useState([]);
+    const [loadingDepts, setLoadingDepts] = useState(false);
+    
+    // AI Polish state
+    const [aiPolishing, setAIPolishing] = useState(false);
+
+    useEffect(() => {
+        if (form.targetScope === 'department') {
+            setLoadingDepts(true);
+            governanceService.getDepartments()
+                .then((data) => setDepartments(data.departments || data || []))
+                .catch(() => setDepartments([]))
+                .finally(() => setLoadingDepts(false));
+        } else {
+            setDepartments([]);
+            setForm((f) => ({ ...f, targetDepartment: '' }));
+        }
+    }, [form.targetScope]);
 
     const preview = computePreview(user?.role, form.targetScope);
 
     const handleChange = (field, value) => setForm((f) => ({ ...f, [field]: value }));
+
+    // AI Polish - Improve existing content
+    const handleAIPolish = async () => {
+        if (!form.title.trim() && !form.content.trim()) {
+            return toast.error('Write something first, then AI can polish it');
+        }
+        setAIPolishing(true);
+        try {
+            const polishPrompt = `You are a professional academic communication expert. Polish and improve the following announcement to make it more engaging, professional, and well-structured. Keep the same meaning but make it clearer and more impactful. 
+
+Title: ${form.title || '(no title)'}
+Content: ${form.content || '(no content)'}
+
+Respond in this JSON format only: {"title": "polished title", "content": "polished content that is well-written, engaging, and maintains a professional tone"}`;
+            
+            const result = await copilotService.ask(polishPrompt);
+            let aiResponse = result.answer || result.response || result;
+            
+            try {
+                if (typeof aiResponse === 'string') {
+                    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        if (parsed.title) setForm(f => ({ ...f, title: parsed.title }));
+                        if (parsed.content) setForm(f => ({ ...f, content: parsed.content }));
+                        toast.success('Content polished!');
+                    }
+                }
+            } catch (parseError) {
+                toast.error('AI response format issue, please try again');
+            }
+        } catch (error) {
+            console.error('AI Polish error:', error);
+            if (error.response?.status === 401) {
+                toast.error('Session expired. Please refresh the page and try again.');
+            } else {
+                toast.error('Failed to polish content. Please try again.');
+            }
+        } finally {
+            setAIPolishing(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.title.trim() || !form.content.trim() || !form.targetScope) {
             return toast.error('Please fill in all required fields.');
         }
+        if (form.targetScope === 'department' && !form.targetDepartment) {
+            return toast.error('Please select a department.');
+        }
         if (preview?.type === 'denied') {
             return toast.error('Your role does not permit this target scope.');
         }
         try {
             setSub(true);
-            const result = await governanceService.create(form);
+            const submitData = { ...form };
+            if (form.targetScope === 'department') {
+                submitData.departmentId = form.targetDepartment;
+            }
+            const result = await governanceService.create(submitData);
             toast.success(result.message || 'Announcement submitted!');
-            setForm({ title: '', content: '', priority: 'medium', targetScope: '' });
+            setForm({ title: '', content: '', priority: 'medium', targetScope: '', targetDepartment: '' });
             onSuccess?.();
         } catch (err) {
             const msg = err.response?.data?.message || 'Failed to submit announcement.';
@@ -109,6 +177,32 @@ export default function AnnouncementForm({ onSuccess }) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+
+                {/* AI Polish Section */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-500/5 to-blue-500/5 border border-white/5 rounded-[10px]">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-500/20 rounded-lg">
+                            <Sparkles size={18} className="text-purple-400" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-white">AI Polish Assistant</p>
+                            <p className="text-xs text-neutral-500">Write your announcement, then let AI polish it to sound more professional</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleAIPolish}
+                        disabled={aiPolishing || (!form.title.trim() && !form.content.trim())}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {aiPolishing ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <Wand2 size={16} />
+                        )}
+                        Polish My Writing
+                    </button>
+                </div>
 
                 {/* TITLE */}
                 <div>
@@ -185,6 +279,47 @@ export default function AnnouncementForm({ onSuccess }) {
                         </div>
                     </div>
                 </div>
+
+                {/* DEPARTMENT SELECTOR - Shows when department scope is selected */}
+                <AnimatePresence>
+                    {form.targetScope === 'department' && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                        >
+                            <label className="block text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2">
+                                Select Department <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                {loadingDepts ? (
+                                    <div className="flex items-center gap-2 bg-background border border-white/10 rounded-[10px] px-4 py-3 text-neutral-500">
+                                        <Loader2 size={16} className="animate-spin" />
+                                        <span className="text-sm">Loading departments...</span>
+                                    </div>
+                                ) : (
+                                    <select
+                                        value={form.targetDepartment}
+                                        onChange={(e) => handleChange('targetDepartment', e.target.value)}
+                                        className="w-full appearance-none bg-background border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors pr-10"
+                                    >
+                                        <option value="" disabled className="text-neutral-500">Choose a department...</option>
+                                        {departments.map((dept) => (
+                                            <option key={dept._id} value={dept._id} className="bg-background">
+                                                {dept.name} {dept.code && `(${dept.code})`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                                <Building2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
+                            </div>
+                            <p className="text-xs text-neutral-500 mt-2">
+                                The Head of Department (HoD) will review and approve this announcement.
+                            </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* ESCALATION PREVIEW ALERT */}
                 <AnimatePresence>

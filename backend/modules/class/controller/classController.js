@@ -268,3 +268,54 @@ export const getClassStudents = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch student roster." });
   }
 };
+
+// ==========================================
+// 3. UPDATE & DELETE FUNCTIONS
+// ==========================================
+
+/**
+ * @desc    Update a Class
+ * @route   PUT /api/classes/:id
+ */
+export const updateClass = async (req, res) => {
+  try {
+    const classItem = await Class.findById(req.params.id);
+    if (!classItem) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    const { name, code, department, lecturers, level, academicYear, semester } = req.body;
+    if (name) classItem.name = name;
+    if (code) classItem.code = code;
+    if (department) classItem.department = department;
+    if (lecturers) classItem.lecturers = lecturers;
+    if (level) classItem.level = level;
+    if (academicYear) classItem.academicYear = academicYear;
+    if (semester) classItem.semester = semester;
+
+    await classItem.save();
+    res.status(200).json(classItem);
+  } catch (error) {
+    console.error("Update Class Error:", error);
+    res.status(500).json({ message: "Failed to update class." });
+  }
+};
+
+/**
+ * @desc    Delete a Class
+ * @route   DELETE /api/classes/:id
+ */
+export const deleteClass = async (req, res) => {
+  try {
+    const classItem = await Class.findById(req.params.id);
+    if (!classItem) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    await classItem.deleteOne();
+    res.status(200).json({ message: "Class deleted successfully" });
+  } catch (error) {
+    console.error("Delete Class Error:", error);
+    res.status(500).json({ message: "Failed to delete class." });
+  }
+};

@@ -37,3 +37,43 @@ export const getColleges = async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
+
+// @desc    Update College
+// @route   PUT /api/colleges/:id
+// @access  Private (Admin only)
+export const updateCollege = async (req, res) => {
+  try {
+    const college = await College.findById(req.params.id);
+    if (!college) {
+      return res.status(404).json({ message: 'College not found' });
+    }
+
+    const { name, code, principal } = req.body;
+    if (name) college.name = name;
+    if (code) college.code = code;
+    if (principal !== undefined) college.principal = principal;
+
+    await college.save();
+    const updated = await College.findById(req.params.id).populate('principal', 'name email');
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+// @desc    Delete College
+// @route   DELETE /api/colleges/:id
+// @access  Private (Admin only)
+export const deleteCollege = async (req, res) => {
+  try {
+    const college = await College.findById(req.params.id);
+    if (!college) {
+      return res.status(404).json({ message: 'College not found' });
+    }
+
+    await college.deleteOne();
+    res.status(200).json({ message: 'College deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import EventCard from "./EventCard";
-import { AlertCircle, Search, Filter, Loader2 } from "lucide-react";
+import { AlertCircle, Search, Filter, Loader2, Sparkles } from "lucide-react";
 
 
 export default function EventFeedGrid({
@@ -9,12 +9,37 @@ export default function EventFeedGrid({
   loading,
   onRate,
   onDetails,
-  onLoadMore, // Backend function for loading next page
+  onLoadMore,
+  searchQ = "",
+  setSearchQ,
+  eventFilter = "all",
+  setEventFilter,
 }) {
   // --- STATE ---
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [localSearch, setLocalSearch] = useState(searchQ);
+  const [activeFilter, setActiveFilter] = useState(eventFilter);
   const [isSpinning, setIsSpinning] = useState(false);
+
+  // Sync with props
+  useState(() => {
+    if (searchQ !== undefined) setLocalSearch(searchQ);
+  }, [searchQ]);
+
+  useState(() => {
+    if (eventFilter !== undefined) setActiveFilter(eventFilter);
+  }, [eventFilter]);
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setLocalSearch(value);
+    if (setSearchQ) setSearchQ(value);
+  };
+
+  const handleFilterChange = (e) => {
+    const value = e.target.value;
+    setActiveFilter(value);
+    if (setEventFilter) setEventFilter(value);
+  };
 
   // Handle the Load More click
   const handleLoadMore = () => {
@@ -31,7 +56,6 @@ export default function EventFeedGrid({
   };
 
   // 1. Initial Loading State (Skeleton)
-  // Adjusted to match the responsive sidebar and grid
   if (loading && (!events || events.length === 0)) {
     return (
       <div className=" transition-all duration-300 min-h-screen">
@@ -49,14 +73,17 @@ export default function EventFeedGrid({
     );
   }
 
-  // 2. Base Data — real events only, no fallback stubs
+  // 2. Base Data — real events only
   const baseEvents = events || [];
 
   // 3. Search and Filter Logic
   const filteredEvents = baseEvents.filter((event) => {
+    if (!event) return false;
     const matchesSearch =
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchTerm.toLowerCase());
+      !localSearch ||
+      event.title?.toLowerCase().includes(localSearch.toLowerCase()) ||
+      event.description?.toLowerCase().includes(localSearch.toLowerCase()) ||
+      event.tags?.some(t => t.toLowerCase().includes(localSearch.toLowerCase()));
 
     const matchesFilter =
       activeFilter === "all" ||
@@ -72,9 +99,12 @@ export default function EventFeedGrid({
       <div className="max-w-7xl mx-auto">
         {/* --- HEADER: TITLE, SEARCH & FILTER --- */}
         <div className="mb-8 md:mb-10 space-y-5 md:space-y-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-            Events
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+              <Sparkles className="text-blue-500" />
+              Campus Events
+            </h1>
+          </div>
 
           <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             {/* Search Bar */}
@@ -85,14 +115,14 @@ export default function EventFeedGrid({
               />
               <input
                 type="text"
-                placeholder="Search pulses, tags, or keywords..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search events, tags, or keywords..."
+                value={localSearch}
+                onChange={handleSearchChange}
                 className="w-full bg-background border border-white/10 rounded-xl py-3 md:py-3.5 pl-12 pr-4 text-sm focus:outline-none transition-all text-white placeholder:text-neutral-600 focus:border-white/20"
               />
             </div>
 
-            {/* Filter Dropdown */}
+            {/* AI-Powered Filter Dropdown */}
             <div className="relative w-full md:w-auto md:min-w-[200px]">
               <Filter
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500"
@@ -100,10 +130,12 @@ export default function EventFeedGrid({
               />
               <select
                 value={activeFilter}
-                onChange={(e) => setActiveFilter(e.target.value)}
+                onChange={handleFilterChange}
                 className="appearance-none w-full bg-background border border-white/10 rounded-xl py-3 md:py-3.5 pl-11 pr-10 text-sm text-white focus:outline-none cursor-pointer focus:border-white/20"
               >
-                <option value="all">All Pulses</option>
+                <option value="all">All Events</option>
+                <option value="top">Top AI Matches</option>
+                <option value="interested">My Interests</option>
                 <option value="high">High Priority</option>
                 <option value="college">College Verified</option>
                 <option value="school">School Verified</option>
@@ -112,6 +144,24 @@ export default function EventFeedGrid({
             </div>
           </div>
         </div>
+
+        {/* AI Match Info */}
+        {activeFilter === "top" && (
+          <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+            <p className="text-blue-400 text-xs flex items-center gap-2">
+              <Sparkles size={14} />
+              Showing events ranked by AI relevance to your interests and attendance history.
+            </p>
+          </div>
+        )}
+        {activeFilter === "interested" && (
+          <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <p className="text-emerald-400 text-xs flex items-center gap-2">
+              <Sparkles size={14} />
+              Events matching your saved interests and AI-detected preferences.
+            </p>
+          </div>
+        )}
 
         {/* --- EMPTY STATE --- */}
         {filteredEvents.length === 0 ? (
@@ -131,9 +181,12 @@ export default function EventFeedGrid({
           </motion.div>
         ) : (
           <>
-            {/* --- THE ANIMATED GRID --- 
-                Updated to flow elegantly: 1 col (Mobile) -> 2 cols (Tablet) -> 3 cols (Desktop)
-            */}
+            {/* --- RESULTS COUNT --- */}
+            <p className="text-neutral-500 text-xs mb-4">
+              Showing {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''}
+            </p>
+
+            {/* --- THE ANIMATED GRID --- */}
             <motion.div
               layout
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 pb-8"
@@ -165,22 +218,24 @@ export default function EventFeedGrid({
             </motion.div>
 
             {/* --- LOAD MORE BUTTON --- */}
-            <motion.div layout className="flex justify-center w-full pb-12">
-              <button
-                onClick={handleLoadMore}
-                disabled={isSpinning}
-                className="flex items-center gap-2 px-6 md:px-8 py-3 bg-background border border-white/5 rounded-lg text-xs md:text-sm font-bold text-neutral-400 hover:text-white hover:border-white/20 hover:bg-background transition-all disabled:opacity-50 disabled:cursor-wait"
-              >
-                {isSpinning ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    Syncing Database...
-                  </>
-                ) : (
-                  "Load More"
-                )}
-              </button>
-            </motion.div>
+            {onLoadMore && (
+              <motion.div layout className="flex justify-center w-full pb-12">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isSpinning}
+                  className="flex items-center gap-2 px-6 md:px-8 py-3 bg-background border border-white/5 rounded-lg text-xs md:text-sm font-bold text-neutral-400 hover:text-white hover:border-white/20 hover:bg-background transition-all disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {isSpinning ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Syncing Database...
+                    </>
+                  ) : (
+                    "Load More"
+                  )}
+                </button>
+              </motion.div>
+            )}
           </>
         )}
       </div>

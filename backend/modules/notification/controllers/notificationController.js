@@ -433,20 +433,13 @@ export const getAIInsights = async (req, res) => {
 export const generateDigest = async (req, res) => {
   try {
     const { period = 'weekly' } = req.query;
-    const result = await generateAndSendDigest(req.user, { period, filterPriority: 'low' });
-
-    if (result.skipped) {
-      return res.json({
-        success: true,
-        message: 'No unread low-priority notifications in the selected period.',
-        summary: null,
-        period,
-        notificationCount: 0,
-      });
-    }
+    const result = await generateAndSendDigest(req.user, { period });
 
     if (!result.success) {
-      return res.status(500).json({ success: false, message: result.error });
+      return res.status(500).json({ 
+        success: false, 
+        message: result.error || 'Failed to generate digest' 
+      });
     }
 
     res.status(200).json({
@@ -454,6 +447,7 @@ export const generateDigest = async (req, res) => {
       summary: result.summary,
       period,
       notificationCount: result.notificationCount,
+      unreadCount: result.unreadCount || 0,
     });
   } catch (error) {
     console.error('[Digest] Generation error:', error);

@@ -160,20 +160,48 @@ export const summarizeNotifications = async (notifications) => {
     return 'No recent notifications to summarize.';
   }
 
-  const systemPrompt = `You are an AI assistant for a university notification system.
-Summarize the following notifications into a short, friendly daily digest of 3-5 sentences.
-Group similar items. Highlight urgent ones first. Use plain text, no bullet points, no markdown.`;
-
   const notifText = notifications
     .slice(0, 10)
     .map((n, i) => `${i + 1}. [${n.type || 'notice'}] ${n.title}: ${n.message}`)
     .join('\n');
 
-  return await chat({
-    systemPrompt,
-    userMessage: notifText,
-    tier: 'CAPABLE',
-    maxTokens: 300,
-    temperature: 0.5,
-  });
+  // Try AI first, fallback to manual summary
+  try {
+    const systemPrompt = `You are an AI assistant for a university notification system.
+Summarize the following notifications into a short, friendly daily digest of 3-5 sentences.
+Group similar items. Highlight urgent ones first. Use plain text, no bullet points, no markdown.`;
+
+    const summary = await chat({
+      systemPrompt,
+      userMessage: notifText,
+      tier: 'CAPABLE',
+      maxTokens: 300,
+      temperature: 0.5,
+    });
+    
+    return summary;
+  } catch (aiError) {
+    console.warn('[AIProvider] AI summarization failed, using fallback:', aiError.message);
+    
+    // Fallback: Create a simple manual summary
+    const urgent = notifications.filter(n => n.type === 'urgent' || n.type === 'emergency');
+    const events = notifications.filter(n => n.type === 'event');
+    const announcements = notifications.filter(n => n.type === 'announcement' || n.type === 'notice');
+    
+    let summary = `You have ${notifications.length} notification(s) in your inbox. `;
+    
+    if (urgent.length > 0) {
+      summary += `There's ${urgent.length} urgent item(s) requiring your attention. `;
+    }
+    
+    if (events.length > 0) {
+      summary += `${events.length} event(s) are coming up. `;
+    }
+    
+    if (announcements.length > 0) {
+      summary += `You have ${announcements.length} new announcement(s) from your lecturers.`;
+    }
+    
+    return summary.trim();
+  }
 };

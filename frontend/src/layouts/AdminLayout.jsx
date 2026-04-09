@@ -1,35 +1,65 @@
 import { Outlet } from "react-router-dom";
+import { useState, useEffect } from "react";
 import AdminSidebar from "../pages/dashboards/admin/components/AdminSidebar";
-import AdminTopbar from "../pages/dashboards/admin/components/AdminTopbar"; // Import the Topbar
+import AdminTopbar from "../pages/dashboards/admin/components/AdminTopbar";
 import { motion } from "framer-motion";
+import FloatingCopilot from "../components/FloatingCopilot";
 
 export default function AdminLayout() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setIsOpen(false);
+    };
+    
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className="flex h-screen bg-[#050505] text-white selection:bg-blue-500/30 overflow-hidden">
-      {/* 1. Fixed Sidebar */}
-      <AdminSidebar />
+    <div className="min-h-screen bg-[#050505] relative">
+      {/* Mobile Menu Toggle */}
+      {isMobile && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-background/90 border border-white/10 text-white hover:bg-white/10 transition-colors"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+      )}
 
-      {/* 2. Main Content Area (Scrollable independently of Sidebar) */}
-      <main className="flex-1 ml-72 h-screen flex flex-col relative overflow-hidden">
-        {/* Subtle Background Glow for Admin area */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none -z-10" />
-
-        {/* 3. Sticky Topbar applied globally! */}
+      {/* Main Content Wrapper */}
+      <div className="flex-1 ml-20 md:ml-72 min-h-screen relative z-10 flex flex-col">
+        {/* Sticky Topbar */}
         <AdminTopbar />
 
-        {/* 4. Page Content Area (Scrollable) */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        {/* Page Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-4 md:p-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="w-full min-h-full"
+            className="w-full min-h-full max-w-7xl mx-auto"
           >
-            {/* This renders the Dashboard, CreateEvent, etc. */}
             <Outlet />
           </motion.div>
         </div>
-      </main>
+
+        {/* Floating Copilot AI */}
+        <FloatingCopilot />
+      </div>
+
+      {/* Sidebar */}
+      <AdminSidebar isOpen={isOpen} setIsOpen={setIsOpen} isMobile={isMobile} />
     </div>
   );
 }

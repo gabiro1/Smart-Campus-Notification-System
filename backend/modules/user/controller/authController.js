@@ -195,6 +195,8 @@ export const login = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
+      .populate('college', 'name code')
+      .populate('school', 'name code')
       .populate('department', 'name code')
       .populate('classId', 'name code level');
     
@@ -232,14 +234,37 @@ export const updateProfile = async (req, res) => {
         user.level = req.body.level;
       }
 
+      // Quiet Hours (Do Not Disturb)
+      if (req.body.quietHours !== undefined) {
+        user.quietHours = req.body.quietHours;
+      }
+
+      // Digest Email Setting
+      if (req.body.digestEnabled !== undefined) {
+        user.digestEnabled = req.body.digestEnabled;
+      }
+
       if (req.body.password) {
         user.password = await bcrypt.hash(req.body.password, 12);
       }
 
       const updatedUser = await user.save();
 
-      await updatedUser.populate('department', 'name code');
-      await updatedUser.populate('classId', 'name code level');
+      try {
+        await updatedUser.populate('department', 'name code');
+      } catch (e) { /* field may not exist */ }
+      
+      try {
+        await updatedUser.populate('classId', 'name code level');
+      } catch (e) { /* field may not exist */ }
+
+      try {
+        await updatedUser.populate('college', 'name code');
+      } catch (e) { /* field may not exist */ }
+      
+      try {
+        await updatedUser.populate('school', 'name code');
+      } catch (e) { /* field may not exist */ }
 
       res.status(200).json({
         success: true,
@@ -249,7 +274,8 @@ export const updateProfile = async (req, res) => {
       res.status(404).json({ success: false, message: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error updating profile" });
+    console.error('UpdateProfile error:', error);
+    res.status(500).json({ success: false, message: "Server error updating profile", error: error.message });
   }
 };
 
@@ -686,5 +712,35 @@ export const logout = async (req, res) => {
     res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Logout failed" });
+  }
+};
+
+// @desc    Upload profile photo
+// @route   POST /api/users/profile/photo
+// @access  Private
+export const uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Convert to base64 data URL for storage
+    const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    user.profilePicture = base64Image;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile photo updated",
+      user
+    });
+  } catch (error) {
+    console.error('UploadPhoto error:', error);
+    res.status(500).json({ success: false, message: "Failed to upload photo" });
   }
 };

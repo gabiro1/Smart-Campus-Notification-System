@@ -36,22 +36,48 @@ export default function EditEventPage() {
 
   // Pre-fill form if event data was passed
   useEffect(() => {
-    if (location.state?.event) {
-      const ev = location.state.event;
-      setFormData({
-        title: ev.title || "",
-        date: ev.date ? new Date(ev.date).toISOString().split("T")[0] : "", // Format YYYY-MM-DD
-        time: ev.time || "",
-        location: ev.location || "",
-        description: ev.description || "",
-        tags: ev.tags ? ev.tags.join(", ") : "",
-        targetCollege: ev.targetCollege || "",
-        targetSchool: ev.targetSchool || "",
-        targetDept: ev.targetDept || "",
-        targetLevel: ev.targetLevel || "",
-      });
-    }
-  }, [location.state]);
+    const fetchEventData = async () => {
+      if (location.state?.event) {
+        const ev = location.state.event;
+        setFormData({
+          title: ev.title || "",
+          date: ev.date ? new Date(ev.date).toISOString().split("T")[0] : "",
+          time: ev.time || "",
+          location: ev.location || "",
+          description: ev.description || "",
+          tags: ev.tags ? ev.tags.join(", ") : "",
+          targetCollege: ev.targetCollege || "",
+          targetSchool: ev.targetSchool || "",
+          targetDept: ev.targetDept || "",
+          targetLevel: ev.targetLevel || "",
+        });
+      } else if (id) {
+        try {
+          const response = await adminService.getAllEvents(1, 1, { _id: id });
+          if (response.data?.length > 0) {
+            const ev = response.data[0];
+            setFormData({
+              title: ev.title || "",
+              date: ev.date ? new Date(ev.date).toISOString().split("T")[0] : "",
+              time: ev.time || "",
+              location: ev.location || "",
+              description: ev.description || "",
+              tags: ev.tags ? ev.tags.join(", ") : "",
+              targetCollege: ev.targetCollege || "",
+              targetSchool: ev.targetSchool || "",
+              targetDept: ev.targetDept || "",
+              targetLevel: ev.targetLevel || "",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch event:", error);
+          toast.error("Failed to load event data");
+        }
+      }
+    };
+
+    fetchEventData();
+  }, [location.state, id]);
 
   // Fetch Hierarchy
   useEffect(() => {

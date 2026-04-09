@@ -153,6 +153,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  digestEnabled: {
+    type: Boolean,
+    default: true
+  },
 
   // ONBOARDING STATUS
   hasCompletedOnboarding: {
@@ -175,7 +179,30 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['en', 'rw'],
     default: 'en'
-  }
+  },
+
+  // ==========================================
+  // STUDENT ENGAGEMENT FIELDS
+  // ==========================================
+  // Attendance rate for events (percentage 0-100)
+  attendanceRate: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+
+  // Array of bookmarked/saved event IDs
+  savedEvents: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event'
+  }],
+
+  // Array of bookmarked/saved announcement IDs
+  savedAnnouncements: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Announcement'
+  }]
 
   // NOTE: 'interests' field already exists at line 61: [{ type: String, trim: true }]
   // This array stores user's selected interest topics (tech, sports, seminars, etc.)

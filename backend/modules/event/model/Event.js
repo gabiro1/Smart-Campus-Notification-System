@@ -45,6 +45,13 @@ const EventSchema = new mongoose.Schema({
         rating: { type: Number, min: 1, max: 5 }
     }],
 
+    // QR Check-in tracking
+    checkedInBy: [{
+        studentId: mongoose.Schema.Types.ObjectId,
+        studentIdentifier: String,
+        checkedInAt: { type: Date, default: Date.now }
+    }],
+
     // AI Classification metadata (for auditing/debugging)
     aiMetadata: {
       usedAI: { type: Boolean, default: false },

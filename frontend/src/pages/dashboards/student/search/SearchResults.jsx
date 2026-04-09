@@ -165,10 +165,10 @@ export default function SearchResults() {
                       </span>
                     </div>
                     <h3 className="text-white font-bold text-lg mb-2 group-hover:text-blue-400 transition-colors">
-                      {event.title}
+                      {event.title || 'Untitled Event'}
                     </h3>
                     <p className="text-neutral-500 text-sm line-clamp-2 mb-4">
-                      {event.description}
+                      {event.description || "No description available."}
                     </p>
                     <div className="flex items-center gap-4 text-xs text-neutral-400">
                       {event.location && (
