@@ -4,6 +4,10 @@ import NotificationLog from '../../notification/models/NotificationLog.js';
 import Reminder from '../../reminder/model/Reminder.js';
 import AuditLog from '../../audit/models/AuditLog.js';
 import Announcement from '../../announcement/model/Announcement.js';
+import College from '../../college/model/College.js';
+import School from '../../school/model/School.js';
+import Department from '../../department/model/Department.js';
+import SystemSettings from '../../settings/model/SystemSettings.js';
 
 
 
@@ -110,7 +114,9 @@ export const getDashboardMetrics = async (req, res) => {
 
         // Get user breakdown by school
         const usersBySchool = await User.aggregate([
-            { $group: { _id: '$school', count: { $sum: 1 } } }
+            { $lookup: { from: 'schools', localField: 'school', foreignField: '_id', as: 'schoolData' } },
+            { $unwind: { path: '$schoolData', preserveNullAndEmptyArrays: true } },
+            { $group: { _id: '$schoolData.name', count: { $sum: 1 } } }
         ]);
 
         // Get notifications sent vs read
@@ -139,7 +145,42 @@ export const getDashboardMetrics = async (req, res) => {
 // @desc    Get all users with filters
 export const getUsers = async (req, res) => {
     try {
-        const { page = 1, limit = 20, role, school, department, search } = req.query;
+        const { page = 1, limit = 20, role, school, department, search, getAll } = req.query;
+        
+        // If getAll=true, return all users without pagination (for admin dashboard)
+        if (getAll === 'true') {
+            let query = {};
+            if (role) query.role = role;
+            if (school) query.school = school;
+            if (department) query.department = department;
+            if (search) {
+                query.$or = [
+                    { name: { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } }
+                ];
+            }
+
+            const users = await User.find(query)
+                .select('-password')
+                .populate('college', 'name')
+                .populate('school', 'name')
+                .populate('department', 'name')
+                .sort({ createdAt: -1 });
+
+            // Transform to get plain names
+            const transformedUsers = users.map(user => ({
+                ...user.toObject(),
+                college: user.college?.name || user.college || "",
+                school: user.school?.name || user.school || "",
+                department: user.department?.name || user.department || ""
+            }));
+
+            return res.json({
+                users: transformedUsers,
+                pagination: { total: users.length, pages: 1, currentPage: 1 }
+            });
+        }
+
         const skip = (page - 1) * limit;
 
         let query = {};
@@ -155,14 +196,25 @@ export const getUsers = async (req, res) => {
 
         const users = await User.find(query)
             .select('-password')
+            .populate('college', 'name')
+            .populate('school', 'name')
+            .populate('department', 'name')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit));
 
         const total = await User.countDocuments(query);
 
+        // Transform to get plain names
+        const transformedUsers = users.map(user => ({
+            ...user.toObject(),
+            college: user.college?.name || user.college || "",
+            school: user.school?.name || user.school || "",
+            department: user.department?.name || user.department || ""
+        }));
+
         res.json({
-            users,
+            users: transformedUsers,
             pagination: {
                 total,
                 pages: Math.ceil(total / limit),
@@ -615,23 +667,30 @@ export const getActiveEmergencies = async (req, res) => {
 // SYSTEM SETTINGS
 // ==========================================
 
-// In-memory store for settings (in production, use a database collection)
-let systemSettings = {
-  aiAutoApprove: false,
-  aiStrictness: 75,
-  requireHodApproval: true,
-  maintenanceMode: false,
-  maxBroadcastReach: "all",
-  smsQuota: { used: 0, limit: 10000 }
-};
-
 /**
  * @desc    Get system settings
  * @route   GET /api/admin/settings
  */
 export const getSystemSettings = async (req, res) => {
   try {
-    res.json({ success: true, data: systemSettings });
+    let settings = await SystemSettings.findOne({ key: 'system' });
+    
+    if (!settings) {
+      // Create default settings if none exist
+      settings = await SystemSettings.create({
+        key: 'system',
+        data: {
+          aiAutoApprove: false,
+          aiStrictness: 75,
+          requireHodApproval: true,
+          maintenanceMode: false,
+          maxBroadcastReach: 'all',
+          smsQuota: { used: 0, limit: 10000 }
+        }
+      });
+    }
+    
+    res.json({ success: true, data: settings.data });
   } catch (error) {
     console.error("Get System Settings Error:", error);
     res.status(500).json({ message: "Failed to fetch system settings" });
@@ -645,9 +704,19 @@ export const getSystemSettings = async (req, res) => {
 export const updateSystemSettings = async (req, res) => {
   try {
     const updates = req.body;
-    systemSettings = { ...systemSettings, ...updates };
+    
+    const settings = await SystemSettings.findOneAndUpdate(
+      { key: 'system' },
+      { 
+        data: updates,
+        updatedBy: req.user._id,
+        updatedAt: new Date()
+      },
+      { new: true, upsert: true }
+    );
+    
     await logAuditAction(req.user._id, 'UPDATE_SETTINGS', null, 'system', 'System settings updated', updates);
-    res.json({ success: true, message: "Settings updated successfully", data: systemSettings });
+    res.json({ success: true, message: "Settings updated successfully", data: settings.data });
   } catch (error) {
     console.error("Update System Settings Error:", error);
     res.status(500).json({ message: "Failed to update system settings" });

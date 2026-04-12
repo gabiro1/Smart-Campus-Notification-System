@@ -14,10 +14,10 @@ createUser: async (userData) => {
   return response.data;
 },
 
-  // Get users
-  getUsers: async (page = 1, limit = 20, filters = {}) => {
+  // Get users (supports getAll=true for fetching all without pagination)
+  getUsers: async (page = 1, limit = 20, filters = {}, getAll = false) => {
     const response = await apiClient.get('/admin/users', {
-      params: { page, limit, ...filters },
+      params: { page, limit, ...filters, getAll: getAll ? 'true' : 'false' },
     });
     return response.data;
   },
@@ -258,7 +258,7 @@ createUser: async (userData) => {
 
   // Classes
   getClasses: async () => {
-    const response = await apiClient.get('/classes');
+    const response = await apiClient.get('/classes', { params: { includeStudents: 'true' } });
     return response.data;
   },
   createClass: async (data) => {
@@ -283,6 +283,24 @@ createUser: async (userData) => {
   // Remove student from class
   removeStudentFromClass: async (classId, studentId) => {
     const response = await apiClient.delete(`/classes/${classId}/remove-student/${studentId}`);
+    return response.data;
+  },
+
+  // Courses
+  getCourses: async () => {
+    const response = await apiClient.get('/courses');
+    return response.data;
+  },
+  createCourse: async (data) => {
+    const response = await apiClient.post('/courses', data);
+    return response.data;
+  },
+  updateCourse: async (id, data) => {
+    const response = await apiClient.put(`/courses/${id}`, data);
+    return response.data;
+  },
+  deleteCourse: async (id) => {
+    const response = await apiClient.delete(`/courses/${id}`);
     return response.data;
   },
 

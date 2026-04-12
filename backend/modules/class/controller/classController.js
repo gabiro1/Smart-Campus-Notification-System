@@ -34,12 +34,14 @@ export const createClass = async (req, res) => {
 };
 
 /**
- * @desc    Get all classes with full hierarchy (College -> School -> Dept)
+ * @desc    Get all classes
  * @route   GET /api/classes
  */
 export const getClasses = async (req, res) => {
   try {
-    const classes = await Class.find()
+    const { includeStudents } = req.query;
+    
+    let query = Class.find()
       .populate({
         path: 'department',
         select: 'name code',
@@ -50,9 +52,14 @@ export const getClasses = async (req, res) => {
         }
       })
       .populate("lecturers", "name role profilePicture email")
-      // For a massive system, do NOT populate all students here. We only select the ID array to keep payloads light.
-      .select("-__v"); 
+      .select("-__v");
+    
+    // Only populate students when explicitly requested (for admin dashboard)
+    if (includeStudents === 'true') {
+      query = query.populate("students", "name email role");
+    }
       
+    const classes = await query;
     res.status(200).json(classes);
   } catch (error) {
     console.error("Get Classes Error:", error);
@@ -374,11 +381,16 @@ export const removeStudentFromClass = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    if (!classItem.students.includes(studentId)) {
+    // Check if student is in class (handle both ObjectId and string comparison)
+    const studentInClass = classItem.students.some(s => 
+      s.toString() === studentId || s === studentId
+    );
+    
+    if (!studentInClass) {
       return res.status(400).json({ message: "Student not enrolled in this class" });
     }
 
-    classItem.students = classItem.students.filter(id => id.toString() !== studentId);
+    classItem.students = classItem.students.filter(s => s.toString() !== studentId);
     await classItem.save();
 
     res.status(200).json({ message: "Student removed from class successfully", class: classItem });

@@ -3,59 +3,100 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Plus,
-  Trash2,
-  Filter,
+  Trash,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Activity,
   X,
-  Edit3,
-  User as UserIcon,
+  Pencil,
   Mail,
+  Phone,
+  Calendar,
   Building,
   GraduationCap,
   Save,
   Camera,
+  Shield,
+  Users,
+  Filter,
+  Eye,
+  Bell,
+  Award,
+  Clock,
+  MapPin,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ThemedToaster from "../../../../components/ui/ThemedToaster";
+import { useTheme } from "../../../../context/ThemeContext";
 import adminService from "../../../../services/adminService";
 
+const ROLES = [
+  { value: "student", label: "Student" },
+  { value: "lecturer", label: "Lecturer" },
+  { value: "hod", label: "Head of Dept" },
+  { value: "dean", label: "Dean" },
+  { value: "principal", label: "Principal" },
+  { value: "admin", label: "System Admin" },
+  { value: "guild_president", label: "Guild President" },
+];
+
+const FILTER = [
+  { value: "", label: "All" },
+  ...ROLES
+];
+
 export default function UserManagement() {
+  const { isDarkMode } = useTheme();
+  
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Pagination & Filters
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-
-  // Create Modal State
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "student",
-    college: "",
-    school: "",
-    department: "",
-    level: "",
+    name: "", email: "", password: "", role: "student",
+    college: "", school: "", department: "", level: "",
   });
 
-  // Academic hierarchy data
   const [hierarchy, setHierarchy] = useState({});
   const [loadingHierarchy, setLoadingHierarchy] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [detailedUser, setDetailedUser] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [editSchoolOptions, setEditSchoolOptions] = useState([]);
+  const [editDeptOptions, setEditDeptOptions] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
+  
+  const filterRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  // Fetch hierarchy on mount
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     const fetchHierarchy = async () => {
       try {
         setLoadingHierarchy(true);
-        const data = await adminService.getHierarchy();
-        setHierarchy(data.data || {});
+        const response = await adminService.getHierarchy();
+        setHierarchy(response.data || response || {});
       } catch (error) {
         console.error("Failed to fetch hierarchy:", error);
       } finally {
@@ -65,29 +106,17 @@ export default function UserManagement() {
     fetchHierarchy();
   }, []);
 
-  // Computed options based on selections
   const collegeOptions = Object.keys(hierarchy);
   const schoolOptions = hierarchy[formData.college] ? Object.keys(hierarchy[formData.college]) : [];
   const departmentOptions = hierarchy[formData.college]?.[formData.school] || [];
 
-  // View/Edit Drawer State
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editFormData, setEditFormData] = useState({});
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
-
-  const fileInputRef = useRef(null);
-
-  // Fetch users from backend
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const filters = {};
       if (search) filters.search = search;
       if (roleFilter) filters.role = roleFilter;
-
-      const data = await adminService.getUsers(page, 10, filters);
+      const data = await adminService.getUsers(page, 15, filters);
       setUsers(data.users || []);
       setTotalPages(data.pagination?.pages || 1);
     } catch (error) {
@@ -98,13 +127,10 @@ export default function UserManagement() {
   };
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchUsers();
-    }, 300);
+    const delayDebounceFn = setTimeout(() => { fetchUsers(); }, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [page, search, roleFilter]);
 
-  // Handle Form Submission for New User
   const handleCreateUser = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -112,16 +138,7 @@ export default function UserManagement() {
       await adminService.createUser(formData);
       toast.success("User registered successfully");
       setIsModalOpen(false);
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        role: "student",
-        college: "",
-        school: "",
-        department: "",
-        level: "",
-      });
+      setFormData({ name: "", email: "", password: "", role: "student", college: "", school: "", department: "", level: "" });
       fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to create user");
@@ -130,88 +147,97 @@ export default function UserManagement() {
     }
   };
 
-  // Handle User Deletion
   const handleDelete = async (id, name, e) => {
     if (e) e.stopPropagation();
-    if (
-      !window.confirm(
-        `CRITICAL ACTION: Are you sure you want to permanently delete ${name}? All their associated data will be purged.`,
-      )
-    )
-      return;
+    if (!window.confirm(`Delete ${name}?`)) return;
     try {
       await adminService.deleteUser(id);
-      toast.success("User and associated data purged");
-      if (selectedUser && selectedUser._id === id) closeDrawer();
+      toast.success("User deleted");
+      if (selectedUserId === id) closeDrawer();
       fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.message || "Delete failed");
     }
   };
 
-  // Handle Inline Role Promotion
   const handleRoleChange = async (id, newRole, e) => {
     if (e) e.stopPropagation();
     try {
       await adminService.promoteUser(id, newRole);
-      toast.success(
-        `Role successfully updated to ${newRole.replace("_", " ")}`,
-      );
+      toast.success(`Role updated to ${newRole.replace("_", " ")}`);
       fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.message || "Role update failed");
     }
   };
 
-  // Open the Right Side Drawer (Added initialEditMode parameter)
-  const openDrawer = (user, initialEditMode = false) => {
-    setSelectedUser(user);
-    setEditFormData({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      college: user.college || "",
-      school: user.school || "",
-      department: user.department || "",
-      profilePicture: user.profilePicture || "",
-    });
-    setImagePreview(user.profilePicture || null);
-    setIsEditMode(initialEditMode);
+  const openDrawer = async (user, startInEditMode = false) => {
+    setSelectedUserId(user._id);
+    setLoadingDetails(true);
+    setIsEditMode(startInEditMode);
+    setActiveTab("profile");
+
+    try {
+      const data = await adminService.getUser(user._id);
+      setDetailedUser(data);
+      const u = data.user;
+      
+      let userCollege = "";
+      for (const [college, schools] of Object.entries(hierarchy)) {
+        if (schools && Object.keys(schools).includes(u.school || "")) {
+          userCollege = college;
+          break;
+        }
+      }
+      
+      setEditFormData({
+        name: u.name,
+        email: u.email,
+        phoneNumber: u.phoneNumber || "",
+        role: u.role,
+        college: userCollege,
+        school: u.school || "",
+        department: u.department || "",
+        profilePicture: u.profilePicture || "",
+      });
+      setImagePreview(u.profilePicture || null);
+    } catch (error) {
+      toast.error("Failed to load user profile");
+      closeDrawer();
+    } finally {
+      setLoadingDetails(false);
+    }
   };
 
   const closeDrawer = () => {
-    setSelectedUser(null);
+    setSelectedUserId(null);
+    setDetailedUser(null);
     setIsEditMode(false);
     setImagePreview(null);
   };
 
-  // Handle Profile Picture Selection (Preview)
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onload = () => {
         setImagePreview(reader.result);
+        setEditFormData({ ...editFormData, profilePicture: reader.result });
       };
       reader.readAsDataURL(file);
-      reader.onload = () =>
-        setEditFormData({ ...editFormData, profilePicture: reader.result });
     }
   };
 
-  // Handle Update User from Drawer (Now connected to database)
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     setIsUpdating(true);
     try {
-      // ACTUAL API CALL to update user in the database
-      // Make sure adminService.updateUser is defined and calls PUT /api/admin/users/:id
-      await adminService.updateUser(selectedUser._id, editFormData);
-
-      toast.success("User profile updated successfully");
-      fetchUsers(); // Refresh the table behind the drawer
-      setSelectedUser({ ...selectedUser, ...editFormData }); // Update local drawer state
-      setIsEditMode(false); // Switch back to view mode
+      await adminService.updateUser(detailedUser.user._id, editFormData);
+      toast.success("User updated successfully");
+      fetchUsers();
+      const data = await adminService.getUser(detailedUser.user._id);
+      setDetailedUser(data);
+      setIsEditMode(false);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update user");
     } finally {
@@ -219,232 +245,238 @@ export default function UserManagement() {
     }
   };
 
+  useEffect(() => {
+    if (isEditMode && editFormData.college) {
+      setEditSchoolOptions(Object.keys(hierarchy[editFormData.college] || {}));
+    }
+  }, [isEditMode, editFormData.college, hierarchy]);
+
+  useEffect(() => {
+    if (isEditMode && editFormData.college && editFormData.school) {
+      setEditDeptOptions(hierarchy[editFormData.college]?.[editFormData.school] || []);
+    }
+  }, [isEditMode, editFormData.college, editFormData.school, hierarchy]);
+
+  const roleCounts = ROLES.reduce((acc, role) => {
+    acc[role.value] = users.filter(u => u.role === role.value).length;
+    return acc;
+  }, {});
+  const totalUsers = users.length;
+
   return (
-    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12 relative overflow-hidden w-full">
+    <div className={`min-h-screen p-6 lg:p-8 ${isDarkMode ? "bg-neutral-950 text-white" : "bg-gray-50 text-neutral-900"}`} style={{ overflow: 'visible' }}>
       <ThemedToaster />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
-          <h1 className="text-4xl font-black tracking-tight">Access Control</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage institutional accounts, roles, and permissions.
-          </p>
-        </motion.div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+              <Shield size={16} className="text-white" />
+            </div>
+            <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-neutral-900"}`}>Access Control</h1>
+          </div>
+          <p className={`text-sm ${isDarkMode ? "text-neutral-400" : "text-neutral-500"}`}>Manage users, roles, and permissions</p>
+        </div>
 
-        <motion.button
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
+        <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-foreground px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20"
+          className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-colors ${
+            isDarkMode ? "bg-white text-neutral-950 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"
+          }`}
         >
-          <Plus size={18} /> Add User
-        </motion.button>
+          <Plus size={16} /> Add User
+        </button>
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="relative flex-1 max-w-md">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-            size={18}
-          />
+      <div className="flex items-center justify-between mb-6 gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? "text-neutral-500" : "text-neutral-400"}`} size={18} />
           <input
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search by name or email..."
-            className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 focus:bg-card outline-none transition-all text-sm shadow-xl"
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Search users..."
+            className={`w-full border rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none transition-colors ${
+              isDarkMode 
+                ? "bg-neutral-900 border-neutral-800 text-white placeholder-neutral-500" 
+                : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"
+            }`}
           />
         </div>
-        <div className="relative">
-          <Filter
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-            size={18}
-          />
-          <select
-            value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-              setPage(1);
-            }}
-            className="w-full md:w-48 bg-card border border-border rounded-2xl py-3 pl-12 pr-4 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer shadow-xl"
+        
+        <div className="relative" ref={filterRef}>
+          <button
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm hover:transition-colors ${
+              isDarkMode 
+                ? "bg-neutral-900 border-neutral-800 hover:border-neutral-700" 
+                : "bg-white border-neutral-200 hover:border-neutral-300"
+            }`}
           >
-            <option value="">All Roles</option>
-            <option value="student">Student</option>
-            <option value="guild_president">Guild President</option>
-            <option value="lecturer">Lecturer</option>
-            <option value="hod">Head of Dept</option>
-            <option value="dean">Dean</option>
-            <option value="principal">Principal</option>
-            <option value="admin">System Admin</option>
-          </select>
+            <Filter size={16} className={isDarkMode ? "text-neutral-400" : "text-neutral-500"} />
+            <span className={isDarkMode ? "text-white" : "text-neutral-700"}>
+              {roleFilter ? ROLES.find(r => r.value === roleFilter)?.label : "All"}
+            </span>
+            <span className={isDarkMode ? "text-neutral-500" : "text-neutral-400"}>({totalUsers})</span>
+            <ChevronDown size={16} className={`${isDarkMode ? "text-neutral-400" : "text-neutral-500"} transition-transform ${isFilterOpen ? "rotate-180" : ""}`} />
+          </button>
+          
+          <AnimatePresence>
+            {isFilterOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={`absolute top-full right-0 mt-2 w-56 border rounded-lg shadow-xl z-30 overflow-hidden ${
+                  isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
+                }`}
+              >
+                {FILTER.map((role) => (
+                  <button
+                    key={role.value}
+                    onClick={() => { setRoleFilter(role.value); setIsFilterOpen(false); }}
+                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:transition-colors ${
+                      isDarkMode 
+                        ? "hover:bg-neutral-800" 
+                        : "hover:bg-neutral-100"
+                    } ${roleFilter === role.value ? "text-blue-500" : isDarkMode ? "text-white" : "text-neutral-700"}`}
+                  >
+                    <span>{role.label}</span>
+                    <span className={isDarkMode ? "text-neutral-500" : "text-neutral-400"} text-xs>
+                      {role.value === "" ? totalUsers : roleCounts[role.value] || 0}
+                    </span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-card border border-border rounded-sm overflow-hidden shadow-2xl">
+      {/* Table */}
+      <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"}`}>
         {loading ? (
-          <div className="h-64 flex flex-col items-center justify-center gap-4">
-            <Activity className="animate-spin text-blue-500" size={32} />
-            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Querying Database...
-            </span>
+          <div className="flex flex-col items-center justify-center py-16">
+            <Activity className="animate-spin text-blue-500 mb-3" size={24} />
+            <p className={`text-sm ${isDarkMode ? "text-neutral-400" : "text-neutral-500"}`}>Loading users...</p>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <Users size={40} className={isDarkMode ? "text-neutral-700 mb-3" : "text-neutral-300 mb-3"} />
+            <p className={`text-sm ${isDarkMode ? "text-neutral-400" : "text-neutral-500"}`}>No users found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-accent text-[10px] uppercase font-black text-muted-foreground tracking-widest border-b border-border">
-                <tr>
-                  <th className="p-6">User Profile</th>
-                  <th className="p-6">Role & Permissions</th>
-                  <th className="p-6">Academic Unit</th>
-                  <th className="p-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                <AnimatePresence>
-                  {users.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan="4"
-                        className="p-12 text-center text-muted-foreground font-bold uppercase tracking-widest"
+          <table className="w-full">
+            <thead className={isDarkMode ? "bg-neutral-950 border-b border-neutral-800" : "bg-gray-50 border-b border-neutral-200"}>
+              <tr>
+                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>User</th>
+                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>Role</th>
+                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>School / Dept</th>
+                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>Status</th>
+                <th className={`text-right p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>Actions</th>
+              </tr>
+            </thead>
+            <tbody className={isDarkMode ? "divide-y divide-neutral-800" : "divide-y divide-neutral-200"}>
+              <AnimatePresence>
+                {users.map((user) => (
+                  <motion.tr
+                    key={user._id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => openDrawer(user, false)}
+                    className={`transition-colors cursor-pointer ${isDarkMode ? "hover:bg-neutral-800/50" : "hover:bg-gray-50"}`}
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden ${
+                            user.profilePicture 
+                              ? "" 
+                              : isDarkMode 
+                                ? "bg-blue-600 text-white" 
+                                : "bg-blue-700 text-white"
+                          }`}>
+                          {user.profilePicture ? (
+                            <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            user.name?.charAt(0)?.toUpperCase()
+                          )}
+                        </div>
+                        <div>
+                          <p className={`font-medium text-sm ${isDarkMode ? "text-white" : "text-neutral-900"}`}>{user.name}</p>
+                          <p className={`text-xs ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <select
+                        value={user.role}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => handleRoleChange(user._id, e.target.value, e)}
+                        className={`text-xs font-medium px-2.5 py-1.5 rounded-md border-0 cursor-pointer ${isDarkMode ? "bg-neutral-800 text-white" : "bg-neutral-100 text-neutral-700"}`}
                       >
-                        No users found matching your criteria.
-                      </td>
-                    </tr>
-                  ) : (
-                    users.map((user) => (
-                      <motion.tr
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        key={user._id}
-                        onClick={() => openDrawer(user, false)}
-                        className="hover:bg-accent transition-colors group cursor-pointer"
-                      >
-                        <td className="p-6">
-                          <div className="flex items-center gap-4">
-                            {/* DYNAMIC AVATAR */}
-                            <div className="w-10 h-10 rounded-full bg-blue-600/20 text-blue-500 flex items-center justify-center font-black shrink-0 overflow-hidden border border-blue-500/20">
-                              {user.profilePicture ? (
-                                <img
-                                  src={user.profilePicture}
-                                  alt={user.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                user.name.charAt(0).toUpperCase()
-                              )}
-                            </div>
-                            <div>
-                              <div className="font-bold text-foreground group-hover:text-blue-400 transition-colors">
-                                {user.name}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {user.email}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-6">
-                          <select
-                            value={user.role}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={(e) =>
-                              handleRoleChange(user._id, e.target.value, e)
-                            }
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider outline-none cursor-pointer appearance-none border ${
-                              user.role === "admin"
-                                ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-                                : user.role === "principal"
-                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                  : user.role === "dean"
-                                    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                    : user.role === "hod" ||
-                                        user.role === "lecturer"
-                                      ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                      : "bg-neutral-800 text-muted-foreground border-neutral-700 hover:bg-neutral-700"
-                            }`}
-                          >
-                            <option value="student">Student</option>
-                            <option value="guild_president">
-                              Guild President
-                            </option>
-                            <option value="lecturer">Lecturer</option>
-                            <option value="hod">HoD</option>
-                            <option value="dean">Dean</option>
-                            <option value="principal">Principal</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        </td>
-                        <td className="p-6">
-                          <div className="text-sm text-foreground font-medium">
-                            {user.department || "N/A"}
-                          </div>
-                          <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-1">
-                            {user.college ? `${user.college} - ` : ""}{" "}
-                            {user.school || "No School"}
-                          </div>
-                        </td>
-                        <td className="p-6">
-                          <div className="flex justify-end gap-2">
-                            {/* EDIT BUTTON */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openDrawer(user, true);
-                              }}
-                              className="p-2.5 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all"
-                              title="Edit User"
-                            >
-                              <Edit3 size={18} />
-                            </button>
-                            {/* DELETE BUTTON */}
-                            <button
-                              onClick={(e) =>
-                                handleDelete(user._id, user.name, e)
-                              }
-                              className="p-2.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                              title="Purge User"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))
-                  )}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
+                        {ROLES.map((r) => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="p-4">
+                      <p className={`text-sm ${isDarkMode ? "text-white" : "text-neutral-700"}`}>{user.school || "—"}</p>
+                      <p className={`text-xs ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>{user.department || "No department"}</p>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <span className="text-xs text-emerald-500 font-medium">Active</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openDrawer(user, false); }}
+                          className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
+                          title="View"
+                        >
+                          <Eye size={16} className={isDarkMode ? "text-neutral-400" : "text-neutral-500"} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openDrawer(user, true); }}
+                          className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
+                          title="Edit"
+                        >
+                          <Pencil size={16} className={isDarkMode ? "text-neutral-400" : "text-neutral-500"} />
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(user._id, user.name, e)}
+                          className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-red-900/30" : "hover:bg-red-50"}`}
+                          title="Delete"
+                        >
+                          <Trash size={16} className="text-red-500" />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
         )}
 
-        {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="p-4 border-t border-border flex items-center justify-between bg-accent">
-            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider pl-4">
-              Page {page} of {totalPages}
-            </span>
-            <div className="flex gap-2 pr-2">
+          <div className={`flex items-center justify-between p-4 ${isDarkMode ? "border-t border-neutral-800" : "border-t border-neutral-200"}`}>
+            <span className={`text-sm ${isDarkMode ? "text-neutral-400" : "text-neutral-500"}`}>Page {page} of {totalPages}</span>
+            <div className="flex gap-1">
               <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-2 bg-accent hover:bg-primary/10 disabled:opacity-30 rounded-lg"
+                className={`p-2 rounded-lg ${isDarkMode ? "hover:bg-neutral-800 disabled:opacity-50" : "hover:bg-neutral-100 disabled:opacity-50"} disabled:cursor-not-allowed transition-colors`}
               >
                 <ChevronLeft size={16} />
               </button>
               <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="p-2 bg-accent hover:bg-primary/10 disabled:opacity-30 rounded-lg"
+                className={`p-2 rounded-lg ${isDarkMode ? "hover:bg-neutral-800 disabled:opacity-50" : "hover:bg-neutral-100 disabled:opacity-50"} disabled:cursor-not-allowed transition-colors`}
               >
                 <ChevronRight size={16} />
               </button>
@@ -453,428 +485,303 @@ export default function UserManagement() {
         )}
       </div>
 
-      {/* ========================================= */}
-      {/* 1. RIGHT-SIDE SLIDE OVER DRAWER (VIEW/EDIT) */}
-      {/* ========================================= */}
+{/* Modal */}
       <AnimatePresence>
-        {selectedUser && (
+        {selectedUserId && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeDrawer}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={closeDrawer} 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
             />
-
             <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              initial={{ opacity: 0, y: 50, scale: 0.9, rotate: -5 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, y: 50, scale: 0.9, rotate: 5 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md bg-background border-l border-border z-50 shadow-2xl flex flex-col"
+              className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] rounded-2xl border shadow-2xl overflow-hidden z-[101] flex flex-col ${
+                loadingDetails || !detailedUser ? "bg-transparent" : isDarkMode ? "bg-neutral-900" : "bg-white"
+              } ${isDarkMode ? "border-neutral-800" : "border-neutral-200"}`}
             >
-              {/* Drawer Header */}
-              <div className="p-8 border-b border-border relative bg-card">
-                <button
-                  onClick={closeDrawer}
-                  className="absolute top-6 right-6 p-2 bg-accent hover:bg-primary/10 rounded-full transition-colors text-muted-foreground hover:text-foreground"
-                >
-                  <X size={18} />
-                </button>
+              {loadingDetails || !detailedUser ? (
+                <svg className="w-20 h-20 m-auto" viewBox="0 0 240 240">
+                    <circle className="ring ring-a" cx={120} cy={120} r={105} fill="none" stroke="currentColor" strokeWidth={20} strokeDasharray="0 660" strokeDashoffset={-330} strokeLinecap="round" />
+                    <circle className="ring ring-b" cx={120} cy={120} r={35} fill="none" stroke="currentColor" strokeWidth={20} strokeDasharray="0 220" strokeDashoffset={-110} strokeLinecap="round" />
+                    <circle className="ring ring-c" cx={85} cy={120} r={70} fill="none" stroke="currentColor" strokeWidth={20} strokeDasharray="0 440" strokeLinecap="round" />
+                    <circle className="ring ring-d" cx={155} cy={120} r={70} fill="none" stroke="currentColor" strokeWidth={20} strokeDasharray="0 440" strokeLinecap="round" />
+                    <style>{`
+                      .ring { animation: ringA 2s linear infinite; }
+                      .ring-a { stroke: #f42f25; animation-name: ringA; }
+                      .ring-b { animation-name: ringB; stroke: #f49725; }
+                      .ring-c { animation-name: ringC; stroke: #255ff4; }
+                      .ring-d { animation-name: ringD; stroke: #f42582; }
+                      @keyframes ringA {
+                        from, 4% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -330; }
+                        12% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -335; }
+                        32% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -595; }
+                        40%, 54% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -660; }
+                        62% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -665; }
+                        82% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -925; }
+                        90%, to { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -990; }
+                      }
+                      @keyframes ringB {
+                        from, 12% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -110; }
+                        20% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -115; }
+                        40% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -195; }
+                        48%, 62% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -220; }
+                        70% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -225; }
+                        90% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -305; }
+                        98%, to { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -330; }
+                      }
+                      @keyframes ringC {
+                        from { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+                        8% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+                        28% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+                        36%, 58% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+                        66% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+                        86% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+                        94%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+                      }
+                      @keyframes ringD {
+                        from, 8% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+                        16% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+                        36% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+                        44%, 50% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+                        58% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+                        78% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+                        86%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+                      }
+                    `}</style>
+                  </svg>
+              ) : (
+                <>
+                  <div className={`p-5 border-b flex items-center justify-between ${isDarkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+                    <h2 className="font-semibold text-lg">User Details</h2>
+                    <button onClick={closeDrawer} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? "hover:bg-neutral-800 text-neutral-400" : "hover:bg-neutral-100 text-neutral-500"}`}>
+                      <X size={20} />
+                    </button>
+                  </div>
 
-                <div className="flex flex-col items-center mt-4 text-center">
-                  {/* EDITABLE AVATAR */}
-                  <div className="relative group mb-4">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-black text-foreground text-3xl shadow-xl shadow-blue-500/20 overflow-hidden border-2 border-[#111]">
-                      {imagePreview ? (
-                        <img
-                          src={imagePreview}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
+                  <div className="flex-1 overflow-y-auto p-5">
+                    <div className="flex flex-col items-center mb-4">
+                      <div className="relative group mb-3">
+                        <div className={`w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold overflow-hidden ring-4 ${
+                          imagePreview
+                            ? ""
+                            : isDarkMode 
+                              ? "bg-blue-600 text-white ring-neutral-800" 
+                              : "bg-blue-700 text-white ring-blue-100"
+                        }`}>
+                          {imagePreview ? (
+                            <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            detailedUser.user.name?.charAt(0)?.toUpperCase()
+                          )}
+                        </div>
+                        {isEditMode && (
+                          <button 
+                            type="button" 
+                            onClick={() => fileInputRef.current?.click()} 
+                            className={`absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${
+                              isDarkMode ? "bg-black/50" : "bg-black/30"
+                            }`}
+                          >
+                            <Camera size={20} className="text-white" />
+                          </button>
+                        )}
+                        <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
+                      </div>
+                      
+                      {!isEditMode ? (
+                        <>
+                          <h3 className="font-semibold text-lg text-center mb-1">{detailedUser.user.name}</h3>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-md ${isDarkMode ? "bg-neutral-800" : "bg-neutral-100"}`}>
+                            {detailedUser.user.role?.replace("_", " ")}
+                          </span>
+                        </>
                       ) : (
-                        selectedUser.name.charAt(0).toUpperCase()
+                        <div className="w-full space-y-3">
+                          <input 
+                            value={editFormData.name} 
+                            onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} 
+                            className={`w-full border rounded-lg p-2.5 text-sm text-center ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`} 
+                          />
+                          <select 
+                            value={editFormData.role} 
+                            onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })} 
+                            className={`w-full border rounded-lg p-2.5 text-sm ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`}
+                          >
+                            {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                          </select>
+                        </div>
                       )}
                     </div>
 
-                    {/* Camera Overlay (Only visible in edit mode) */}
-                    {isEditMode && (
+                    {/* Toggle Tabs */}
+                    <div className={`flex p-1 rounded-xl mb-4 ${isDarkMode ? "bg-neutral-950" : "bg-gray-100"}`}>
                       <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        onClick={() => setActiveTab("profile")}
+                        className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+                          activeTab === "profile" 
+                            ? isDarkMode ? "bg-neutral-800 text-white" : "bg-white text-neutral-900 shadow"
+                            : isDarkMode ? "text-neutral-400" : "text-neutral-500"
+                        }`}
                       >
-                        <Camera size={24} className="text-foreground" />
+                        Profile
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("stats")}
+                        className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${
+                          activeTab === "stats" 
+                            ? isDarkMode ? "bg-neutral-800 text-white" : "bg-white text-neutral-900 shadow"
+                            : isDarkMode ? "text-neutral-400" : "text-neutral-500"
+                        }`}
+                      >
+                        Stats
+                      </button>
+                      {isEditMode && (
+                        <button
+                          onClick={() => setActiveTab("edit")}
+                          className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
+                            activeTab === "edit" 
+                              ? isDarkMode ? "bg-blue-600 text-white" : "bg-blue-600 text-white"
+                              : isDarkMode ? "text-neutral-400" : "text-neutral-500"
+                          }`}
+                        >
+                          <Pencil size={12} /> Edit
+                        </button>
+                      )}
+                    </div>
+
+                    {!isEditMode && activeTab === "profile" && (
+                      <div className="space-y-3">
+                        <InfoRow icon={<Mail size={16}/>} label="Email" value={detailedUser.user.email} isDarkMode={isDarkMode} />
+                        <InfoRow icon={<Phone size={16}/>} label="Phone" value={detailedUser.user.phoneNumber || "Not provided"} isDarkMode={isDarkMode} />
+                        <InfoRow icon={<Building size={16}/>} label="School" value={detailedUser.user.school || "Not assigned"} isDarkMode={isDarkMode} />
+                        <InfoRow icon={<GraduationCap size={16}/>} label="Department" value={detailedUser.user.department || "Not assigned"} isDarkMode={isDarkMode} />
+                        <InfoRow icon={<Calendar size={16}/>} label="Joined" value={new Date(detailedUser.user.createdAt).toLocaleDateString()} isDarkMode={isDarkMode} />
+                      </div>
+                    )}
+
+                    {!isEditMode && activeTab === "stats" && detailedUser.stats && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <StatBox icon={<Award size={18} className="text-blue-500" />} label="Events" value={detailedUser.stats.eventsCreated || 0} isDarkMode={isDarkMode} />
+                        <StatBox icon={<Bell size={18} className="text-purple-500" />} label="Notifications" value={detailedUser.stats.notificationsReceived || 0} isDarkMode={isDarkMode} />
+                        <StatBox icon={<Clock size={18} className="text-amber-500" />} label="Reminders" value={detailedUser.stats.remindersCreated || 0} isDarkMode={isDarkMode} />
+                        <StatBox icon={<Activity size={18} className="text-emerald-500" />} label="RSVPs" value={detailedUser.stats.rsvpsCreated || 0} isDarkMode={isDarkMode} />
+                      </div>
+                    )}
+
+                    {isEditMode && activeTab === "edit" && (
+                      <div className="space-y-3 pt-2">
+                        <input type="email" value={editFormData.email} onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })} className={`w-full border rounded-lg p-2.5 text-sm ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`} placeholder="Email" />
+                        <input type="tel" value={editFormData.phoneNumber} onChange={(e) => setEditFormData({ ...editFormData, phoneNumber: e.target.value })} className={`w-full border rounded-lg p-2.5 text-sm ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`} placeholder="Phone Number" />
+                        <select value={editFormData.college} onChange={(e) => setEditFormData({ ...editFormData, college: e.target.value, school: "", department: "" })} className={`w-full border rounded-lg p-2.5 text-sm ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`}>
+                          <option value="">Select College</option>
+                          {collegeOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <select value={editFormData.school} onChange={(e) => setEditFormData({ ...editFormData, school: e.target.value, department: "" })} className={`w-full border rounded-lg p-2.5 text-sm ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`}>
+                          <option value="">Select School</option>
+                          {editSchoolOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <select value={editFormData.department} onChange={(e) => setEditFormData({ ...editFormData, department: e.target.value })} className={`w-full border rounded-lg p-2.5 text-sm ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`}>
+                          <option value="">Select Department</option>
+                          {editDeptOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`p-5 border-t flex gap-3 ${isDarkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+                    <button onClick={() => setIsEditMode(!isEditMode)} className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                      isDarkMode ? "bg-neutral-800 hover:bg-neutral-700 text-white" : "bg-gray-100 hover:bg-gray-200 text-neutral-900"
+                    }`}>
+                      {isEditMode ? "Cancel" : "Edit Profile"}
+                    </button>
+                    {isEditMode ? (
+                      <button onClick={handleUpdateUser} disabled={isUpdating} className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                        isDarkMode ? "bg-blue-600 hover:bg-blue-500 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}>
+                        {isUpdating ? <Activity size={14} className="animate-spin" /> : <Save size={14} />} Save Changes
+                      </button>
+                    ) : (
+                      <button onClick={(e) => handleDelete(detailedUser.user._id, detailedUser.user.name, e)} className="py-3 px-5 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-xl transition-colors flex items-center gap-2">
+                        <Trash size={16} /> Delete
                       </button>
                     )}
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageSelect}
-                      accept="image/*"
-                      className="hidden"
-                    />
                   </div>
-
-                  <h2 className="text-xl font-black text-foreground">
-                    {selectedUser.name}
-                  </h2>
-                  <span className="inline-block mt-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase tracking-wider">
-                    {selectedUser.role.replace("_", " ")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Drawer Body */}
-              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                {/* Toggle View/Edit */}
-                <div className="flex bg-card p-1 rounded-xl mb-6 border border-border">
-                  <button
-                    onClick={() => setIsEditMode(false)}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all ${!isEditMode ? "bg-accent text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Profile Details
-                  </button>
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${isEditMode ? "bg-blue-600 text-foreground shadow-md shadow-blue-900/20" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    <Edit3 size={14} /> Edit User
-                  </button>
-                </div>
-
-                {!isEditMode ? (
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
-                        Contact Information
-                      </h3>
-                      <InfoRow
-                        icon={<UserIcon size={16} />}
-                        label="Full Name"
-                        value={selectedUser.name}
-                      />
-                      <InfoRow
-                        icon={<Mail size={16} />}
-                        label="Email Address"
-                        value={selectedUser.email}
-                      />
-                    </div>
-                    <hr className="border-border" />
-                    <div className="space-y-4">
-                      <h3 className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">
-                        Academic Placement
-                      </h3>
-                      <InfoRow
-                        icon={<Building size={16} />}
-                        label="College"
-                        value={selectedUser.college || "Not Assigned"}
-                      />
-                      <InfoRow
-                        icon={<Building size={16} />}
-                        label="School"
-                        value={selectedUser.school || "Not Assigned"}
-                      />
-                      <InfoRow
-                        icon={<GraduationCap size={16} />}
-                        label="Department"
-                        value={selectedUser.department || "Not Assigned"}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleUpdateUser} className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                        Full Name
-                      </label>
-                      <input
-                        required
-                        value={editFormData.name}
-                        onChange={(e) =>
-                          setEditFormData({
-                            ...editFormData,
-                            name: e.target.value,
-                          })
-                        }
-                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                        Email Address
-                      </label>
-                      <input
-                        required
-                        type="email"
-                        value={editFormData.email}
-                        onChange={(e) =>
-                          setEditFormData({
-                            ...editFormData,
-                            email: e.target.value,
-                          })
-                        }
-                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                        System Role
-                      </label>
-                      <select
-                        value={editFormData.role}
-                        onChange={(e) =>
-                          setEditFormData({
-                            ...editFormData,
-                            role: e.target.value,
-                          })
-                        }
-                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm appearance-none cursor-pointer text-foreground"
-                      >
-                        <option value="student">Student</option>
-                        <option value="guild_president">Guild President</option>
-                        <option value="lecturer">Lecturer</option>
-                        <option value="hod">Head of Dept</option>
-                        <option value="dean">Dean</option>
-                        <option value="principal">Principal</option>
-                        <option value="admin">System Admin</option>
-                      </select>
-                    </div>
-                    <hr className="border-border my-4" />
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                        College
-                      </label>
-                      <input
-                        placeholder="e.g. CST"
-                        value={editFormData.college}
-                        onChange={(e) =>
-                          setEditFormData({
-                            ...editFormData,
-                            college: e.target.value,
-                          })
-                        }
-                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                        School
-                      </label>
-                      <input
-                        placeholder="e.g. School of ICT"
-                        value={editFormData.school}
-                        onChange={(e) =>
-                          setEditFormData({
-                            ...editFormData,
-                            school: e.target.value,
-                          })
-                        }
-                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                        Department
-                      </label>
-                      <input
-                        placeholder="e.g. Information Technology"
-                        value={editFormData.department}
-                        onChange={(e) =>
-                          setEditFormData({
-                            ...editFormData,
-                            department: e.target.value,
-                          })
-                        }
-                        className="w-full bg-card border border-border p-3 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isUpdating}
-                      className="w-full bg-blue-600 text-foreground p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-6 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2 shadow-lg shadow-blue-900/20"
-                    >
-                      {isUpdating ? (
-                        <Activity className="animate-spin" size={18} />
-                      ) : (
-                        <Save size={18} />
-                      )}
-                      {isUpdating ? "Saving..." : "Save Changes"}
-                    </button>
-                  </form>
-                )}
-              </div>
+                </>
+)}
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* ========================================= */}
-      {/* 2. CREATE NEW USER MODAL (Centered) */}
-      {/* ========================================= */}
+      {/* Create Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-card p-8 rounded-[24px] border border-border w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar"
-            >
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-6 right-6 text-muted-foreground hover:text-foreground"
-              >
-                <X size={24} />
-              </button>
-              <h2 className="text-2xl font-black mb-2 tracking-tight">
-                Register User
-              </h2>
-              <p className="text-sm text-muted-foreground mb-8">
-                Add a new institutional account directly to the database.
-              </p>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`rounded-xl border w-full max-w-md shadow-2xl ${
+              isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"
+            }`}>
+              <div className={`p-5 border-b flex items-center justify-between ${isDarkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+                <h2 className="font-semibold text-lg">Register New User</h2>
+                <button onClick={() => setIsModalOpen(false)} className={`p-1.5 rounded-lg ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}>
+                  <X size={18} />
+                </button>
+              </div>
 
-              <form onSubmit={handleCreateUser} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    required
-                    placeholder="Full Name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                  />
-                  <input
-                    required
-                    type="email"
-                    placeholder="Institutional Email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                  />
+              <form onSubmit={handleCreateUser} className="p-5 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <input required placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={`border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`} />
+                  <input required type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={`border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`} />
                 </div>
-
-                <input
-                  required
-                  type="password"
-                  placeholder="Temporary Password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                />
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                    Initial Role
-                  </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) =>
-                      setFormData({ ...formData, role: e.target.value })
-                    }
-                    className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
-                  >
-                    <option value="student">Student</option>
-                    <option value="guild_president">Guild President</option>
-                    <option value="lecturer">Lecturer</option>
-                    <option value="hod">Head of Dept</option>
-                    <option value="dean">Dean</option>
-                    <option value="principal">Principal</option>
-                    <option value="admin">System Admin</option>
+                <input required type="password" placeholder="Temporary Password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className={`w-full border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`} />
+                <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className={`w-full border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`}>
+                  {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <select value={formData.college} onChange={(e) => setFormData({ ...formData, college: e.target.value, school: "", department: "" })} disabled={loadingHierarchy} className={`border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`}>
+                    <option value="">{loadingHierarchy ? "Loading..." : "College"}</option>
+                    {collegeOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <select value={formData.school} onChange={(e) => setFormData({ ...formData, school: e.target.value, department: "" })} disabled={!formData.college} className={`border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`}>
+                    <option value="">{!formData.college ? "Select college" : "School"}</option>
+                    {schoolOptions.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
-
-                <hr className="border-border my-4" />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                      College
-                    </label>
-                    <select
-                      value={formData.college}
-                      onChange={(e) => setFormData({ ...formData, college: e.target.value, school: "", department: "" })}
-                      disabled={loadingHierarchy}
-                      className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
-                    >
-                      <option value="">{loadingHierarchy ? "Loading..." : "Select College"}</option>
-                      {collegeOptions.map(col => (
-                        <option key={col} value={col}>{col}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                      School
-                    </label>
-                    <select
-                      value={formData.school}
-                      onChange={(e) => setFormData({ ...formData, school: e.target.value, department: "" })}
-                      disabled={!formData.college || loadingHierarchy}
-                      className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
-                    >
-                      <option value="">{!formData.college ? "Select college first" : "Select School"}</option>
-                      {schoolOptions.map(sch => (
-                        <option key={sch} value={sch}>{sch}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                    Department
-                  </label>
-                  <select
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    disabled={!formData.school || loadingHierarchy}
-                    className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
-                  >
-                    <option value="">{!formData.school ? "Select school first" : "Select Department"}</option>
-                    {departmentOptions.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
+                <select value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} disabled={!formData.school} className={`w-full border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`}>
+                  <option value="">{!formData.school ? "Select school first" : "Department"}</option>
+                  {departmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+                {formData.role === "student" && (
+                  <select value={formData.level} onChange={(e) => setFormData({ ...formData, level: e.target.value })} className={`w-full border rounded-lg p-2.5 text-sm focus:border-blue-500 focus:outline-none ${
+                    isDarkMode ? "bg-neutral-950 border-neutral-800 text-white" : "bg-gray-50 border-neutral-200 text-neutral-900"
+                  }`}>
+                    <option value="">Select Year</option>
+                    <option value="Year 1">Year 1</option><option value="Year 2">Year 2</option><option value="Year 3">Year 3</option><option value="Year 4">Year 4</option><option value="Year 5">Year 5</option>
                   </select>
-                </div>
-
-                {(formData.role === "student") && (
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                      Year / Level
-                    </label>
-                    <select
-                      value={formData.level}
-                      onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                      className="w-full bg-card border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground appearance-none cursor-pointer"
-                    >
-                      <option value="">Select Year</option>
-                      <option value="Year 1">Year 1</option>
-                      <option value="Year 2">Year 2</option>
-                      <option value="Year 3">Year 3</option>
-                      <option value="Year 4">Year 4</option>
-                      <option value="Year 5">Year 5</option>
-                    </select>
-                  </div>
                 )}
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-blue-600 text-foreground p-4 rounded-xl font-black tracking-widest uppercase text-sm mt-4 hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center"
-                >
-                  {isSubmitting ? (
-                    <Activity className="animate-spin" size={20} />
-                  ) : (
-                    "Save User Record"
-                  )}
+                <button type="submit" disabled={isSubmitting} className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                  isDarkMode ? "bg-blue-600 hover:bg-blue-500 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                } disabled:opacity-50`}>
+                  {isSubmitting ? <Activity size={16} className="animate-spin" /> : <Save size={16} />} Register User
                 </button>
               </form>
             </motion.div>
@@ -885,17 +792,24 @@ export default function UserManagement() {
   );
 }
 
-// Sub-component for Drawer Display Data
-function InfoRow({ icon, label, value }) {
+function InfoRow({ icon, label, value, isDarkMode }) {
   return (
-    <div className="flex items-start gap-4 p-3 bg-accent border border-border rounded-xl hover:bg-accent transition-colors">
-      <div className="text-muted-foreground mt-0.5">{icon}</div>
+    <div className={`flex items-center gap-3 p-3 rounded-lg ${isDarkMode ? "bg-neutral-950" : "bg-gray-50"}`}>
+      <div className={isDarkMode ? "text-neutral-500" : "text-neutral-400"}>{icon}</div>
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          {label}
-        </p>
-        <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
+        <p className={`text-[10px] uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>{label}</p>
+        <p className={`text-sm ${isDarkMode ? "text-white" : "text-neutral-900"}`}>{value}</p>
       </div>
+    </div>
+  );
+}
+
+function StatBox({ icon, label, value, isDarkMode }) {
+  return (
+    <div className={`p-4 rounded-xl border ${isDarkMode ? "bg-neutral-950 border-neutral-800" : "bg-gray-50 border-neutral-200"}`}>
+      <div className="mb-2">{icon}</div>
+      <p className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-neutral-900"}`}>{value}</p>
+      <p className={`text-xs ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>{label}</p>
     </div>
   );
 }

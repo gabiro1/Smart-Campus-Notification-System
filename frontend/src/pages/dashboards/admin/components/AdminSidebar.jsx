@@ -22,11 +22,10 @@ import {
 
 const coreItems = [
   { icon: LayoutDashboard, label: "System Overview", path: "/admin/overview" },
-  { icon: Users, label: "User Management", path: "/admin/users" },
+  { icon: Users, label: "Access Control", path: "/admin/users" },
   { icon: GraduationCap, label: "Academic Structure", path: "/admin/academic" },
   { icon: Radio, label: "Event Management", path: "/admin/events" },
   { icon: BarChart3, label: "Full Analytics", path: "/admin/analytics" },
-  { icon: Search, label: "User Directory", path: "/admin/directory" },
 ];
 
 const systemItems = [
@@ -117,18 +116,18 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile }) {
       }))}
       footer={
         <div className="space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-accent">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-800/50">
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
               {user?.name?.charAt(0) || 'A'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{user?.name || 'Admin'}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{user?.email || 'admin@university.edu'}</p>
+              <p className="text-sm font-medium text-white truncate">{user?.name || 'Admin'}</p>
+              <p className="text-[10px] text-slate-400 truncate">{user?.email || 'admin@university.edu'}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-muted-foreground hover:text-error hover:bg-error/10 text-sm"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-sm"
           >
             <LogOut size={16} />
             <span className="flex-1 text-left">Sign Out</span>

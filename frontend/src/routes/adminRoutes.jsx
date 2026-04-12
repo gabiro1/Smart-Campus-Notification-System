@@ -7,7 +7,6 @@ import EditEventPage from "../pages/dashboards/Admin/pages/EditEventPage";
 import UserManagement from "../pages/dashboards/Admin/pages/UserManagement";
 import ComposeBroadcastModal from "../pages/dashboards/Admin/pages/CreateEventPage";
 import FullAnalytics from "../pages/dashboards/Admin/pages/FullAnalytics";
-import UserDirectory from "../pages/dashboards/Admin/pages/UserDirectory";
 import CoreSettings from "../pages/dashboards/Admin/pages/CoreSettings";
 import Maintenance from "../pages/dashboards/Admin/pages/Maintenance";
 import Backups from "../pages/dashboards/Admin/pages/Backups";
@@ -69,15 +68,6 @@ export const adminRoutes = [
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <FullAnalytics />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="directory"
-    path="directory"
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <UserDirectory />
       </ProtectedRoute>
     }
   />,

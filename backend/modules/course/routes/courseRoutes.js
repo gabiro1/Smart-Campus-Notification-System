@@ -1,14 +1,22 @@
 import express from 'express';
-import { createCourse, getMyCourses } from '../controllers/courseController.js';
-// 1. Import BOTH bouncers from your middleware
+import { createCourse, getMyCourses, getAllCourses, updateCourse, deleteCourse } from '../controllers/courseController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// 2. THE LOCKDOWN: You MUST be logged in (protect) AND be an HOD or Admin (authorize)
-router.post('/', protect, authorize('hod', 'admin'), createCourse);
+// Admin: Get all courses
+router.get('/', protect, authorize('admin', 'principal'), getAllCourses);
 
-// 3. GET MY COURSES: You must be logged in, and be a Lecturer, HOD, or Admin
-router.get('/my-courses', protect, authorize('lecturer', 'hod', 'admin'), getMyCourses);
+// Create course (admin/hod)
+router.post('/', protect, authorize('hod', 'admin', 'principal'), createCourse);
+
+// Update course (admin/hod)
+router.put('/:id', protect, authorize('hod', 'admin', 'principal'), updateCourse);
+
+// Delete course (admin only)
+router.delete('/:id', protect, authorize('admin', 'principal'), deleteCourse);
+
+// Get my courses (lecturer)
+router.get('/my-courses', protect, authorize('lecturer', 'hod', 'admin', 'principal'), getMyCourses);
 
 export default router;

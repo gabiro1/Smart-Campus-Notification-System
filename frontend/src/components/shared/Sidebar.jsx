@@ -35,19 +35,19 @@ export default function Sidebar({
   showCloseButton = true,
 }) {
   const sidebarContent = (
-    <div className={`flex flex-col h-full ${bgClass} border-r border-border ${width}`}>
+    <div className={`flex flex-col h-full ${bgClass} border-r border-slate-700 ${width}`}>
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-border shrink-0">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-slate-700 shrink-0">
         {brand || (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
               <Command size={18} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-foreground tracking-wide">
+              <h2 className="text-sm font-bold text-white tracking-wide">
                 UniCore OS
               </h2>
-              <p className="text-[10px] text-primary/80 uppercase tracking-wider font-semibold">
+              <p className="text-[10px] text-blue-400/80 uppercase tracking-wider font-semibold">
                 Portal
               </p>
             </div>
@@ -70,17 +70,17 @@ export default function Sidebar({
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
                 isActive
-                  ? "bg-primary text-primary-foreground font-semibold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-900/30"
+                  : "text-slate-300 hover:text-white hover:bg-slate-700/50"
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <item.icon size={20} className={isActive ? "drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" : ""} />
+                <item.icon size={20} className={isActive ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" : ""} />
                 <span className="flex-1 text-sm">{item.label}</span>
                 {item.badge && (
-                  <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-white text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                     {item.badge}
                   </span>
                 )}
@@ -91,7 +91,7 @@ export default function Sidebar({
       </nav>
 
       {/* Footer (Profile, Settings, etc.) */}
-      {footer && <div className="p-4 border-t border-border shrink-0">{footer}</div>}
+      {footer && <div className="p-4 border-t border-slate-700 shrink-0">{footer}</div>}
     </div>
   );
 

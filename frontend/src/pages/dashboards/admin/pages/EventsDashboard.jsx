@@ -44,7 +44,7 @@ export default function EventsDashboard() {
       setLoading(true);
       const filters = {};
       if (search) filters.search = search;
-      if (filterCollege) filters.targetCollege = filterCollege;
+      if (filterCollege) filters.school = filterCollege;
 
       const data = await adminService.getAllEvents(page, 10, filters);
       setEvents(data.events || []);

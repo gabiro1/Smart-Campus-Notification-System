@@ -15,7 +15,7 @@ redisConnection.on('connect', () => {
 });
 
 redisConnection.on('error', (err) => {
-  console.error('❌ Redis Connection Error:', err);
+  console.error(' Redis Connection Error:', err);
 });
 
 export default redisConnection;

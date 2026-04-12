@@ -555,13 +555,26 @@ export const getEventDetails = async (req, res) => {
 ========================================================= */
 export const getEvents = async (req, res) => {
   try {
-    const { page = 1, limit = 10, school, dept, level } = req.query;
+    const { page = 1, limit = 10, search, school, dept, level } = req.query;
     const skip = (page - 1) * limit;
 
     let query = {};
 
-    if (school) query.targetSchool = school;
-    if (dept) query.targetDept = dept;
+    // Admin/Principal get all events, other roles get scoped
+    const userRole = req.user?.role;
+    const isAdminOrPrincipal = ['admin', 'principal'].includes(userRole);
+
+    // Search by title or location
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Apply filters for non-admin users or if explicitly specified
+    if (school && (isAdminOrPrincipal || req.user?.school)) query.targetSchool = school;
+    if (dept && (isAdminOrPrincipal || req.user?.department)) query.targetDept = dept;
 
     const numericLevel = Number(level);
     if (!isNaN(numericLevel)) {

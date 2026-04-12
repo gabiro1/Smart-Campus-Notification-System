@@ -90,7 +90,8 @@ router.post('/:id/interest', protect, interestInEvent);
 router.post('/:id/rate', protect, rateEvent);
 
 /* ================= GET EVENTS ================= */
-router.get('/', getEvents);
+// Admin/Principal can get all events, other roles get scoped events
+router.get('/', protect, getEvents);
 router.get('/search', searchEvents);
 router.get('/department', getEventsByDepartment);
 
@@ -99,7 +100,7 @@ router.get('/department', getEventsByDepartment);
 // dynamic '/:id' routes, otherwise Express will match 'bookmarks' as an id.
 router.get('/bookmarks', protect, getBookmarkedEvents);
 
-router.get('/:id/stats', protect, getEventStats);
+router.get('/:id/stats', protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'dean', 'principal'), getEventStats);
 router.get('/:id', protect, getEventDetails);
 router.get('/:id/calendar', protect, exportCalendar);
 router.post('/:id/bookmark', protect, toggleBookmark);
