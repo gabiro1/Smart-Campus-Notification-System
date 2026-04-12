@@ -103,9 +103,9 @@ const eventService = {
   },
 
   // Get event statistics including RSVP and attendance counts
-  getStats: async (eventId) => {
+  getStats: async (eventId, includeAttendees = false) => {
     try {
-      const response = await apiClient.get(`/events/${eventId}/stats`);
+      const response = await apiClient.get(`/events/${eventId}/stats?attended=${includeAttendees}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to fetch event stats.");

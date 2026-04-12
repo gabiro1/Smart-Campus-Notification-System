@@ -35,7 +35,7 @@ const systemItems = [
 
 const bottomItems = [
   { icon: Settings, label: "Core Settings", path: "/admin/settings" },
-  { icon: Headset, label: "Support Tickets", path: "/admin/support" },
+  { icon: Headset, label: "Help Center", path: "/admin/support" },
   { icon: Mail, label: "Messages", path: "/admin/messages" },
   { icon: Scale, label: "Governance", path: "/admin/governance" },
 ];
@@ -116,15 +116,18 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile }) {
       }))}
       footer={
         <div className="space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-800/50">
+          <button
+            onClick={() => navigate(`/admin/users?userId=${user?._id || user?.id}`)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all cursor-pointer"
+          >
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
               {user?.name?.charAt(0) || 'A'}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-medium text-white truncate">{user?.name || 'Admin'}</p>
               <p className="text-[10px] text-slate-400 truncate">{user?.email || 'admin@university.edu'}</p>
             </div>
-          </div>
+          </button>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-sm"

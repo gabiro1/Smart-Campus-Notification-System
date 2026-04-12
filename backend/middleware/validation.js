@@ -179,15 +179,15 @@ export const eventCreationSchema = Joi.object({
 });
 
 export const eventUpdateSchema = Joi.object({
-  title: Joi.string().trim().min(5).max(200).optional(),
-  description: Joi.string().trim().min(20).max(5000).optional(),
+  title: Joi.string().trim().min(1).max(200).optional(),
+  description: Joi.string().trim().min(1).max(5000).optional(),
   date: Joi.date().iso().optional(),
   time: Joi.string().optional().allow(''),
   location: Joi.string().optional().allow(''),
   posterUrl: Joi.string().uri().optional().allow(''),
   targetSchool: Joi.string().optional().allow(''),
   targetDept: Joi.string().optional().allow(''),
-  targetLevel: Joi.number().integer().min(1).max(5).optional(),
+  targetLevel: Joi.number().integer().min(0).max(5).optional(),
   tags: Joi.array().items(Joi.string()).optional(),
   isEmergency: Joi.boolean().optional(),
   attachmentUrl: Joi.string().uri().optional().allow(''),

@@ -27,8 +27,11 @@ export default function CreateEventPage() {
     const fetchStructure = async () => {
       try {
         setLoadingStructure(true);
-        const data = await adminService.getHierarchy();
-        setAcademicStructure(data.data || {});
+        const response = await adminService.getHierarchy();
+        console.log("Hierarchy response:", response);
+        const structure = response.data || response || {};
+        console.log("Academic structure:", structure);
+        setAcademicStructure(structure);
       } catch (error) {
         console.error("Failed to fetch hierarchy:", error);
         toast.error("Failed to load academic structure");
@@ -89,6 +92,7 @@ export default function CreateEventPage() {
       setIsParsingAI(true);
       toast.loading("Gemini AI reading flyer...", { id: "ai-parse" });
       const response = await adminService.parseFlyer(file);
+      console.log("AI parse response:", response);
       if (response.success && response.parsedData) {
         const aiData = response.parsedData;
         setFormData((prev) => ({
@@ -97,8 +101,12 @@ export default function CreateEventPage() {
           tags: aiData.tags ? aiData.tags.join(", ") : prev.tags,
         }));
         toast.success("Details extracted successfully!", { id: "ai-parse" });
+      } else {
+        console.error("AI parse failed:", response.message || response.error);
+        toast.error(response.message || "AI parsing failed.", { id: "ai-parse" });
       }
     } catch (error) {
+      console.error("AI parse error:", error);
       toast.error("AI parsing failed.", { id: "ai-parse" });
     } finally {
       setIsParsingAI(false);
@@ -332,15 +340,20 @@ export default function CreateEventPage() {
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="number"
-                    placeholder="Level (e.g. 4) - Blank for all"
+                  <select
                     value={formData.targetLevel}
                     onChange={(e) =>
                       setFormData({ ...formData, targetLevel: e.target.value })
                     }
-                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground"
-                  />
+                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer"
+                  >
+                    <option value="">All Levels</option>
+                    <option value="1">Year 1</option>
+                    <option value="2">Year 2</option>
+                    <option value="3">Year 3</option>
+                    <option value="4">Year 4</option>
+                    <option value="5">Year 5</option>
+                  </select>
                 </div>
               </div>
 

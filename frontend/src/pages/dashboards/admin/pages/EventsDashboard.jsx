@@ -37,6 +37,8 @@ export default function EventsDashboard() {
   // Modal State for Viewing
   const [viewingEvent, setViewingEvent] = useState(null);
   const [eventStats, setEventStats] = useState(null);
+  const [attendees, setAttendees] = useState(null);
+  const [showAttendees, setShowAttendees] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
 
   const fetchEvents = async () => {
@@ -89,13 +91,29 @@ export default function EventsDashboard() {
   // Open the view modal
   const handleView = async (event) => {
     try {
-      const stats = await eventService.getStats(event._id);
+      const stats = await eventService.getStats(event._id, showAttendees);
       setEventStats(stats);
+      setAttendees(stats.attendees || null);
     } catch (error) {
       console.error("Failed to fetch event stats:", error);
       setEventStats(null);
+      setAttendees(null);
     }
     setViewingEvent(event);
+  };
+
+  const toggleAttendeesList = async () => {
+    const includeAttendees = !showAttendees;
+    setShowAttendees(includeAttendees);
+    if (viewingEvent) {
+      try {
+        const stats = await eventService.getStats(viewingEvent._id, includeAttendees);
+        setEventStats(stats);
+        setAttendees(stats.attendees || null);
+      } catch (error) {
+        console.error("Failed to fetch attendees:", error);
+      }
+    }
   };
 
   return (
@@ -328,6 +346,47 @@ export default function EventsDashboard() {
                         <p className="text-2xl font-bold text-purple-400">{eventStats.totalRSVP}</p>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Attendees List */}
+                {eventStats && (
+                  <div className="mt-4">
+                    <button
+                      onClick={toggleAttendeesList}
+                      className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/80 rounded-xl text-sm font-medium transition-colors border border-border"
+                    >
+                      <Users size={16} />
+                      {showAttendees ? "Hide Attendees" : "View Attendees"}
+                    </button>
+                    
+                    {showAttendees && attendees && attendees.length > 0 && (
+                      <div className="mt-3 bg-card border border-border rounded-xl overflow-hidden">
+                        <div className="p-3 border-b border-border">
+                          <p className="text-sm font-bold">Students Who Attended ({attendees.length})</p>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto">
+                          {attendees.map((attendee, idx) => (
+                            <div key={idx} className="flex items-center gap-3 p-3 border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
+                              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                                {attendee.name?.charAt(0) || "?"}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{attendee.name || "Unknown"}</p>
+                                <p className="text-xs text-muted-foreground truncate">{attendee.email}</p>
+                              </div>
+                              <p className="text-xs text-emerald-400">
+                                {attendee.attendedAt ? new Date(attendee.attendedAt).toLocaleTimeString() : ""}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {showAttendees && attendees && attendees.length === 0 && (
+                      <p className="mt-3 text-sm text-muted-foreground">No attendees yet</p>
+                    )}
                   </div>
                 )}
               </div>

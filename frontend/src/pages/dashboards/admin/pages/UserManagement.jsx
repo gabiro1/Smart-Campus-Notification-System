@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -48,6 +49,7 @@ const FILTER = [
 
 export default function UserManagement() {
   const { isDarkMode } = useTheme();
+  const [searchParams] = useSearchParams();
   
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,6 +132,16 @@ export default function UserManagement() {
     const delayDebounceFn = setTimeout(() => { fetchUsers(); }, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [page, search, roleFilter]);
+
+  useEffect(() => {
+    const userIdParam = searchParams.get("userId");
+    if (userIdParam && users.length > 0) {
+      const targetUser = users.find(u => u._id === userIdParam || u.id === userIdParam);
+      if (targetUser) {
+        openDrawer(targetUser, false);
+      }
+    }
+  }, [searchParams, users]);
 
   const handleCreateUser = async (e) => {
     e.preventDefault();

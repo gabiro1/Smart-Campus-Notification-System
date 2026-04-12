@@ -13,56 +13,71 @@ export default function AttendanceScanner({ eventId, onClose, onScanSuccess }) {
   const scannerRef = useRef(null);
 
   useEffect(() => {
-    // Initialize scanner
-    if (scanning && scannerRef.current) {
-      const html5QrCode = new Html5Qrcode("qr-reader");
-      setScanner(html5QrCode);
-
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-      html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        handleScanSuccess,
-        onScanFailure
-      ).catch((err) => {
+    let html5QrCode = null;
+    
+    const startScanner = async () => {
+      if (!scanning) return;
+      
+      try {
+        html5QrCode = new Html5Qrcode("qr-reader");
+        setScanner(html5QrCode);
+        
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          config,
+          handleScanSuccess,
+          onScanFailure
+        );
+      } catch (err) {
         console.error("[Scanner] Camera start failed:", err);
         toast.error("Camera access denied or unavailable");
         setScanning(false);
-      });
-
-      // Cleanup on unmount
-      return () => {
-        if (html5QrCode && html5QrCode.isScanning) {
-          html5QrCode.stop().catch(console.error);
-        }
-      };
-    }
+      }
+    };
+    
+    startScanner();
+    
+    // Cleanup on unmount or when scanning changes to false
+    return () => {
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(console.error);
+      }
+    };
   }, [scanning, eventId]);
 
-  const handleScanSuccess = async (decodedText) => {
-    // Prevent multiple rapid scans
-    if (!scanning) return;
+const handleScanSuccess = async (decodedText) => {
+    // Prevent multiple rapid scans - use ref for fresh value
+    if (scannerRef.current?.isScanning === false) return;
+    
+    // Stop scanner temporarily
+    if (scanner && scanner.isScanning) {
+      await scanner.stop();
+    }
+    
     setScanning(false);
 
+    // Parse QR data: expected format { e: "eventId", s: "studentId" }
+    let qrData;
     try {
-      // Parse QR data: expected format { e: "eventId", s: "studentId" }
-      let qrData;
-      try {
-        qrData = JSON.parse(decodedText);
-      } catch (e) {
-        // If not JSON, assume whole string is studentId
-        qrData = { s: decodedText, e: null };
-      }
+      qrData = JSON.parse(decodedText);
+    } catch (e) {
+      // If not JSON, assume whole string is studentId
+      qrData = { s: decodedText, e: null };
+    }
 
-      const studentId = qrData.s;
-      if (!studentId) {
-        toast.error("Invalid QR code format");
-        setScanning(true); // resume scanning
-        return;
-      }
+    const studentId = qrData.s;
+    if (!studentId) {
+      toast.error("Invalid QR code format");
+      setScanning(true); // resume scanning
+      return;
+    }
 
-      // Call backend to mark attendance
+    // Call backend to mark attendance
+    console.log("Scanning attendance for student:", studentId, "event:", eventId);
+    try {
       const response = await eventService.scanAttendance(eventId, studentId);
+      console.log("Scan response:", response);
       if (response.success) {
         const studentName = response.data?.userId?.name || response.data?.student?.name || "Student";
         setLastScan({ success: true, name: studentName });
@@ -74,13 +89,14 @@ export default function AttendanceScanner({ eventId, onClose, onScanSuccess }) {
         setLastScan({ success: false, message: response.message });
       }
     } catch (error) {
-      toast.error("Scan failed. Please try again.");
-      setLastScan({ success: false, message: error.message });
+      console.error("Scan error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "Scan failed. Please try again.");
+      setLastScan({ success: false, message: error.response?.data?.message || error.message });
     } finally {
       // Resume scanning after delay
       setTimeout(() => {
-        setScanning(true);
         setLastScan(null);
+        setScanning(true);
       }, 3000);
     }
   };

@@ -7,7 +7,6 @@ import { getTargetedUsers } from "../../../utils/notificationEngine.js";
 import { sendPushNotification } from "../../../config/firebaseAdmin.js";
 import { calculateMatchScore } from "../../../utils/mlEngine.js";
 import Tesseract from "tesseract.js";
-import { GoogleGenAI } from "@google/genai";
 import fs from "fs";
 import path from "path";
 import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
@@ -18,24 +17,23 @@ import { getPersonalizedContentBatch } from "../../../services/aiPersonalization
 import { shouldSendNow } from "../../../utils/quietHours.js";
 
 /* =========================================================
-   AI FLYER PARSING
+    AI FLYER PARSING (using OpenRouter - tries GROQ first, then fallback)
 ========================================================= */
 export const parseFlyer = async (req, res) => {
   try {
 
     /* -------------------------------
-       1️⃣ Validate API Key
+       1️⃣ Validate API Keys
     -------------------------------- */
-    if (!process.env.GEMINI_API_KEY) {
-      console.error("GEMINI_API_KEY missing in .env");
+    const groqKey = process.env.GROQ_API_KEY;
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    
+    if (!groqKey && !openrouterKey) {
+      console.error("No AI API key configured in .env");
       return res.status(500).json({
         message: "Server AI configuration error"
       });
     }
-
-    const ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY
-    });
 
     /* -------------------------------
        2️⃣ Validate Image Upload
@@ -72,29 +70,89 @@ You are an AI that extracts structured event information from OCR text.
 Return ONLY valid JSON with this exact structure:
 
 {
-"title": "string",
-"date": "YYYY-MM-DD",
-"time": "HH:MM",
-"location": "string",
-"description": "1-2 sentence summary",
-"tags": ["tag1","tag2"]
+  "title": "string - event name",
+  "description": "string - event details",
+  "date": "YYYY-MM-DD format",
+  "time": "HH:MM format (24hr)",
+  "location": "string - venue/room",
+  "tags": ["array", "of", "relevant tags"]
 }
-
-If a field is missing return null.
 
 OCR TEXT:
 ${extractedText}
 `;
 
     /* -------------------------------
-       5️⃣ Send Text To Gemini
+       5️⃣ Try GROQ first, then OpenRouter
     -------------------------------- */
-    const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: prompt
-    });
+    let aiResponse = null;
+    let errorMsg = null;
+    
+    // Try GROQ
+    if (groqKey) {
+      try {
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'llama-3.2-90b-vision-preview',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.2,
+            max_tokens: 1024
+          })
+        });
 
-    const aiResponse = result.text;
+        const groqData = await groqResponse.json();
+        
+        if (groqData.choices && groqData.choices[0]) {
+          aiResponse = groqData.choices[0].message.content;
+          console.log("Used GROQ AI for parsing");
+        } else {
+          errorMsg = "GROQ returned no response";
+        }
+      } catch (e) {
+        errorMsg = e.message;
+      }
+    }
+    
+    // Try OpenRouter if GROQ failed
+    if (!aiResponse && openrouterKey) {
+      try {
+        const orResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openrouterKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'http://localhost:8000',
+            'X-Title': 'UniNotify'
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.0-flash-exp:free',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.2,
+            max_tokens: 1024
+          })
+        });
+
+        const orData = await orResponse.json();
+        
+        if (orData.choices && orData.choices[0]) {
+          aiResponse = orData.choices[0].message.content;
+          console.log("Used OpenRouter AI for parsing");
+        } else {
+          errorMsg = orData.error?.message || "OpenRouter returned no response";
+        }
+      } catch (e) {
+        errorMsg = e.message;
+      }
+    }
+
+    if (!aiResponse) {
+      throw new Error(errorMsg || "All AI providers failed");
+    }
 
     /* -------------------------------
        6️⃣ Clean AI Response
@@ -649,6 +707,23 @@ export const getEventStats = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
+    const { attended } = req.query;
+    let attendeesList = null;
+
+    // If requested, get list of attendees
+    if (attended === 'true') {
+      const attendees = await EventRSVP.find({ eventId: event._id, attended: true })
+        .populate('userId', 'name email profilePicture')
+        .lean();
+      attendeesList = attendees.map(a => ({
+        _id: a._id,
+        name: a.userId?.name,
+        email: a.userId?.email,
+        profilePicture: a.userId?.profilePicture,
+        attendedAt: a.attendedAt
+      }));
+    }
+
     // Calculate attendance stats from EventRSVP
     const rsvpCount = await EventRSVP.countDocuments({ eventId: event._id });
     const goingCount = await EventRSVP.countDocuments({ eventId: event._id, status: 'going' });
@@ -669,7 +744,8 @@ export const getEventStats = async (req, res) => {
               event.ratings.reduce((sum, r) => sum + r.rating, 0) /
               event.ratings.length
             ).toFixed(1)
-          : 0
+          : 0,
+      attendees: attendeesList
     };
 
     res.json(stats);

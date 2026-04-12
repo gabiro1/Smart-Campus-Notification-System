@@ -114,7 +114,7 @@ createUser: async (userData) => {
   // Upload flyer for AI OCR parsing
   parseFlyer: async (file) => {
     const formData = new FormData();
-    formData.append('image', file); // Make sure your multer setup looks for 'image' or 'file' matching this
+    formData.append('flyer', file); // Backend expects 'flyer'
     const response = await apiClient.post('/events/parse-flyer', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -123,8 +123,7 @@ createUser: async (userData) => {
 
   // Create a new event/broadcast
   createEvent: async (eventData) => {
-    // Note: Adjust the URL to match where you mounted your event routes
-    const response = await apiClient.post('/events', eventData); 
+    const response = await apiClient.post('/events/create', eventData); 
     return response.data;
   },
   // Fetch system logs

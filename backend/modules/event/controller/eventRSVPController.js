@@ -99,15 +99,65 @@ export const deleteRSVP = asyncHandler(async (req, res) => {
 // @access  Private (Lecturer/Admin/HOD of event's department)
 export const scanAttendance = asyncHandler(async (req, res) => {
   const { id: eventId } = req.params;
-  const { studentId } = req.body;
+  let { studentId } = req.body;
 
   if (!studentId) {
     return res.status(400).json({ success: false, message: "Student ID is required" });
   }
 
-  // Validate student exists
-  const student = await User.findById(studentId).select('name email');
+  console.log("Looking for student with ID:", studentId);
+
+  // Handle QR code format: "mongodbId:identifier" or JSON {"e":"eventId","s":"mongodbId:identifier"}
+  let parsedStudentId = studentId;
+  
+  // Try JSON format first {"e":"...","s":"..."}
+  try {
+    const parsed = JSON.parse(studentId);
+    if (parsed.s && parsed.s.includes(':')) {
+      parsedStudentId = parsed.s.split(':')[0]; // Get mongodbId part
+    } else if (parsed.s) {
+      parsedStudentId = parsed.s;
+    }
+    console.log("Parsed JSON QR data, using:", parsedStudentId);
+  } catch (e) {
+    // Not JSON, check if it's the "mongodbId:identifier" format
+    if (studentId.includes(':')) {
+      parsedStudentId = studentId.split(':')[0]; // Get mongodbId part
+      console.log("Parsed colon format, using:", parsedStudentId);
+    }
+  }
+  
+  // Try to find student - first by _id (parsed), then by studentId field, then by email
+  let student = null;
+  try {
+    student = await User.findById(parsedStudentId).select('name email studentId studentID');
+    console.log("Found by _id:", student?.name);
+  } catch (e) {
+    console.log("Not valid ObjectId, trying other methods");
+  }
+  
   if (!student) {
+    student = await User.findOne({ studentId: parsedStudentId }).select('name email studentId studentID');
+    console.log("Found by studentId:", student?.name);
+  }
+  
+  if (!student) {
+    student = await User.findOne({ studentID: parsedStudentId }).select('name email studentId studentID');
+    console.log("Found by studentID:", student?.name);
+  }
+  
+  if (!student) {
+    student = await User.findOne({ email: parsedStudentId }).select('name email studentId studentID');
+    console.log("Found by email:", student?.name);
+  }
+  
+  if (!student) {
+    student = await User.findOne({ name: parsedStudentId }).select('name email studentId studentID');
+    console.log("Found by name:", student?.name);
+  }
+
+  if (!student) {
+    console.log("Student not found in any field");
     return res.status(404).json({ success: false, message: "Student not found" });
   }
 
@@ -128,18 +178,21 @@ export const scanAttendance = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: "Not authorized to scan attendance" });
   }
 
-  // Find RSVP record
-  const rsvp = await EventRSVP.findOne({ eventId, userId: studentId });
+  // Find or create RSVP record
+  let rsvp = await EventRSVP.findOne({ eventId, userId: student._id });
 
   if (!rsvp) {
-    return res.status(404).json({
-      success: false,
-      message: "Student has not RSVP'd to this event. Cannot mark attendance without RSVP."
+    // Auto-create RSVP record and mark as attended
+    rsvp = await EventRSVP.create({
+      eventId,
+      userId: student._id,
+      status: 'going',
+      attended: true,
+      scannedAt: new Date()
     });
-  }
-
-  // Check if already attended
-  if (rsvp.attended) {
+    console.log("Auto-created RSVP for:", student.name);
+  } else if (rsvp.attended) {
+    // Already attended
     return res.status(200).json({
       success: true,
       message: `${student.name} was already marked as attended`,
@@ -150,12 +203,12 @@ export const scanAttendance = asyncHandler(async (req, res) => {
         scannedAt: rsvp.scannedAt
       }
     });
+  } else {
+    // Mark as attended
+    rsvp.attended = true;
+    rsvp.scannedAt = new Date();
+    await rsvp.save();
   }
-
-  // Mark as attended
-  rsvp.attended = true;
-  rsvp.scannedAt = new Date();
-  await rsvp.save();
 
   // Populate for response
   await rsvp.populate('userId', 'name email profilePicture');

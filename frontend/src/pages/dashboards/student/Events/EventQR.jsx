@@ -16,8 +16,12 @@ export default function EventQR({ eventId }) {
       try {
         const data = await authService.getCurrentUser();
         if (data.success && data.user) {
-          // For students, use studentID; for other roles, use _id
-          setStudentId(data.user.studentID || data.user._id);
+          // Use MongoDB _id as that's what backend searches by
+          // Fall back to email if _id not available
+          const userId = data.user._id || data.user.id;
+          // Also include a fallback identifier (studentID or email)
+          const identifier = data.user.studentID || data.user.email;
+          setStudentId(userId + ':' + identifier);
         }
       } catch (error) {
         console.error("Failed to fetch user for QR:", error);
