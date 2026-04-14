@@ -14,6 +14,9 @@ import {
   Clock,
   Users,
   Tag,
+  Download,
+  GraduationCap,
+  Briefcase,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ThemedToaster from "../../../../components/ui/ThemedToaster";
@@ -40,6 +43,8 @@ export default function EventsDashboard() {
   const [attendees, setAttendees] = useState(null);
   const [showAttendees, setShowAttendees] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [exportLoading, setExportLoading] = useState(false);
 
   const fetchEvents = async () => {
     try {
@@ -114,6 +119,63 @@ export default function EventsDashboard() {
         console.error("Failed to fetch attendees:", error);
       }
     }
+  };
+
+  const filteredAttendees = attendees?.filter(a => {
+    if (roleFilter === "all") return true;
+    return a.role === roleFilter;
+  }) || [];
+
+  const exportToCSV = () => {
+    if (!filteredAttendees.length) return;
+    
+    const attendedOnly = filteredAttendees.filter(a => a.attendedAt);
+    const headers = ["Name", "Email", "Role", "Department", "Attended At"];
+    const rows = attendedOnly.map(a => [
+      a.name || "",
+      a.email || "",
+      a.role || "student",
+      a.department || "",
+      a.attendedAt ? new Date(a.attendedAt).toLocaleTimeString() : "-"
+    ]);
+    
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${viewingEvent.title}_attendees_${roleFilter}_${Date.now()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${attendedOnly.length} attendees to CSV`);
+  };
+
+  const exportToExcel = () => {
+    if (!filteredAttendees.length) return;
+    
+    const attendedOnly = filteredAttendees.filter(a => a.attendedAt);
+    const headers = ["Name", "Email", "Role", "Department", "Attended At"];
+    const rows = attendedOnly.map(a => [
+      a.name || "",
+      a.email || "",
+      a.role || "student",
+      a.department || "",
+      a.attendedAt ? new Date(a.attendedAt).toLocaleTimeString() : "-"
+    ]);
+    
+    let tsv = headers.join("\t") + "\n";
+    rows.forEach(row => {
+      tsv += row.map(cell => `${cell}`).join("\t") + "\n";
+    });
+    
+    const blob = new Blob([tsv], { type: "text/tab-separated-values;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${viewingEvent.title}_attendees_${roleFilter}_${Date.now()}.xls`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported to Excel");
   };
 
   return (
@@ -362,29 +424,68 @@ export default function EventsDashboard() {
                     
                     {showAttendees && attendees && attendees.length > 0 && (
                       <div className="mt-3 bg-card border border-border rounded-xl overflow-hidden">
-                        <div className="p-3 border-b border-border">
-                          <p className="text-sm font-bold">Students Who Attended ({attendees.length})</p>
+                        {/* Filter & Export Bar */}
+                        <div className="p-3 border-b border-border flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold">Scanned</p>
+                            <span className="text-xs text-muted-foreground">
+                              ({filteredAttendees.filter(a => a.attendedAt).length} of {attendees.length})
+                            </span>
+                            <select
+                              value={roleFilter}
+                              onChange={(e) => setRoleFilter(e.target.value)}
+                              className="bg-accent border border-border rounded-lg px-3 py-1.5 text-xs font-medium"
+                            >
+                              <option value="all">All Roles</option>
+                              <option value="student">Students</option>
+                              <option value="lecturer">Staff/Lecturers</option>
+                              <option value="hod">HOD</option>
+                              <option value="admin">Admins</option>
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={exportToCSV}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs font-bold transition-colors"
+                            >
+                              <Download size={12} /> CSV
+                            </button>
+                            <button
+                              onClick={exportToExcel}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-colors"
+                            >
+                              <Download size={12} /> Excel
+                            </button>
+                          </div>
                         </div>
-                        <div className="max-h-48 overflow-y-auto">
-                          {attendees.map((attendee, idx) => (
+                        
+                        <div className="max-h-64 overflow-y-auto">
+                          {filteredAttendees.filter(a => a.attendedAt).map((attendee, idx) => (
                             <div key={idx} className="flex items-center gap-3 p-3 border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
-                              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
-                                {attendee.name?.charAt(0) || "?"}
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs ${
+                                attendee.role === "student" ? "bg-blue-600" : 
+                                attendee.role === "lecturer" ? "bg-purple-600" :
+                                attendee.role === "hod" ? "bg-amber-600" : "bg-red-600"
+                              }`}>
+                                {attendee.role === "student" ? <GraduationCap size={14} /> : <Briefcase size={14} />}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-foreground truncate">{attendee.name || "Unknown"}</p>
                                 <p className="text-xs text-muted-foreground truncate">{attendee.email}</p>
                               </div>
-                              <p className="text-xs text-emerald-400">
-                                {attendee.attendedAt ? new Date(attendee.attendedAt).toLocaleTimeString() : ""}
-                              </p>
+                              <div className="text-right">
+                                <p className="text-xs text-muted-foreground uppercase">{attendee.role}</p>
+                                <p className="text-xs text-emerald-400">
+                                  {attendee.attendedAt ? new Date(attendee.attendedAt).toLocaleTimeString() : ""}
+                                </p>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </div>
-                    )}
-                    
-                    {showAttendees && attendees && attendees.length === 0 && (
+)}
+
+                    {showAttendees && (!attendees || attendees.length === 0) && (
                       <p className="mt-3 text-sm text-muted-foreground">No attendees yet</p>
                     )}
                   </div>

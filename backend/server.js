@@ -14,6 +14,7 @@ import eventRoutes from './modules/event/routes/eventRoutes.js';
 import notificationRoutes from './modules/notification/routes/notificationRoutes.js';
 import reminderRoutes from './modules/reminder/routes/reminderRoutes.js';
 import adminRoutes from './modules/admin/routes/adminRoutes.js';
+import backupRoutes from './modules/backup/routes/backupRoutes.js';
 import messageRoutes from './modules/message/routes/messageRoutes.js'; // For the new messaging system
 import { startReminderCron } from './services/reminderCron.js'; // Import the cron job for reminders
 import { startScheduledAnnouncementCron } from './services/scheduledAnnouncementCron.js'; // Scheduled announcements
@@ -156,6 +157,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes); // Added for Read Receipts/Analytics
 app.use('/api/reminders', reminderRoutes); // Reminder system routes
 app.use('/api/admin', adminRoutes); // Admin system routes
+app.use('/api/admin/backups', backupRoutes); // Backup system routes
 app.use('/api/student', studentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use("/api/classes", classRoutes);

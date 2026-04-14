@@ -84,6 +84,12 @@ createUser: async (userData) => {
     return response.data;
   },
 
+  // Get AI-powered insights and recommendations
+  getAIInsights: async () => {
+    const response = await apiClient.get('/admin/ai-insights');
+    return response.data;
+  },
+
   // Get engagement by department
   getEngagementByDepartment: async () => {
     const response = await apiClient.get('/admin/engagement');
@@ -140,31 +146,20 @@ createUser: async (userData) => {
 
   // Get list of previous backups
   getBackups: async () => {
-    // const response = await apiClient.get('/admin/backups');
-    // return response.data;
-    
-    // Returning dummy data for UI testing until backend route is built
-    return [
-      { id: "bk-001", type: "Database", size: "142 MB", date: new Date(Date.now() - 1000 * 3600 * 24).toISOString(), status: "Completed" },
-      { id: "bk-002", type: "Media Assets", size: "1.2 GB", date: new Date(Date.now() - 1000 * 3600 * 48).toISOString(), status: "Completed" },
-      { id: "bk-003", type: "Full System", size: "1.4 GB", date: new Date(Date.now() - 1000 * 3600 * 168).toISOString(), status: "Completed" },
-    ];
+    const response = await apiClient.get('/admin/backups');
+    return response.data.backups || [];
   },
 
   // Trigger a new backup
   createBackup: async (type) => {
-    // const response = await apiClient.post('/admin/backups/create', { type });
-    // return response.data;
-    await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate delay
-    return { success: true, message: `${type} backup created successfully.` };
+    const response = await apiClient.post('/admin/backups', { type });
+    return response.data;
   },
 
   // Restore a previous backup
   restoreBackup: async (backupId) => {
-    // const response = await apiClient.post('/admin/backups/restore', { backupId });
-    // return response.data;
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate delay
-    return { success: true, message: "System restored successfully." };
+    const response = await apiClient.post(`/admin/backups/${backupId}/restore`);
+    return response.data;
   },
 
   // Get dynamic academic structure

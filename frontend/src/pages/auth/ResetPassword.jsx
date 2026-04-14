@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Lock, ArrowLeft, Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -9,7 +9,8 @@ import Footer from "../../layouts/Footer";
 import apiClient from "../../services/apiClient";
 
 export default function ResetPassword() {
-  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -18,6 +19,22 @@ export default function ResetPassword() {
     password: "",
     confirmPassword: "",
   });
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-card text-foreground flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4 text-red-500">Invalid Reset Link</h1>
+            <p className="text-muted-foreground mb-4">This reset link is invalid or missing.</p>
+            <Link to="/forgot-password" className="text-blue-500 hover:underline">Request a new password reset</Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -100,7 +117,7 @@ export default function ResetPassword() {
                   placeholder="New password"
                   required
                   minLength={8}
-                  className="w-full pl-12 pr-12 py-4 bg-accent border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-neutral-500"
+                  className="w-full pl-12 pr-12 py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-foreground placeholder-neutral-500"
                 />
                 <button
                   type="button"
@@ -124,7 +141,7 @@ export default function ResetPassword() {
                   placeholder="Confirm new password"
                   required
                   minLength={8}
-                  className="w-full pl-12 pr-4 py-4 bg-accent border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white placeholder-neutral-500"
+                  className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-foreground placeholder-neutral-500"
                 />
               </div>
 

@@ -8,6 +8,7 @@ import College from '../../college/model/College.js';
 import School from '../../school/model/School.js';
 import Department from '../../department/model/Department.js';
 import SystemSettings from '../../settings/model/SystemSettings.js';
+import { chat } from '../../../services/aiProvider.js';
 
 
 
@@ -720,5 +721,106 @@ export const updateSystemSettings = async (req, res) => {
   } catch (error) {
     console.error("Update System Settings Error:", error);
     res.status(500).json({ message: "Failed to update system settings" });
+  }
+};
+
+// ==========================================
+// AI-POWERED INSIGHTS
+// ==========================================
+
+export const getAIInsights = async (req, res) => {
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Gather analytics data
+    const [
+      userCount,
+      eventCount,
+      notificationStats,
+      topInterests,
+      topDepartments,
+      recentEvents,
+      engagementByTime
+    ] = await Promise.all([
+      User.countDocuments(),
+      Event.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
+      NotificationLog.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      User.aggregate([
+        { $unwind: '$interests' },
+        { $group: { _id: '$interests', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 10 }
+      ]),
+      User.aggregate([
+        { $group: { _id: '$department', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ]),
+      Event.find().sort({ createdAt: -1 }).limit(5).select('title createdAt'),
+      NotificationLog.aggregate([
+        { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+        { $group: { _id: { $dateToString: { format: '%H', date: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ])
+    ]);
+
+    const totalNotifications = notificationStats.reduce((sum, s) => sum + s.count, 0);
+    const readCount = notificationStats.find(s => s._id === 'read')?.count || 0;
+    const readRate = totalNotifications > 0 ? ((readCount / totalNotifications) * 100).toFixed(1) : 0;
+
+    const insightsData = {
+      totalUsers: userCount,
+      eventsCreated: eventCount,
+      notificationsSent: totalNotifications,
+      readRate,
+      topInterests: topInterests.map(i => ({ interest: i._id, count: i.count })),
+      topDepartments: topDepartments.map(d => ({ 
+        name: d._id?.name || 'Unknown', 
+        users: d.count 
+      })),
+      recentEvents: recentEvents.map(e => ({ title: e.title, date: e.createdAt })),
+      peakHours: engagementByTime.map(e => ({ hour: e._id, count: e.count }))
+    };
+
+    // Use AI to generate insights
+    const prompt = `Analyze this campus notification system data and provide 3-5 actionable insights:
+    
+    System Overview:
+    - ${userCount} total users
+    - ${eventCount} events created in last 30 days
+    - ${totalNotifications} notifications sent (${readRate}% read rate)
+    - Top interests: ${topInterests.slice(0, 5).map(i => i._id).join(', ') || 'None'}
+    
+    Recent Events: ${recentEvents.map(e => e.title).join(', ')}
+    
+    Peak Hours: ${engagementByTime.slice(0, 3).map(e => `${e._id}:00 (${e.count} notifications)`).join(', ')}
+    
+    Provide insights as a JSON array with short title and description. Example format:
+    [{"title": "Insight Title", "description": "What this means and what to do about it", "priority": "high|medium|low"}]`;
+
+    let aiInsights = [];
+    try {
+      const aiResponse = await chat(prompt);
+      const content = aiResponse.choices?.[0]?.message?.content || '';
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        aiInsights = JSON.parse(jsonMatch[0]);
+      }
+    } catch (aiError) {
+      console.warn('AI insights generation failed:', aiError.message);
+      aiInsights = [
+        { title: 'Enable AI Recommendations', description: 'Configure AI provider to get personalized insights', priority: 'medium' }
+      ];
+    }
+
+    res.json({
+      data: insightsData,
+      insights: aiInsights
+    });
+  } catch (error) {
+    console.error("Get AI Insights Error:", error);
+    res.status(500).json({ message: error.message });
   }
 };

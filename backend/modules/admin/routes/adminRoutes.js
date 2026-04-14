@@ -15,15 +15,16 @@ import {
     getEngagementByDepartment,
     getActiveEmergencies,
     getSystemSettings,
-    updateSystemSettings
+    updateSystemSettings,
+    getAIInsights
 } from '../controller/adminController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 import { getAcademicHierarchy } from '../controller/adminController.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
 
-// All admin routes require authentication and admin or principal role
-router.use(protect, authorize('admin', 'principal'));
+// All admin routes require authentication and admin, principal, or hod role
+router.use(protect, authorize('admin', 'principal', 'hod'));
 
 /**
  * @route   GET /api/admin/metrics
@@ -49,23 +50,23 @@ router.get('/users/:userId', getUser);
 /**
  * @route   PUT /api/admin/users/:userId
  * @desc    Update user details
- * @access  Private (Admin only)
+ * @access  Private (Admin or Principal only)
  */
-router.put('/users/:userId', validateBody(schemas.adminUserUpdate), auditLog('user', { captureChanges: true }), updateUser);
+router.put('/users/:userId', authorize('admin', 'principal'), validateBody(schemas.adminUserUpdate), auditLog('user', { captureChanges: true }), updateUser);
 
 /**
  * @route   DELETE /api/admin/users/:userId
  * @desc    Delete user account
- * @access  Private (Admin only)
+ * @access  Private (Admin or Principal only)
  */
-router.delete('/users/:userId', auditLog('user'), deleteUser);
+router.delete('/users/:userId', authorize('admin', 'principal'), auditLog('user'), deleteUser);
 
 /**
  * @route   POST /api/admin/users/:userId/promote
  * @desc    Promote user role
- * @access  Private (Admin only)
+ * @access  Private (Admin or Principal only)
  */
-router.post('/users/:userId/promote', auditLog('user', { customAction: 'PROMOTE_USER' }), promoteUser);
+router.post('/users/:userId/promote', authorize('admin', 'principal'), auditLog('user', { customAction: 'PROMOTE_USER' }), promoteUser);
 
 /**
  * @route   GET /api/admin/analytics
@@ -116,5 +117,8 @@ router.get('/hierarchy', getAcademicHierarchy);
 // Settings routes
 router.get('/settings', getSystemSettings);
 router.put('/settings', updateSystemSettings);
+
+// AI-powered insights
+router.get('/ai-insights', getAIInsights);
 
 export default router;

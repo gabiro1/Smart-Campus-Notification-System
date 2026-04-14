@@ -713,14 +713,16 @@ export const getEventStats = async (req, res) => {
     // If requested, get list of attendees
     if (attended === 'true') {
       const attendees = await EventRSVP.find({ eventId: event._id, attended: true })
-        .populate('userId', 'name email profilePicture')
+        .populate('userId', 'name email role department profilePicture')
         .lean();
       attendeesList = attendees.map(a => ({
         _id: a._id,
         name: a.userId?.name,
         email: a.userId?.email,
+        role: a.userId?.role,
+        department: a.userId?.department?.name || a.userId?.department,
         profilePicture: a.userId?.profilePicture,
-        attendedAt: a.attendedAt
+        attendedAt: a.attendedAt || a.updatedAt
       }));
     }
 

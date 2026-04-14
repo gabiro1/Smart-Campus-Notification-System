@@ -135,10 +135,6 @@ export const passwordResetSchema = Joi.object({
 
 export const resetPasswordTokenSchema = Joi.object({
   password: Joi.string().min(8).required()
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$'))
-    .messages({
-      'string.pattern.base': 'Password must contain uppercase, lowercase, number, and special character.'
-    })
 });
 
 // ==========================================

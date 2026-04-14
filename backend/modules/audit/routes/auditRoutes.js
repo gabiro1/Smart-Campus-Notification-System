@@ -12,7 +12,7 @@ const router = express.Router();
 
 // All audit routes require admin access
 router.use(protect);
-router.use(authorize('admin', 'principal')); // Only top-level admins
+router.use(authorize('admin', 'principal', 'hod')); // Admins, principals, and HODs
 
 router.get("/", getAuditLogs);
 router.get("/:id", getAuditLog);

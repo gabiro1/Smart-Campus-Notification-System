@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useParams, Link } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 import Navbar from "../../layouts/Navbar";
@@ -8,7 +8,8 @@ import Footer from "../../layouts/Footer";
 import apiClient from "../../services/apiClient";
 
 export default function VerifyEmail() {
-  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
   const [status, setStatus] = useState("verifying"); // verifying | success | error
   const [message, setMessage] = useState("");
 
