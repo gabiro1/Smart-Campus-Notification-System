@@ -54,8 +54,8 @@ export default function Notifications() {
         setLoading(true);
         
         const notifResponse = await notificationService.getNotifications();
-        const systemNotifs = (notifResponse.data || notifResponse.notifications || [])
-          .filter(n => !n.referenceId)
+        const rawNotifs = notifResponse.data?.notifications || notifResponse.notifications || [];
+        const systemNotifs = rawNotifs
           .map(n => ({
             id: n._id,
             category: "incoming",
