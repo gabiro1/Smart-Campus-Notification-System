@@ -1,4 +1,5 @@
 import User from "../../user/model/User.js";
+import bcrypt from 'bcryptjs';
 import Event from '../../event/model/Event.js';
 import NotificationLog from '../../notification/models/NotificationLog.js';
 import Reminder from '../../reminder/model/Reminder.js';
@@ -75,6 +76,8 @@ export const createUser = async (req, res) => {
             return res.status(400).json({ message: "User already exists" });
         }
 
+        const hashedPassword = await bcrypt.hash(password, 12);
+
         // Validate role to prevent bad data
         const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president', 'dean', 'principal'];
         const userRole = role && allowedRoles.includes(role) ? role : 'student';
@@ -82,7 +85,7 @@ export const createUser = async (req, res) => {
         const user = await User.create({
             name,
             email,
-            password,
+            password: hashedPassword,
             role: userRole,
             college,
             school,
