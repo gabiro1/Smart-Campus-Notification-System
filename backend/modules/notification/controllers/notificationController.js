@@ -37,31 +37,27 @@ export const getNotifications = async (req, res) => {
         const { page = 1, limit = 20 } = req.query;
         const skip = (page - 1) * limit;
 
+        console.log('[GetNotifications] userId:', userId);
+
         // Support both studentId (legacy) and recipientId for all user types
-        const notifications = await NotificationLog.find({
+        const query = {
             $or: [
                 { studentId: userId },
                 { recipientId: userId }
             ]
-        })
+        };
+        console.log('[GetNotifications] Query:', JSON.stringify(query));
+        
+        const notifications = await NotificationLog.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
             .lean();
 
-        const total = await NotificationLog.countDocuments({
-            $or: [
-                { studentId: userId },
-                { recipientId: userId }
-            ]
-        });
-        const unreadCount = await NotificationLog.countDocuments({
-            $or: [
-                { studentId: userId },
-                { recipientId: userId }
-            ],
-            status: "unread"
-        });
+        console.log('[GetNotifications] Found:', notifications.length);
+
+        const total = await NotificationLog.countDocuments(query);
+        const unreadCount = await NotificationLog.countDocuments({ ...query, status: "unread" });
 
         res.status(200).json({
             success: true,
@@ -256,15 +252,19 @@ export const sendNotification = async (req, res) => {
         const { targetUserId, email, name, fcmToken, message, title = "Official Directive", priority = "normal", category = "events" } = req.body;
         const senderId = req.user._id;
 
+        console.log('[Dispatch] targetUserId:', targetUserId, 'title:', title, 'message:', message);
+
         if (!email || !message || !targetUserId) {
             return res.status(400).json({ success: false, message: "Incomplete dispatch payload." });
         }
 
         // Fetch target user to check preferences and contact info
-        const targetUser = await User.findById(targetUserId).select('phoneNumber notificationPreferences');
+        const targetUser = await User.findById(targetUserId).select('phoneNumber notificationPreferences role');
         if (!targetUser) {
             return res.status(404).json({ success: false, message: "Target user not found" });
         }
+        
+        console.log('[Dispatch] Target user role:', targetUser.role);
 
         const prefs = targetUser.notificationPreferences || {};
         const categoryPrefs = prefs.categories?.[category] || {};
@@ -292,12 +292,12 @@ export const sendNotification = async (req, res) => {
         const tasks = [];
         const channels = ["Database_Log"];
 
-        // Skip AI personalization for direct staff notifications to preserve original message
+        // Keep original for direct staff notifications, skip AI
         const personalizedTitle = title;
         const personalizedMessage = message;
 
         // 1. DB Log Task (Always happens) - with personalized content and priority
-        tasks.push(NotificationLog.create({
+        const notifPromise = NotificationLog.create({
             studentId: targetUserId,
             recipientId: targetUserId,
             senderId: senderId,
@@ -306,7 +306,9 @@ export const sendNotification = async (req, res) => {
             status: "unread",
             type: category,
             priority: mapPriority(priority)
-        }));
+        });
+        tasks.push(notifPromise);
+        notifPromise.then(doc => console.log('[Dispatch] Notification created:', doc._id, 'to user:', targetUserId));
 
         // Check if we can send now based on quiet hours and priority
         const priorityMapped = mapPriority(priority);
