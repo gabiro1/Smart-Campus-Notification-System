@@ -249,7 +249,7 @@ export const registerDevice = async (req, res) => {
 
 export const sendNotification = async (req, res) => {
     try {
-        const { targetUserId, email, name, fcmToken, message, title = "Official Directive", priority = "normal", category = "events" } = req.body;
+        const { targetUserId, email, name, fcmToken, message, title = "Official Directive", priority = "normal", category = "announcement" } = req.body;
         const senderId = req.user._id;
 
         console.log('[Dispatch] targetUserId:', targetUserId, 'title:', title, 'message:', message);
@@ -292,9 +292,14 @@ export const sendNotification = async (req, res) => {
         const tasks = [];
         const channels = ["Database_Log"];
 
-        // Keep original for direct staff notifications, skip AI
+        // Get sender info for attribution
+        const sender = await User.findById(senderId).select('name department');
+        const deptName = sender?.department?.name || 'Department';
+        const senderName = sender?.name || 'Department Admin';
+        
+        // Add sender info to title
         const personalizedTitle = title;
-        const personalizedMessage = message;
+        const personalizedMessage = `${message}\n\n— From: ${senderName} (${deptName})`;
 
         // 1. DB Log Task (Always happens) - with personalized content and priority
         const notifPromise = NotificationLog.create({
@@ -304,7 +309,7 @@ export const sendNotification = async (req, res) => {
             title: personalizedTitle,
             message: personalizedMessage,
             status: "unread",
-            type: category,
+            type: "announcement",
             priority: mapPriority(priority)
         });
         tasks.push(notifPromise);

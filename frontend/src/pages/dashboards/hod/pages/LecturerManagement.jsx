@@ -319,7 +319,7 @@ const LecturerManagement = () => {
                           }
                           className="flex-1 bg-accent hover:bg-accent border border-border rounded-xl py-3 text-[10px] font-black flex items-center justify-center gap-2 transition-all"
                         >
-                          <MessageSquare size={14} /> NOTIFY
+                          <MessageSquare size={14} /> Message
                         </button>
                         <button
                           onClick={() =>
@@ -443,51 +443,61 @@ const LecturerManagement = () => {
 
       {/* --- NOTIFY MODAL (OMNICHANNEL) --- */}
       {smsModal.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-background border border-border rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-black mb-1 flex items-center gap-2 text-foreground">
-              <ShieldCheck className="text-blue-500" /> Dispatch Memo
-            </h3>
-            <p className="text-muted-foreground text-xs font-medium mb-8">
-              Send an official administrative alert to{" "}
-              <b>{smsModal.lecturer.name}</b> via Email & Push.
-            </p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-background border border-white/10 rounded-3xl w-full max-w-lg p-8 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden relative">
+            {/* Gradient accent line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500" />
+            
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center">
+                  <ShieldCheck className="text-blue-400" size={22} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">Send Message</h3>
+                  <p className="text-xs text-muted-foreground">Direct message to {smsModal.lecturer?.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSmsModal({ isOpen: false, lecturer: null, message: "" })}
+                className="p-2 hover:bg-accent rounded-xl transition-all text-muted-foreground hover:text-foreground"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
             <form onSubmit={handleSendNotification}>
               <div className="mb-6">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">
-                  Official Message
-                </label>
                 <textarea
                   required
                   value={smsModal.message}
                   onChange={(e) =>
                     setSmsModal({ ...smsModal, message: e.target.value })
                   }
-                  placeholder="Type the assignment or department update here..."
-                  className="w-full bg-accent border border-border rounded-2xl p-5 text-sm min-h-[160px] outline-none focus:border-blue-500 transition-all text-foreground custom-scrollbar shadow-inner"
+                  placeholder="Write your message..."
+                  className="w-full bg-accent/50 border border-white/10 rounded-2xl p-4 text-sm min-h-[180px] outline-none focus:border-blue-500/50 focus:bg-accent transition-all text-foreground placeholder:text-muted-foreground/50 resize-none"
                 />
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() =>
                     setSmsModal({ isOpen: false, lecturer: null, message: "" })
                   }
-                  className="flex-1 py-4 text-xs font-black text-muted-foreground hover:text-foreground transition-all"
+                  className="px-6 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
                 >
-                  CANCEL
+                  Cancel
                 </button>
                 <button
                   disabled={processingAction || !smsModal.message.trim()}
-                  className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-black tracking-widest shadow-lg shadow-blue-600/30 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl text-sm font-medium shadow-lg shadow-blue-600/25 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                 >
                   {processingAction ? (
                     <Loader2 className="animate-spin" size={16} />
                   ) : (
                     <>
-                      <Send size={14} /> DISPATCH NOW
+                      <Send size={16} /> Send Message
                     </>
                   )}
                 </button>
