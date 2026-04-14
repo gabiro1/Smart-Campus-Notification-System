@@ -8,12 +8,18 @@ const NotificationLogSchema = new mongoose.Schema({
         required: false
     },
 
-    // Who is receiving this?
-    // (Consider renaming to 'recipientId' in the future if staff also receive alerts)
+    // Who is receiving this? (legacy field)
     studentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+
+    // Generic recipient for all roles (staff, lecturers, HODs, etc.)
+    recipientId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
     },
 
     // Who sent this?

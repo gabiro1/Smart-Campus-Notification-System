@@ -33,21 +33,35 @@ const escapeHTML = (str) => {
 
 export const getNotifications = async (req, res) => {
     try {
-        const studentId = req.user._id;
+        const userId = req.user._id;
         const { page = 1, limit = 20 } = req.query;
         const skip = (page - 1) * limit;
 
-        // 🔧 ARCHITECTURE: We removed .populate('eventId') because your new schema 
-        // uses a generic 'referenceId' to prevent database crashes. The frontend 
-        // will use the title/message directly from this log.
-        const notifications = await NotificationLog.find({ studentId })
+        // Support both studentId (legacy) and recipientId for all user types
+        const notifications = await NotificationLog.find({
+            $or: [
+                { studentId: userId },
+                { recipientId: userId }
+            ]
+        })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
             .lean();
 
-        const total = await NotificationLog.countDocuments({ studentId: req.user._id });
-        const unreadCount = await NotificationLog.countDocuments({ studentId: req.user._id, status: "unread" });
+        const total = await NotificationLog.countDocuments({
+            $or: [
+                { studentId: userId },
+                { recipientId: userId }
+            ]
+        });
+        const unreadCount = await NotificationLog.countDocuments({
+            $or: [
+                { studentId: userId },
+                { recipientId: userId }
+            ],
+            status: "unread"
+        });
 
         res.status(200).json({
             success: true,
@@ -67,8 +81,11 @@ export const getNotifications = async (req, res) => {
 
 export const getUnreadCount = async (req, res) => {
     try {
-        const studentId = req.user._id;
-        const count = await NotificationLog.countDocuments({ studentId: req.user._id, status: "unread" });
+        const userId = req.user._id;
+        const count = await NotificationLog.countDocuments({
+            $or: [{ studentId: userId }, { recipientId: userId }],
+            status: "unread"
+        });
         res.status(200).json({ success: true, unreadCount: count });
     } catch (error) {
         res.status(500).json({ success: false, message: "Failed to fetch unread count." });
@@ -78,10 +95,10 @@ export const getUnreadCount = async (req, res) => {
 export const markAsRead = async (req, res) => {
     try {
         const { id } = req.params;
-        const studentId = req.user._id;
+        const userId = req.user._id;
 
         const log = await NotificationLog.findOneAndUpdate(
-            { _id: id, studentId: req.user._id },
+            { _id: id, $or: [{ studentId: userId }, { recipientId: userId }] },
             { status: "read", readAt: Date.now() },
             { new: true }
         );
@@ -96,10 +113,10 @@ export const markAsRead = async (req, res) => {
 
 export const markAllAsRead = async (req, res) => {
     try {
-        const studentId = req.user._id;
+        const userId = req.user._id;
         
         const result = await NotificationLog.updateMany(
-            { studentId: req.user._id, status: "unread" }, 
+            { $or: [{ studentId: userId }, { recipientId: userId }], status: "unread" }, 
             { status: "read", readAt: Date.now() }
         );
 
@@ -115,9 +132,12 @@ export const markAllAsRead = async (req, res) => {
 export const deleteNotification = async (req, res) => {
     try {
         const { id } = req.params;
-        const studentId = req.user._id;
+        const userId = req.user._id;
 
-        const notification = await NotificationLog.findOneAndDelete({ _id: id, studentId: req.user._id });
+        const notification = await NotificationLog.findOneAndDelete({ 
+            _id: id, 
+            $or: [{ studentId: userId }, { recipientId: userId }] 
+        });
         
         if (!notification) {
             return res.status(404).json({ success: false, message: "Notification not found." });
@@ -132,9 +152,12 @@ export const deleteNotification = async (req, res) => {
 export const getNotificationDetails = async (req, res) => {
     try {
         const { id } = req.params;
-        const studentId = req.user._id;
+        const userId = req.user._id;
 
-        const notification = await NotificationLog.findOne({ _id: id, studentId });
+        const notification = await NotificationLog.findOne({ 
+            _id: id, 
+            $or: [{ studentId: userId }, { recipientId: userId }] 
+        });
         
         if (!notification) {
             return res.status(404).json({ success: false, message: "Notification not found." });
@@ -285,6 +308,7 @@ export const sendNotification = async (req, res) => {
         // 1. DB Log Task (Always happens) - with personalized content and priority
         tasks.push(NotificationLog.create({
             studentId: targetUserId,
+            recipientId: targetUserId,
             senderId: senderId,
             title: personalizedTitle,
             message: personalizedMessage,
