@@ -292,18 +292,9 @@ export const sendNotification = async (req, res) => {
         const tasks = [];
         const channels = ["Database_Log"];
 
-        // ==========================================
-        // AI PERSONALIZATION: Rewrite for recipient role
-        // ==========================================
-        let personalizedTitle = title;
-        let personalizedMessage = message;
-        try {
-          const variant = await generateVariantForRole(title, message, targetUser.role || 'default');
-          personalizedTitle = variant.title;
-          personalizedMessage = variant.message;
-        } catch (err) {
-          console.warn('[Personalization] Failed to generate variant for direct notification, using original:', err.message);
-        }
+        // Skip AI personalization for direct staff notifications to preserve original message
+        const personalizedTitle = title;
+        const personalizedMessage = message;
 
         // 1. DB Log Task (Always happens) - with personalized content and priority
         tasks.push(NotificationLog.create({

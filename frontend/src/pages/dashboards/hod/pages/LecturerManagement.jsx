@@ -166,6 +166,7 @@ const LecturerManagement = () => {
         email: smsModal.lecturer.email,
         name: smsModal.lecturer.name,
         fcmToken: smsModal.lecturer.fcmToken,
+        title: "Official Dispatch",
         message: smsModal.message,
       });
 
