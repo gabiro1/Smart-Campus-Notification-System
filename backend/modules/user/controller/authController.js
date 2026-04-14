@@ -25,7 +25,40 @@ const sendVerificationEmail = async (email, token) => {
     to: email,
     from: process.env.EMAIL_USER,
     subject: 'Verify Your Email - UniNotify AI',
-    html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email. This link expires in 24 hours.</p>`
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+          .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #2563eb, #7c3aed); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+          .content { padding: 30px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+          .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UniNotify AI</h1>
+          </div>
+          <div class="content">
+            <h2 style="color: #1f2937; margin-top: 0;">Verify Your Email</h2>
+            <p style="color: #4b5563; line-height: 1.6;">Welcome to UniNotify AI! Please verify your email address to get started:</p>
+            <div style="text-align: center;">
+              <a href="${verificationUrl}" class="button">Verify Email</a>
+            </div>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">This link expires in <strong>24 hours</strong>.</p>
+          </div>
+          <div class="footer">
+            <p>UniNotify AI - Smart Campus Notification System</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
   });
 };
 
@@ -35,8 +68,42 @@ const sendPasswordResetEmail = async (email, token) => {
   await transporter.sendMail({
     to: email,
     from: process.env.EMAIL_USER,
-    subject: 'Password Reset - UniNotify AI',
-    html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p>`
+    subject: 'Reset Your UniNotify AI Password',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+          .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #2563eb, #7c3aed); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+          .content { padding: 30px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+          .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UniNotify AI</h1>
+          </div>
+          <div class="content">
+            <h2 style="color: #1f2937; margin-top: 0;">Reset Your Password</h2>
+            <p style="color: #4b5563; line-height: 1.6;">We received a request to reset your password. Click the button below to create a new password:</p>
+            <div style="text-align: center;">
+              <a href="${resetUrl}" class="button">Reset Password</a>
+            </div>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">This link expires in <strong>1 hour</strong>.</p>
+            <p style="color: #9ca3af; font-size: 12px;">If you didn't request this, please ignore this email.</p>
+          </div>
+          <div class="footer">
+            <p>UniNotify AI - Smart Campus Notification System</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
   });
 }; 
 
