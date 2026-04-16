@@ -1,20 +1,20 @@
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 
-import SystemOverview from "../pages/dashboards/Admin/pages/SystemOverview";
-import EventsDashboard from "../pages/dashboards/Admin/pages/EventsDashboard";
-import EditEventPage from "../pages/dashboards/Admin/pages/EditEventPage";
-import UserManagement from "../pages/dashboards/Admin/pages/UserManagement";
-import ComposeBroadcastModal from "../pages/dashboards/Admin/pages/CreateEventPage";
-import FullAnalytics from "../pages/dashboards/Admin/pages/FullAnalytics";
-import CoreSettings from "../pages/dashboards/Admin/pages/CoreSettings";
-import Maintenance from "../pages/dashboards/Admin/pages/Maintenance";
-import Backups from "../pages/dashboards/Admin/pages/Backups";
+import SystemOverview from "../pages/dashboards/admin/pages/SystemOverview";
+import EventsDashboard from "../pages/dashboards/admin/pages/EventsDashboard";
+import EditEventPage from "../pages/dashboards/admin/pages/EditEventPage";
+import UserManagement from "../pages/dashboards/admin/pages/UserManagement";
+import ComposeBroadcastModal from "../pages/dashboards/admin/pages/CreateEventPage";
+import FullAnalytics from "../pages/dashboards/admin/pages/FullAnalytics";
+import CoreSettings from "../pages/dashboards/admin/pages/CoreSettings";
+import Maintenance from "../pages/dashboards/admin/pages/Maintenance";
+import Backups from "../pages/dashboards/admin/pages/Backups";
 import MessagesTab from "../pages/Message/MessagesTab";
-import SupportTickets from "../pages/dashboards/Admin/pages/SupportTickets";
+import SupportTickets from "../pages/dashboards/admin/pages/SupportTickets";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
-import AcademicStructure from "../pages/dashboards/Admin/pages/AcademicStructure";
-import SMSTestPage from "../pages/dashboards/Admin/pages/SMSTestPage";
+import AcademicStructure from "../pages/dashboards/admin/pages/AcademicStructure";
+import SMSTestPage from "../pages/dashboards/admin/pages/SMSTestPage";
 
 export const adminRoutes = [
   <Route key="index" index element={<Navigate to="overview" replace />} />,
