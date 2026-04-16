@@ -46,6 +46,7 @@ import {
   RadialBar,
   Legend,
 } from "recharts";
+import { GlassCard } from "@/components/shared";
 import adminService from "../../../../services/adminService";
 import toast from "react-hot-toast";
 import ThemedToaster from "../../../../components/ui/ThemedToaster";
@@ -366,57 +367,48 @@ export default function FullAnalytics() {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-8"
           >
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <KPICard
-                title="Total Events"
-                value={totalEvents}
-                icon={<Calendar size={20} />}
-                color="text-purple-500"
-                bg="bg-purple-500/10"
-              />
-              <KPICard
-                title="Avg Daily"
-                value={avgEventsPerDay.toFixed(1)}
-                icon={<Activity size={20} />}
-                color="text-blue-500"
-                bg="bg-blue-500/10"
-              />
-              <KPICard
-                title="Notifications"
-                value={analytics?.userEngagement?.totalSent || 0}
-                icon={<Bell size={20} />}
-                color="text-green-500"
-                bg="bg-green-500/10"
-              />
-              <KPICard
-                title="Read Rate"
-                value={`${readRate}%`}
-                icon={<Eye size={20} />}
-                color="text-amber-500"
-                bg="bg-amber-500/10"
-              />
-              <KPICard
-                title="AI Insights"
-                value={aiInsights.length}
-                icon={<Sparkles size={20} />}
-                color="text-cyan-400"
-                bg="bg-cyan-500/10"
-                showSparkles={aiInsights.length > 0}
-              />
+            {/* KPI Cards - Lecturer Style */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {loading ? (
+                <>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <GlassCard key={i} delay={i * 0.05} className="flex items-center gap-3 p-4">
+                      <div className="p-2.5 rounded-lg bg-accent animate-pulse w-10 h-10" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-3 w-16 bg-accent animate-pulse rounded" />
+                        <div className="h-6 w-12 bg-accent animate-pulse rounded" />
+                      </div>
+                    </GlassCard>
+                  ))}
+                </>
+              ) : (
+                [
+                  { label: "Total Events", val: totalEvents.toLocaleString(), icon: Calendar, color: "text-purple-400", bg: "bg-purple-500/10" },
+                  { label: "Avg Daily", val: avgEventsPerDay.toFixed(1), icon: Activity, color: "text-blue-400", bg: "bg-blue-500/10" },
+                  { label: "Notifications", val: (analytics?.userEngagement?.totalSent || 0).toLocaleString(), icon: Bell, color: "text-green-400", bg: "bg-green-500/10" },
+                  { label: "Read Rate", val: `${readRate}%`, icon: Eye, color: "text-amber-400", bg: "bg-amber-500/10" },
+                  { label: "AI Insights", val: aiInsights.length, icon: Sparkles, color: "text-cyan-400", bg: "bg-cyan-500/10" },
+                ].map((stat, i) => (
+                  <GlassCard key={i} delay={i * 0.05} className="flex items-center gap-3 p-4">
+                    <div className={`p-2.5 rounded-lg ${stat.bg}`}>
+                      <stat.icon size={18} className={stat.color} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</p>
+                      <p className="text-xl font-bold text-foreground">{stat.val}</p>
+                    </div>
+                  </GlassCard>
+                ))
+              )}
             </div>
 
-            {/* Charts Grid */}
+            {/* Charts Grid - GlassCard Style */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Event Creation Trends */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
-              >
+              <GlassCard delay={0.2} className="h-96 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <TrendingUp size={18} className="text-purple-500" />
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <TrendingUp size={18} className="text-purple-400" />
                     Events Over Time
                   </h3>
                   <div className="flex items-center gap-2">
@@ -425,7 +417,7 @@ export default function FullAnalytics() {
                   </div>
                 </div>
                 
-                <div className="h-[280px]">
+                <div className="flex-1 min-h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={analytics?.eventStats || []}>
                       <defs>
@@ -434,30 +426,28 @@ export default function FullAnalytics() {
                           <stop offset="95%" stopColor="#a855f7" stopOpacity={0.05} />
                         </linearGradient>
                       </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
                       <XAxis
                         dataKey="date"
-                        stroke="#666"
-                        tick={{ fontSize: 10 }}
-                        axisLine={false}
-                        tickLine={false}
+                        tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                        axisLine={{ stroke: '#4B5563' }}
                         tickFormatter={(val) => val ? val.slice(5) : ""}
                         dy={8}
                       />
                       <YAxis
-                        stroke="#666"
-                        tick={{ fontSize: 10 }}
-                        axisLine={false}
-                        tickLine={false}
+                        tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                        axisLine={{ stroke: '#4B5563' }}
                         dx={-8}
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#111",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          borderRadius: "8px",
-                          color: "#fff",
-                          padding: "8px 12px",
+                          backgroundColor: '#1F2937',
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                          color: '#fff',
+                          padding: '8px 12px',
                         }}
+                        labelStyle={{ color: '#9CA3AF' }}
                         formatter={(value) => [`${value} events`]}
                       />
                       <Area
@@ -473,18 +463,13 @@ export default function FullAnalytics() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-              </motion.div>
+              </GlassCard>
 
               {/* Event Ratings */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 }}
-                className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
-              >
+              <GlassCard delay={0.3} className="h-96 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Star size={18} className="text-yellow-500" />
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Star size={18} className="text-yellow-400" />
                     Event Ratings
                   </h3>
                   <span className="text-xs text-yellow-400 font-bold">
@@ -492,7 +477,7 @@ export default function FullAnalytics() {
                   </span>
                 </div>
                 
-                <div className="h-[280px]">
+                <div className="flex-1 min-h-[200px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={analytics?.eventRatings || []}
@@ -528,7 +513,7 @@ export default function FullAnalytics() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </motion.div>
+              </GlassCard>
 
               {/* AI-Powered Insights */}
               {aiInsights.length > 0 && (
@@ -577,15 +562,10 @@ export default function FullAnalytics() {
               )}
 
               {/* Notification Read Rate */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
-              >
+              <GlassCard delay={0.4} className="h-96 flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Target size={18} className="text-green-500" />
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Target size={18} className="text-green-400" />
                     Notification Impact
                   </h3>
                   <span className="text-xs text-muted-foreground bg-green-500/10 px-3 py-1 rounded-full">
@@ -638,22 +618,17 @@ export default function FullAnalytics() {
                     color="text-green-400"
                   />
                 </div>
-              </motion.div>
+              </GlassCard>
 
               {/* Engagement Score */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 }}
-                className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
-              >
+              <GlassCard delay={0.5} className="h-96 flex flex-col">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Zap size={18} className="text-amber-500" />
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Zap size={18} className="text-amber-400" />
                     AI Engagement Score
                   </h3>
                 </div>
-                <div className="h-[300px] flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
                     <motion.div
                       initial={{ scale: 0 }}
@@ -686,7 +661,7 @@ export default function FullAnalytics() {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </GlassCard>
             </div>
           </motion.div>
         )}
@@ -699,10 +674,10 @@ export default function FullAnalytics() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <div className="bg-card border border-border rounded-[24px] overflow-hidden shadow-2xl">
-              <div className="p-6 border-b border-border flex items-center justify-between">
+            <GlassCard className="overflow-hidden" padding="p-0">
+              <div className="p-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <PieIcon className="text-blue-500" size={24} />
+                  <PieIcon className="text-blue-400" size={24} />
                   <div>
                     <h3 className="text-xl font-bold">Department Engagement</h3>
                     <p className="text-sm text-muted-foreground">
@@ -727,7 +702,7 @@ export default function FullAnalytics() {
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-[10px] uppercase font-black text-muted-foreground tracking-widest border-b border-border">
+                  <thead className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-[10px] uppercase font-bold text-muted-foreground tracking-widest border-b border-border">
                     <tr>
                       <th className="p-5">Department</th>
                       <th className="p-5">Users</th>
@@ -828,7 +803,7 @@ export default function FullAnalytics() {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </GlassCard>
           </motion.div>
         )}
 
@@ -840,23 +815,22 @@ export default function FullAnalytics() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-border p-5 rounded-2xl mb-6 flex items-start gap-4"
-            >
-              <ShieldCheck className="text-blue-500 shrink-0 mt-1" size={24} />
-              <div>
-                <h3 className="font-bold text-lg">Immutable Audit Ledger</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Every system action is permanently recorded. This data cannot be
-                  modified or deleted, ensuring institutional compliance and
-                  accountability.
-                </p>
+            <GlassCard delay={0.1} className="mb-6 p-5">
+              <div className="flex items-start gap-4">
+                <ShieldCheck className="text-blue-400 shrink-0 mt-1" size={24} />
+                <div>
+                  <h3 className="font-bold text-lg">Immutable Audit Ledger</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Every system action is permanently recorded. This data cannot be
+                    modified or deleted, ensuring institutional compliance and
+                    accountability.
+                  </p>
+                </div>
               </div>
-            </motion.div>
+            </GlassCard>
 
             {/* Filters */}
-            <div className="bg-card border border-border rounded-[24px] overflow-hidden shadow-2xl mb-6">
+            <GlassCard className="overflow-hidden" padding="p-0" shadow="shadow-none">
               <div className="p-5 border-b border-border flex flex-wrap gap-4 items-center">
                 <div className="flex-1 min-w-[200px]">
                   <div className="relative">
@@ -1041,35 +1015,11 @@ export default function FullAnalytics() {
                   </div>
                 </div>
               )}
-            </div>
+            </GlassCard>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function KPICard({ title, value, icon, color, bg, showSparkles }) {
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="bg-card border border-border p-5 rounded-[24px] shadow-xl"
-    >
-      <div className="flex justify-between items-start mb-4">
-        <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
-          {title}
-        </h4>
-        <div className={`w-10 h-10 ${bg} ${color} rounded-xl flex items-center justify-center`}>
-          {icon}
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <p className="text-3xl font-black tracking-tighter">
-          {typeof value === "number" ? value.toLocaleString() : value}
-        </p>
-        {showSparkles && <Sparkles size={16} className="text-purple-400 animate-pulse" />}
-      </div>
-    </motion.div>
   );
 }
 

@@ -101,7 +101,7 @@ export default function DepartmentBroadcast() {
   }, [classes, targetLevel]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:ml-10">
       <header className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           Department Broadcast
@@ -113,7 +113,7 @@ export default function DepartmentBroadcast() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         {/* Form Area */}
-        <GlassCard className="lg:col-span-7 space-y-6">
+        <GlassCard className="lg:col-span-7 space-y-6 mx-auto w-full">
           <div className="flex items-center gap-3 pb-4 border-b border-border">
             <div className="p-2 bg-rose-500/10 rounded-lg text-rose-400">
               <Radio size={20} />
@@ -213,7 +213,7 @@ export default function DepartmentBroadcast() {
         </GlassCard>
 
         {/* Live Preview */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 mx-auto w-full">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
             Student View Preview ({studentCount} recipients)
           </h3>

@@ -11,6 +11,110 @@
 
 import GovernanceAnnouncement from '../model/GovernanceAnnouncement.js';
 import { determineApprovalFlow } from '../utils/approvalFlow.js';
+import NotificationLog from '../../notification/models/NotificationLog.js';
+import User from '../../user/model/User.js';
+import nodemailer from 'nodemailer';
+
+// --- EMAIL HELPER ---
+const getTransporter = () => {
+    return nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_APP_PASSWORD,
+        },
+    });
+};
+
+// --- DISPATCH ANNOUNCEMENT TO USERS ---
+const dispatchAnnouncement = async (announcement) => {
+    try {
+        console.log('[Dispatch] Starting notification dispatch for announcement:', announcement._id);
+        
+        // Build user query based on targetScope
+        // Default: get all active users (college-wide)
+        let userQuery = { isActive: { $ne: false } };
+        
+        if (announcement.departmentId) {
+            userQuery.department = announcement.departmentId;
+        } else if (announcement.schoolId) {
+            userQuery.school = announcement.schoolId;
+        } else if (announcement.collegeId) {
+            userQuery.college = announcement.collegeId;
+        }
+        // If no scope IDs are set, userQuery remains { isActive: { $ne: false } } - gets all active users
+        
+        const users = await User.find(userQuery).select('_id email name fcmToken phoneNumber notificationPreferences');
+        console.log('[Dispatch] Found', users.length, 'target users');
+        
+        if (users.length === 0) {
+            console.log('[Dispatch] No users found for target scope');
+            return { success: true, notified: 0 };
+        }
+        
+        // Map priority for notification
+        const priorityMap = { high: 'high', medium: 'medium', low: 'low' };
+        const notificationPriority = priorityMap[announcement.priority] || 'medium';
+        
+        const results = await Promise.allSettled(
+            users.map(async (user) => {
+                try {
+                    // Create notification log
+                    const notification = await NotificationLog.create({
+                        studentId: user._id,
+                        recipientId: user._id,
+                        senderId: announcement.authorId,
+                        title: announcement.title,
+                        message: announcement.content,
+                        status: 'unread',
+                        type: 'announcement',
+                        priority: notificationPriority,
+                        referenceId: announcement._id,
+                        referenceType: 'governance_announcement'
+                    });
+                    
+                    // Send email if enabled
+                    const prefs = user.notificationPreferences || {};
+                    if (prefs.email !== false && user.email) {
+                        try {
+                            const transporter = getTransporter();
+                            await transporter.sendMail({
+                                from: `"UniNotify" <${process.env.EMAIL_USER}>`,
+                                to: user.email,
+                                subject: announcement.title,
+                                html: `<div style="font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+                                    <h2 style="color: #1e40af;">${announcement.title}</h2>
+                                    <p>Dear <strong>${user.name}</strong>,</p>
+                                    <div style="background: #f8fafc; padding: 15px; border-left: 4px solid #1e40af; color: #1e293b; margin: 15px 0;">
+                                        ${announcement.content.replace(/\n/g, '<br>')}
+                                    </div>
+                                    <p style="color: #666; font-size: 12px;">
+                                        — ${announcement.authorName || 'University Administration'}
+                                    </p>
+                                </div>`,
+                            });
+                        } catch (emailErr) {
+                            console.warn('[Dispatch] Email failed for user', user._id, emailErr.message);
+                        }
+                    }
+                    
+                    return notification;
+                } catch (userErr) {
+                    console.warn('[Dispatch] Failed to notify user', user._id, userErr.message);
+                    return null;
+                }
+            })
+        );
+        
+        const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
+        console.log('[Dispatch] Successfully notified', successful, 'users');
+        
+        return { success: true, notified: successful };
+    } catch (error) {
+        console.error('[Dispatch] Error dispatching announcement:', error);
+        return { success: false, error: error.message };
+    }
+};
 
 // ============================================================
 // CONTROLLER 1: Create an Announcement
@@ -39,13 +143,18 @@ export const createGovernanceAnnouncement = async (req, res) => {
             authorRole,
             authorName,
             departmentId: departmentId || null,
-            schoolId:     schoolId     || null,
-            collegeId:    collegeId    || null,
+            schoolId: schoolId || null,
+            collegeId: collegeId || null, // null = college-wide (all users)
         });
+
+        // If published immediately (principal/admin), dispatch notifications
+        if (status === 'published') {
+            await dispatchAnnouncement(newAnnouncement);
+        }
 
         const message =
             status === 'published'
-                ? 'Announcement published successfully!'
+                ? 'Announcement published and notifications sent successfully!'
                 : `Announcement submitted for ${pendingApprovalFromRole?.toUpperCase()} approval.`;
 
         return res.status(201).json({
@@ -132,6 +241,9 @@ export const reviewAnnouncement = async (req, res) => {
             announcement.pendingApprovalFromRole = null;
             announcement.reviewedBy            = req.user._id;
             announcement.reviewedAt            = new Date();
+            
+            // Dispatch notifications to target users
+            await dispatchAnnouncement(announcement);
         } else if (action === 'reject') {
             if (!rejectionReason?.trim()) {
                 return res.status(400).json({ success: false, message: 'A rejection reason is required.' });

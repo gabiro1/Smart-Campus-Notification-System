@@ -7,6 +7,7 @@ import NotificationLog from '../modules/notification/models/NotificationLog.js';
 import crypto from 'crypto';
 import { getPersonalizedContentBatch } from './aiPersonalizationService.js';
 import { shouldSendNow } from '../utils/quietHours.js';
+import { sendSMSViaTwilio } from './smsService.js';
 
 /**
  * Event Reminder Queue
@@ -358,6 +359,34 @@ export const sendEventReminder = async (eventId, reminderType, eventTitle, event
       }
       await Promise.all(pushPromises);
       console.log(`[ReminderScheduler] Sent personalized push notifications to ${validRecipients.length} devices`);
+    }
+
+    // SMS for users with phone number and SMS enabled for reminders
+    const smsRecipients = recipients.filter(u => {
+      if (!u.phoneNumber) return false;
+      const prefs = u.notificationPreferences || {};
+      const categoryPrefs = prefs.categories?.reminders || {};
+      return categoryPrefs.sms ?? prefs.sms ?? false;
+    });
+
+    const smsPromises = smsRecipients.map(user => {
+      const smsText = `${baseTitle}: ${baseMessage.substring(0, 137)}`;
+      return sendSMSViaTwilio(user.phoneNumber, smsText)
+        .then(result => {
+          console.log(`[ReminderScheduler] SMS sent to ${user.phoneNumber} (SID: ${result.sid})`);
+          return result;
+        })
+        .catch(err => {
+          console.warn(`[ReminderScheduler] SMS failed for user ${user._id} (${user.phoneNumber}):`, err.message);
+          return { sid: null, error: err.message };
+        });
+    });
+
+    if (smsRecipients.length > 0) {
+      Promise.allSettled(smsPromises).then(results => {
+        const successful = results.filter(r => r.status === 'fulfilled' && r.value?.sid).length;
+        console.log(`[ReminderScheduler] SMS: ${successful}/${smsRecipients.length} delivered for ${reminderType} reminder`);
+      });
     }
 
     return { success: true, recipientsCount: recipients.length };

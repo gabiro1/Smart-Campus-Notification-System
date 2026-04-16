@@ -45,13 +45,13 @@ export default function EventsTable({
   return (
     <div className="overflow-x-auto w-full">
       <table className="w-full text-left border-collapse">
-        <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-neutral-500 tracking-widest border-b border-white/5">
+        <thead className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-[10px] uppercase font-bold text-muted-foreground tracking-widest border-b border-border">
           <tr>
-            <th className="p-6">Event Details</th>
-            <th className="p-6">Schedule & Location</th>
-            <th className="p-6">Target Audience</th>
-            <th className="p-6">Tags</th>
-            <th className="p-6 text-right">Actions</th>
+            <th className="p-5">Event Details</th>
+            <th className="p-5">Schedule & Location</th>
+            <th className="p-5">Target Audience</th>
+            <th className="p-5">Tags</th>
+            <th className="p-5 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">

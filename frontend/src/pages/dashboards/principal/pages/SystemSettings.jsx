@@ -9,7 +9,7 @@ import {
   Zap,
   Globe,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Principal-Themed Liquid Toggle
 const LiquidToggle = ({ enabled, onChange }) => (

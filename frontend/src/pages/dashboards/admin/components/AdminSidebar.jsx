@@ -18,6 +18,7 @@ import {
   LogOut,
   BookOpen,
   GraduationCap,
+  Zap,
 } from "lucide-react";
 
 const coreItems = [
@@ -31,6 +32,7 @@ const coreItems = [
 const systemItems = [
   { icon: Activity, label: "Maintenance", path: "/admin/maintenance" },
   { icon: Database, label: "Backups", path: "/admin/backups" },
+  { icon: Zap, label: "SMS Test", path: "/admin/sms-test" },
 ];
 
 const bottomItems = [

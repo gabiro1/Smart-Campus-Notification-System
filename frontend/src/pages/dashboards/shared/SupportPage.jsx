@@ -166,7 +166,7 @@ export default function SupportPage() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showNewTicket, setShowNewTicket] = useState(false);
 
-  const [newTicket, setNewTicket] = useState({ subject: '', description: '', priority: 'medium' });
+  const [newTicket, setNewTicket] = useState({ category: 'other', subject: '', description: '' });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -196,17 +196,18 @@ export default function SupportPage() {
   const handleCreateTicket = async (e) => {
     e.preventDefault();
     if (!newTicket.subject.trim() || !newTicket.description.trim()) {
-      return toast.error('Please fill in all fields');
+      return toast.error('Please fill in subject and description');
     }
     setSubmitting(true);
     try {
       await supportService.submitTicket(newTicket);
       toast.success('Ticket submitted!');
       setShowNewTicket(false);
-      setNewTicket({ subject: '', description: '', priority: 'medium' });
+      setNewTicket({ category: 'other', subject: '', description: '' });
       fetchTickets();
     } catch (error) {
       toast.error('Failed to submit ticket');
+      console.error('Ticket error:', error);
     } finally {
       setSubmitting(false);
     }
@@ -355,16 +356,17 @@ export default function SupportPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-neutral-500 mb-2 uppercase">Priority</label>
+                  <label className="block text-xs font-bold text-neutral-500 mb-2 uppercase">Category</label>
                   <select
-                    value={newTicket.priority}
-                    onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value })}
+                    value={newTicket.category}
+                    onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
                     className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-blue-500/50"
                   >
-                    <option value="low" className="bg-background">Low</option>
-                    <option value="medium" className="bg-background">Medium</option>
-                    <option value="high" className="bg-background">High</option>
-                    <option value="urgent" className="bg-background">Urgent</option>
+                    <option value="bug" className="bg-background">Bug Report</option>
+                    <option value="feature_request" className="bg-background">Feature Request</option>
+                    <option value="login_issue" className="bg-background">Login Issue</option>
+                    <option value="notification_problem" className="bg-background">Notification Problem</option>
+                    <option value="other" className="bg-background">Other</option>
                   </select>
                 </div>
                 <div className="flex gap-3 pt-2">

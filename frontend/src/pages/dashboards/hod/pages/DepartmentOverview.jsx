@@ -114,7 +114,7 @@ export default function DepartmentOverview() {
   ];
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:ml-10">
       <header className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           Department Overview

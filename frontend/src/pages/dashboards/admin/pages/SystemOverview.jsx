@@ -18,8 +18,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { GlassCard } from "@/components/shared";
 import adminService from "../../../../services/adminService";
-// Removed NotificationCenter and Search import from here
 
 export default function SystemOverview() {
   const [data, setData] = useState({
@@ -107,9 +107,7 @@ export default function SystemOverview() {
       : 0;
 
   return (
-    <div className="p-8 lg:p-12 w-full">
-      {/* REMOVED THE TOPBAR FROM HERE */}
-
+    <div className="p-8 lg:p-12 w-full text-foreground">
       {/* Main Page Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -122,36 +120,38 @@ export default function SystemOverview() {
         </p>
       </motion.div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KPICard
-          title="Total Users"
-          value={data.metrics?.totalUsers}
-          icon={<Users size={20} />}
-          color="text-blue-500"
-          bg="bg-blue-500/10"
-        />
-        <KPICard
-          title="Active Events"
-          value={data.metrics?.totalEvents}
-          icon={<Calendar size={20} />}
-          color="text-green-500"
-          bg="bg-green-500/10"
-        />
-        <KPICard
-          title="Reminders Set"
-          value={data.metrics?.totalReminders}
-          icon={<BellRing size={20} />}
-          color="text-amber-500"
-          bg="bg-amber-500/10"
-        />
-        <KPICard
-          title="Notifications Sent"
-          value={data.metrics?.totalNotifications}
-          icon={<Send size={20} />}
-          color="text-purple-500"
-          bg="bg-purple-500/10"
-        />
+      {/* KPI Row - Lecturer Style */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {loading ? (
+          <>
+            {[1, 2, 3, 4].map((i) => (
+              <GlassCard key={i} delay={i * 0.05} className="flex items-center gap-3 p-4">
+                <div className="p-2.5 rounded-lg bg-accent animate-pulse w-10 h-10" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-3 w-16 bg-accent animate-pulse rounded" />
+                  <div className="h-6 w-12 bg-accent animate-pulse rounded" />
+                </div>
+              </GlassCard>
+            ))}
+          </>
+        ) : (
+          [
+            { label: "Total Users", val: data.metrics?.totalUsers || 0, icon: Users, color: "text-blue-400", bg: "bg-blue-500/10" },
+            { label: "Active Events", val: data.metrics?.totalEvents || 0, icon: Calendar, color: "text-green-400", bg: "bg-green-500/10" },
+            { label: "Reminders Set", val: data.metrics?.totalReminders || 0, icon: BellRing, color: "text-amber-400", bg: "bg-amber-500/10" },
+            { label: "Notifications", val: data.metrics?.totalNotifications || 0, icon: Send, color: "text-purple-400", bg: "bg-purple-500/10" },
+          ].map((stat, i) => (
+            <GlassCard key={i} delay={i * 0.05} className="flex items-center gap-3 p-4">
+              <div className={`p-2.5 rounded-lg ${stat.bg}`}>
+                <stat.icon size={18} className={stat.color} />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</p>
+                <p className="text-xl font-bold text-foreground">{stat.val?.toLocaleString()}</p>
+              </div>
+            </GlassCard>
+          ))
+        )}
       </div>
 
       {/* Active Emergency Alerts Section */}
@@ -226,20 +226,15 @@ export default function SystemOverview() {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Chart Section */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="lg:col-span-2 bg-card border border-border p-6 rounded-[24px] shadow-2xl"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Activity size={18} className="text-blue-500" /> Event Creation
-              Trends
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Chart Section - GlassCard Style */}
+        <GlassCard delay={0.2} className="lg:col-span-2 h-96 flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Activity size={18} className="text-blue-400" /> Event Creation Trends
             </h3>
           </div>
-          <div className="h-[320px] w-full">
+          <div className="flex-1 min-h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data.eventStats}>
                 <defs>
@@ -248,29 +243,24 @@ export default function SystemOverview() {
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="#ffffff05"
-                  vertical={false}
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
                 <XAxis
                   dataKey="date"
-                  stroke="#666"
-                  tick={{ fontSize: 12 }}
-                  axisLine={false}
+                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  axisLine={{ stroke: '#4B5563' }}
                   tickLine={false}
                   dy={10}
                 />
                 <YAxis hide />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#111",
-                    borderColor: "rgba(255,255,255,0.1)",
-                    borderRadius: "12px",
-                    color: "#fff",
-                    padding: "12px",
+                    backgroundColor: '#1F2937',
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    padding: '12px',
                   }}
-                  itemStyle={{ color: "#3b82f6", fontWeight: "bold" }}
+                  labelStyle={{ color: '#9CA3AF' }}
                 />
                 <Area
                   type="monotone"
@@ -283,17 +273,13 @@ export default function SystemOverview() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </motion.div>
+        </GlassCard>
 
         {/* Side Panels */}
         <div className="space-y-6">
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
-          >
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <PieIcon size={18} className="text-purple-500" /> Read Engagement
+          <GlassCard delay={0.3} className="flex flex-col">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <PieIcon size={18} className="text-purple-400" /> Read Engagement
             </h3>
             <div className="flex items-end gap-2 mb-6">
               <span className="text-5xl font-black text-purple-400 tracking-tighter">
@@ -307,7 +293,7 @@ export default function SystemOverview() {
               <StatRow
                 label="Read Notifications"
                 value={data.notificationStats.read}
-                color="text-green-500"
+                color="text-green-400"
               />
               <StatRow
                 label="Unread Notifications"
@@ -315,16 +301,11 @@ export default function SystemOverview() {
                 color="text-muted-foreground"
               />
             </div>
-          </motion.div>
+          </GlassCard>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-card border border-border p-6 rounded-[24px] shadow-xl"
-          >
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Users size={18} className="text-green-500" /> User Roles
+          <GlassCard delay={0.4} className="flex flex-col">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Users size={18} className="text-green-400" /> User Roles
             </h3>
             <div className="space-y-2">
               {data.usersByRole.map((roleObj, idx) => (
@@ -341,35 +322,10 @@ export default function SystemOverview() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </GlassCard>
         </div>
       </div>
     </div>
-  );
-}
-
-function KPICard({ title, value = 0, icon, color, bg }) {
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="bg-card border border-border p-6 rounded-[24px] shadow-xl cursor-pointer transition-colors hover:border-border flex flex-col justify-between min-h-[140px]"
-    >
-      <div className="flex justify-between items-start mb-4 gap-2">
-        <h4 className="text-[11px] uppercase tracking-widest text-muted-foreground font-bold leading-snug w-2/3">
-          {title}
-        </h4>
-        <div
-          className={`w-10 h-10 ${bg} ${color} rounded-xl flex items-center justify-center shrink-0`}
-        >
-          {icon}
-        </div>
-      </div>
-      <div>
-        <p className="text-4xl font-black tracking-tighter text-foreground">
-          {value ? value.toLocaleString() : 0}
-        </p>
-      </div>
-    </motion.div>
   );
 }
 

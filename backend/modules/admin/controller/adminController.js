@@ -827,3 +827,121 @@ export const getAIInsights = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ==========================================
+// SYSTEM HEALTH & METRICS
+// ==========================================
+
+export const getSystemHealth = async (req, res) => {
+  try {
+    const [
+      userCount,
+      eventCount,
+      notificationCount,
+      announcementCount,
+      activeAnnouncements,
+      recentActivity
+    ] = await Promise.all([
+      User.countDocuments(),
+      Event.countDocuments(),
+      NotificationLog.countDocuments(),
+      Announcement.countDocuments(),
+      Announcement.countDocuments({ status: 'Active' }),
+      AuditLog.find()
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('adminId', 'name email')
+        .lean()
+    ]);
+
+    const notificationStats = await NotificationLog.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+
+    const totalNotifications = notificationStats.reduce((sum, s) => sum + s.count, 0);
+    const readCount = notificationStats.find(s => s._id === 'read')?.count || 0;
+    const deliveredCount = notificationStats.find(s => s._id === 'delivered')?.count || 0;
+
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentEvents = await Event.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+    const recentNotifications = await NotificationLog.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalUsers: userCount,
+          totalEvents: eventCount,
+          totalNotifications: notificationCount,
+          totalAnnouncements: announcementCount,
+          activeAnnouncements: activeAnnouncements
+        },
+        deliveryRate: totalNotifications > 0 ? ((deliveredCount / totalNotifications) * 100).toFixed(1) : 0,
+        readRate: totalNotifications > 0 ? ((readCount / totalNotifications) * 100).toFixed(1) : 0,
+        recentActivity: {
+          eventsLast7Days: recentEvents,
+          notificationsLast7Days: recentNotifications
+        },
+        systemStatus: {
+          database: 'healthy',
+          api: 'healthy',
+          notifications: 'healthy'
+        },
+        recentLogs: recentActivity.map(log => ({
+          _id: log._id,
+          action: log.action,
+          description: log.description,
+          status: log.status,
+          admin: log.adminId?.name || 'System',
+          createdAt: log.createdAt
+        }))
+      }
+    });
+  } catch (error) {
+    console.error("Get System Health Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const runDiagnostics = async (req, res) => {
+  try {
+    const diagnostics = {
+      timestamp: new Date(),
+      checks: []
+    };
+
+    try {
+      await User.countDocuments();
+      diagnostics.checks.push({ name: 'Database Connection', status: 'success', message: 'MongoDB is responsive' });
+    } catch (err) {
+      diagnostics.checks.push({ name: 'Database Connection', status: 'error', message: err.message });
+    }
+
+    try {
+      const eventCount = await Event.countDocuments();
+      diagnostics.checks.push({ name: 'Events Module', status: 'success', message: `${eventCount} events found` });
+    } catch (err) {
+      diagnostics.checks.push({ name: 'Events Module', status: 'error', message: err.message });
+    }
+
+    try {
+      const notificationCount = await NotificationLog.countDocuments();
+      diagnostics.checks.push({ name: 'Notification Service', status: 'success', message: `${notificationCount} notifications processed` });
+    } catch (err) {
+      diagnostics.checks.push({ name: 'Notification Service', status: 'error', message: err.message });
+    }
+
+    const allSuccess = diagnostics.checks.every(c => c.status === 'success');
+
+    await logAuditAction(req.user?._id, 'RUN_DIAGNOSTICS', null, 'system', 'System diagnostics run', { checksCount: diagnostics.checks.length });
+
+    res.json({
+      success: true,
+      message: allSuccess ? 'All system checks passed' : 'Some checks failed',
+      diagnostics
+    });
+  } catch (error) {
+    console.error("Run Diagnostics Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

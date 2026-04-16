@@ -38,6 +38,24 @@ const copilotService = {
       throw new Error(error.response?.data?.message || 'Failed to generate summary');
     }
   },
+
+  paraphrase: async (text, tone = 'professional') => {
+    try {
+      const response = await apiClient.post('/ai/paraphrase', { text, tone });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to paraphrase text');
+    }
+  },
+
+  suggestAnnouncement: async (rawText) => {
+    try {
+      const response = await apiClient.post('/ai/suggest-announcement', { rawText });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to generate announcement');
+    }
+  },
 };
 
 export default copilotService;

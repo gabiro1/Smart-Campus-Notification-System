@@ -9,13 +9,21 @@ import {
   ShieldAlert,
   CheckCircle2,
   Loader2,
+  Sparkles,
+  Wand2,
+  Check,
+  X,
+  RefreshCw,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import governanceService from "../../../../services/governanceService";
 import adminService from "../../../../services/adminService";
+import copilotService from "../../../../services/copilotService";
 
 export default function GlobalBroadcast() {
+  const [briefSubject, setBriefSubject] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [priority, setPriority] = useState("normal");
@@ -28,6 +36,11 @@ export default function GlobalBroadcast() {
   const [departments, setDepartments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiTone, setAiTone] = useState("professional");
+  const [showAiSection, setShowAiSection] = useState(true);
+  const [generationStep, setGenerationStep] = useState("subject"); // "subject" | "content"
 
   const isEmergency = priority === "urgent";
 
@@ -48,8 +61,138 @@ export default function GlobalBroadcast() {
     }
   };
 
+  const handleGenerate = async () => {
+    if (!briefSubject.trim()) {
+      toast.error("Please enter a brief subject or topic first");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      setGenerationStep("subject");
+      
+      // Step 1: Polish the subject line
+      const subjectResult = await copilotService.paraphrase(briefSubject, aiTone);
+      if (!subjectResult.success) {
+        throw new Error(subjectResult.message || "Failed to generate subject");
+      }
+      
+      const polishedSubject = subjectResult.paraphrased;
+      setTitle(polishedSubject);
+      setGenerationStep("content");
+      
+      // Step 2: Generate full message content based on the subject
+      const toneMap = {
+        professional: "formal, professional academic tone",
+        friendly: "warm and approachable but professional tone",
+        urgent: "clear, concise, and action-oriented tone",
+        formal: "very formal and official tone",
+      };
+
+      const contentPrompt = `You are an academic communications officer. Based on the following subject, generate a complete broadcast message for a university.
+
+Subject: "${polishedSubject}"
+
+Generate a professional broadcast message that:
+- Expands on the subject with clear, relevant details
+- Uses ${toneMap[aiTone] || "professional tone"}
+- Includes appropriate structure (greeting, body, closing)
+- Is clear, concise, and ready to send
+- Includes any relevant dates, deadlines, or action items if implied by the subject
+
+Output ONLY the message body - no subject line, no formatting, just the polished message text.`;
+
+      const contentResult = await copilotService.paraphrase(contentPrompt, aiTone);
+      
+      if (contentResult.success) {
+        setContent(contentResult.paraphrased);
+        toast.success("Message generated successfully!");
+      } else {
+        // Subject was generated but content failed
+        toast.warning("Subject generated, but content generation failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Generate error:", error);
+      toast.error(error.message || "Failed to generate message");
+    } finally {
+      setIsGenerating(false);
+      setGenerationStep("subject");
+    }
+  };
+
+  const handlePolishSubject = async () => {
+    if (!briefSubject.trim()) {
+      toast.error("Please enter a subject first");
+      return;
+    }
+    try {
+      setIsGenerating(true);
+      const result = await copilotService.paraphrase(briefSubject, aiTone);
+      if (result.success) {
+        setTitle(result.paraphrased);
+        toast.success("Subject line polished!");
+      } else {
+        toast.error(result.message || "Failed to polish subject");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to polish subject");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRegenerateContent = async () => {
+    if (!title.trim()) {
+      toast.error("Please generate or enter a subject line first");
+      return;
+    }
+    try {
+      setIsGenerating(true);
+      
+      const toneMap = {
+        professional: "formal, professional academic tone",
+        friendly: "warm and approachable but professional tone",
+        urgent: "clear, concise, and action-oriented tone",
+        formal: "very formal and official tone",
+      };
+
+      const contentPrompt = `Based on the subject: "${title}"
+
+Generate a complete broadcast message that:
+- Expands on the subject with clear, relevant details
+- Uses ${toneMap[aiTone] || "professional tone"}
+- Has proper structure (greeting, body, closing)
+- Is clear, concise, and ready to send
+- Includes relevant dates/deadlines if applicable
+
+Output ONLY the message body text.`;
+
+      const result = await copilotService.paraphrase(contentPrompt, aiTone);
+      if (result.success) {
+        setContent(result.paraphrased);
+        toast.success("Content regenerated!");
+      } else {
+        toast.error(result.message || "Failed to regenerate content");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to regenerate content");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleClearAll = () => {
+    setBriefSubject("");
+    setTitle("");
+    setContent("");
+  };
+
   const handleSend = (e) => {
     e.preventDefault();
+    if (!title.trim() || !content.trim()) {
+      toast.error("Please generate both subject and content before submitting");
+      return;
+    }
     setIsModalOpen(true);
   };
 
@@ -61,28 +204,34 @@ export default function GlobalBroadcast() {
       if (targetRole === "all" || targetRole === "students") targetAudience.push("students");
       if (targetRole === "all" || targetRole === "staff") targetAudience.push("staff");
       
+      // Map frontend values to backend enum values
+      const priorityMap = {
+        normal: "medium",
+        high: "high",
+        urgent: "high",
+      };
+      
+      const scopeMap = {
+        all: "college",
+        school: "school",
+        department: "department",
+      };
+
       const data = {
         title,
         content,
-        priority,
+        priority: priorityMap[priority] || "medium",
+        targetScope: scopeMap[targetScope] || "college",
         targetAudience,
-        scope: targetScope,
-        ...(targetSchool && { school: targetSchool }),
-        ...(targetDepartment && { department: targetDepartment }),
+        ...(targetScope === "school" && targetSchool && { schoolId: targetSchool }),
+        ...(targetScope === "department" && targetDepartment && { departmentId: targetDepartment }),
         sendEmail: true,
-        status: "pending",
       };
 
       await governanceService.create(data);
       toast.success("Broadcast submitted for approval");
       setIsModalOpen(false);
-      setTitle("");
-      setContent("");
-      setPriority("normal");
-      setTargetScope("all");
-      setTargetSchool("");
-      setTargetDepartment("");
-      setTargetRole("all");
+      handleClearAll();
     } catch (error) {
       console.error("Failed to create broadcast:", error);
       toast.error(error.response?.data?.message || "Failed to submit broadcast");
@@ -95,6 +244,13 @@ export default function GlobalBroadcast() {
     d => !targetSchool || d.school?._id === targetSchool || d.school === targetSchool
   );
 
+  const toneOptions = [
+    { value: "professional", label: "Professional", desc: "Formal academic tone" },
+    { value: "friendly", label: "Friendly", desc: "Warm and approachable" },
+    { value: "urgent", label: "Urgent", desc: "Action-oriented" },
+    { value: "formal", label: "Formal", desc: "Very official" },
+  ];
+
   return (
     <div className="space-y-6">
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -106,171 +262,337 @@ export default function GlobalBroadcast() {
             Deliver announcements to the entire College, specific Schools, or Departments.
           </p>
         </div>
-        {isEmergency && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-500 rounded-xl">
-            <ShieldAlert size={18} />
-            <span className="font-medium">Emergency Mode</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {isEmergency && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-500 rounded-xl">
+              <ShieldAlert size={18} />
+              <span className="font-medium">Emergency Mode</span>
+            </div>
+          )}
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         {/* Form Area */}
-        <GlassCard className="lg:col-span-7 space-y-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-border">
-            <div className={`p-2 rounded-lg ${isEmergency ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
-              <Globe size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">
-                Compose Broadcast
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Submit for approval before distribution.
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSend} className="space-y-5">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                Subject Line
-              </label>
-              <input
-                required
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Campus Closure Notice"
-                className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-muted-foreground"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                  Target Scope
-                </label>
-                <select
-                  value={targetScope}
-                  onChange={(e) => {
-                    setTargetScope(e.target.value);
-                    if (e.target.value === 'all') {
-                      setTargetSchool("");
-                      setTargetDepartment("");
-                    }
-                  }}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
-                >
-                  <option value="all">Entire College</option>
-                  <option value="school">Specific School</option>
-                  <option value="department">Specific Department</option>
-                </select>
+        <div className="lg:col-span-7 space-y-6">
+          {/* AI Generator Section */}
+          <GlassCard className="bg-gradient-to-br from-purple-500/5 to-blue-500/5">
+            <div className="flex items-center gap-3 pb-4 border-b border-border">
+              <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+                <Sparkles size={20} />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                  Priority Level
-                </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
-                >
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent/Emergency</option>
-                </select>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">
+                  AI Message Generator
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Enter a brief topic, and AI will generate the subject line and full message.
+                </p>
               </div>
             </div>
 
-            {targetScope === 'school' && (
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                  Select School
-                </label>
-                <select
-                  value={targetSchool}
-                  onChange={(e) => {
-                    setTargetSchool(e.target.value);
-                    setTargetDepartment("");
-                  }}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
-                >
-                  <option value="">Select a School</option>
-                  {schools.map(school => (
-                    <option key={school._id} value={school._id}>{school.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {targetScope === 'department' && (
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                  Select Department
-                </label>
-                <select
-                  value={targetDepartment}
-                  onChange={(e) => setTargetDepartment(e.target.value)}
-                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
-                >
-                  <option value="">Select a Department</option>
-                  {filteredDepartments.map(dept => (
-                    <option key={dept._id} value={dept._id}>{dept.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                Target Audience
-              </label>
-              <select
-                value={targetRole}
-                onChange={(e) => setTargetRole(e.target.value)}
-                className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
-              >
-                <option value="all">All Users</option>
-                <option value="students">Students Only</option>
-                <option value="staff">Staff Only</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-                Message Content
-              </label>
-              <textarea
-                required
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your announcement here..."
-                rows={8}
-                className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-muted-foreground resize-none"
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-4">
+            <div className="space-y-4 mt-4">
+              {/* Tone Selector */}
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 rounded border-border" defaultChecked />
-                  <span className="text-sm text-muted-foreground">Send via Email</span>
-                </label>
+                <span className="text-xs text-muted-foreground font-medium">Tone:</span>
+                <div className="flex gap-2">
+                  {toneOptions.map(tone => (
+                    <button
+                      key={tone.value}
+                      onClick={() => setAiTone(tone.value)}
+                      className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                        aiTone === tone.value
+                          ? "bg-purple-600 text-white"
+                          : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tone.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <button
-                type="submit"
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all"
-              >
-                <Send size={18} />
-                Submit for Approval
-              </button>
-            </div>
-          </form>
-        </GlassCard>
 
-        {/* Guidelines */}
+              {/* Brief Subject Input */}
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                  Brief Topic or Subject Idea
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={briefSubject}
+                    onChange={(e) => setBriefSubject(e.target.value)}
+                    placeholder="e.g., Exam rescheduled to next week"
+                    className="flex-1 bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-purple-500/50 transition-all placeholder:text-muted-foreground"
+                  />
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating || !briefSubject.trim()}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        <span className="hidden sm:inline">
+                          {generationStep === "subject" ? "Polishing..." : "Generating..."}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 size={18} />
+                        <span className="hidden sm:inline">Generate</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              {(title || content) && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleRegenerateContent}
+                    disabled={isGenerating || !title.trim()}
+                    className="text-xs text-purple-400 hover:text-purple-300 disabled:opacity-50 flex items-center gap-1"
+                  >
+                    <RefreshCw size={12} /> Regenerate Content
+                  </button>
+                  <span className="text-muted-foreground">|</span>
+                  <button
+                    onClick={handleClearAll}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  >
+                    <X size={12} /> Clear All
+                  </button>
+                </div>
+              )}
+            </div>
+          </GlassCard>
+
+          {/* Generated Output Form */}
+          <GlassCard className={title || content ? "border-purple-500/30" : ""}>
+            <div className="flex items-center gap-3 pb-4 border-b border-border">
+              <div className={`p-2 rounded-lg ${title || content ? 'bg-emerald-500/10 text-emerald-400' : 'bg-card text-muted-foreground'}`}>
+                <FileText size={20} />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Generated Message
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Review and edit the AI-generated content below.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSend} className="space-y-5 mt-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Subject Line
+                  </label>
+                  {title && (
+                    <span className="text-xs text-emerald-400 flex items-center gap-1">
+                      <Check size={12} /> AI Generated
+                    </span>
+                  )}
+                </div>
+                <input
+                  required
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="AI will generate this..."
+                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                    Target Scope
+                  </label>
+                  <select
+                    value={targetScope}
+                    onChange={(e) => {
+                      setTargetScope(e.target.value);
+                      if (e.target.value === 'all') {
+                        setTargetSchool("");
+                        setTargetDepartment("");
+                      }
+                    }}
+                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                  >
+                    <option value="all">Entire College</option>
+                    <option value="school">Specific School</option>
+                    <option value="department">Specific Department</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                    Priority Level
+                  </label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent/Emergency</option>
+                  </select>
+                </div>
+              </div>
+
+              {targetScope === 'school' && (
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                    Select School
+                  </label>
+                  <select
+                    value={targetSchool}
+                    onChange={(e) => {
+                      setTargetSchool(e.target.value);
+                      setTargetDepartment("");
+                    }}
+                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                  >
+                    <option value="">Select a School</option>
+                    {schools.map(school => (
+                      <option key={school._id} value={school._id}>{school.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {targetScope === 'department' && (
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                    Select Department
+                  </label>
+                  <select
+                    value={targetDepartment}
+                    onChange={(e) => setTargetDepartment(e.target.value)}
+                    className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                  >
+                    <option value="">Select a Department</option>
+                    {filteredDepartments.map(dept => (
+                      <option key={dept._id} value={dept._id}>{dept.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                  Target Audience
+                </label>
+                <select
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:border-blue-500/50"
+                >
+                  <option value="all">All Users</option>
+                  <option value="students">Students Only</option>
+                  <option value="staff">Staff Only</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Message Content
+                  </label>
+                  {content && (
+                    <span className="text-xs text-emerald-400 flex items-center gap-1">
+                      <Check size={12} /> AI Generated
+                    </span>
+                  )}
+                </div>
+                <textarea
+                  required
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="AI will generate this..."
+                  rows={8}
+                  className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-muted-foreground resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-4">
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" className="w-4 h-4 rounded border-border" defaultChecked />
+                    <span className="text-sm text-muted-foreground">Send via Email</span>
+                  </label>
+                </div>
+                <button
+                  type="submit"
+                  disabled={!title.trim() || !content.trim()}
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send size={18} />
+                  Submit for Approval
+                </button>
+              </div>
+            </form>
+          </GlassCard>
+        </div>
+
+        {/* Guidelines Sidebar */}
         <div className="lg:col-span-5 space-y-6">
+          <GlassCard>
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Sparkles size={18} className="text-purple-400" /> How It Works
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-purple-400">1</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Enter Your Topic</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Write a brief description of what you want to communicate.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-purple-400">2</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Select Tone</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Choose Professional, Friendly, Urgent, or Formal.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-purple-400">3</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">AI Generates</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Subject line and full message are created automatically.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-emerald-400">4</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Review & Edit</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Make any changes, then submit for approval.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+
           <GlassCard>
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Broadcast Guidelines
@@ -339,7 +661,7 @@ export default function GlobalBroadcast() {
               
               <div className="bg-accent rounded-xl p-4 mb-6">
                 <p className="font-medium text-foreground">{title}</p>
-                <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{content}</p>
+                <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{content}</p>
                 <div className="mt-2 text-xs text-muted-foreground">
                   Target: {targetScope === 'all' ? 'Entire College' : targetScope === 'school' ? 'Specific School' : 'Specific Department'} • {targetRole === 'all' ? 'All Users' : targetRole}
                 </div>

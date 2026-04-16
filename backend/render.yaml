@@ -1,0 +1,34 @@
+# ==========================================
+# Render Deployment Configuration
+# Free Tier: 512MB RAM, 0.5 CPU
+# Cold Start: ~30 seconds (spins down after 15 min inactivity)
+# ==========================================
+
+# Build Command
+buildCommand: npm install && npm run build
+
+# Start Command
+startCommand: npm start
+
+# Node Version
+nodeVersion: 22
+
+# Environment Variables (set in Render Dashboard)
+# NODE_ENV=production
+# PORT=8000
+# MONGO_URI=<your-mongodb-atlas-uri>
+# JWT_SECRET=<generate-secure-string>
+# JWT_REFRESH_SECRET=<generate-secure-string>
+# EMAIL_USER=<your-gmail>
+# EMAIL_APP_PASSWORD=<app-password>
+# GEMINI_API_KEY=<gemini-key>
+# GROQ_API_KEY=<groq-key>
+# REDIS_URL=<upstash-redis-url>
+
+# Health Check
+healthCheckPath: /health
+
+# Auto Deploy
+autoDeploy: true
+
+# Regions: oregon (default), frankfurt, ohio

@@ -28,6 +28,7 @@ import {
   MapPin,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { GlassCard } from "@/components/shared";
 import ThemedToaster from "../../../../components/ui/ThemedToaster";
 import { useTheme } from "../../../../context/ThemeContext";
 import adminService from "../../../../services/adminService";
@@ -366,30 +367,30 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-neutral-900 border-neutral-800" : "bg-white border-neutral-200"}`}>
+      {/* Table - GlassCard Style */}
+      <GlassCard delay={0.2} className="overflow-hidden p-0" padding="p-0">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16">
             <Activity className="animate-spin text-blue-500 mb-3" size={24} />
-            <p className={`text-sm ${isDarkMode ? "text-neutral-400" : "text-neutral-500"}`}>Loading users...</p>
+            <p className="text-sm text-muted-foreground">Loading users...</p>
           </div>
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <Users size={40} className={isDarkMode ? "text-neutral-700 mb-3" : "text-neutral-300 mb-3"} />
-            <p className={`text-sm ${isDarkMode ? "text-neutral-400" : "text-neutral-500"}`}>No users found</p>
+            <Users size={40} className="text-muted-foreground/30 mb-3" />
+            <p className="text-sm text-muted-foreground">No users found</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className={isDarkMode ? "bg-neutral-950 border-b border-neutral-800" : "bg-gray-50 border-b border-neutral-200"}>
+            <thead className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-b border-border">
               <tr>
-                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>User</th>
-                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>Role</th>
-                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>School / Dept</th>
-                <th className={`text-left p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>Status</th>
-                <th className={`text-right p-4 text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>Actions</th>
+                <th className="text-left p-5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">User</th>
+                <th className="text-left p-5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Role</th>
+                <th className="text-left p-5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">School / Dept</th>
+                <th className="text-left p-5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="text-right p-5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Actions</th>
               </tr>
             </thead>
-            <tbody className={isDarkMode ? "divide-y divide-neutral-800" : "divide-y divide-neutral-200"}>
+            <tbody className="divide-y divide-white/5">
               <AnimatePresence>
                 {users.map((user) => (
                   <motion.tr
@@ -397,17 +398,11 @@ export default function UserManagement() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     onClick={() => openDrawer(user, false)}
-                    className={`transition-colors cursor-pointer ${isDarkMode ? "hover:bg-neutral-800/50" : "hover:bg-gray-50"}`}
+                    className="hover:bg-white/[0.02] transition-colors cursor-pointer"
                   >
-                    <td className="p-4">
+                    <td className="p-5">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden ${
-                            user.profilePicture 
-                              ? "" 
-                              : isDarkMode 
-                                ? "bg-blue-600 text-white" 
-                                : "bg-blue-700 text-white"
-                          }`}>
+                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white overflow-hidden">
                           {user.profilePicture ? (
                             <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
                           ) : (
@@ -415,52 +410,52 @@ export default function UserManagement() {
                           )}
                         </div>
                         <div>
-                          <p className={`font-medium text-sm ${isDarkMode ? "text-white" : "text-neutral-900"}`}>{user.name}</p>
-                          <p className={`text-xs ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>{user.email}</p>
+                          <p className="font-medium text-sm text-foreground">{user.name}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-5">
                       <select
                         value={user.role}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => handleRoleChange(user._id, e.target.value, e)}
-                        className={`text-xs font-medium px-2.5 py-1.5 rounded-md border-0 cursor-pointer ${isDarkMode ? "bg-neutral-800 text-white" : "bg-neutral-100 text-neutral-700"}`}
+                        className="text-xs font-medium px-2.5 py-1.5 rounded-md bg-accent cursor-pointer text-foreground"
                       >
                         {ROLES.map((r) => (
                           <option key={r.value} value={r.value}>{r.label}</option>
                         ))}
                       </select>
                     </td>
-                    <td className="p-4">
-                      <p className={`text-sm ${isDarkMode ? "text-white" : "text-neutral-700"}`}>{user.school || "—"}</p>
-                      <p className={`text-xs ${isDarkMode ? "text-neutral-500" : "text-neutral-500"}`}>{user.department || "No department"}</p>
+                    <td className="p-5">
+                      <p className="text-sm text-foreground">{user.school || "—"}</p>
+                      <p className="text-xs text-muted-foreground">{user.department || "No department"}</p>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                        <span className="text-xs text-emerald-500 font-medium">Active</span>
+                        <span className="text-xs text-emerald-400 font-medium">Active</span>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-5">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={(e) => { e.stopPropagation(); openDrawer(user, false); }}
-                          className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
+                          className="p-2 rounded-lg hover:bg-accent transition-colors"
                           title="View"
                         >
-                          <Eye size={16} className={isDarkMode ? "text-neutral-400" : "text-neutral-500"} />
+                          <Eye size={16} className="text-muted-foreground" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); openDrawer(user, true); }}
-                          className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
+                          className="p-2 rounded-lg hover:bg-accent transition-colors"
                           title="Edit"
                         >
-                          <Pencil size={16} className={isDarkMode ? "text-neutral-400" : "text-neutral-500"} />
+                          <Pencil size={16} className="text-muted-foreground" />
                         </button>
                         <button
                           onClick={(e) => handleDelete(user._id, user.name, e)}
-                          className={`p-2 rounded-lg transition-colors ${isDarkMode ? "hover:bg-red-900/30" : "hover:bg-red-50"}`}
+                          className="p-2 rounded-lg hover:bg-red-500/10 transition-colors"
                           title="Delete"
                         >
                           <Trash size={16} className="text-red-500" />
@@ -475,27 +470,27 @@ export default function UserManagement() {
         )}
 
         {!loading && totalPages > 1 && (
-          <div className={`flex items-center justify-between p-4 ${isDarkMode ? "border-t border-neutral-800" : "border-t border-neutral-200"}`}>
-            <span className={`text-sm ${isDarkMode ? "text-neutral-400" : "text-neutral-500"}`}>Page {page} of {totalPages}</span>
+          <div className="flex items-center justify-between p-4 border-t border-border">
+            <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Page {page} of {totalPages}</span>
             <div className="flex gap-1">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className={`p-2 rounded-lg ${isDarkMode ? "hover:bg-neutral-800 disabled:opacity-50" : "hover:bg-neutral-100 disabled:opacity-50"} disabled:cursor-not-allowed transition-colors`}
+                className="p-2 rounded-lg bg-accent hover:bg-accent/80 disabled:opacity-30 transition-colors"
               >
                 <ChevronLeft size={16} />
               </button>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className={`p-2 rounded-lg ${isDarkMode ? "hover:bg-neutral-800 disabled:opacity-50" : "hover:bg-neutral-100 disabled:opacity-50"} disabled:cursor-not-allowed transition-colors`}
+                className="p-2 rounded-lg bg-accent hover:bg-accent/80 disabled:opacity-30 transition-colors"
               >
                 <ChevronRight size={16} />
               </button>
             </div>
           </div>
         )}
-      </div>
+      </GlassCard>
 
 {/* Modal */}
       <AnimatePresence>

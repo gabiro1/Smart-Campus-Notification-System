@@ -203,10 +203,7 @@ const LecturerManagement = () => {
   }, [searchQuery]);
 
   return (
-    <div className="w-full min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-background text-foreground p-4 md:p-8 font-sans relative overflow-hidden">
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="w-full min-h-screen bg-background text-foreground p-4 md:p-8 font-sans relative overflow-hidden">
 
       <Toaster position="top-right" />
 
@@ -265,17 +262,17 @@ const LecturerManagement = () => {
                   {paginatedLecturers.map((lecturer) => (
                     <div
                       key={lecturer.id || lecturer._id}
-                      className="group bg-accent backdrop-blur-xl border border-border rounded-[2.5rem] p-6 hover:border-blue-500/30 transition-all hover:-translate-y-2 cursor-pointer relative overflow-hidden"
+                      className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all cursor-pointer"
                       onClick={() =>
                         setDetailsPanel({ isOpen: true, lecturer })
                       }
                     >
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-border flex items-center justify-center font-black text-2xl text-blue-400">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="w-14 h-14 rounded-xl bg-white/10 border border-white/5 flex items-center justify-center font-bold text-xl text-blue-400">
                           {lecturer.name?.charAt(0)}
                         </div>
                         <div
-                          className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${lecturer.assignedClasses?.length > 0 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-neutral-500/10 text-muted-foreground border-neutral-500/20"}`}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider ${lecturer.assignedClasses?.length > 0 ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-muted-foreground"}`}
                         >
                           {lecturer.assignedClasses?.length > 0
                             ? "ACTIVE"
@@ -283,25 +280,25 @@ const LecturerManagement = () => {
                         </div>
                       </div>
 
-                      <h3 className="text-xl font-black mb-1 group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-base font-semibold mb-1 group-hover:text-blue-400 transition-colors">
                         {lecturer.name}
                       </h3>
-                      <p className="text-muted-foreground text-xs font-medium mb-6 flex items-center gap-2">
+                      <p className="text-muted-foreground text-xs mb-4 flex items-center gap-2">
                         <Mail size={12} /> {lecturer.email}
                       </p>
 
-                      <div className="bg-black/40 rounded-2xl p-4 border border-border mb-8">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/5 mb-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                             Workload
                           </span>
-                          <span className="text-xs font-bold text-blue-400">
-                            {lecturer.assignedClasses?.length || 0} Modules
+                          <span className="text-xs font-medium text-blue-400">
+                            {lecturer.assignedClasses?.length || 0}
                           </span>
                         </div>
-                        <div className="w-full bg-accent h-1.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                           <div
-                            className="bg-blue-600 h-full transition-all duration-1000"
+                            className="bg-blue-500 h-full"
                             style={{
                               width: `${Math.min((lecturer.assignedClasses?.length || 0) * 25, 100)}%`,
                             }}
@@ -317,7 +314,7 @@ const LecturerManagement = () => {
                           onClick={() =>
                             setSmsModal({ isOpen: true, lecturer, message: "" })
                           }
-                          className="flex-1 bg-accent hover:bg-accent border border-border rounded-xl py-3 text-[10px] font-black flex items-center justify-center gap-2 transition-all"
+                          className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2.5 text-xs font-medium flex items-center justify-center gap-2 transition-all"
                         >
                           <MessageSquare size={14} /> Message
                         </button>
@@ -328,7 +325,7 @@ const LecturerManagement = () => {
                               lecturerId: lecturer.id || lecturer._id,
                             })
                           }
-                          className="flex-1 bg-blue-600 hover:bg-blue-500 rounded-xl py-3 text-[10px] font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20"
+                          className="flex-1 bg-blue-600 hover:bg-blue-500 rounded-lg py-2.5 text-xs font-medium flex items-center justify-center gap-2"
                         >
                           <Plus size={14} /> ALLOCATE
                         </button>

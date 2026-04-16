@@ -31,8 +31,8 @@ export const principalRoutes = [
     }
   />,
   <Route
-    key="admin-panel"
-    path="admin-panel"
+    key="admin"
+    path="admin"
     element={
       <ProtectedRoute allowedRoles={["principal"]}>
         <AdminPanel />

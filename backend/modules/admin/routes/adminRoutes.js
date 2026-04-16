@@ -16,7 +16,9 @@ import {
     getActiveEmergencies,
     getSystemSettings,
     updateSystemSettings,
-    getAIInsights
+    getAIInsights,
+    getSystemHealth,
+    runDiagnostics
 } from '../controller/adminController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 import { getAcademicHierarchy } from '../controller/adminController.js';
@@ -120,5 +122,9 @@ router.put('/settings', updateSystemSettings);
 
 // AI-powered insights
 router.get('/ai-insights', getAIInsights);
+
+// System health & diagnostics
+router.get('/health', getSystemHealth);
+router.post('/diagnostics', runDiagnostics);
 
 export default router;

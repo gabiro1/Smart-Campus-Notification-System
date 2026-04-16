@@ -21,14 +21,15 @@ router.post('/', protect, createTicket);
 // GET /api/support/my - Get my tickets
 router.get('/my', protect, getMyTickets);
 
-// GET /api/support/:id - Get single ticket
-router.get('/:id', protect, getTicketById);
-
 // ==========================================
 // ADMIN/HOD/DEAN ROUTES
 // ==========================================
 // GET /api/support/all - Get all tickets (admin, principal, hod, dean)
+// IMPORTANT: This route MUST come BEFORE /:id to avoid "all" being treated as an ID
 router.get('/all', protect, authorize('admin', 'principal', 'hod', 'dean'), getAllTickets);
+
+// GET /api/support/:id - Get single ticket (MUST be after /all route)
+router.get('/:id', protect, getTicketById);
 
 // PUT /api/support/:id/reply - Reply to ticket
 router.put('/:id/reply', protect, authorize('admin', 'principal', 'hod', 'dean'), replyToTicket);
@@ -36,7 +37,7 @@ router.put('/:id/reply', protect, authorize('admin', 'principal', 'hod', 'dean')
 // DELETE /api/support/:id - Delete ticket
 router.delete('/:id', protect, authorize('admin', 'principal'), deleteTicket);
 
-// Legacy admin route
+// Legacy admin route (also must be before /:id)
 router.get('/', protect, authorize('admin', 'principal', 'hod', 'dean'), getAllTickets);
 
 export default router;

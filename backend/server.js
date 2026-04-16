@@ -178,7 +178,18 @@ app.use('/api/messages', smsRoutes); // SMS Module (under messages)
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {
-    res.send('UniNotify AI Backend API is running...');
+    res.json({
+        status: 'healthy',
+        service: 'UniNotify AI Backend API',
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+// Health check endpoint for load balancers
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // 6. GLOBAL ERROR HANDLER (Must be AFTER all routes)

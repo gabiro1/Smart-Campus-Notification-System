@@ -19,6 +19,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { GlassCard } from "@/components/shared";
 import ThemedToaster from "../../../../components/ui/ThemedToaster";
 import adminService from "../../../../services/adminService";
 import eventService from "../../../../services/eventService";
@@ -252,12 +253,8 @@ export default function EventsDashboard() {
         </div>
       </motion.div>
 
-      {/* Main Table Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-[24px] overflow-hidden shadow-2xl"
-      >
+      {/* Main Table Card - GlassCard Style */}
+      <GlassCard delay={0.2} className="overflow-hidden p-0" padding="p-0">
         <EventsTable
           events={events}
           loading={loading}
@@ -290,7 +287,7 @@ export default function EventsDashboard() {
             </div>
           </div>
         )}
-      </motion.div>
+      </GlassCard>
 
       {/* --- VIEW EVENT MODAL --- */}
       <AnimatePresence>

@@ -15,6 +15,7 @@ import { classifyWithFallback } from "../../../services/aiClassificationService.
 import { scheduleEventReminders, cancelEventReminders, updateEventReminders } from "../../../services/eventReminderScheduler.js";
 import { getPersonalizedContentBatch } from "../../../services/aiPersonalizationService.js";
 import { shouldSendNow } from "../../../utils/quietHours.js";
+import { sendSMSViaTwilio } from "../../../services/smsService.js";
 
 /* =========================================================
     AI FLYER PARSING (using OpenRouter - tries GROQ first, then fallback)
@@ -898,6 +899,38 @@ export const broadcastEvent = async (event, isUpdate = false) => {
       }
       await Promise.all(pushPromises);
     }
+
+    // 3. SMS for users with phone number and SMS enabled (respects quiet hours)
+    // Emergency events bypass SMS preferences
+    const smsRecipients = recipients.filter(u => {
+      if (!u.phoneNumber) return false;
+      // For emergency events, always try SMS
+      if (event.isEmergency) return true;
+      // For normal events, check preferences
+      const prefs = u.notificationPreferences || {};
+      const categoryPrefs = prefs.categories?.events || {};
+      return categoryPrefs.sms ?? prefs.sms ?? false;
+    });
+
+    const smsPromises = smsRecipients.map(user => {
+      const variant = personalizedMap.get(user._id.toString()) || { title: baseTitle, message: baseMessage };
+      const smsText = `${variant.title}: ${variant.message.substring(0, 137)}`;
+      return sendSMSViaTwilio(user.phoneNumber, smsText)
+        .then(result => {
+          console.log(`[Broadcast] SMS sent to ${user.phoneNumber} (SID: ${result.sid})`);
+          return result;
+        })
+        .catch(err => {
+          console.warn(`[Broadcast] SMS failed for user ${user._id} (${user.phoneNumber}):`, err.message);
+          return { sid: null, error: err.message };
+        });
+    });
+
+    // Fire and forget - don't block on SMS
+    Promise.allSettled(smsPromises).then(results => {
+      const successful = results.filter(r => r.status === 'fulfilled' && r.value?.sid).length;
+      console.log(`[Broadcast] SMS: ${successful}/${smsRecipients.length} delivered`);
+    });
 
   } catch (error) {
     console.error("Broadcast Helper Error:", error);

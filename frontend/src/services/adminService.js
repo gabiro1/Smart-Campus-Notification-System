@@ -105,6 +105,14 @@ createUser: async (userData) => {
     return response.data;
   },
 
+  // Test SMS (for debugging) - uses mock mode
+  testSMS: async (phoneNumber) => {
+    const response = await apiClient.post('/messages/mock', {
+      phoneNumber,
+    });
+    return response.data;
+  },
+
   // Get SMS quota
   getSMSQuota: async () => {
     const response = await apiClient.get('/admin/settings');
@@ -165,6 +173,17 @@ createUser: async (userData) => {
   // Get dynamic academic structure
   getHierarchy: async () => {
     const response = await apiClient.get('/admin/hierarchy');
+    return response.data;
+  },
+
+  // System health & diagnostics
+  getSystemHealth: async () => {
+    const response = await apiClient.get('/admin/health');
+    return response.data;
+  },
+
+  runDiagnostics: async () => {
+    const response = await apiClient.post('/admin/diagnostics');
     return response.data;
   },
 

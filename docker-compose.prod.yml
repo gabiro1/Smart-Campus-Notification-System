@@ -1,0 +1,41 @@
+# Production overrides for docker-compose
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  frontend:
+    # In production, serve through nginx reverse proxy
+    profiles:
+      - disabled
+  
+  backend:
+    # Production-specific environment
+    environment:
+      NODE_ENV: production
+      # Increase memory for production
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    restart: always
+  
+  mongodb:
+    # Production MongoDB with auth
+    restart: always
+  
+  redis:
+    # Production Redis persistence
+    restart: always
+  
+  nginx:
+    # Enable production profile
+    profiles:
+      - production
+    volumes:
+      # SSL certificates (uncomment when you have certificates)
+      # - /path/to/ssl/cert.pem:/etc/nginx/ssl/cert.pem:ro
+      # - /path/to/ssl/key.pem:/etc/nginx/ssl/key.pem:ro
+    ports:
+      - "80:80"
+      # - "443:443"

@@ -1,87 +1,121 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/shared";
 import {
   Search,
   Filter,
   Shield,
-  MoreVertical,
   Edit,
   Ban,
   Check,
   X,
+  Loader2,
+  Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Mock Database
-const initialRoles = [
-  {
-    id: 1,
-    name: "Dr. Robert Vance",
-    role: "Dean",
-    dept: "Sciences",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Prof. Sarah Jenkins",
-    role: "HoD",
-    dept: "Computer Science",
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Admin Support",
-    role: "System Admin",
-    dept: "IT Support",
-    status: "Active",
-  },
-  {
-    id: 4,
-    name: "Dr. Mark Spector",
-    role: "HoD",
-    dept: "Engineering",
-    status: "Suspended",
-  },
-];
+import toast from "react-hot-toast";
+import adminService from "../../../../services/adminService";
 
 export default function AdminPanel() {
-  const [users, setUsers] = useState(initialRoles);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [processingId, setProcessingId] = useState(null);
 
-  // Modal State
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({ role: "", status: "" });
 
+  useEffect(() => {
+    fetchExecutiveUsers();
+  }, []);
+
+  const fetchExecutiveUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getUsers(1, 100, {}, true);
+      const allUsers = data.users || [];
+      
+      const executiveRoles = ['admin', 'principal', 'dean', 'hod'];
+      const executiveUsers = allUsers.filter(
+        user => executiveRoles.includes(user.role?.toLowerCase())
+      );
+      
+      setUsers(executiveUsers);
+    } catch (error) {
+      console.error("Failed to fetch executive users:", error);
+      toast.error("Failed to load admin users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.dept.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "All" || u.role === roleFilter;
+      u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.department?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "All" || u.role?.toLowerCase() === roleFilter.toLowerCase();
     return matchesSearch && matchesRole;
   });
 
   const handleEditOpen = (user) => {
     setEditingUser(user);
-    setEditForm({ role: user.role, status: user.status });
+    setEditForm({ 
+      role: user.role, 
+      status: user.isActive !== false ? "Active" : "Suspended" 
+    });
   };
 
-  const handleSave = () => {
-    setUsers(
-      users.map((u) => (u.id === editingUser.id ? { ...u, ...editForm } : u)),
-    );
-    setEditingUser(null);
+  const handleSave = async () => {
+    try {
+      setProcessingId(editingUser._id);
+      await adminService.updateUser(editingUser._id, { 
+        role: editForm.role,
+        isActive: editForm.status === "Active"
+      });
+      toast.success("User updated successfully");
+      setEditingUser(null);
+      fetchExecutiveUsers();
+    } catch (error) {
+      console.error("Failed to update user:", error);
+      toast.error(error.response?.data?.message || "Failed to update user");
+    } finally {
+      setProcessingId(null);
+    }
   };
 
-  const toggleSuspend = (id) => {
-    setUsers(
-      users.map((u) =>
-        u.id === id
-          ? { ...u, status: u.status === "Active" ? "Suspended" : "Active" }
-          : u,
-      ),
-    );
+  const toggleSuspend = async (user) => {
+    try {
+      setProcessingId(user._id);
+      const newStatus = user.isActive !== false;
+      await adminService.updateUser(user._id, { isActive: !newStatus });
+      toast.success(newStatus ? "User suspended" : "User activated");
+      fetchExecutiveUsers();
+    } catch (error) {
+      console.error("Failed to update user status:", error);
+      toast.error(error.response?.data?.message || "Failed to update user");
+    } finally {
+      setProcessingId(null);
+    }
   };
+
+  const getRoleLabel = (role) => {
+    const labels = {
+      admin: "System Admin",
+      principal: "Principal",
+      dean: "Dean",
+      hod: "HoD",
+    };
+    return labels[role?.toLowerCase()] || role;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -95,7 +129,7 @@ export default function AdminPanel() {
           </p>
         </div>
         <button className="bg-emerald-600 hover:bg-emerald-500 text-foreground px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2">
-          <Shield size={16} /> Provision New Admin
+          <Plus size={16} /> Provision New Admin
         </button>
       </header>
 
@@ -122,9 +156,10 @@ export default function AdminPanel() {
               className="w-full bg-black/40 border border-border rounded-xl px-4 py-2.5 text-sm text-muted-foreground focus:outline-none focus:border-emerald-500/50 appearance-none"
             >
               <option value="All">All Admin Roles</option>
-              <option value="Dean">Deans</option>
-              <option value="HoD">Heads of Department</option>
-              <option value="System Admin">System Admins</option>
+              <option value="dean">Deans</option>
+              <option value="hod">Heads of Department</option>
+              <option value="admin">System Admins</option>
+              <option value="principal">Principal</option>
             </select>
           </div>
           <div className="md:col-span-2 flex justify-end">
@@ -147,56 +182,79 @@ export default function AdminPanel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-accent transition-colors group"
-                >
-                  <td className="p-5 font-medium text-foreground">{user.name}</td>
-                  <td className="p-5">
-                    <span className="px-2.5 py-1 text-xs font-semibold bg-accent rounded-md border border-border text-muted-foreground">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="p-5 text-sm text-muted-foreground">{user.dept}</td>
-                  <td className="p-5">
-                    <span
-                      className={`flex items-center gap-1.5 text-xs font-bold ${user.status === "Active" ? "text-emerald-400" : "text-rose-400"}`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full ${user.status === "Active" ? "bg-emerald-400" : "bg-rose-400"}`}
-                      />
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="p-5 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEditOpen(user)}
-                        className="p-1.5 text-muted-foreground hover:text-foreground bg-accent hover:bg-accent rounded-md transition-all"
-                        title="Edit Permissions"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => toggleSuspend(user.id)}
-                        className={`p-1.5 rounded-md transition-all ${user.status === "Active" ? "text-muted-foreground bg-accent hover:text-rose-400 hover:bg-rose-500/10" : "text-emerald-400 bg-emerald-500/10 hover:text-emerald-300"}`}
-                        title={
-                          user.status === "Active"
-                            ? "Suspend Account"
-                            : "Reactivate"
-                        }
-                      >
-                        {user.status === "Active" ? (
-                          <Ban size={16} />
-                        ) : (
-                          <Check size={16} />
-                        )}
-                      </button>
-                    </div>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                    No executive users found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="hover:bg-accent transition-colors group"
+                  >
+                    <td className="p-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-semibold">
+                          {user.name?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{user.name}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-5">
+                      <span className="px-2.5 py-1 text-xs font-semibold bg-accent rounded-md border border-border text-muted-foreground">
+                        {getRoleLabel(user.role)}
+                      </span>
+                    </td>
+                    <td className="p-5 text-sm text-muted-foreground">
+                      {user.department || user.school || user.college || '-'}
+                    </td>
+                    <td className="p-5">
+                      <span
+                        className={`flex items-center gap-1.5 text-xs font-bold ${user.isActive !== false ? "text-emerald-400" : "text-rose-400"}`}
+                      >
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full ${user.isActive !== false ? "bg-emerald-400" : "bg-rose-400"}`}
+                        />
+                        {user.isActive !== false ? "Active" : "Suspended"}
+                      </span>
+                    </td>
+                    <td className="p-5 text-right">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleEditOpen(user)}
+                          className="p-1.5 text-muted-foreground hover:text-foreground bg-accent hover:bg-accent rounded-md transition-all"
+                          title="Edit Permissions"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => toggleSuspend(user)}
+                          disabled={processingId === user._id}
+                          className={`p-1.5 rounded-md transition-all ${user.isActive !== false ? "text-muted-foreground bg-accent hover:text-rose-400 hover:bg-rose-500/10" : "text-emerald-400 bg-emerald-500/10 hover:text-emerald-300"}`}
+                          title={
+                            user.isActive !== false
+                              ? "Suspend Account"
+                              : "Reactivate"
+                          }
+                        >
+                          {processingId === user._id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : user.isActive !== false ? (
+                            <Ban size={16} />
+                          ) : (
+                            <Check size={16} />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -252,9 +310,25 @@ export default function AdminPanel() {
                     }
                     className="w-full bg-black/40 border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-emerald-500/50 appearance-none"
                   >
-                    <option value="Dean">Dean</option>
-                    <option value="HoD">Head of Department</option>
-                    <option value="System Admin">System Admin</option>
+                    <option value="dean">Dean</option>
+                    <option value="hod">Head of Department</option>
+                    <option value="admin">System Admin</option>
+                    <option value="principal">Principal</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+                    Status
+                  </label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, status: e.target.value })
+                    }
+                    className="w-full bg-black/40 border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-emerald-500/50 appearance-none"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Suspended">Suspended</option>
                   </select>
                 </div>
               </div>
@@ -268,8 +342,10 @@ export default function AdminPanel() {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-5 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-foreground rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all"
+                  disabled={processingId === editingUser._id}
+                  className="px-5 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-foreground rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50 flex items-center gap-2"
                 >
+                  {processingId === editingUser._id && <Loader2 size={14} className="animate-spin" />}
                   Update Access
                 </button>
               </div>

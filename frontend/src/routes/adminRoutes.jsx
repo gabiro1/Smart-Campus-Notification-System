@@ -14,6 +14,7 @@ import MessagesTab from "../pages/Message/MessagesTab";
 import SupportTickets from "../pages/dashboards/Admin/pages/SupportTickets";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
 import AcademicStructure from "../pages/dashboards/Admin/pages/AcademicStructure";
+import SMSTestPage from "../pages/dashboards/Admin/pages/SMSTestPage";
 
 export const adminRoutes = [
   <Route key="index" index element={<Navigate to="overview" replace />} />,
@@ -131,6 +132,15 @@ export const adminRoutes = [
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <AcademicStructure />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="sms-test"
+    path="sms-test"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <SMSTestPage />
       </ProtectedRoute>
     }
   />,

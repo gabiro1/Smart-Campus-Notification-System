@@ -1,5 +1,5 @@
 import express from 'express';
-import { suggestAnnouncement } from '../controller/aiController.js';
+import { suggestAnnouncement, paraphraseText } from '../controller/aiController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -10,5 +10,12 @@ const router = express.Router();
  * Accessible to authenticated lecturers, admins, HODs, deans, principals, and class reps.
  */
 router.post('/suggest-announcement', protect, authorize('lecturer', 'admin', 'hod', 'dean', 'principal', 'class_rep'), suggestAnnouncement);
+
+/**
+ * POST /api/ai/paraphrase
+ * Paraphrases and polishes text for broadcast communications.
+ * Accessible to authenticated lecturers, admins, HODs, deans, principals, and class reps.
+ */
+router.post('/paraphrase', protect, authorize('lecturer', 'admin', 'hod', 'dean', 'principal', 'class_rep'), paraphraseText);
 
 export default router;
