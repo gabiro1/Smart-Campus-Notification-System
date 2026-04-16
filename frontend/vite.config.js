@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { defineConfig, loadEnv } from 'vitest/config'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
@@ -7,29 +7,25 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
   
-  return {
-    plugins: [react(), tailwindcss()],
-    
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
-    
-    base: '/',
-    
-    build: {
-      outDir: 'dist',
-      emptyOutDir: true,
-      chunkSizeWarningLimit: 2000,
-    },
-    
-    test: {
-      globals: true,
-      environment: 'jsdom',
-    },
-  }
+  },
+  
+  base: '/',
+  
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    chunkSizeWarningLimit: 2000,
+  },
+  
+  test: {
+    globals: true,
+    environment: 'jsdom',
+  },
 })
