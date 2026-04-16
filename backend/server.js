@@ -68,7 +68,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    /\.yourdomain\.com$/ // Add production domain pattern
+    'https://smart-campus-notification-system.vercel.app'
   ],
   credentials: true,
   optionsSuccessStatus: 200 // For legacy browser support
