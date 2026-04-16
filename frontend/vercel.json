@@ -4,9 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "regions": ["iad1"],
-  "env": {
-    "VITE_API_URL": "@api-url"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
@@ -45,12 +42,6 @@
           "value": "upgrade"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:match*",
-      "destination": "@api-url/:match*"
     }
   ]
 }
