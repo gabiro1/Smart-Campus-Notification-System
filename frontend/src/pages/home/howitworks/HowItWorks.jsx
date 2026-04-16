@@ -176,7 +176,7 @@ function HeroSection() {
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-6 h-10 rounded-full border-2 border-border flex items-start justify-center p-2"
+            className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
           >
             <motion.div className="w-1.5 h-3 rounded-full bg-primary" />
           </motion.div>

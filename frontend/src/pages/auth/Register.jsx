@@ -12,6 +12,10 @@ import {
   EyeOff,
   ArrowRight,
   Loader2,
+  Sparkles,
+  ShieldCheck,
+  Zap,
+  Bell,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
@@ -20,12 +24,18 @@ import Footer from "../../layouts/Footer";
 import apiClient from "../../services/apiClient";
 import { useAuth } from "../../context/AuthContext";
 
+const BENEFITS = [
+  { icon: Bell, text: "Instant campus alerts" },
+  { icon: Zap, text: "AI-powered prioritization" },
+  { icon: ShieldCheck, text: "Verified sources only" },
+];
+
 export default function Register() {
   const navigate = useNavigate();
   const { login: startSession } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -46,7 +56,6 @@ export default function Register() {
     error: null,
   });
 
-  // --- Fetch dropdown data dynamically ---
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
@@ -62,7 +71,6 @@ export default function Register() {
           loading: false,
           error: null,
         });
-        // Set defaults
         setFormData((prev) => ({
           ...prev,
           school: schoolsRes.data[0]?.name || "",
@@ -81,32 +89,35 @@ export default function Register() {
     fetchDropdowns();
   }, []);
 
-  // --- Input change handler ---
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- Validation ---
   const validate = () => {
-    if (!formData.name.trim()) return "Full Name is required";
-    if (!formData.email.includes("@")) return "Invalid email address";
+    const errors = [];
+    if (!formData.name.trim()) errors.push("Full Name is required");
+    if (!formData.email.includes("@")) errors.push("Invalid email address");
     if (formData.password.length < 8)
-      return "Password must be at least 8 characters";
+      errors.push("Password must be at least 8 characters");
     if (formData.password !== formData.confirmPassword)
-      return "Passwords do not match";
+      errors.push("Passwords do not match");
     if (!/^07\d{8}$/.test(formData.phoneNumber))
-      return "Phone number must be valid (Rwanda format)";
+      errors.push("Phone number must be valid (Rwanda format)");
     if (!formData.school || !formData.department || !formData.level)
-      return "Please select school, department, and level";
-    return null;
+      errors.push("Please select school, department, and level");
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
+    setErrorMsg([]);
 
-    const validationError = validate();
-    if (validationError) return toast.error(validationError);
+    const validationErrors = validate();
+    if (validationErrors.length > 0) {
+      setErrorMsg(validationErrors);
+      validationErrors.forEach((err) => toast.error(err));
+      return;
+    }
 
     setLoading(true);
     try {
@@ -131,7 +142,7 @@ export default function Register() {
       const serverMsg =
         error.response?.data?.message ||
         "Registration failed. Please try again.";
-      setErrorMsg(serverMsg);
+      setErrorMsg([serverMsg]);
       toast.error(serverMsg, {
         duration: 4000,
         style: { background: "#171717", color: "#ff4b4b" },
@@ -142,192 +153,259 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-card text-foreground flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
       <Toaster />
       <Navbar />
 
-      {/* Lava lamp background */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full -top-40 -left-20"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, -40, 0], y: [0, -60, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[400px] h-[400px] bg-purple-600/10 blur-[120px] rounded-full -bottom-20 -right-20"
-        />
-      </div>
-
-      <main className="flex-1 flex items-center justify-center pt-32 pb-20 px-6 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass p-8 md:p-12 rounded-[40px] border border-border w-full max-w-3xl shadow-2xl relative overflow-hidden"
-        >
-          <div className="mb-10 text-center md:text-left">
-            <h2 className="text-4xl font-bold tracking-tight text-foreground mb-2">
-              Create your profile
-            </h2>
-            <p className="text-muted-foreground font-medium italic">
-              Join the next generation of academic communication.
-            </p>
-          </div>
-
-          {errorMsg && (
-            <div className="text-red-400 bg-red-500/10 p-3 rounded-xl mb-4 text-center">
-              {errorMsg}
-            </div>
-          )}
-
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
-          >
-            <div className="md:col-span-2">
-              <InputGroup
-                icon={<User size={18} />}
-                name="name"
-                placeholder="Full Name"
-                type="text"
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-
-            <InputGroup
-              icon={<Mail size={18} />}
-              name="email"
-              placeholder="Email"
-              type="email"
-              onChange={handleChange}
-              disabled={loading}
-            />
-
-            <InputGroup
-              icon={<Phone size={18} />}
-              name="phoneNumber"
-              placeholder="Phone (e.g. 078...)"
-              type="tel"
-              onChange={handleChange}
-              disabled={loading}
-            />
-
-            <div className="md:col-span-2 relative">
-              <InputGroup
-                icon={<Lock size={18} />}
-                name="password"
-                placeholder="Create Password"
-                type={showPassword ? "text" : "password"}
-                onChange={handleChange}
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-blue-500"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-
-            <div className="md:col-span-2">
-              <InputGroup
-                icon={<Lock size={18} />}
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                type={showPassword ? "text" : "password"}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-
-            {/* --- Dynamic dropdowns --- */}
-            {dropdowns.loading ? (
-              <div className="md:col-span-2 text-center text-muted-foreground">
-                Loading schools & departments...
+      <main className="flex-1 pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
+            {/* Left Side - Hero */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="lg:sticky lg:top-32 space-y-8"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 rounded-full">
+                <Sparkles className="text-blue-500" size={16} />
+                <span className="text-xs font-bold uppercase tracking-widest text-blue-500">
+                  Join UniNotify AI
+                </span>
               </div>
-            ) : dropdowns.error ? (
-              <div className="md:col-span-2 text-center text-red-400">
-                {dropdowns.error}
-              </div>
-            ) : (
-              <>
-                <SelectGroup
-                  icon={<Landmark size={18} />}
-                  name="school"
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  {dropdowns.schools.map((s) => (
-                    <option key={s.id} value={s.name}>
-                      {s.name}
-                    </option>
-                  ))}
-                </SelectGroup>
 
-                <SelectGroup
-                  icon={<Target size={18} />}
-                  name="department"
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  {dropdowns.departments.map((d) => (
-                    <option key={d.id} value={d.name}>
-                      {d.name}
-                    </option>
-                  ))}
-                </SelectGroup>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[0.95]">
+                Start Your
+                <br />
+                <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
+                  Journey.
+                </span>
+              </h1>
 
-                <SelectGroup
-                  icon={<GraduationCap size={18} />}
-                  name="level"
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  {dropdowns.levels.map((l) => (
-                    <option key={l.id} value={l.name}>
-                      {l.name}
-                    </option>
-                  ))}
-                </SelectGroup>
-              </>
-            )}
-
-            <input type="hidden" name="role" value="student" />
-
-            <div className="md:col-span-2 pt-6">
-              <button
-                disabled={loading || dropdowns.loading}
-                type="submit"
-                className="w-full bg-white py-5 rounded-2xl text-black font-bold shadow-lg transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:bg-neutral-200"
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin" size={20} />
-                ) : (
-                  <>
-                    Create Account{" "}
-                    <ArrowRight
-                      size={20}
-                      className="group-hover:translate-x-1 transition-transform"
-                    />
-                  </>
-                )}
-              </button>
-
-              <p className="text-center mt-6 text-muted-foreground text-sm">
-                Already have an account?{" "}
-                <Link
-                  to="/login"
-                  className="text-blue-500/60 hover:text-blue-400 hover:underline"
-                >
-                  Log in
-                </Link>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
+                Create your account and experience the smartest campus notification 
+                system ever built. Zero noise, all signal.
               </p>
-            </div>
-          </form>
-        </motion.div>
+
+              <div className="space-y-4">
+                {BENEFITS.map((benefit, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className="flex items-center gap-3"
+                  >
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                      <benefit.icon className="text-blue-500" size={20} />
+                    </div>
+                    <span className="text-foreground font-medium">{benefit.text}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 pt-6">
+                {[
+                  { value: "12K+", label: "Users" },
+                  { value: "850K+", label: "Alerts" },
+                  { value: "99.9%", label: "Uptime" },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 + i * 0.1 }}
+                    className="text-center"
+                  >
+                    <div className="text-2xl md:text-3xl font-black text-foreground">
+                      {stat.value}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Scroll Indicator */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="flex justify-center pt-4"
+              >
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
+                >
+                  <motion.div className="w-1.5 h-3 rounded-full bg-blue-500" />
+                </motion.div>
+              </motion.div>
+            </motion.div>
+
+            {/* Right Side - Form */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-card border border-border rounded-[32px] p-8 md:p-10 relative overflow-hidden"
+            >
+              {/* Background accent */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+
+              <div className="relative z-10">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  Create your profile
+                </h2>
+                <p className="text-muted-foreground text-sm mb-8">
+                  Join the next generation of academic communication.
+                </p>
+
+                {errorMsg.length > 0 && (
+                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-6 space-y-1">
+                    {errorMsg.map((err, i) => (
+                      <p key={i} className="text-red-400 text-sm">{err}</p>
+                    ))}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <InputGroup
+                    icon={<User size={18} />}
+                    name="name"
+                    placeholder="Full Name"
+                    type="text"
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  <InputGroup
+                    icon={<Mail size={18} />}
+                    name="email"
+                    placeholder="Email"
+                    type="email"
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  <InputGroup
+                    icon={<Phone size={18} />}
+                    name="phoneNumber"
+                    placeholder="Phone (e.g. 078...)"
+                    type="tel"
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  <div className="relative">
+                    <InputGroup
+                      icon={<Lock size={18} />}
+                      name="password"
+                      placeholder="Create Password"
+                      type={showPassword ? "text" : "password"}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-blue-500"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  <InputGroup
+                    icon={<Lock size={18} />}
+                    name="confirmPassword"
+                    placeholder="Confirm Password"
+                    type={showPassword ? "text" : "password"}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  {dropdowns.loading ? (
+                    <div className="text-center text-muted-foreground py-4">
+                      Loading schools & departments...
+                    </div>
+                  ) : dropdowns.error ? (
+                    <div className="text-center text-red-400 py-4">
+                      {dropdowns.error}
+                    </div>
+                  ) : (
+                    <>
+                      <SelectGroup
+                        icon={<Landmark size={18} />}
+                        name="school"
+                        onChange={handleChange}
+                        disabled={loading}
+                      >
+                        {dropdowns.schools.map((s) => (
+                          <option key={s.id} value={s.name}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </SelectGroup>
+
+                      <SelectGroup
+                        icon={<Target size={18} />}
+                        name="department"
+                        onChange={handleChange}
+                        disabled={loading}
+                      >
+                        {dropdowns.departments.map((d) => (
+                          <option key={d.id} value={d.name}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </SelectGroup>
+
+                      <SelectGroup
+                        icon={<GraduationCap size={18} />}
+                        name="level"
+                        onChange={handleChange}
+                        disabled={loading}
+                      >
+                        {dropdowns.levels.map((l) => (
+                          <option key={l.id} value={l.name}>
+                            {l.name}
+                          </option>
+                        ))}
+                      </SelectGroup>
+                    </>
+                  )}
+
+                  <input type="hidden" name="role" value="student" />
+
+                  <button
+                    disabled={loading || dropdowns.loading}
+                    type="submit"
+                    className="w-full bg-blue-500 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:bg-blue-600"
+                  >
+                    {loading ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : (
+                      <>
+                        Create Account
+                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+
+                  <p className="text-center text-muted-foreground text-sm">
+                    Already have an account?{" "}
+                    <Link
+                      to="/login"
+                      className="text-blue-500 hover:text-blue-400 hover:underline"
+                    >
+                      Log in
+                    </Link>
+                  </p>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </main>
 
       <Footer />
@@ -335,7 +413,6 @@ export default function Register() {
   );
 }
 
-// --- SUB-COMPONENTS ---
 function InputGroup({ icon, name, placeholder, type, onChange, disabled }) {
   return (
     <div className="relative group">
@@ -349,7 +426,7 @@ function InputGroup({ icon, name, placeholder, type, onChange, disabled }) {
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full bg-accent border border-border p-4 pl-12 rounded-2xl text-foreground outline-none focus:border-blue-500 transition-all placeholder:text-neutral-600 disabled:opacity-60"
+        className="w-full bg-background border border-border p-4 pl-12 rounded-xl text-foreground outline-none focus:border-blue-500 transition-all placeholder:text-muted-foreground/50 disabled:opacity-60"
       />
     </div>
   );
@@ -358,14 +435,14 @@ function InputGroup({ icon, name, placeholder, type, onChange, disabled }) {
 function SelectGroup({ icon, name, children, onChange, disabled }) {
   return (
     <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-500 transition-colors z-10">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none">
         {icon}
       </div>
       <select
         name={name}
         onChange={onChange}
         disabled={disabled}
-        className="w-full bg-accent border border-border p-4 pl-12 rounded-2xl text-foreground outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer bg-neutral-900 disabled:opacity-60"
+        className="w-full bg-background border border-border p-4 pl-12 rounded-xl text-foreground outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer disabled:opacity-60"
       >
         {children}
       </select>

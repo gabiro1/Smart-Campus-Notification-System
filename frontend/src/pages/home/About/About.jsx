@@ -111,12 +111,28 @@ export default function About() {
             Our Story
           </span>
           <h1 className="text-5xl md:text-7xl font-bold text-foreground tracking-tight">
-            About <span className="text-primary">UniNotify AI</span>
+            About <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">UniNotify AI</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
             Bridging the communication gap at the University of Rwanda through
             intelligent notifications and universal accessibility.
           </p>
+
+          {/* Animated Scroll Indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="mt-12 flex justify-center"
+          >
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
+            >
+              <motion.div className="w-1.5 h-3 rounded-full bg-primary" />
+            </motion.div>
+          </motion.div>
         </motion.section>
 
         {/* --- VISION & MISSION --- */}

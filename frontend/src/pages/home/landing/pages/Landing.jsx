@@ -260,9 +260,7 @@ function HeroSection({ onAction }) {
         >
           Smart Alerts.
           <br />
-          <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
-            Zero Noise.
-          </span>
+          <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">Zero Noise.</span>
         </motion.h1>
 
         {/* Subheading */}
@@ -307,7 +305,7 @@ function HeroSection({ onAction }) {
         >
           <button
             onClick={() => onAction("/register")}
-            className="group inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
+            className="group inline-flex items-center justify-center gap-2 bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/25"
           >
             Join the Beta
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -316,24 +314,25 @@ function HeroSection({ onAction }) {
             onClick={() => onAction("/how-it-works")}
             className="group inline-flex items-center justify-center gap-2 bg-card border border-border text-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-accent transition-all"
           >
-            <Play size={20} className="text-primary" />
+            <Play size={20} className="text-blue-500" />
             See How It Works
           </button>
         </motion.div>
       </motion.div>
 
-      {/* Scroll Indicator */}
+      {/* Animated Scroll Indicator */}
       <motion.div
-        style={{ opacity }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2"
       >
         <motion.div
           animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="flex flex-col items-center gap-2"
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
         >
-          <span className="text-xs text-muted-foreground">Scroll to explore</span>
-          <ChevronDown className="text-muted-foreground" size={20} />
+          <motion.div className="w-1.5 h-3 rounded-full bg-blue-500" />
         </motion.div>
       </motion.div>
     </section>
