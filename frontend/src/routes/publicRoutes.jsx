@@ -4,7 +4,7 @@ import { Route } from "react-router-dom";
 import Landing from "../pages/home/landing/pages/Landing";
 import Features from "../pages/home/features/Features";
 import HowItWorks from "../pages/home/howitworks/HowItWorks";
-import About from "../pages/home/about/About";
+import About from "../pages/home/About/About";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import ForgotPassword from "../pages/auth/ForgotPassword";
