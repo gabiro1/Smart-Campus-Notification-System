@@ -169,6 +169,19 @@
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+
+/* Glass effect for both light and dark modes */
+.glass {
+  background: rgba(var(--card-rgb, 255, 255, 255), 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 .custom-scrollbar {
   -ms-overflow-style: none;
   /* IE and Edge */

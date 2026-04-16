@@ -26,13 +26,13 @@ export function Process() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-20">
           {STEPS.map((step) => (
             <div key={step.num} className="relative group">
-              <span className="text-8xl font-black text-white/5 absolute -top-10 -left-4 group-hover:text-blue-600/10 transition-colors">
+              <span className="text-8xl font-black text-muted/10 absolute -top-10 -left-4 group-hover:text-primary/10 transition-colors">
                 {step.num}
               </span>
               <h3 className="text-xl text-foreground font-bold mb-4 relative z-10">
                 {step.title}
               </h3>
-              <p className="text-neutral-300 text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {step.desc}
               </p>
             </div>

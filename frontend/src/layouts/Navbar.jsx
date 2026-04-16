@@ -6,376 +6,375 @@ import {
   Bell,
   User,
   LogOut,
+  Settings,
+  Bookmark,
+  Sun,
+  Moon,
   Menu,
   X,
-  Settings,
-  LayoutDashboard,
-  ShieldAlert,
-  Bookmark,
+  Sparkles,
 } from "lucide-react";
 
-// The Brain: Importing the global authentication state
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Consuming the Context (No more manual localStorage parsing!)
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const isLoggedIn = !!user;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Helper to highlight active routes
   const isActive = (path) => location.pathname.startsWith(path);
 
-  // Generate dynamic initials for the avatar (e.g., "Gabiro Jovial" -> "GJ")
   const initials = user?.name
     ?.split(" ")
     .map((word) => word[0])
     .join("")
     .toUpperCase()
-    .slice(0, 2); // Ensure it's never more than 2 letters
+    .slice(0, 2);
 
   return (
-    <motion.nav
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-4 border-b border-border bg-card/95 backdrop-blur-md"
-    >
-      {/* 1. BRAND LOGO */}
-      <Link to="/" className="flex items-center gap-2">
-        <span className="text-xl font-bold tracking-tighter text-foreground">
-          UniNotify <span className="text-blue-500">AI</span>
-        </span>
-      </Link>
-
-      {/* 2. DESKTOP NAVIGATION - STRICTLY ROLE BASED */}
-      <div className="hidden lg:flex items-center gap-8">
-        {!isLoggedIn ? (
-          <>
-            <NavLink
-              to="/features"
-              label="Features"
-              active={isActive("/features")}
-            />
-            <NavLink
-              to="/how-it-works"
-              label="How It Works"
-              active={isActive("/how-it-works")}
-            />
-            <NavLink to="/about" label="About" active={isActive("/about")} />
-          </>
-        ) : (
-          <>
-            {/* --- STUDENT ONLY LINKS --- */}
-            {user.role === "student" && (
-              <>
-                <NavLink
-                  to="/student/dashboard"
-                  label="Overview"
-                  active={isActive("/student/dashboard")}
-                />
-                <NavLink
-                  to="/student/announcements"
-                  label="Noticeboard"
-                  active={isActive("/student/announcements")}
-                />
-                <NavLink
-                  to="/student/events"
-                  label="Events Catalog"
-                  active={isActive("/student/events")}
-                />
-                <NavLink
-                  to="/student/reminders"
-                  label="Reminders"
-                  active={isActive("/student/reminders")}
-                />
-              </>
-            )}
-
-            {/* --- HOD / LECTURER LINKS --- */}
-            {(user.role === "hod" || user.role === "lecturer") && (
-              <>
-                <NavLink
-                  to={
-                    user.role === "hod" ? "/hod/dashboard" : "/lecturer/console"
-                  }
-                  label="Pulse Console"
-                  active={isActive("/hod") || isActive("/lecturer")}
-                />
-                <NavLink
-                  to="/admin/history"
-                  label="My History"
-                  active={isActive("/admin/history")}
-                />
-              </>
-            )}
-
-            {/* --- ADMIN LINKS --- */}
-            {user.role === "admin" && (
-              <>
-                <NavLink
-                  to="/admin/overview"
-                  label="Admin Dashboard"
-                  active={isActive("/admin/overview")}
-                />
-                <NavLink
-                  to="/admin/users"
-                  label="Access Control"
-                  active={isActive("/admin/users")}
-                />
-              </>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* 3. RIGHT SIDE CONTROLS */}
-      <div className="flex items-center gap-4">
-        {!isLoggedIn ? (
-          <div className="flex items-center gap-4">
-            <Link
-              to="/login"
-              className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="px-5 py-2 rounded-xl text-sm font-bold bg-white text-black hover:bg-neutral-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-            >
-              Register
-            </Link>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            {/* Search Icon */}
-            <button
-              onClick={() => navigate("/search")}
-              className="p-2 hover:bg-accent rounded-full text-muted-foreground transition-colors"
-            >
-              <Search size={20} />
-            </button>
-
-            {/* Bookmarks Icon (students only) */}
-            {user.role === "student" && (
-              <button
-                onClick={() => navigate("/student/bookmarks")}
-                className="p-2 hover:bg-accent rounded-full text-muted-foreground relative transition-colors group"
-                title="Saved Events"
+    <>
+      {/* Desktop Navbar - Floating Pill */}
+      <motion.nav
+        initial={{ y: -100, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 150, damping: 20, delay: 0.1 }}
+        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden lg:block w-[95%] max-w-5xl"
+      >
+        <div className="bg-card/80 backdrop-blur-2xl rounded-full px-6 py-2.5 shadow-xl shadow-black/5">
+          <div className="flex items-center justify-between gap-4">
+            {/* Brand */}
+            <Link to="/" className="flex items-center gap-2.5 shrink-0">
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg"
               >
-                <Bookmark
-                  size={20}
-                  className="group-hover:text-blue-400 transition-colors"
-                />
-              </button>
-            )}
+                <Sparkles className="text-white" size={14} />
+              </motion.div>
+              <span className="text-base font-bold text-foreground tracking-tight">
+                Uni<span className="text-blue-500">Notify</span>
+              </span>
+            </Link>
 
-            {/* Notification Bell */}
-            <button
-              onClick={() => navigate("/student/reminders")}
-              className="p-2 hover:bg-accent rounded-full text-muted-foreground relative transition-colors group"
-            >
-              <Bell
-                size={20}
-                className="group-hover:text-foreground transition-colors"
-              />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-card" />
-            </button>
+            {/* Navigation Links */}
+            <div className="flex items-center gap-1">
+              {!isLoggedIn ? (
+                <>
+                  <NavLink to="/" label="Home" active={location.pathname === "/"} />
+                  <NavLink to="/features" label="Features" active={isActive("/features")} />
+                  <NavLink to="/how-it-works" label="How It Works" active={isActive("/how-it-works")} />
+                  <NavLink to="/about" label="About" active={isActive("/about")} />
+                </>
+              ) : (
+                <>
+                  {user.role === "student" && (
+                    <>
+                      <NavLink to="/student/dashboard" label="Dashboard" active={isActive("/student/dashboard")} />
+                      <NavLink to="/student/announcements" label="Alerts" active={isActive("/student/announcements")} />
+                      <NavLink to="/student/events" label="Events" active={isActive("/student/events")} />
+                    </>
+                  )}
+                  {(user.role === "hod" || user.role === "lecturer") && (
+                    <>
+                      <NavLink to={user.role === "hod" ? "/hod/dashboard" : "/lecturer/console"} label="Console" />
+                      <NavLink to="/admin/history" label="History" />
+                    </>
+                  )}
+                  {user.role === "admin" && (
+                    <>
+                      <NavLink to="/admin/overview" label="Dashboard" />
+                      <NavLink to="/admin/users" label="Users" />
+                    </>
+                  )}
+                </>
+              )}
+            </div>
 
-            {/* Profile Dropdown */}
-            <div className="group relative ml-2">
-              <div className="w-10 h-10 rounded-full border border-border p-0.5 cursor-pointer hover:border-blue-500/50 transition-colors">
-                <div className="w-full h-full bg-neutral-800 rounded-full flex items-center justify-center text-sm font-bold text-blue-400">
-                  {initials || "U"}
+            {/* Right Controls */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Theme Toggle */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleTheme}
+                className="w-8 h-8 rounded-full bg-accent/50 hover:bg-accent flex items-center justify-center text-foreground transition-colors"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={isDarkMode ? "moon" : "sun"}
+                    initial={{ rotate: -90, opacity: 0, scale: 0 }}
+                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                    exit={{ rotate: 90, opacity: 0, scale: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {isDarkMode ? <Moon size={14} /> : <Sun size={14} />}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
+
+              {!isLoggedIn ? (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link
+                      to="/register"
+                      className="px-5 py-1.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
+                    >
+                      Get Started
+                    </Link>
+                  </motion.div>
+                </>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => navigate("/search")}
+                    className="w-8 h-8 rounded-full bg-accent/50 hover:bg-accent flex items-center justify-center text-foreground transition-colors"
+                  >
+                    <Search size={14} />
+                  </motion.button>
+
+                  {user.role === "student" && (
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => navigate("/student/bookmarks")}
+                      className="w-8 h-8 rounded-full bg-accent/50 hover:bg-accent flex items-center justify-center text-foreground transition-colors"
+                    >
+                      <Bookmark size={14} />
+                    </motion.button>
+                  )}
+
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => navigate("/student/reminders")}
+                    className="w-8 h-8 rounded-full bg-accent/50 hover:bg-accent flex items-center justify-center text-foreground transition-colors relative"
+                  >
+                    <Bell size={14} />
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full border-2 border-card text-[8px] font-bold text-white flex items-center justify-center">
+                      3
+                    </span>
+                  </motion.button>
+
+                  {/* Profile */}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative group"
+                  >
+                    <button className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                      {initials || "U"}
+                    </button>
+
+                    {/* Dropdown */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 top-10 w-56 py-2 bg-card/95 backdrop-blur-xl rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+                    >
+                      <div className="px-4 py-3 border-b border-border">
+                        <p className="font-bold text-foreground text-sm">{user?.name}</p>
+                        <p className="text-xs text-muted-foreground">{user?.email}</p>
+                        <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold bg-blue-500/10 text-blue-500 rounded-full uppercase">
+                          {user?.role}
+                        </span>
+                      </div>
+                      <div className="p-1.5">
+                        <Link
+                          to="/profile"
+                          className="flex items-center gap-2.5 px-3 py-2 text-xs text-foreground hover:bg-accent rounded-lg transition-colors"
+                        >
+                          <User size={14} className="text-foreground" />
+                          Profile
+                        </Link>
+                        <Link
+                          to="/settings"
+                          className="flex items-center gap-2.5 px-3 py-2 text-xs text-foreground hover:bg-accent rounded-lg transition-colors"
+                        >
+                          <Settings size={14} className="text-foreground" />
+                          Settings
+                        </Link>
+                        <button
+                          onClick={() => { logout(); navigate("/"); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                        >
+                          <LogOut size={14} />
+                          Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
                 </div>
-              </div>
-
-              {/* Role Tooltip */}
-              <div className="absolute top-11 left-1/2 -translate-x-1/2 px-2 py-1 bg-blue-600/20 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                {user.role}
-              </div>
-
-              {/* Dropdown Menu */}
-              <div className="absolute right-0 top-12 w-56 border border-border rounded-2xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 bg-card shadow-2xl z-50">
-                <div className="px-3 py-2 mb-2 border-b border-border">
-                  <p className="text-sm font-bold text-foreground truncate">
-                    {user.name}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                </div>
-
-                <DropdownItem
-                  to="/profile"
-                  icon={<User size={14} />}
-                  label="My Profile"
-                />
-                <DropdownItem
-                  to="/settings"
-                  icon={<Settings size={14} />}
-                  label="Settings"
-                />
-
-                <hr className="my-2 border-border" />
-
-                {/* Global Logout Action */}
-                <button
-                  onClick={() => {
-                    logout();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                >
-                  <LogOut size={14} /> Sign Out
-                </button>
-              </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
+      </motion.nav>
 
-        {/* Mobile Toggle */}
-        <button
-          className="lg:hidden p-2 text-foreground ml-2"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+      {/* Mobile/Tablet Navbar */}
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 150, damping: 20 }}
+        className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-card/95 backdrop-blur-xl border-b border-border"
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+              <Sparkles className="text-white" size={14} />
+            </div>
+            <span className="text-base font-bold text-foreground">
+              Uni<span className="text-blue-500">Notify</span>
+            </span>
+          </Link>
 
-      {/* 4. MOBILE MENU OVERLAY */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            className="fixed inset-0 bg-card z-[60] flex flex-col p-8 pt-24 space-y-6 lg:hidden overflow-y-auto"
-          >
-            {/* Close button inside mobile menu for safety */}
+          {/* Right Controls */}
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
             <button
-              className="absolute top-6 right-6 p-2 text-foreground"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-foreground"
             >
-              <X size={28} />
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={isDarkMode ? "moon" : "sun"}
+                  initial={{ rotate: -90, opacity: 0, scale: 0 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                  exit={{ rotate: 90, opacity: 0, scale: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
+                </motion.span>
+              </AnimatePresence>
             </button>
 
-            {isLoggedIn ? (
-              <>
-                <div className="mb-4 pb-4 border-b border-border">
-                  <p className="text-sm text-blue-400 font-black uppercase tracking-widest mb-1">
-                    {user.role}
-                  </p>
-                  <p className="text-2xl font-bold text-foreground">{user.name}</p>
-                </div>
+            {/* Hamburger Menu */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-foreground"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
 
-                {user.role === "student" && (
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden bg-card"
+            >
+              <div className="px-4 py-4 space-y-1 border-t">
+                {!isLoggedIn ? (
                   <>
-                    <MobileLink
-                      to="/student/dashboard"
-                      label="Overview"
-                      close={setIsMobileMenuOpen}
-                    />
-                    <MobileLink
-                      to="/student/announcements"
-                      label="Noticeboard"
-                      close={setIsMobileMenuOpen}
-                    />
-                    <MobileLink
-                      to="/student/events"
-                      label="Events Catalog"
-                      close={setIsMobileMenuOpen}
-                    />
-                    <MobileLink
-                      to="/student/reminders"
-                      label="My Reminders"
-                      close={setIsMobileMenuOpen}
-                    />
+                    <MobileMenuLink to="/" label="Home" onClick={() => setMobileMenuOpen(false)} />
+                    <MobileMenuLink to="/features" label="Features" onClick={() => setMobileMenuOpen(false)} />
+                    <MobileMenuLink to="/how-it-works" label="How It Works" onClick={() => setMobileMenuOpen(false)} />
+                    <MobileMenuLink to="/about" label="About" onClick={() => setMobileMenuOpen(false)} />
+                    <div className="pt-4 space-y-2">
+                      <Link
+                        to="/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full px-4 py-3 text-center font-medium bg-accent rounded-xl"
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full px-4 py-3 text-center font-bold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl"
+                      >
+                        Get Started
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {user.role === "student" && (
+                      <>
+                        <MobileMenuLink to="/student/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/student/announcements" label="Alerts" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/student/events" label="Events" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/student/bookmarks" label="Bookmarks" onClick={() => setMobileMenuOpen(false)} />
+                      </>
+                    )}
+                    {(user.role === "hod" || user.role === "lecturer") && (
+                      <>
+                        <MobileMenuLink to={user.role === "hod" ? "/hod/dashboard" : "/lecturer/console"} label="Console" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/admin/history" label="History" onClick={() => setMobileMenuOpen(false)} />
+                      </>
+                    )}
+                    {user.role === "admin" && (
+                      <>
+                        <MobileMenuLink to="/admin/overview" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/admin/users" label="Users" onClick={() => setMobileMenuOpen(false)} />
+                      </>
+                    )}
+                    <div className="pt-4 border-t space-y-1">
+                      <MobileMenuLink to="/profile" label="Profile" onClick={() => setMobileMenuOpen(false)} />
+                      <MobileMenuLink to="/settings" label="Settings" onClick={() => setMobileMenuOpen(false)} />
+                      <button
+                        onClick={() => { logout(); navigate("/"); setMobileMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-red-500"
+                      >
+                        <LogOut size={18} />
+                        Sign Out
+                      </button>
+                    </div>
                   </>
                 )}
-                {user.role === "hod" && (
-                  <MobileLink
-                    to="/hod/dashboard"
-                    label="HOD Console"
-                    close={setIsMobileMenuOpen}
-                  />
-                )}
-
-                <div className="mt-auto pt-8">
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex items-center gap-3 text-red-400 font-bold text-lg"
-                  >
-                    <LogOut size={20} /> Sign Out
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <MobileLink
-                  to="/login"
-                  label="Login"
-                  close={setIsMobileMenuOpen}
-                />
-                <MobileLink
-                  to="/register"
-                  label="Register"
-                  close={setIsMobileMenuOpen}
-                />
-              </>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.nav>
+    </>
   );
 }
-
-/* --- SUBCOMPONENTS --- */
 
 function NavLink({ to, label, active }) {
   return (
-    <Link to={to} className="relative group flex flex-col items-center">
-      <motion.span
-        whileHover={{ y: -2 }}
-        className={`text-[12px] font-bold tracking-widest uppercase transition-colors ${active ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}
-      >
+    <Link
+      to={to}
+      className="relative px-3 py-1.5 text-sm font-medium transition-colors"
+    >
+      <span className={active ? "text-foreground" : "text-muted-foreground hover:text-foreground"}>
         {label}
-      </motion.span>
-      {active && (
-        <motion.div
-          layoutId="nav-underline"
-          className="absolute -bottom-2 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.6)]"
-        />
-      )}
+      </span>
+      <motion.span
+        layoutId="nav-indicator"
+        className="absolute -bottom-0.5 left-3 right-3 h-0.5 bg-blue-500 rounded-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: active ? 1 : 0 }}
+        transition={{ duration: 0.2 }}
+      />
     </Link>
   );
 }
 
-function MobileLink({ to, label, close }) {
+function MobileMenuLink({ to, label, onClick }) {
   return (
     <Link
       to={to}
-      onClick={() => close(false)}
-      className="text-2xl font-bold text-muted-foreground hover:text-foreground tracking-tight transition-colors"
+      onClick={onClick}
+      className="block px-4 py-3 text-foreground hover:bg-accent rounded-xl transition-colors font-medium"
     >
       {label}
-    </Link>
-  );
-}
-
-function DropdownItem({ to, icon, label }) {
-  return (
-    <Link
-      to={to}
-      className="flex items-center gap-3 p-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all"
-    >
-      {icon} {label}
     </Link>
   );
 }

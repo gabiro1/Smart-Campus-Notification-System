@@ -42,7 +42,7 @@ export default function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
-            className="glass p-8 rounded-[32px] border border-border hover:border-white/20 transition-all group"
+            className="bg-card p-8 rounded-[32px] border border-border hover:border-primary/20 transition-all group"
           >
             <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               {feature.icon}

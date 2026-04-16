@@ -28,7 +28,7 @@ export default function Hero({ user }) {
         animate={{ opacity: 1 }}
         className="max-w-4xl"
       >
-        <span className="px-3 py-1 font-sans rounded-full border border-white/10 text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] mb-6 inline-block bg-accent">
+        <span className="px-3 py-1 font-sans rounded-full border border-border text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] mb-6 inline-block bg-accent">
           AI-Powered Communication for UR
         </span>
 
@@ -45,12 +45,12 @@ export default function Hero({ user }) {
         </p>
 
         <div className="flex gap-4 justify-center">
-          <button className="px-6 py-3 bg-white text-black hover:bg-neutral-200 rounded-lg font-bold text-sm transition-all">
+          <button className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-bold text-sm transition-all">
             Join the Beta
           </button>
           <button
-            onClick={handleAdminAccess} // 5. Added click handler
-            className="px-6 py-3 bg-background border border-white/10 text-foreground hover:bg-accent rounded-lg font-bold text-sm transition-all"
+            onClick={handleAdminAccess}
+            className="px-6 py-3 bg-background border border-border text-foreground hover:bg-accent rounded-lg font-bold text-sm transition-all"
           >
             Admin Portal
           </button>
