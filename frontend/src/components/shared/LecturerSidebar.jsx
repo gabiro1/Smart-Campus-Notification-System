@@ -21,7 +21,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const mainRoutes = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/lecturer" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/lecturer/console" },
   { icon: PlusCircle, label: "Create", path: "/lecturer/create" },
   { icon: Users, label: "My Classes", path: "/lecturer/classes" },
   { icon: Megaphone, label: "Announcements", path: "/lecturer/announcements" },

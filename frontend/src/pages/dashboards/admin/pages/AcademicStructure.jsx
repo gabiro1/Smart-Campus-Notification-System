@@ -636,8 +636,8 @@ export default function AcademicStructure() {
   };
 
   return (
-    <div className="space-y-6">
-      <header className="flex items-center justify-between">
+    <div className="p-4 lg:p-6 space-y-6 w-full text-foreground">
+      <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             Academic Structure
@@ -649,7 +649,7 @@ export default function AcademicStructure() {
         {activeTab !== "students" && (
           <button
             onClick={handleAddClick}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2 w-full md:w-auto justify-center md:justify-start"
           >
             <Plus size={18} /> Add {activeTab === "lecturers" ? "Lecturer" : activeTab.slice(0, -1)}
           </button>
@@ -657,7 +657,7 @@ export default function AcademicStructure() {
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-2 pb-2 flex-wrap">
+      <div className="flex gap-2 pb-2 flex-wrap overflow-x-auto [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden [&::-ms-scrollbar]:hidden">
         {tabs.map((tab) => (
           <button
             key={tab.id}

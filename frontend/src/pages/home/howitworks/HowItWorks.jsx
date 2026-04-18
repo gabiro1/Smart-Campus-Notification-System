@@ -4,7 +4,7 @@
  */
 import Footer from "@/layouts/Footer";
 import Navbar from "@/layouts/Navbar";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useScroll, AnimatePresence } from "framer-motion";
 import { useRef } from "react";
 import { Cpu, Send, ShieldCheck, Zap, ArrowRight, CheckCircle2, Sparkles, Play, Users, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -89,7 +89,7 @@ const colorMap = {
 
 export default function HowItWorks() {
   const targetRef = useRef(null);
-  const { scrollYProgress } = useScroll({
+  useScroll({
     target: targetRef,
     offset: ["start start", "end end"],
   });
@@ -186,7 +186,7 @@ function HeroSection() {
   );
 }
 
-function StepCard({ step, index, totalSteps }) {
+function StepCard({ step, index, totalSteps: _totalSteps }) {
   const ref = useRef(null);
   const colors = colorMap[step.color];
   const isEven = index % 2 === 0;

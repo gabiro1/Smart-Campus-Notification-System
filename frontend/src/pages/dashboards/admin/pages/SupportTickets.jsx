@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HelpCircle, Loader2, Search, Filter, Send, CheckCircle, Clock, AlertCircle, X, Mail, User, Tag } from "lucide-react";
+import { HelpCircle, Loader2, Search, CheckCircle, Clock, AlertCircle, X, Mail, User } from "lucide-react";
 import supportService from "../../../../services/supportService";
 import toast from "react-hot-toast";
 
@@ -44,8 +44,8 @@ export default function SupportTickets() {
         setTickets(response.tickets || []);
         setCounts(response.counts || {});
       }
-    } catch (error) {
-      console.error("Failed to load tickets:", error);
+    } catch {
+      console.error("Failed to load tickets:");
       toast.error("Failed to load tickets");
     } finally {
       setLoading(false);
@@ -69,7 +69,7 @@ export default function SupportTickets() {
         setSelectedTicket(null);
         loadTickets();
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to reply");
     } finally {
       setSending(false);
@@ -83,7 +83,7 @@ export default function SupportTickets() {
       toast.success("Ticket deleted");
       setSelectedTicket(null);
       loadTickets();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete");
     }
   };
@@ -101,88 +101,83 @@ export default function SupportTickets() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
-              <HelpCircle className="text-cyan-400" size={24} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Support Tickets</h1>
-              <p className="text-sm text-muted-foreground">Manage student reports and issues</p>
-            </div>
+    <div className="p-4 lg:p-6 w-full text-foreground">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center">
+            <HelpCircle className="text-cyan-500" size={20} />
+          </div>
+          <div>
+            <h1 className="text-xl lg:text-2xl font-bold">Support Tickets</h1>
+            <p className="text-sm text-muted-foreground">Manage student reports and issues</p>
           </div>
         </div>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[
-            { key: "open", label: "Open", icon: AlertCircle },
-            { key: "in_review", label: "In Review", icon: Clock },
-            { key: "resolved", label: "Resolved", icon: CheckCircle },
-            { key: "total", label: "Total", icon: HelpCircle }
-          ].map((stat) => (
-            <div key={stat.key} className="bg-card border border-border rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <stat.icon size={16} className="text-muted-foreground" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">{stat.label}</span>
-              </div>
-              <p className="text-2xl font-bold text-foreground">{counts[stat.key] || 0}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {[
+          { key: "open", label: "Open", icon: AlertCircle },
+          { key: "in_review", label: "In Review", icon: Clock },
+          { key: "resolved", label: "Resolved", icon: CheckCircle },
+          { key: "total", label: "Total", icon: HelpCircle }
+        ].map((stat) => (
+          <div key={stat.key} className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <stat.icon size={14} className="text-muted-foreground" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{stat.label}</span>
             </div>
-          ))}
-        </div>
+            <p className="text-xl font-semibold text-foreground">{counts[stat.key] || 0}</p>
+          </div>
+        ))}
+      </div>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <input
-              type="text"
-              placeholder="Search tickets..."
-              value={searchQ}
-              onChange={(e) => setSearchQ(e.target.value)}
-              className="w-full bg-card border border-border rounded-xl py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50"
-            />
-          </div>
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-            className="bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none"
-          >
-            <option value="all">All Status</option>
-            <option value="open">Open</option>
-            <option value="in_review">In Review</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
-          </select>
-          <select
-            value={filters.category}
-            onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
-            className="bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none"
-          >
-            <option value="all">All Categories</option>
-            <option value="bug">Bug</option>
-            <option value="feature_request">Feature Request</option>
-            <option value="login_issue">Login Issue</option>
-            <option value="notification_problem">Notification Problem</option>
-            <option value="other">Other</option>
-          </select>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <input
+            type="text"
+            placeholder="Search tickets..."
+            value={searchQ}
+            onChange={(e) => setSearchQ(e.target.value)}
+            className="w-full bg-card border border-border rounded-xl py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50"
+          />
         </div>
+        <select
+          value={filters.status}
+          onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+          className="bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none"
+        >
+          <option value="all">All Status</option>
+          <option value="open">Open</option>
+          <option value="in_review">In Review</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select
+          value={filters.category}
+          onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+          className="bg-card border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none"
+        >
+          <option value="all">All Categories</option>
+          <option value="bug">Bug</option>
+          <option value="feature_request">Feature Request</option>
+          <option value="login_issue">Login Issue</option>
+          <option value="notification_problem">Notification Problem</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
 
-        {/* Tickets List */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="animate-spin text-cyan-500" size={40} />
-          </div>
-        ) : filteredTickets.length === 0 ? (
-          <div className="text-center py-20 border border-border rounded-2xl bg-card">
-            <HelpCircle size={40} className="text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No tickets found</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin text-cyan-500" size={40} />
+        </div>
+      ) : filteredTickets.length === 0 ? (
+        <div className="text-center py-20 border border-border rounded-2xl bg-card">
+          <HelpCircle size={40} className="text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">No tickets found</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
           {filteredTickets.map((ticket) => {
             if (!ticket) return null;
             const colors = STATUS_COLORS[ticket.status] || STATUS_COLORS.open;
@@ -207,29 +202,27 @@ export default function SupportTickets() {
                     </div>
                     <h3 className="font-bold text-foreground mb-1">{ticket.subject || 'No subject'}</h3>
                     <p className="text-sm text-muted-foreground line-clamp-2">{ticket.description || 'No description'}</p>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <User size={12} />
-                          {ticket.userId?.name || "Unknown"}
-                        </span>
-                        <span>{ticket.userId?.role}</span>
-                        <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
-                      </div>
+                    <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <User size={12} />
+                        {ticket.userId?.name || "Unknown"}
+                      </span>
+                      <span>{ticket.userId?.role}</span>
+                      <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
                     </div>
-                    {ticket.adminReply && (
-                      <div className="ml-4 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
-                        <p className="text-xs text-green-400 font-medium">Replied</p>
-                      </div>
-                    )}
                   </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  {ticket.adminReply && (
+                    <div className="ml-4 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                      <p className="text-xs text-green-400 font-medium">Replied</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Ticket Detail Modal */}
       <AnimatePresence>
         {selectedTicket && (
           <motion.div

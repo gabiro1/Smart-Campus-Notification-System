@@ -28,13 +28,14 @@ export default function StatCard({
   children,
   title,
   value,
-  icon: Icon,
+  icon: _Icon,
   trend,
   isPositive,
   delay = 0,
   iconSize = 20,
   iconClass = "",
-iconBgClass = "bg-accent",
+  iconBgClass = "bg-accent",
+  iconPadding = "p-3",
   titleClass = "text-sm text-muted-foreground font-medium mt-1",
   valueClass = "text-3xl font-bold text-foreground tracking-tight",
   trendClass = "",
@@ -55,7 +56,7 @@ iconBgClass = "bg-accent",
     <GlassCard delay={delay} className="flex flex-col gap-4">
       <div className="flex justify-between items-start">
         <div className={`${iconPadding} rounded-xl border border-border ${iconBgClass}`}>
-          <Icon size={iconSize} className={iconClass} />
+          <_Icon size={iconSize} className={iconClass} />
         </div>
         {trend && (
           <span className={finalTrendClass}>

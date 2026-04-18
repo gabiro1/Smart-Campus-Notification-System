@@ -27,7 +27,7 @@ export default function ApprovalQueue() {
       setLoading(true);
       const { data } = await apiClient.get("/events/approvals/pending"); //
       setPendingPulses(data.pulses || []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load approval queue");
     } finally {
       setLoading(false);
@@ -53,7 +53,7 @@ export default function ApprovalQueue() {
       await apiClient.post(`/events/approvals/${pulseId}`, { action }); //
       setPendingPulses((prev) => prev.filter((p) => p._id !== pulseId));
       toast.success(`Pulse ${successVerb} successfully`, { id: toastId });
-    } catch (error) {
+    } catch {
       toast.error("Process failed", { id: toastId });
     } finally {
       setProcessingId(null);

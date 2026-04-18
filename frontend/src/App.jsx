@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAuth } from "./context/AuthContext"; // Use your context!
-import { requestForToken, onMessageListener } from "./config/firebase";
-import toast, { Toaster } from "react-hot-toast";
+import { requestForToken } from "./config/firebase";
+import { Toaster } from "react-hot-toast";
 import apiClient from "./services/apiClient";
 import AppRoutes from "./routes/main/AppRoutes";
 

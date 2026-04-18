@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 
 /**
  * SkipLink - Accessible skip to main content link

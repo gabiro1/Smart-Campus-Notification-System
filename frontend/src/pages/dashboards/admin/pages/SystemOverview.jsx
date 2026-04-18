@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -8,20 +9,32 @@ import {
   Activity,
   AlertTriangle,
   PieChart as PieIcon,
+  Mail,
+  AlertCircle,
+  BarChart3,
+  ChevronRight,
 } from "lucide-react";
 import {
-  AreaChart,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  BarChart,
+  Bar,
 } from "recharts";
-import { GlassCard } from "@/components/shared";
 import adminService from "../../../../services/adminService";
 
+const colorMap = {
+  blue: { bg: "bg-blue-500/10", text: "text-blue-500", border: "border-blue-500/20" },
+  green: { bg: "bg-green-500/10", text: "text-green-500", border: "border-green-500/20" },
+  amber: { bg: "bg-amber-500/10", textAmber: "text-amber-500", border: "border-amber-500/20" },
+  red: { bg: "bg-red-500/10", text: "text-red-500", border: "border-red-500/20" },
+  purple: { bg: "bg-purple-500/10", text: "text-purple-500", border: "border-purple-500/20" },
+};
+
 export default function SystemOverview() {
+  const navigate = useNavigate();
   const [data, setData] = useState({
     metrics: null,
     usersByRole: [],
@@ -29,7 +42,6 @@ export default function SystemOverview() {
     notificationStats: null,
     eventStats: [],
   });
-  const [activeEmergencies, setActiveEmergencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -37,10 +49,9 @@ export default function SystemOverview() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [metricsRes, analyticsRes, emergenciesRes] = await Promise.all([
+        const [metricsRes, analyticsRes] = await Promise.all([
           adminService.getDashboardMetrics(),
           adminService.getAnalytics(),
-          adminService.getActiveEmergencies(),
         ]);
 
         const formattedEventStats =
@@ -60,12 +71,9 @@ export default function SystemOverview() {
           },
           eventStats: formattedEventStats,
         });
-
-        setActiveEmergencies(emergenciesRes.activeEmergencies || []);
       } catch (err) {
         setError(
-          err.response?.data?.message ||
-            "Failed to load dashboard data. Please try again.",
+          err.response?.data?.message || "Failed to load dashboard data. Please try again."
         );
       } finally {
         setLoading(false);
@@ -79,8 +87,8 @@ export default function SystemOverview() {
       <div className="h-full min-h-[80vh] flex items-center justify-center w-full">
         <div className="flex flex-col items-center gap-4">
           <Activity size={40} className="animate-spin text-blue-500" />
-          <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">
-            Syncing Data...
+          <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">
+            Loading Dashboard...
           </p>
         </div>
       </div>
@@ -90,252 +98,307 @@ export default function SystemOverview() {
   if (error) {
     return (
       <div className="h-full min-h-[80vh] flex items-center justify-center p-8 w-full">
-        <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-8 rounded-2xl max-w-md text-center">
+        <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-8 rounded-xl text-center max-w-md">
           <AlertTriangle className="mx-auto mb-4" size={40} />
-          <p className="font-bold">{error}</p>
+          <p className="font-medium">{error}</p>
         </div>
       </div>
     );
   }
 
-  const readRate =
-    data.notificationStats.total > 0
-      ? (
-          (data.notificationStats.read / data.notificationStats.total) *
-          100
-        ).toFixed(1)
-      : 0;
+  const stats = [
+    {
+      label: "Total Users",
+      value: data.metrics?.totalUsers || 0,
+      trend: "+12%",
+      trendUp: true,
+      icon: Users,
+      color: "blue",
+    },
+    {
+      label: "Active Events",
+      value: data.metrics?.totalEvents || 0,
+      trend: "+5%",
+      trendUp: true,
+      icon: Calendar,
+      color: "green",
+    },
+    {
+      label: "Pending Alerts",
+      value: data.notificationStats?.unread || 0,
+      trend: "3 open",
+      trendUp: false,
+      icon: BellRing,
+      color: "amber",
+    },
+    {
+      label: "Notifications",
+      value: data.metrics?.totalNotifications || 0,
+      trend: "+8%",
+      trendUp: true,
+      icon: Send,
+      color: "purple",
+    },
+  ];
+
+  const notifications = [
+    { id: 1, title: "Campus Water Outage — Block C", type: "urgent", time: "10 min ago", recipients: "1,240", dot: "bg-red-500" },
+    { id: 2, title: "Final Exam Schedule Released", type: "info", time: "1 hr ago", recipients: "3,200", dot: "bg-blue-500" },
+    { id: 3, title: "Library Extended Hours — Exam Week", type: "success", time: "3 hrs ago", recipients: "3,712", dot: "bg-green-500" },
+    { id: 4, title: "Parking Lot A Closed for Maintenance", type: "warning", time: "5 hrs ago", recipients: "600", dot: "bg-amber-500" },
+  ];
+
+  const recentSent = [
+    { title: "Campus Water Outage", category: "Facilities", audience: "All Users", status: "urgent", time: "Today 09:14" },
+    { title: "Exam Schedule", category: "Academic", audience: "Students", status: "sent", time: "Today 08:30" },
+    { title: "Library Hours", category: "General", audience: "All Users", status: "sent", time: "Today 06:00" },
+    { title: "Sports Day Reminder", category: "Events", audience: "All Users", status: "pending", time: "Scheduled" },
+    { title: "Fee Payment Deadline", category: "Finance", audience: "Students", status: "draft", time: "—" },
+  ];
+
+  const quickActions = [
+    { icon: Mail, label: "New Notification", color: "text-blue-500", path: "/admin/notifications?compose=true" },
+    { icon: Calendar, label: "Events", color: "text-amber-500", path: "/admin/events" },
+    { icon: Users, label: "Manage Users", color: "text-green-500", path: "/admin/users" },
+    { icon: BarChart3, label: "View Reports", color: "text-muted-foreground", path: "/admin/analytics" },
+  ];
+
+  const categories = [
+    { label: "Academic", percent: 35, color: "bg-blue-500" },
+    { label: "Facilities", percent: 25, color: "bg-green-500" },
+    { label: "Events", percent: 20, color: "bg-amber-500" },
+    { label: "Student Life", percent: 12, color: "bg-purple-500" },
+    { label: "Finance", percent: 8, color: "bg-red-500" },
+  ];
 
   return (
-    <div className="p-8 lg:p-12 w-full text-foreground">
-      {/* Main Page Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-10"
-      >
-        <h1 className="text-4xl font-black tracking-tight">System Overview</h1>
-        <p className="text-muted-foreground mt-1">
-          Real-time pulse of the Smart Campus Notification System.
-        </p>
-      </motion.div>
-
-      {/* KPI Row - Lecturer Style */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {loading ? (
-          <>
-            {[1, 2, 3, 4].map((i) => (
-              <GlassCard key={i} delay={i * 0.05} className="flex items-center gap-3 p-4">
-                <div className="p-2.5 rounded-lg bg-accent animate-pulse w-10 h-10" />
-                <div className="space-y-2 flex-1">
-                  <div className="h-3 w-16 bg-accent animate-pulse rounded" />
-                  <div className="h-6 w-12 bg-accent animate-pulse rounded" />
-                </div>
-              </GlassCard>
-            ))}
-          </>
-        ) : (
-          [
-            { label: "Total Users", val: data.metrics?.totalUsers || 0, icon: Users, color: "text-blue-400", bg: "bg-blue-500/10" },
-            { label: "Active Events", val: data.metrics?.totalEvents || 0, icon: Calendar, color: "text-green-400", bg: "bg-green-500/10" },
-            { label: "Reminders Set", val: data.metrics?.totalReminders || 0, icon: BellRing, color: "text-amber-400", bg: "bg-amber-500/10" },
-            { label: "Notifications", val: data.metrics?.totalNotifications || 0, icon: Send, color: "text-purple-400", bg: "bg-purple-500/10" },
-          ].map((stat, i) => (
-            <GlassCard key={i} delay={i * 0.05} className="flex items-center gap-3 p-4">
-              <div className={`p-2.5 rounded-lg ${stat.bg}`}>
-                <stat.icon size={18} className={stat.color} />
+    <div className="p-4 lg:p-6 w-full text-foreground space-y-5">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {stats.map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="bg-card border border-border rounded-xl p-3 sm:p-4"
+          >
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center ${colorMap[stat.color].bg}`}>
+                <stat.icon size={16} className={colorMap[stat.color].text} />
               </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</p>
-                <p className="text-xl font-bold text-foreground">{stat.val?.toLocaleString()}</p>
-              </div>
-            </GlassCard>
-          ))
-        )}
+              <span className={`text-[10px] sm:text-[11px] font-medium px-1.5 sm:px-2 py-0.5 rounded-full ${
+                stat.trendUp ? 'bg-green-500/10 text-green-500' : 'bg-amber-500/10 text-amber-500'
+              }`}>
+                {stat.trend}
+              </span>
+            </div>
+            <div className="text-xl sm:text-2xl font-semibold text-foreground mb-0.5">
+              {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
+            </div>
+            <div className="text-[11px] sm:text-[12px] text-muted-foreground">{stat.label}</div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Active Emergency Alerts Section */}
-      {activeEmergencies.length > 0 && (
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        {/* Chart Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mb-8"
+          className="lg:col-span-3 bg-card border border-border rounded-xl overflow-hidden"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <AlertTriangle size={20} className="text-red-500" />
-              <span className="text-red-500">Active Emergency Alerts</span>
-            </h2>
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-              Live acknowledgment status
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border-b border-border gap-2">
+            <h3 className="text-[13px] font-medium">Notification Activity — Last 7 Days</h3>
+            <button className="text-[12px] text-blue-500 hover:underline self-start sm:self-center">Export</button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeEmergencies.map((emergency) => (
-              <div
-                key={emergency._id}
-                className="bg-gradient-to-br from-red-900/20 to-orange-900/10 border border-red-500/20 p-6 rounded-2xl"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-foreground mb-1 line-clamp-2">
-                      {emergency.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      By {emergency.lecturer} • {new Date(emergency.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-2xl font-black text-red-400">
-                      {emergency.stats.acknowledgedRate}%
-                    </div>
-                    <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                      Acknowledged
-                    </div>
-                  </div>
-                </div>
+          <div className="p-3 sm:p-4">
+            <div className="flex gap-3 sm:gap-4 mb-3 text-[11px] sm:text-[12px] text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded bg-blue-500"></span>Sent
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded bg-blue-200"></span>Read
+              </span>
+            </div>
+            <div className="h-40 sm:h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={[
+                  { day: 'Mon', sent: 38, read: 30 },
+                  { day: 'Tue', sent: 62, read: 50 },
+                  { day: 'Wed', sent: 45, read: 38 },
+                  { day: 'Thu', sent: 78, read: 65 },
+                  { day: 'Fri', sent: 55, read: 44 },
+                  { day: 'Sat', sent: 90, read: 74 },
+                  { day: 'Sun', sent: 68, read: 55 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                  <XAxis dataKey="day" tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1F2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#fff',
+                    }}
+                  />
+                  <Bar dataKey="sent" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
+                  <Bar dataKey="read" fill="#bfdbfe" radius={[4, 4, 0, 0]} barSize={16} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </motion.div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold">
-                    <span className="text-muted-foreground">
-                      {emergency.stats.acknowledged} of {emergency.stats.totalSent} users
+        {/* Recent Notifications */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden"
+        >
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b-0">
+            <h3 className="text-[13px] font-medium">Recent Notifications</h3>
+            <button className="text-[12px] text-blue-500 hover:underline">View all</button>
+          </div>
+          <div>
+            {notifications.map((notif) => (
+              <div key={notif.id} className="flex gap-3 p-3 sm:p-4 hover:bg-accent/50 transition-colors">
+                <div className={`w-2 h-2 rounded-full mt-1 shrink-0 ${notif.dot}`}></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium text-foreground truncate">{notif.title}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] mr-1 ${
+                      notif.type === 'urgent' ? 'bg-red-500/10 text-red-500' :
+                      notif.type === 'info' ? 'bg-blue-500/10 text-blue-500' :
+                      notif.type === 'success' ? 'bg-green-500/10 text-green-500' :
+                      'bg-amber-500/10 text-amber-500'
+                    }`}>
+                      {notif.type}
                     </span>
-                    <span className={emergency.stats.pending > 0 ? "text-amber-400" : "text-green-500"}>
-                      {emergency.stats.pending > 0 ? `${emergency.stats.pending} pending` : "Complete"}
-                    </span>
-                  </div>
-                  <div className="h-3 bg-accent rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${emergency.stats.acknowledgedRate}%` }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                      className={`h-full rounded-full ${
-                        emergency.stats.acknowledgedRate >= 80
-                          ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                          : emergency.stats.acknowledgedRate >= 50
-                          ? "bg-gradient-to-r from-amber-500 to-yellow-500"
-                          : "bg-gradient-to-r from-red-500 to-rose-500"
-                      }`}
-                    />
-                  </div>
+                    {notif.time} · {notif.recipients} recipients
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         </motion.div>
-      )}
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Chart Section - GlassCard Style */}
-        <GlassCard delay={0.2} className="lg:col-span-2 h-96 flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Activity size={18} className="text-blue-400" /> Event Creation Trends
-            </h3>
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+        {/* Recent Sent Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-3 bg-card border border-border rounded-xl overflow-hidden"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border-b border-border gap-2">
+            <h3 className="text-[13px] font-medium">Recently Sent Notifications</h3>
+            <button 
+              onClick={() => navigate("/admin/notifications")}
+              className="text-[12px] text-blue-500 hover:text-blue-400 self-start sm:self-center flex items-center gap-1"
+            >
+              View All <ChevronRight size={14} />
+            </button>
           </div>
-          <div className="flex-1 min-h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.eventStats}>
-                <defs>
-                  <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                  axisLine={{ stroke: '#4B5563' }}
-                  tickLine={false}
-                  dy={10}
-                />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1F2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    padding: '12px',
-                  }}
-                  labelStyle={{ color: '#9CA3AF' }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="events"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorEvents)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="overflow-x-auto scrollbar-hide">
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr className="text-left text-muted-foreground border-b-0">
+                  <th className="px-3 sm:px-4 py-3 font-medium">Title</th>
+                  <th className="px-3 sm:px-4 py-3 font-medium">Category</th>
+                  <th className="px-3 sm:px-4 py-3 font-medium hidden sm:table-cell">Audience</th>
+                  <th className="px-3 sm:px-4 py-3 font-medium">Status</th>
+                  <th className="px-3 sm:px-4 py-3 font-medium hidden md:table-cell">Sent At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentSent.map((item, i) => (
+                  <tr key={i} className="hover:bg-accent/50 transition-colors">
+                    <td className="px-3 sm:px-4 py-3 font-medium">{item.title}</td>
+                    <td className="px-3 sm:px-4 py-3 text-muted-foreground">{item.category}</td>
+                    <td className="px-3 sm:px-4 py-3 text-muted-foreground hidden sm:table-cell">{item.audience}</td>
+                    <td className="px-3 sm:px-4 py-3">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                        item.status === 'sent' ? 'bg-green-500/10 text-green-500' :
+                        item.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
+                        item.status === 'draft' ? 'bg-muted text-muted-foreground' :
+                        'bg-red-500/10 text-red-500'
+                      }`}>
+                        {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-4 py-3 text-muted-foreground hidden md:table-cell">{item.time}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </GlassCard>
+        </motion.div>
 
-        {/* Side Panels */}
-        <div className="space-y-6">
-          <GlassCard delay={0.3} className="flex flex-col">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <PieIcon size={18} className="text-purple-400" /> Read Engagement
-            </h3>
-            <div className="flex items-end gap-2 mb-6">
-              <span className="text-5xl font-black text-purple-400 tracking-tighter">
-                {readRate}%
-              </span>
-              <span className="text-sm text-muted-foreground mb-2 font-bold uppercase tracking-widest">
-                Rate
-              </span>
+        {/* Quick Actions + Categories */}
+        <div className="lg:col-span-2 space-y-4 lg:space-y-5">
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="bg-card border border-border rounded-xl overflow-hidden"
+          >
+            <div className="p-3 sm:p-4 border-b border-border">
+              <h3 className="text-[13px] font-medium">Quick Actions</h3>
             </div>
-            <div className="space-y-3">
-              <StatRow
-                label="Read Notifications"
-                value={data.notificationStats.read}
-                color="text-green-400"
-              />
-              <StatRow
-                label="Unread Notifications"
-                value={data.notificationStats.unread}
-                color="text-muted-foreground"
-              />
+            <div className="p-3 sm:p-4">
+              <div className="grid grid-cols-2 gap-2">
+                {quickActions.map((action, i) => (
+                  <button
+                    key={i}
+                    onClick={() => navigate(action.path)}
+                    className="flex items-center gap-2 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-border hover:bg-accent transition-colors text-[11px] sm:text-[12px]"
+                  >
+                    <action.icon size={14} className={action.color} />
+                    <span className="text-foreground truncate">{action.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </GlassCard>
+          </motion.div>
 
-          <GlassCard delay={0.4} className="flex flex-col">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Users size={18} className="text-green-400" /> User Roles
-            </h3>
-            <div className="space-y-2">
-              {data.usersByRole.map((roleObj, idx) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center p-3 bg-white/[0.02] hover:bg-white/[0.05] transition-colors rounded-xl border border-border"
-                >
-                  <span className="text-sm font-medium uppercase tracking-wider text-muted-foreground text-[11px]">
-                    {roleObj._id}
-                  </span>
-                  <span className="text-sm font-bold text-foreground bg-accent px-3 py-1 rounded-lg">
-                    {roleObj.count}
-                  </span>
-                </div>
-              ))}
+          {/* By Category */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-card border border-border rounded-xl overflow-hidden"
+          >
+            <div className="p-3 sm:p-4 border-b border-border">
+              <h3 className="text-[13px] font-medium">By Category</h3>
             </div>
-          </GlassCard>
+            <div className="p-3 sm:p-4">
+              <div className="space-y-2 sm:space-y-2.5">
+                {categories.map((cat, i) => (
+                  <div key={i} className="flex items-center gap-2 sm:gap-3">
+                    <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${cat.color}`}></span>
+                    <span className="flex-1 text-[11px] sm:text-[12px] text-muted-foreground">{cat.label}</span>
+                    <span className="text-[11px] sm:text-[12px] font-medium text-foreground">{cat.percent}%</span>
+                    <div className="w-16 sm:w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${cat.color} rounded-full`}
+                        style={{ width: `${cat.percent * 2}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatRow({ label, value = 0, color }) {
-  return (
-    <div className="flex justify-between items-center p-3 bg-white/[0.02] rounded-xl border border-border">
-      <span className="text-sm text-muted-foreground font-medium">{label}</span>
-      <span className={`text-sm font-black ${color}`}>
-        {value ? value.toLocaleString() : 0}
-      </span>
     </div>
   );
 }

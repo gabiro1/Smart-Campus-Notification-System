@@ -229,29 +229,29 @@ export default function FullAnalytics() {
   const avgEventsPerDay = totalEvents / (analytics?.eventStats?.length || 1);
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 lg:p-10">
+    <div className="p-4 lg:p-6 w-full text-foreground">
       <ThemedToaster />
 
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-6"
       >
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
-              <BarChart3 className="text-purple-500" size={36} />
+            <h1 className="text-xl lg:text-2xl font-bold flex items-center gap-2">
+              <BarChart3 className="text-purple-500" size={24} />
               Intelligence Hub
             </h1>
-            <p className="text-muted-foreground mt-1 flex items-center gap-2">
+            <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
               {insightsData ? (
                 <>
                   <Sparkles size={14} className="text-purple-400" />
                   <span>{insightsData.totalUsers} users</span>
-                  <span className="w-1 h-1 rounded-full bg-neutral-600" />
+                  <span className="w-1 h-1 rounded-full bg-muted-foreground" />
                   <span>{insightsData.eventsCreated} events</span>
-                  <span className="w-1 h-1 rounded-full bg-neutral-600" />
+                  <span className="w-1 h-1 rounded-full bg-muted-foreground" />
                   <span>{insightsData.readRate}% read rate</span>
                 </>
               ) : (
@@ -311,7 +311,7 @@ export default function FullAnalytics() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-40 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-50"
+                    className="absolute right-0 mt-2 w-40 bg-card border border-border rounded-xl overflow-hidden z-50"
                   >
                     {["CSV", "PDF", "JSON"].map((format) => (
                       <button
@@ -335,7 +335,7 @@ export default function FullAnalytics() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="flex gap-2 mb-8 overflow-x-auto pb-2"
+        className="flex gap-2 mb-8 pb-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden [&::-ms-scrollbar]:hidden"
       >
         {[
           { id: "overview", label: "Overview", icon: <Activity size={16} /> },
@@ -347,7 +347,7 @@ export default function FullAnalytics() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+                ? "bg-purple-500 text-white"
                 : "bg-card border border-border text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -520,7 +520,7 @@ export default function FullAnalytics() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gradient-to-br from-purple-900/20 to-cyan-900/20 border border-purple-500/20 p-6 rounded-[24px]"
+                  className="bg-purple-900/10 border border-purple-500/20 p-6 rounded-[24px]"
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <Sparkles className="text-purple-400" size={24} />
@@ -634,7 +634,7 @@ export default function FullAnalytics() {
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", delay: 0.5 }}
-                      className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400"
+                      className="text-6xl font-black text-purple-400"
                     >
                       {engagement.length > 0
                         ? Math.round(
@@ -700,9 +700,9 @@ export default function FullAnalytics() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-[10px] uppercase font-bold text-muted-foreground tracking-widest border-b border-border">
+                  <thead className="bg-purple-500/5 text-[10px] uppercase font-bold text-muted-foreground tracking-widest border-b border-border">
                     <tr>
                       <th className="p-5">Department</th>
                       <th className="p-5">Users</th>
@@ -712,7 +712,7 @@ export default function FullAnalytics() {
                       <th className="p-5">Recommendation</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody>
                     {engagement.map((dept, idx) => (
                       <motion.tr
                         key={idx}
@@ -877,18 +877,18 @@ export default function FullAnalytics() {
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-white/[0.02] text-[10px] uppercase font-black text-muted-foreground tracking-widest border-b border-border">
                     <tr>
-                      <th className="p-5">Timestamp</th>
-                      <th className="p-5">Admin</th>
-                      <th className="p-5">Action Type</th>
-                      <th className="p-5">Details</th>
-                      <th className="p-5">Status</th>
+                      <th className="p-3 w-36">Timestamp</th>
+                      <th className="p-3">Admin</th>
+                      <th className="p-3">Action Type</th>
+                      <th className="p-5 w-32">Details</th>
+                      <th className="p-5 w-24">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody>
                     {auditLogs.length === 0 ? (
                       <tr>
                         <td colSpan="5" className="p-12 text-center">
@@ -912,10 +912,10 @@ export default function FullAnalytics() {
                           transition={{ delay: idx * 0.02 }}
                           className="hover:bg-white/[0.02] transition-colors"
                         >
-                          <td className="p-5">
+                          <td className="p-3">
                             <div className="flex items-center gap-2">
                               <Clock
-                                size={14}
+                                size={12}
                                 className="text-muted-foreground"
                               />
                               <span className="text-xs text-muted-foreground font-mono">
@@ -923,25 +923,22 @@ export default function FullAnalytics() {
                               </span>
                             </div>
                           </td>
-                          <td className="p-5">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-xs">
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-xs">
                                 {log.adminId?.name?.charAt(0) || "S"}
                               </div>
                               <div>
-                                <p className="text-sm font-bold text-foreground">
+                                <p className="text-xs font-bold text-foreground">
                                   {log.adminId?.name || "System"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {log.adminId?.email}
                                 </p>
                               </div>
                             </div>
                           </td>
-                          <td className="p-5">
-                            <div className="flex items-center gap-2">
+                          <td className="p-3">
+                            <div className="flex items-center gap-1">
                               <span
-                                className={`p-2 rounded-lg ${
+                                className={`p-1.5 rounded-lg ${
                                   log.action?.includes("DELETE")
                                     ? "bg-red-500/10 text-red-400"
                                     : log.action?.includes("CREATE")
@@ -954,29 +951,29 @@ export default function FullAnalytics() {
                                 }`}
                               >
                                 {ACTION_ICONS[log.action] || (
-                                  <FileText size={14} />
+                                  <FileText size={12} />
                                 )}
                               </span>
-                              <span className="text-sm font-medium">
+                              <span className="text-xs font-medium">
                                 {log.action?.replace(/_/g, " ")}
                               </span>
                             </div>
                           </td>
-                          <td className="p-5 max-w-xs">
-                            <p className="text-sm text-neutral-300 font-medium truncate">
+                          <td className="p-3 w-32">
+                            <p className="text-xs text-neutral-300 font-medium truncate">
                               {log.description}
                             </p>
                           </td>
-                          <td className="p-5">
+                          <td className="p-3 w-24">
                             <span
-                              className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xl border ${
+                              className={`px-2 py-1 text-xs font-bold uppercase tracking-wider rounded-xl border ${
                                 log.status === "SUCCESS"
                                   ? "bg-green-500/10 text-green-400 border-green-500/20"
                                   : "bg-red-500/10 text-red-400 border-red-500/20"
                               }`}
                             >
                               <CheckCircle
-                                size={12}
+                                size={10}
                                 className="inline mr-1"
                               />
                               {log.status}
@@ -991,7 +988,7 @@ export default function FullAnalytics() {
 
               {/* Pagination */}
               {auditTotalPages > 1 && (
-                <div className="p-4 border-t border-border flex items-center justify-between bg-white/[0.01]">
+                <div className="p-4 border-t border-border flex items-center justify-between bg-background">
                   <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                     Page {auditPage} of {auditTotalPages}
                   </span>

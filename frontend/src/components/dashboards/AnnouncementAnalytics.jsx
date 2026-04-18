@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, BarChart3, TrendingUp, Target, Eye, Mail, Send } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import announcementService from "../../services/announcementService";
-import toast from "react-hot-toast";
 
 const COLORS = {
   read: "#10b981",   // green-500

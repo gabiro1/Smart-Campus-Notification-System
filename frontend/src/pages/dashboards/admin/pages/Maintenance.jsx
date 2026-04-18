@@ -137,46 +137,46 @@ export default function Maintenance() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12">
+    <div className="p-4 lg:p-6 w-full text-foreground">
       <ThemedToaster />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
-            <Activity className="text-red-500" size={36} /> Maintenance
+          <h1 className="text-xl lg:text-2xl font-bold flex items-center gap-2">
+            <Activity className="text-red-500" size={24} /> Maintenance
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             System diagnostics, connection tests, and raw server logs.
           </p>
         </motion.div>
 
         <motion.button
-          initial={{ opacity: 0, x: 20 }}
+          initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={handleRunDiagnostics}
           disabled={isTesting}
-          className="bg-white/10 hover:bg-white/20 text-foreground px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
         >
           {isTesting ? (
-            <Activity className="animate-spin" size={18} />
+            <Activity className="animate-spin" size={16} />
           ) : (
-            <Play size={18} className="fill-white" />
+            <Play size={16} />
           )}
-          Run Full Diagnostic
+          Run Diagnostic
         </motion.button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-5">
         {/* Left Column: Diagnostics Results */}
-        <div className="space-y-6 lg:col-span-1">
+        <div className="space-y-5 lg:col-span-1">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-card border border-border rounded-[24px] p-8 shadow-xl"
+            className="bg-card border border-border rounded-xl p-5"
           >
             <h2 className="text-xl font-bold mb-6 flex items-center gap-3 text-neutral-300">
               <Server size={22} className="text-blue-500" /> Service Health
@@ -231,7 +231,7 @@ export default function Maintenance() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-2 bg-background border border-white/10 rounded-[24px] overflow-hidden shadow-2xl flex flex-col h-[600px]"
+          className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden flex flex-col max-h-[500px]"
         >
           {/* Terminal Header */}
           <div className="bg-card p-4 border-b border-border flex items-center justify-between">

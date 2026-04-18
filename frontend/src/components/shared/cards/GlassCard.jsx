@@ -42,7 +42,6 @@ export default function GlassCard({
   hoverOffset = -2,
   hoverScale = 1,
   showGradient = true,
-  gradientOpacity = "via-white/10",
 }) {
   return (
     <motion.div

@@ -27,7 +27,7 @@ import dashboardService from "../../../../../services/dashboardService";
 export default function AnnouncementsPage({ user: propUser }) {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, _setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
@@ -41,7 +41,7 @@ export default function AnnouncementsPage({ user: propUser }) {
         if (response && response.success) {
           setAnnouncements(response.data || []);
         }
-      } catch (error) {
+      } catch {
         toast.error("Failed to sync notice board.");
       } finally {
         setLoading(false);
@@ -227,8 +227,8 @@ export default function AnnouncementsPage({ user: propUser }) {
 // ==========================================
 // 2. INTERACTIVE Q&A PANEL COMPONENT
 // ==========================================
-function InteractiveQAPanel({ ann, user, onClose }) {
-  const [viewCount, setViewCount] = useState(ann.viewedBy?.length || 0);
+function InteractiveQAPanel({ ann, user: _user, onClose }) {
+  const [viewCount, _setViewCount] = useState(ann.viewedBy?.length || 0);
   const [localComments, setLocalComments] = useState(ann.comments || []);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -256,7 +256,7 @@ function InteractiveQAPanel({ ann, user, onClose }) {
       }
       setCommentText("");
       setReplyingTo(null);
-    } catch (e) {
+    } catch {
       toast.error("Failed to post question.");
     } finally {
       setIsSubmitting(false);
@@ -372,7 +372,7 @@ function QABubble({ comment, generateHandle, onReply }) {
 
   // Safely grab names
   const name = comment.user?.name || "Student";
-  const handle = generateHandle(name);
+  const _handle = generateHandle(name);
   
   // Format content to highlight @mentions
   const renderContent = (content) => {

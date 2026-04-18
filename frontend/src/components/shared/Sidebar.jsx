@@ -1,119 +1,95 @@
 import { NavLink } from "react-router-dom";
-import { X, Command } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { X, Bell } from "lucide-react";
 
 /**
- * Unified Sidebar component - consolidates 5 role-specific variants
- *
- * Features:
- * - Fixed positioning (desktop) or mobile drawer overlay
- * - Brand header with logo/text
- * - Navigation menu with icons and badges
- * - User profile section at bottom (optional)
- * - Responsive: mobile draws over content, desktop fixed left
- *
- * @param {Object} props
- * @param {boolean} props.isOpen - Mobile drawer open state
- * @param {function} props.setIsOpen - Mobile drawer toggle function
- * @param {boolean} props.isMobile - Whether currently in mobile viewport
- * @param {React.ReactNode} props.brand - Custom brand header content
- * @param {Array} props.menuItems - Navigation items: [{ icon, label, path, badge? }]
- * @param {React.ReactNode} props.footer - Optional footer (e.g., user profile)
- * @param {string} props.width - Desktop width (default "w-64")
- * @param {string} props.bgClass - Background class (default "bg-background/95")
- * @param {boolean} props.showCloseButton - Show X close button (mobile only)
+ * Unified Sidebar component with clean admin-style design
+ * - Desktop: Full sidebar with labels
+ * - Mobile: Icon-only sidebar always visible
+ * - Clean section-based navigation
  */
 export default function Sidebar({
-  isOpen,
+  isOpen: _isOpen,
   setIsOpen,
   isMobile,
   brand,
   menuItems = [],
   footer,
-  width = "w-72",
-  widthMobile = "w-20",
-  bgClass = "bg-card/95 backdrop-blur-3xl",
-  showCloseButton = true,
+  width = "w-56",
+  bgClass = "bg-card",
 }) {
   const sidebarContent = (
-    <div className={`flex flex-col h-full ${bgClass} border-r border-slate-700 ${isMobile ? widthMobile : width}`}>
+    <div className={`flex flex-col h-full ${bgClass} border-r border-border ${width}`}>
       {/* Brand Header */}
-      <div className={`h-16 flex items-center justify-between ${isMobile ? 'px-3 justify-center' : 'px-6'} border-b border-slate-700 shrink-0`}>
-        {isMobile ? (
-          <div className="w-10 h-10 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <Command size={20} />
-          </div>
-        ) : (
-          <>
-            {brand || (
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                  <Command size={18} />
-                </div>
-                <div>
-                  <h2 className="text-sm font-bold text-white tracking-wide">
-                    UniCore OS
-                  </h2>
-                  <p className="text-[10px] text-blue-400/80 uppercase tracking-wider font-semibold">
-                    Portal
-                  </p>
-                </div>
+      <div className={`h-14 flex items-center ${isMobile ? 'justify-center px-2' : 'px-4'} border-b border-border shrink-0`}>
+        {brand || (
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
+              <Bell size={16} />
+            </div>
+            {!isMobile && (
+              <div>
+                <h2 className="text-[13px] font-semibold text-foreground leading-tight">Smart Campus</h2>
+                <p className="text-[10px] text-muted-foreground">Notification System</p>
               </div>
             )}
-            {isMobile && showCloseButton && (
-              <button className="text-muted-foreground hover:text-foreground" onClick={() => setIsOpen(false)}>
-                <X size={20} />
-              </button>
-            )}
-          </>
+          </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 overflow-y-auto py-4 ${isMobile ? 'px-2 space-y-2' : 'px-3 space-y-1'} custom-scrollbar`}>
+      <nav className={`flex-1 overflow-y-auto py-2 ${isMobile ? 'px-1' : 'px-2'} custom-scrollbar`}>
         {menuItems.map((item, idx) => (
           <NavLink
             key={idx}
             to={item.path}
             onClick={() => isMobile && setIsOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-3 ${isMobile ? 'px-2 py-3 justify-center' : 'px-3 py-2.5 rounded-xl'} transition-all group relative ${
+              `flex items-center gap-2.5 ${isMobile ? 'p-2.5 justify-center' : 'px-3 py-2 rounded-lg'} transition-all text-[13px] ${
                 isActive
-                  ? "bg-blue-600 text-white font-semibold shadow-lg shadow-blue-900/30"
-                  : "text-slate-300 hover:text-white hover:bg-slate-700/50"
+                  ? "bg-blue-500/10 text-blue-500 font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
               }`
             }
           >
-            {({ isActive }) => (
-              <>
-                <item.icon size={isMobile ? 22 : 20} className={isActive ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" : ""} />
-                {!isMobile && <span className="flex-1 text-sm">{item.label}</span>}
-                {item.badge && !isMobile && (
-                  <span className="bg-white text-blue-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-              </>
+            <item.icon size={isMobile ? 18 : 16} className="shrink-0" />
+            {!isMobile && <span className="flex-1">{item.label}</span>}
+            {item.badge && !isMobile && (
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                item.badgeType === 'red' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+              }`}>
+                {item.badge}
+              </span>
+            )}
+            {item.badge && isMobile && (
+              <span className={`absolute -top-0.5 -right-0.5 w-4 h-4 text-[8px] font-bold rounded-full flex items-center justify-center ${
+                item.badgeType === 'red' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+              }`}>
+                {item.badge > 99 ? '99+' : item.badge}
+              </span>
             )}
           </NavLink>
         ))}
       </nav>
 
-      {/* Footer (Profile, Settings, etc.) */}
-      {footer && <div className="p-4 border-t border-slate-700 shrink-0">{footer}</div>}
+      {/* Footer */}
+      {footer && (
+        <div className="p-3 border-t border-border shrink-0">
+          {footer}
+        </div>
+      )}
     </div>
   );
 
-  // On mobile, render as fixed icon-only sidebar (always visible, no drawer)
+  // Mobile: Icon-only sidebar (always visible on left)
   if (isMobile) {
     return (
-      <aside className="fixed left-0 top-0 h-screen z-30">
+      <aside className="fixed left-0 top-0 h-screen z-30 w-16">
         {sidebarContent}
       </aside>
     );
   }
 
-  // Desktop: always visible fixed sidebar
+  // Desktop: Fixed sidebar
   return (
     <aside className="fixed left-0 top-0 h-screen z-30">{sidebarContent}</aside>
   );

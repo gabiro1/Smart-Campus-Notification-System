@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell,
   CheckCircle,
@@ -42,7 +42,7 @@ export default function NotificationCenter() {
     try {
       const data = await notificationService.getUnreadCount();
       setUnreadCount(data.unreadCount || 0);
-    } catch (error) {
+    } catch {
       console.error("Failed to fetch unread count");
     }
   };
@@ -53,7 +53,7 @@ export default function NotificationCenter() {
       const data = await notificationService.getNotifications(1, 10); // Get latest 10
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load notifications");
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ export default function NotificationCenter() {
       } else {
         setDigest(null);
       }
-    } catch (error) {
+    } catch {
       console.error("Failed to fetch latest digest");
       setDigest(null);
     }
@@ -95,7 +95,7 @@ export default function NotificationCenter() {
         ),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
+    } catch {
       toast.error("Failed to mark as read");
     }
   };
@@ -110,7 +110,7 @@ export default function NotificationCenter() {
       );
       setUnreadCount(0);
       toast.success("All caught up!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to mark all as read");
     }
   };

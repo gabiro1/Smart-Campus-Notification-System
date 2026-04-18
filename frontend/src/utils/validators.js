@@ -4,7 +4,6 @@
  */
 
 import { Patterns, UserTypes, PriorityLevels } from '../types/index.js';
-import logger from './logger.js';
 
 /**
  * Validate email

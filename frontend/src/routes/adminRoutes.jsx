@@ -10,7 +10,7 @@ import FullAnalytics from "../pages/dashboards/admin/pages/FullAnalytics";
 import CoreSettings from "../pages/dashboards/admin/pages/CoreSettings";
 import Maintenance from "../pages/dashboards/admin/pages/Maintenance";
 import Backups from "../pages/dashboards/admin/pages/Backups";
-import MessagesTab from "../pages/Message/MessagesTab";
+import AdminNotifications from "../pages/dashboards/admin/pages/AdminNotifications";
 import SupportTickets from "../pages/dashboards/admin/pages/SupportTickets";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
 import AcademicStructure from "../pages/dashboards/admin/pages/AcademicStructure";
@@ -24,6 +24,15 @@ export const adminRoutes = [
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <SystemOverview />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="notifications"
+    path="notifications"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <AdminNotifications />
       </ProtectedRoute>
     }
   />,
@@ -96,15 +105,6 @@ export const adminRoutes = [
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <Backups />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="messages"
-    path="messages"
-    element={
-      <ProtectedRoute allowedRoles={["admin"]}>
-        <MessagesTab />
       </ProtectedRoute>
     }
   />,

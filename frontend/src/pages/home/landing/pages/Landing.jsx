@@ -168,7 +168,6 @@ function HeroSection({ onAction }) {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 150]);
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   return (
     <section ref={targetRef} className="relative min-h-screen flex items-center justify-center pt-20 pb-32 px-6 overflow-hidden">

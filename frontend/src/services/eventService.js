@@ -24,9 +24,9 @@ const eventService = {
       
       console.log('[eventService] Fetched events:', events.length);
       return events;
-    } catch (error) {
-      console.error("Feed error:", error);
-      throw new Error(error.response?.data?.message || "Couldn't load your feed.");
+    } catch (err) {
+      console.error("Feed error:", err);
+      throw new Error(err.response?.data?.message || "Couldn't load your feed.");
     }
   },
 
@@ -35,7 +35,7 @@ const eventService = {
     try {
       const response = await apiClient.get('/events/search', { params: { q: query } });
       return response.data;
-    } catch (error) {
+    } catch {
       throw new Error("Search failed.");
     }
   },
@@ -71,7 +71,7 @@ const eventService = {
     try {
       const response = await apiClient.post(`/events/${eventId}/rate`, { rating });
       return response.data;
-    } catch (error) {
+    } catch {
       throw new Error("Failed to submit rating.");
     }
   },
@@ -88,7 +88,7 @@ const eventService = {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       return response.data; // Should return { title, date, location, etc }
-    } catch (error) {
+    } catch {
       throw new Error("AI failed to read the flyer. Please enter details manually.");
     }
   },
@@ -97,8 +97,8 @@ const eventService = {
     try {
       const response = await apiClient.post('/events/create', eventData);
       return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to create event.");
+    } catch {
+      throw new Error("Failed to create event.");
     }
   },
 

@@ -113,6 +113,12 @@ createUser: async (userData) => {
     return response.data;
   },
 
+  // Get settings
+  getSettings: async () => {
+    const response = await apiClient.get('/admin/settings');
+    return response.data.data || response.data || {};
+  },
+
   // Get SMS quota
   getSMSQuota: async () => {
     const response = await apiClient.get('/admin/settings');
@@ -184,6 +190,14 @@ createUser: async (userData) => {
 
   runDiagnostics: async () => {
     const response = await apiClient.post('/admin/diagnostics');
+    return response.data;
+  },
+
+  // Fetch all events with pagination and filters
+  getEvents: async (page = 1, limit = 10, filters = {}) => {
+    const response = await apiClient.get('/events', {
+      params: { page, limit, ...filters }
+    });
     return response.data;
   },
 

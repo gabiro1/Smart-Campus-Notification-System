@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const routes = [
-  { path: "/principal", label: "System Overview", icon: Activity },
+  { path: "/principal/dashboard", label: "System Overview", icon: Activity },
   { path: "/principal/admin", label: "Admin Panel", icon: Shield, badge: "2" },
   { path: "/principal/broadcast", label: "College Broadcast", icon: Globe },
   { path: "/principal/analytics", label: "System Analytics", icon: LineChart },

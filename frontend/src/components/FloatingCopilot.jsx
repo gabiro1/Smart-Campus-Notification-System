@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X, Send, Trash2, Bot, User } from "lucide-react";
 import apiClient from "../services/apiClient";
 

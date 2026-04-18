@@ -159,7 +159,7 @@ function MySubmissions({ refresh, role }) {
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-card border border-white/10 rounded-[15px] p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+                            className="bg-card border border-white/10 rounded-[15px] p-4 md:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <h3 className="text-lg font-bold text-white mb-4">Edit Announcement</h3>
@@ -228,7 +228,7 @@ function EditForm({ item, onSave, onCancel }) {
                     className="w-full bg-background border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 resize-none"
                 />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2">Priority</label>
                     <div className="flex gap-2">
@@ -307,14 +307,14 @@ export default function GovernancePage() {
 
                 {/* Page Header */}
                 <div>
-                    <h1 className="text-3xl font-bold">Announcement Governance</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold">Announcement Governance</h1>
                     <p className="text-neutral-500 mt-1 text-sm">
                         Create and manage official academic announcements. Role: <span className="text-blue-400 font-semibold capitalize">{user?.role}</span>
                     </p>
                 </div>
 
                 {/* Tab Bar */}
-                <div className="flex bg-card p-1.5 rounded-[10px] border border-white/5 w-fit gap-1">
+                <div className="flex bg-card p-1.5 rounded-[10px] border border-white/5 gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [&::-moz-scrollbar]:hidden [&::-ms-scrollbar]:hidden">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}

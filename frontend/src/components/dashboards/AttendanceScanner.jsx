@@ -61,7 +61,7 @@ const handleScanSuccess = async (decodedText) => {
     let qrData;
     try {
       qrData = JSON.parse(decodedText);
-    } catch (e) {
+    } catch (_e) {
       // If not JSON, assume whole string is studentId
       qrData = { s: decodedText, e: null };
     }
@@ -101,7 +101,7 @@ const handleScanSuccess = async (decodedText) => {
     }
   };
 
-  const onScanFailure = (error) => {
+  const onScanFailure = () => {
     // Ignore frequent "no QR found" errors
     // console.warn("[Scanner] Scan error:", error);
   };

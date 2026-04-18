@@ -120,104 +120,104 @@ export default function DepartmentReports() {
   };
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             Analytics & Reports
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Generate comprehensive reports on department communication.
           </p>
         </div>
         <div className="flex gap-2">
           <button 
             onClick={exportCSV}
-            className="bg-accent hover:bg-accent border-border text-foreground px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+            className="bg-accent hover:bg-accent border-border text-foreground px-3 sm:px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
           >
-            <Download size={16} /> CSV
+            <Download size={14} /> <span className="hidden sm:inline">CSV</span>
           </button>
         </div>
       </header>
 
       {/* Stats Summary */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[1,2,3,4].map(i => (
-            <GlassCard key={i} className="p-5">
+            <GlassCard key={i} className="p-4 sm:p-5">
               <div className="animate-pulse space-y-3">
-                <div className="h-4 bg-accent rounded w-1/2" />
-                <div className="h-8 bg-accent rounded w-1/3" />
+                <div className="h-3 sm:h-4 bg-accent rounded w-1/2" />
+                <div className="h-6 sm:h-8 bg-accent rounded w-1/3" />
               </div>
             </GlassCard>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <GlassCard className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
-                <FileText size={18} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <GlassCard className="p-3 sm:p-5">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                <FileText size={14} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Announcements</p>
-                <p className="text-2xl font-bold text-foreground">{stats.totalAnnouncements}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Announcements</p>
+                <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.totalAnnouncements}</p>
               </div>
             </div>
           </GlassCard>
-          <GlassCard className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
-                <Users size={18} />
+          <GlassCard className="p-3 sm:p-5">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                <Users size={14} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Students</p>
-                <p className="text-2xl font-bold text-foreground">{stats.totalStudents}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Students</p>
+                <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.totalStudents}</p>
               </div>
             </div>
           </GlassCard>
-          <GlassCard className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
-                <TrendingUp size={18} />
+          <GlassCard className="p-3 sm:p-5">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                <TrendingUp size={14} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Avg Views</p>
-                <p className="text-2xl font-bold text-foreground">{stats.avgViews}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Avg Views</p>
+                <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.avgViews}</p>
               </div>
             </div>
           </GlassCard>
-          <GlassCard className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400">
-                <BarChart2 size={18} />
+          <GlassCard className="p-3 sm:p-5">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-amber-500/10 rounded-lg text-amber-400">
+                <BarChart2 size={14} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Engagement</p>
-                <p className="text-2xl font-bold text-foreground">{stats.engagementRate}%</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Engagement</p>
+                <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.engagementRate}%</p>
               </div>
             </div>
           </GlassCard>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Lecturer Activity Chart */}
-        <GlassCard delay={0.1} className="h-96 flex flex-col">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
-              <BarChart2 size={18} />
+        <GlassCard delay={0.1} className="h-[280px] sm:h-96 flex flex-col p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-1.5 sm:p-2 bg-purple-500/10 rounded-lg text-purple-400">
+              <BarChart2 size={14} />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">
               Announcements by Lecturer
             </h3>
           </div>
           {loading ? (
             <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="animate-spin text-blue-500" size={32} />
+              <Loader2 className="animate-spin text-blue-500" size={24} />
             </div>
           ) : lecturerData.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
               No data available
             </div>
           ) : (
@@ -230,13 +230,13 @@ export default function DepartmentReports() {
                   <XAxis
                     dataKey="name"
                     stroke="#525252"
-                    fontSize={11}
+                    fontSize={10}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
                     stroke="#525252"
-                    fontSize={11}
+                    fontSize={10}
                     tickLine={false}
                     axisLine={false}
                   />
@@ -245,11 +245,11 @@ export default function DepartmentReports() {
                     contentStyle={{
                       backgroundColor: "#171717",
                       border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
+                      borderRadius: "8px",
                     }}
                     itemStyle={{ color: "#fff" }}
                   />
-                  <Bar dataKey="sent" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sent" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -257,18 +257,18 @@ export default function DepartmentReports() {
         </GlassCard>
 
         {/* Activity Over Time */}
-        <GlassCard delay={0.2} className="h-96 flex flex-col">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
-              <TrendingUp size={18} />
+        <GlassCard delay={0.2} className="h-[280px] sm:h-96 flex flex-col p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-1.5 sm:p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+              <TrendingUp size={14} />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">
               Activity Over Time
             </h3>
           </div>
           {loading ? (
             <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="animate-spin text-blue-500" size={32} />
+              <Loader2 className="animate-spin text-blue-500" size={24} />
             </div>
           ) : (
             <div className="flex-1 w-full min-h-0">
@@ -280,13 +280,13 @@ export default function DepartmentReports() {
                   <XAxis
                     dataKey="name"
                     stroke="#525252"
-                    fontSize={11}
+                    fontSize={10}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
                     stroke="#525252"
-                    fontSize={11}
+                    fontSize={10}
                     tickLine={false}
                     axisLine={false}
                   />
@@ -295,11 +295,11 @@ export default function DepartmentReports() {
                     contentStyle={{
                       backgroundColor: "#171717",
                       border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
+                      borderRadius: "8px",
                     }}
                     itemStyle={{ color: "#fff" }}
                   />
-                  <Bar dataKey="engagement" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="engagement" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

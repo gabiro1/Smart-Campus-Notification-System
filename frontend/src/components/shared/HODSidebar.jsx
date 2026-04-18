@@ -51,7 +51,7 @@ export default function HODSidebar(props) {
   })();
 
   const routes = [
-    { path: "/hod", name: "Overview", icon: LayoutDashboard },
+    { path: "/hod/dashboard", name: "Overview", icon: LayoutDashboard },
     { path: "/hod/governance", name: "Governance", icon: Scale, badge: pendingCount > 0 ? pendingCount : undefined },
     { path: "/hod/broadcast", name: "Broadcast", icon: Radio },
     { path: "/hod/announcements", name: "All Announcements", icon: Files },

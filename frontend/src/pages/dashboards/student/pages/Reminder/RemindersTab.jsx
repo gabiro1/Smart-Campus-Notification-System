@@ -183,7 +183,7 @@ const RemindersTab = () => {
         if (organized[rem.priority]) organized[rem.priority].push(rem);
       });
       setColumns(organized);
-    } catch (err) {
+    } catch {
       toast.error("Error connecting to server");
     } finally {
       setLoading(false);
@@ -216,7 +216,7 @@ const RemindersTab = () => {
       });
       if (source.droppableId !== destination.droppableId)
         toast.success(`Moved to ${destination.droppableId}`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to update database");
       fetchTasks();
     }
@@ -238,7 +238,7 @@ const RemindersTab = () => {
       setIsModalOpen(false);
       setNewReminder({ title: "", note: "", dueDate: "", priority: "Low" });
       toast.success("Task Created");
-    } catch (err) {
+    } catch {
       toast.error("Failed to save task");
     }
   };
@@ -251,7 +251,7 @@ const RemindersTab = () => {
       toast.success("Task Updated");
       setIsEditModalOpen(false);
       fetchTasks(); // Refresh list to ensure correct ordering/columns
-    } catch (err) {
+    } catch {
       toast.error("Update failed");
     }
   };
@@ -264,7 +264,7 @@ const RemindersTab = () => {
         [col]: prev[col].filter((r) => r._id !== id),
       }));
       toast.success("Task Deleted");
-    } catch (err) {
+    } catch {
       toast.error("Could not delete from server");
     }
   };

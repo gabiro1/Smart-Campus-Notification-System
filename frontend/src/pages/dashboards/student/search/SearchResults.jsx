@@ -47,13 +47,6 @@ export default function SearchResults() {
     }
   };
 
-  const getMatchReason = (item) => {
-    if (intent?.keywords) {
-      return `Matches ${intent.keywords.slice(0, 3).join(', ')}`;
-    }
-    return `Matches '${query}'`;
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

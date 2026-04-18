@@ -117,7 +117,7 @@ Respond in this JSON format only: {"title": "polished title", "content": "polish
                         toast.success('Content polished!');
                     }
                 }
-            } catch (parseError) {
+            } catch (_parseError) {
                 toast.error('AI response format issue, please try again');
             }
         } catch (error) {
