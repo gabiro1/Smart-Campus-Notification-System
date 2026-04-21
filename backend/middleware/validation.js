@@ -81,9 +81,9 @@ export const userRegistrationSchema = Joi.object({
     }),
 
   phoneNumber: Joi.string().optional().allow('')
-    .pattern(/^\+?[1-9]\d{1,14}$/)
+    .pattern(/^(\+?)?(250)?7\d{8}$/)
     .messages({
-      'string.pattern.base': 'Please provide a valid international phone number (e.g., +1234567890).'
+      'string.pattern.base': 'Please provide a valid Rwanda phone number (e.g., 07xxxxxxx or +2507xxxxxxx).'
     }),
 
   role: Joi.string().valid('student').required()
@@ -95,7 +95,7 @@ export const userRegistrationSchema = Joi.object({
   college: Joi.string().optional().allow(''),
   school: Joi.string().optional().allow(''),
   department: Joi.string().optional().allow(''),
-  level: Joi.string().valid('Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5').optional().allow(''),
+  level: Joi.string().optional().allow(''),
   interests: Joi.array().items(Joi.string()).optional().default([]),
   profilePicture: Joi.string().uri().optional().allow('')
 });

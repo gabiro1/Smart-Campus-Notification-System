@@ -99,10 +99,12 @@ export default function Register() {
     if (!formData.email.includes("@")) errors.push("Invalid email address");
     if (formData.password.length < 8)
       errors.push("Password must be at least 8 characters");
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(formData.password))
+      errors.push("Password must contain uppercase, lowercase, number, and special character (@$!%*?&)");
     if (formData.password !== formData.confirmPassword)
       errors.push("Passwords do not match");
-    if (!/^07\d{8}$/.test(formData.phoneNumber))
-      errors.push("Phone number must be valid (Rwanda format)");
+    if (!/^(\+?)?(250)?7\d{8}$/.test(formData.phoneNumber))
+      errors.push("Phone number must be valid Rwanda format (07xxxxxxx or +2507xxxxxxx)");
     if (!formData.school || !formData.department || !formData.level)
       errors.push("Please select school, department, and level");
     return errors;
@@ -341,7 +343,7 @@ export default function Register() {
                         disabled={loading}
                       >
                         {dropdowns.schools.map((s) => (
-                          <option key={s.id} value={s.name}>
+                          <option key={s._id} value={s.name}>
                             {s.name}
                           </option>
                         ))}
@@ -354,7 +356,7 @@ export default function Register() {
                         disabled={loading}
                       >
                         {dropdowns.departments.map((d) => (
-                          <option key={d.id} value={d.name}>
+                          <option key={d._id} value={d.name}>
                             {d.name}
                           </option>
                         ))}
@@ -366,8 +368,8 @@ export default function Register() {
                         onChange={handleChange}
                         disabled={loading}
                       >
-                        {dropdowns.levels.map((l) => (
-                          <option key={l.id} value={l.name}>
+                        {dropdowns.levels.map((l, idx) => (
+                          <option key={idx} value={l.name}>
                             {l.name}
                           </option>
                         ))}
