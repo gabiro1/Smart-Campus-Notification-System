@@ -39,6 +39,7 @@ import analyticsRoutes from './modules/analytics/routes/analyticsRoutes.js'; // 
 import searchRoutes from './modules/search/routes/searchRoutes.js'; // Smart search with AI
 import supportRoutes from './modules/support/routes/supportRoutes.js'; // Support Tickets
 import smsRoutes from './modules/sms/routes/messageRoutes.js'; // SMS Module
+import dropdownsRoutes from './modules/dropdowns/routes/dropdownsRoutes.js'; // Public dropdowns for registration
 
 const app = express();
 const httpServer = createServer(app);
@@ -175,6 +176,7 @@ app.use('/api/governance/announcements', governanceRoutes); // Governance Engine
 app.use('/api/admin/audit-logs', auditRoutes);
 app.use('/api/support', supportRoutes); // Support Tickets
 app.use('/api/messages', smsRoutes); // SMS Module (under messages)
+app.use('/api/dropdowns', dropdownsRoutes); // Public dropdowns for registration
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {
