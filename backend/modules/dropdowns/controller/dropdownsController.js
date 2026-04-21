@@ -22,13 +22,11 @@ export const getDropdownDepartments = async (req, res) => {
 export const getDropdownLevels = async (req, res) => {
   try {
     const levels = [
-      { name: 'Level 1' },
-      { name: 'Level 2' },
-      { name: 'Level 3' },
-      { name: 'Level 4' },
-      { name: 'Level 5' },
-      { name: 'Level 6' },
-
+      { name: 'Year 1' },
+      { name: 'Year 2' },
+      { name: 'Year 3' },
+      { name: 'Year 4' },
+      { name: 'Year 5' },
     ];
     res.status(200).json(levels);
   } catch (error) {
