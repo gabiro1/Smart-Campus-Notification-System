@@ -4,8 +4,8 @@ import {
   MoreVertical, FileText, Image as ImageIcon, Link as LinkIcon 
 } from "lucide-react";
 import { io } from "socket.io-client";
-import messageService from "../../../../../../services/messageService";
-import { useToast } from "../../../../../../components/ui/ToastContext";
+import messageService from "../../../../../services/messageService";
+import { useToast } from "../../../../../components/ui/ToastContext";
 
 // In a real app, this comes from AuthContext. Falling back to localStorage parsing.
 const getStoredUser = () => {
@@ -118,8 +118,8 @@ export default function Messages() {
     <div className="flex h-[calc(100vh-6rem)] w-full bg-background text-slate-200 overflow-hidden font-sans border-t border-input">
       
       {/* LEFT PANEL: ACTIVE CHATS */}
-      <div className="w-[320px] border-r border-input flex flex-col bg-background">
-        <div className="p-6">
+      <div className="w-full md:w-[320px] border-r border-input flex flex-col bg-background">
+        <div className="p-4 md:p-6">
           <h2 className="text-[11px] font-extrabold tracking-widest text-muted-foreground uppercase mb-4">
             Active Chats
           </h2>
@@ -138,7 +138,7 @@ export default function Messages() {
             >
               {/* Avatar relative container for unread dot */}
               <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-900 to-indigo-900 flex items-center justify-center text-sm font-bold border border-white/5">
+                <div className="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-sm font-bold border border-white/5">
                   {contact.initial || "Dr"}
                 </div>
                 {contact.unread && (
@@ -199,7 +199,7 @@ export default function Messages() {
         </div>
 
         {/* Chat Thread */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
           
           <div className="flex justify-center">
             <div className="bg-input text-muted-foreground px-4 py-1.5 rounded-full text-[10px] font-extrabold tracking-widest border border-border">
@@ -253,8 +253,8 @@ export default function Messages() {
         </div>
 
         {/* Input Bar */}
-        <div className="p-6 shrink-0 z-10 relative">
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-card to-transparent pointer-events-none" />
+        <div className="p-4 md:p-6 shrink-0 z-10 relative">
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-card/80 pointer-events-none" />
           
           <form 
             onSubmit={handleSendMessage} 
@@ -294,7 +294,7 @@ export default function Messages() {
       {/* RIGHT PANEL: CONTACT INFO / DETAILS */}
       <div className="w-[320px] border-l border-input flex flex-col bg-background overflow-y-auto">
         <div className="p-8 flex flex-col items-center border-b border-input">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-bl from-blue-900 to-card border border-border mb-4 flex items-center justify-center text-2xl font-black shadow-xl">
+          <div className="w-24 h-24 rounded-2xl bg-blue-900 border border-border mb-4 flex items-center justify-center text-2xl font-black shadow-xl">
             Dr
           </div>
           <h2 className="text-xl font-extrabold text-foreground mb-1">Dr. Sarah Vance</h2>

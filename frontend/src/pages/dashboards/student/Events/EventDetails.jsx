@@ -175,7 +175,7 @@ export default function EventDetails() {
 
   if (error || !event) {
     return (
-      <div className="p-8 min-h-screen bg-card">
+      <div className="p-4 md:p-8 min-h-screen bg-card">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-blue-400 mb-6 hover:text-foreground transition-colors">
           <ArrowLeft size={20} /> Back
         </button>
@@ -191,7 +191,7 @@ export default function EventDetails() {
 
   return (
     <div className="min-h-screen bg-card text-foreground">
-      <div className="max-w-4xl mx-auto p-6 md:p-10">
+      <div className="max-w-4xl mx-auto p-4 md:p-6 lg:p-10">
         {/* Back Button */}
         <motion.button
           whileHover={{ x: -4 }}
@@ -202,7 +202,7 @@ export default function EventDetails() {
           <span className="text-sm font-bold uppercase tracking-widest">Back to Events</span>
         </motion.button>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Left: Main Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -250,7 +250,7 @@ export default function EventDetails() {
             )}
 
             {/* Description */}
-            <div className="bg-accent border border-border rounded-2xl p-6">
+            <div className="bg-accent border border-border rounded-xl md:rounded-2xl p-4 md:p-6">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">About this Event</h3>
               <p className="text-muted-foreground leading-relaxed">{event.description || "No description provided."}</p>
             </div>
@@ -273,7 +273,7 @@ export default function EventDetails() {
             animate={{ opacity: 1, x: 0 }}
             className="space-y-4"
           >
-            <div className="bg-card border border-border rounded-[24px] p-6 sticky top-6 space-y-5">
+            <div className="bg-card border border-border rounded-2xl md:rounded-[24px] p-4 md:p-6 sticky top-4 md:top-6 space-y-5">
               <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Quick Actions</h3>
 
               {/* Bookmark Button */}
@@ -298,7 +298,7 @@ export default function EventDetails() {
               ) : (
                 <button
                   onClick={() => setShowQRModal(true)}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-purple-600 border border-transparent text-foreground hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm bg-blue-600 border border-transparent text-foreground hover:bg-blue-500 transition-all"
                 >
                   <QrCode size={16} />
                   Show QR to Check In
@@ -404,7 +404,7 @@ export default function EventDetails() {
           <button
             onClick={handleQRCheckIn}
             disabled={checkingIn}
-            className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-emerald-500 text-foreground hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl font-bold text-sm bg-emerald-600 text-foreground hover:bg-emerald-500 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {checkingIn ? (
               <>

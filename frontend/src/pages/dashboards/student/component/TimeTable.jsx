@@ -26,7 +26,7 @@ const GlassPanel = ({ children, className = "" }) => (
     `}
   >
     {/* Subtle top highlight for depth */}
-    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent opacity-50" />
+    <div className="absolute inset-x-0 top-0 h-px bg-white/10 opacity-50" />
     {children}
   </div>
 );
@@ -41,7 +41,7 @@ const ScheduleCard = ({ item, index }) => (
     exit={{ opacity: 0, y: -8 }}
     transition={{ delay: index * 0.05, duration: 0.3 }}
   >
-    <div className="group relative p-4 md:p-6 bg-primary/10 hover:bg-primary/10 border border-border rounded-3xl transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-0.5">
+    <div className="group relative p-4 md:p-6 bg-primary/10 hover:bg-primary/10 border border-border rounded-2xl md:rounded-3xl transition-all duration-300 cursor-pointer hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-0.5">
       <div className="flex items-start md:items-center gap-4 md:gap-5">
         {/* Icon - Shrinks slightly on mobile */}
         <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-accent flex items-center justify-center flex-shrink-0 mt-1 md:mt-0">

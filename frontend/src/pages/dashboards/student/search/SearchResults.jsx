@@ -55,7 +55,7 @@ export default function SearchResults() {
   return (
     <div className="pt-8 px-6 pb-20 max-w-6xl mx-auto space-y-8">
       {/* Search Header */}
-      <div className="glass p-6 rounded-2xl border border-border">
+      <div className="glass p-4 md:p-6 rounded-xl md:rounded-2xl border border-border">
         <div className="flex items-center gap-4">
           <Search className="text-blue-400" size={24} />
           <input

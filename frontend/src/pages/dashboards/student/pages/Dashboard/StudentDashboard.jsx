@@ -1,341 +1,317 @@
-import { useState, useEffect } from "react";
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/set-state-in-effect */
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import StudentSidebar from "../../component/StudentNav";
 import { motion } from "framer-motion";
 import {
-  Search,
-  Filter,
   Sparkles,
-  Star,
-  Heart,
   ArrowRight,
-  Clock,
-  Zap,
-  MessageSquare,
+  Bookmark,
+  Calendar,
+  MapPin,
   ChevronRight,
+  Activity,
+  CheckCircle2,
+  Target,
 } from "lucide-react";
-import { useEvents } from "../../../../../hooks";
 
-// --- FALLBACK DATA: Keeps the UI beautiful even if the database is empty ---
+import { useAuth } from "../../../../context/AuthContext";
+import eventService from "../../../../services/eventService";
+import dashboardService from "../../../../services/dashboardService";
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.3 },
+  }),
+};
+
 const fallbackEvents = [
   {
     _id: "fb1",
-    title: "URGENT: Advanced Programming Venue Change",
-    description:
-      "Due to network maintenance in Hall 4, today's session for Level 4 IT has been relocated to Computer Lab 2.",
-    date: new Date().toISOString(),
+    title: "Advanced Programming Lecture",
+    description: "Session on advanced algorithms and data structures for Level 4 IT students.",
+    date: new Date(Date.now() + 86400000).toISOString(),
+    time: "09:00",
+    location: "Lab 2",
     priority: "high",
     aiMatchScore: 98,
-    tags: ["urgent", "venue"],
   },
   {
     _id: "fb2",
-    title: "Campus-Wide Wi-Fi Upgrade",
-    description:
-      "The IT Directorate will be upgrading core routers across the CST campus this weekend. Expect outages.",
-    date: new Date().toISOString(),
+    title: "Guest Lecture: AI in Agriculture",
+    description: "Seminar discussing how AI models predict farming risks.",
+    date: new Date(Date.now() + 172800000).toISOString(),
+    time: "14:00",
+    location: "Hall 4",
     priority: "medium",
-    aiMatchScore: 82,
-    tags: ["network", "campus"],
+    aiMatchScore: 95,
   },
   {
     _id: "fb3",
-    title: "Guest Lecture: AI in Agriculture",
-    description:
-      "Join us for a seminar discussing how AI models predict farming risks. Highly recommended for IT final years.",
-    date: new Date().toISOString(),
+    title: "Campus Networking Event",
+    description: "Meet industry professionals and expand your network.",
+    date: new Date(Date.now() + 259200000).toISOString(),
+    time: "10:00",
+    location: "Student Center",
     priority: "low",
-    aiMatchScore: 95,
-    tags: ["ai", "seminar"],
+    aiMatchScore: 78,
+  },
+  {
+    _id: "fb4",
+    title: "Cybersecurity Workshop",
+    description: "Hands-on workshop on ethical hacking and network security.",
+    date: new Date(Date.now() + 345600000).toISOString(),
+    time: "13:00",
+    location: "Lab 3",
+    priority: "high",
+    aiMatchScore: 88,
   },
 ];
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  const { events, loading, error, getEvents, rateEvent, markInterested } =
-    useEvents();
-  const [selectedRating, setSelectedRating] = useState({});
-  const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth();
 
-  useEffect(() => {
-    getEvents(1, 10);
+  const [events, setEvents] = useState([]);
+  const [stats, setStats] = useState({
+    attendanceRate: 0,
+    aiMatchAvg: 0,
+    savedCount: 0,
+    campusPulse: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("recommended");
+  const [bookmarked, setBookmarked] = useState([]);
+
+  const loadDashboardData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const summaryData = await dashboardService.getStudentSummary();
+      if (summaryData?.success) {
+        setStats(summaryData.stats || { attendanceRate: 0, aiMatchAvg: 0, savedCount: 0, campusPulse: 0 });
+      }
+    } catch (err) {
+      console.error("Failed to load summary:", err);
+    }
+
+    try {
+      const feedData = await eventService.getFeed();
+      setEvents(feedData?.length > 0 ? feedData : fallbackEvents);
+    } catch (err) {
+      setEvents(fallbackEvents);
+    }
+    setLoading(false);
   }, []);
 
-  // Use real events if they exist, otherwise use the fallback data
-  const displayEvents = events && events.length > 0 ? events : fallbackEvents;
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  const filteredEvents = React.useMemo(() => {
+    const now = new Date();
+    if (activeTab === "recommended") return events.filter(e => (e.aiMatchScore || 0) >= 80);
+    if (activeTab === "upcoming") return events.filter(e => new Date(e.date) > now);
+    return events;
+  }, [events, activeTab]);
+
+  const toggleBookmark = (id) => {
+    setBookmarked(prev => prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]);
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
+  if (loading) return <DashboardSkeleton />;
 
   return (
-    <div className="min-h-screen bg-card text-foreground flex">
-      {/* 1. Sidebar - Persistent on the left */}
-      <StudentSidebar />
-
-      {/* 2. Main Content */}
-      <main className="flex-1 ml-[280px] p-8 min-h-screen">
-        {/* Header Section */}
-        <header className="flex justify-between items-center mb-10">
-          <div>
-            <div className="flex items-center gap-2 text-[11px] text-muted-foreground tracking-widest mb-1">
-              <span>STUDENT</span>
-              <span>/</span>
-              <span className="text-foreground uppercase">Personal Pulse</span>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Academic Dashboard
-            </h1>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="glass px-4 py-2 rounded-[7px] border border-border flex items-center gap-2">
-              <Zap size={14} className="text-blue-500" />
-              <span className="text-[10px] font-black uppercase text-muted-foreground">
-                AI Synced
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Action Row */}
-        <div className="flex items-center mb-8 gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="Search announcements, tags, or lecturers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && searchQuery.trim()) {
-                  navigate(`/student/search?q=${encodeURIComponent(searchQuery.trim())}`);
-                }
-              }}
-              className="w-full bg-card border border-border rounded-[7px] py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-neutral-800"
-            />
-          </div>
-          <button className="bg-card border border-border px-4 py-2.5 rounded-[7px] text-xs font-bold text-muted-foreground flex items-center gap-2 hover:border-border">
-            <Filter size={14} /> Filter View
-          </button>
-        </div>
-
-        {/* Top Personal Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-          <StatCard
-            title="Relevant Pulses"
-            value={displayEvents.length}
-            change="New today"
-            color="text-blue-500"
-            icon={<Sparkles size={16} />}
-          />
-          <StatCard
-            title="Attendance Rate"
-            value="94%"
-            change="L4 IT Avg"
-            color="text-green-500"
-          />
-          <StatCard
-            title="AI Match Accuracy"
-            value="98.2%"
-            change="Based on interactions"
-            color="text-purple-500"
-          />
-        </div>
-
-        {/* Main Bento Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          {/* LEFT: AI RANKED FEED */}
-          <div className="lg:col-span-2 bg-card border border-border rounded-[10px] p-8">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h3 className="text-lg font-bold">Recommended for You</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  AI-ranked pulses from your department
-                </p>
+    <div className="min-h-screen bg-background text-foreground">
+      <main className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
-              <span className="text-[9px] bg-blue-600/20 text-blue-500 px-2 py-1 rounded font-black tracking-tighter uppercase">
-                AI Active
-              </span>
+              <h1 className="text-2xl lg:text-3xl font-bold">
+                {getGreeting()}, <span className="text-primary">{user?.name?.split(" ")[0] || "Student"}</span>
+              </h1>
             </div>
+          </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {loading && (!events || events.length === 0) ? (
-                <div className="flex items-center gap-2 text-neutral-600 text-sm italic">
-                  Syncing...
-                </div>
-              ) : (
-                displayEvents.map((event) => (
-                  <motion.div
-                    key={event._id}
-                    whileHover={{ y: -2, backgroundColor: "#121212" }}
-                    className={`p-6 rounded-[15px] border border-border bg-card transition-all relative group flex flex-col justify-between ${
-                      event.aiMatchScore > 85
-                        ? "md:col-span-2 border-blue-500/20"
-                        : "col-span-1"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-2 py-1 rounded">
-                          {Math.round(event.aiMatchScore)}% Match
-                        </span>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              size={12}
-                              className={
-                                selectedRating[event._id] >= star
-                                  ? "fill-yellow-500 text-yellow-500"
-                                  : "text-neutral-700 hover:text-yellow-500 transition-colors"
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedRating({
-                                  ...selectedRating,
-                                  [event._id]: star,
-                                });
-                                // rateEvent(event._id, star);
-                              }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <h4
-                        className={`font-bold text-foreground mb-2 ${
-                          event.aiMatchScore > 85 ? "text-xl" : "text-md"
-                        }`}
-                      >
-                        {event?.title || 'Untitled Event'}
-                      </h4>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-6">
-                        {event?.description || "No description available."}
-                      </p>
-                    </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+            <StatCard index={0} label="Campus Pulse" value={stats.campusPulse || events.length} subtitle="Active events" icon={Activity} color="blue" />
+            <StatCard index={1} label="Attendance" value={`${stats.attendanceRate || 94}%`} subtitle="This semester" icon={CheckCircle2} color="emerald" />
+            <StatCard index={2} label="AI Relevance" value={`${stats.aiMatchAvg || 85}%`} subtitle="Personalized" icon={Target} color="violet" />
+            <StatCard index={3} label="Saved" value={stats.savedCount || 0} subtitle="Bookmarks" icon={Bookmark} color="amber" />
+          </div>
 
-                    <div className="flex justify-between items-center mt-auto border-t border-border pt-4">
-                      <button className="text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-                        <Heart size={12} /> Save
-                      </button>
-                      <button className="bg-accent hover:bg-accent p-2 rounded-lg transition-colors">
-                        <ArrowRight size={16} />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))
-              )}
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Sparkles size={18} className="text-primary" /> Recommended Events
+            </h3>
+            <div className="flex gap-1 p-1 rounded-xl bg-card border border-border">
+              {['recommended', 'upcoming', 'all'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    activeTab === tab ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* RIGHT: MESSAGES & TIMETABLE STACK */}
-          <div className="flex flex-col gap-3">
-            {/* MESSAGES BENTO BOX */}
-            <motion.div
-              whileHover={{ backgroundColor: "#0F0F0F" }}
-              className="bg-card border border-border rounded-[10px] p-7"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <MessageSquare size={16} className="text-blue-500" /> Faculty
-                  Messages
-                </h3>
-                <span className="bg-blue-500/10 text-blue-500 text-[9px] px-2 py-0.5 rounded font-black">
-                  2 NEW
-                </span>
+          <div className="space-y-3">
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event, i) => (
+                <EventCard
+                  key={event._id || i}
+                  event={event}
+                  index={i}
+                  isBookmarked={bookmarked.includes(event._id)}
+                  onToggleBookmark={toggleBookmark}
+                />
+              ))
+            ) : (
+              <div className="bg-card border border-border p-12 rounded-2xl text-center">
+                <Sparkles size={40} className="mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No events found.</p>
               </div>
-
-              <div className="space-y-3">
-                {[
-                  {
-                    sender: "Dr. Kamali",
-                    role: "HoD",
-                    text: "Please review the updated syllabus.",
-                  },
-                  {
-                    sender: "Prof. Agnes",
-                    role: "Lecturer",
-                    text: "Lab 2 is reserved for your class today.",
-                  },
-                ].map((msg, i) => (
-                  <div
-                    key={i}
-                    className="p-3 bg-card border border-border rounded-[10px] hover:border-blue-500/30 transition-all cursor-pointer"
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold">{msg.sender}</span>
-                      <span className="text-[8px] font-black text-neutral-600 uppercase">
-                        {msg.role}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground line-clamp-1 italic">
-                      "{msg.text}"
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <button className="w-full mt-4 text-[10px] font-bold text-neutral-600 hover:text-foreground transition-colors">
-                Open All Messages
-              </button>
-            </motion.div>
-
-            {/* TIMETABLE BOX */}
-            <div className="bg-card border border-border rounded-[10px] p-7 flex-1">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Clock size={16} className="text-emerald-500" /> Today's Class
-                </h3>
-              </div>
-              <div className="space-y-3">
-                {[
-                  {
-                    time: "08:00",
-                    subject: "Advanced Programming",
-                    room: "Lab 2",
-                  },
-                  { time: "11:00", subject: "Cybersecurity", room: "Hall 4" },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-4 items-center p-4 bg-card rounded-[10px] border border-border"
-                  >
-                    <div className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">
-                      {item.time}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold">{item.subject}</span>
-                      <span className="text-[10px] text-neutral-600 uppercase font-bold">
-                        {item.room}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
+
+          {events.length > 5 && (
+            <button onClick={() => navigate('/student/events')} className="w-full py-3 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-xl hover:bg-accent transition-colors flex items-center justify-center gap-2">
+              View all events <ChevronRight size={16} />
+            </button>
+          )}
         </div>
       </main>
     </div>
   );
 }
 
-function StatCard({ title, value, change, color, icon }) {
+function StatCard({ index, label, value, subtitle, icon: Icon, color }) {
+  const colors = {
+    blue: { bg: "bg-blue-500/10", text: "text-blue-500" },
+    emerald: { bg: "bg-emerald-500/10", text: "text-emerald-500" },
+    violet: { bg: "bg-violet-500/10", text: "text-violet-500" },
+    amber: { bg: "bg-amber-500/10", text: "text-amber-500" },
+  };
+  const c = colors[color] || colors.blue;
+
   return (
     <motion.div
-      whileHover={{ y: -4, backgroundColor: "#0F0F0F" }}
-      className="bg-card p-7 rounded-[10px] border border-border transition-all shadow-sm"
+      custom={index}
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      className="bg-card border border-border rounded-2xl p-4 hover:border-border hover:shadow-md transition-all"
     >
-      <div className="flex justify-between items-start mb-4">
-        <p className="text-foreground font-black text-xs uppercase tracking-widest opacity-60">
-          {title}
-        </p>
-        <div className={color}>{icon}</div>
+      <div className={`p-2 rounded-xl ${c.bg} w-fit mb-3`}>
+        <Icon size={18} className={c.text} />
       </div>
-      <h2 className={`text-4xl font-bold tracking-tighter ${color} mb-4`}>
-        {value}
-      </h2>
-      <div className="bg-accent text-[9px] font-bold px-2 py-1 rounded-md text-muted-foreground border border-border w-fit">
-        {change}
+      <h2 className="text-2xl font-bold text-foreground">{value}</h2>
+      <p className="text-sm font-medium text-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{subtitle}</p>
+    </motion.div>
+  );
+}
+
+function EventCard({ event, index, isBookmarked, onToggleBookmark }) {
+  const navigate = useNavigate();
+  const match = Math.round(event.aiMatchScore || 85);
+  const eventDate = new Date(event.date);
+  const formattedDate = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  const priorityConfig = {
+    urgent: { border: "border-l-red-500", badge: "bg-red-500", badgeText: "text-white" },
+    high: { border: "border-l-orange-500", badge: "bg-orange-500", badgeText: "text-white" },
+    medium: { border: "border-l-amber-400", badge: "bg-amber-400", badgeText: "text-amber-950" },
+    low: { border: "border-l-emerald-400", badge: "bg-emerald-400", badgeText: "text-emerald-950" },
+  };
+  const priority = priorityConfig[event.priority] || priorityConfig.default;
+
+  return (
+    <motion.div
+      custom={index}
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      className={`bg-card border border-border rounded-xl p-4 hover:shadow-md transition-all border-l-4 ${priority.border} group`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2 flex-1">
+          {event.priority === 'urgent' && (
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${priority.badge} ${priority.badgeText}`}>
+              Urgent
+            </span>
+          )}
+          <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+            <Sparkles size={12} className="text-violet-500" /> {match}% Match
+          </span>
+          <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
+            <Calendar size={12} /> {formattedDate}
+            {event.time && <> • {event.time}</>}
+          </span>
+        </div>
+        <button
+          onClick={() => onToggleBookmark(event._id)}
+          className={`p-2 rounded-lg transition-colors ${isBookmarked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'}`}
+        >
+          <Bookmark size={16} className={isBookmarked ? "fill-current" : ""} />
+        </button>
+      </div>
+
+      <h4 className="font-semibold text-base text-foreground mt-2 group-hover:text-primary transition-colors line-clamp-1">
+        {event.title}
+      </h4>
+      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+        {event.description}
+      </p>
+
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+        <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <MapPin size={12} /> {event.location || "TBD"}
+        </span>
+        <button
+          onClick={() => navigate(`/student/events/${event._id}`)}
+          className="flex items-center gap-1 text-sm font-medium text-primary hover:gap-2 transition-all"
+        >
+          Details <ArrowRight size={14} />
+        </button>
       </div>
     </motion.div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
+        <div className="space-y-2">
+          <div className="h-3 w-48 bg-muted rounded" />
+          <div className="h-10 w-72 bg-muted rounded" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 bg-card border border-border rounded-2xl p-4" />)}
+        </div>
+        <div className="h-8 w-64 bg-muted rounded-xl" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 bg-card border border-border rounded-xl p-4" />)}
+        </div>
+      </div>
+    </div>
   );
 }

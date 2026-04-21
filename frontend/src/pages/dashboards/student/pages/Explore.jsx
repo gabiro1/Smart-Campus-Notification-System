@@ -4,7 +4,7 @@ export default function Explore() {
   const tags = ["#Cybersecurity", "#AI", "#Career", "#WebDev", "#Hardware"];
 
   return (
-    <div className="min-h-screen bg-card p-6">
+    <div className="min-h-screen bg-card p-4 md:p-6">
       <div className="relative mb-8">
         <SearchIcon
           className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"

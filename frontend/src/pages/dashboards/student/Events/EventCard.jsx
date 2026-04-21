@@ -69,7 +69,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
     <motion.div
       whileHover={{ y: -2, backgroundColor: "#121212" }}
       onClick={handleCardClick}
-      className={`relative p-5 md:p-6 rounded-[15px] border border-border bg-card transition-all group flex flex-col justify-between h-full w-full cursor-pointer hover:shadow-xl hover:shadow-black/50 ${
+      className={`relative p-4 md:p-6 rounded-2xl md:rounded-[15px] border border-border bg-card transition-all group flex flex-col justify-between h-full w-full cursor-pointer hover:shadow-xl hover:shadow-black/50 ${
         event.priority === "high" || event.priority === "urgent"
           ? "border-red-500/20"
           : ""

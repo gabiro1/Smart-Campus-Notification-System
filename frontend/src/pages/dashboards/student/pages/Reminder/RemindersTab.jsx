@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import reminderService from "../../../../../services/reminderService"; // Adjust path as needed
+import reminderService from "../../../../../services/reminderService";
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const PRIORITY_CONFIG = {

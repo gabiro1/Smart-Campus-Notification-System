@@ -201,7 +201,7 @@ export const NotificationsTab = ({
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
               {digestLoading ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-center py-12">
@@ -237,7 +237,7 @@ export const NotificationsTab = ({
                 </div>
               ) : digestSummary ? (
                 <div className="prose prose-invert max-w-none">
-                  <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-6">
+                  <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-6">
                     <p className="text-gray-300 leading-relaxed whitespace-pre-line text-[15px]">
                       {digestSummary}
                     </p>

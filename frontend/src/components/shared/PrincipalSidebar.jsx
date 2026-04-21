@@ -7,21 +7,26 @@ import {
   Globe,
   LineChart,
   Users,
-  Settings,
-  Wrench,
+  Building,
+  FileText,
+  Database,
   Command,
   MessageSquare,
   LogOut,
+  ClipboardCheck,
 } from "lucide-react";
 
 const routes = [
   { path: "/principal/dashboard", label: "System Overview", icon: Activity },
-  { path: "/principal/admin", label: "Admin Panel", icon: Shield, badge: "2" },
+  { path: "/principal/admin", label: "Admin Overview", icon: Shield },
+  { path: "/principal/departments", label: "Departments", icon: Building },
+  { path: "/principal/reports", label: "Reports", icon: FileText },
   { path: "/principal/broadcast", label: "College Broadcast", icon: Globe },
   { path: "/principal/analytics", label: "System Analytics", icon: LineChart },
+  { path: "/principal/audit", label: "Audit Logs", icon: ClipboardCheck },
   { path: "/principal/users", label: "All Users", icon: Users },
-  { path: "/principal/settings", label: "System Settings", icon: Settings },
-  { path: "/principal/maintenance", label: "Maintenance", icon: Wrench },
+  { path: "/principal/backups", label: "Backups", icon: Database },
+  { path: "/principal/approvals", label: "Approvals", icon: ClipboardCheck },
   { path: "/principal/messages", label: "Messages", icon: MessageSquare },
 ];
 

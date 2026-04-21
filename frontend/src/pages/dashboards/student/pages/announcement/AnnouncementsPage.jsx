@@ -1,66 +1,115 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Filter,
-  Smile,
-  Send,
-  Heart,
-  Paperclip,
-  User as UserIcon,
+  MessageSquare,
   AlertCircle,
   X,
-  MessageSquare,
-  Download,
   ChevronRight,
   Eye,
-  Trash2,
-  Edit3,
-  MoreHorizontal,
+  Send,
+  User,
 } from "lucide-react";
-import toast from "react-hot-toast";
-import dashboardService from "../../../../../services/dashboardService";
 
-// ==========================================
-// 1. MAIN PAGE CONTAINER
-// ==========================================
-export default function AnnouncementsPage({ user: propUser }) {
+import { useAuth } from "../../../../../context/AuthContext";
+import dashboardService from "../../../../../services/dashboardService";
+import toast from "react-hot-toast";
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.05, duration: 0.3 },
+  }),
+};
+
+const fallbackAnnouncements = [
+  {
+    _id: "1",
+    title: "Mid-Semester Exam Schedule Released",
+    content: "The mid-semester examinations will commence from next Monday. Please check the portal for your individual timetable and venue allocations.",
+    course: { code: "IT401" },
+    type: "General",
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    viewedBy: Array(45).fill(null),
+    comments: [],
+  },
+  {
+    _id: "2",
+    title: "Urgent: Network Maintenance Tonight",
+    content: "The campus Wi-Fi will be unavailable tonight from 10 PM to 6 AM for system upgrades. Please save your work accordingly.",
+    course: { code: "IT" },
+    type: "Urgent",
+    createdAt: new Date().toISOString(),
+    viewedBy: Array(120).fill(null),
+    comments: [],
+  },
+  {
+    _id: "3",
+    title: "Assignment Extension: Cloud Computing",
+    content: "The Cloud Computing assignment due date has been extended by 48 hours. New deadline is now Sunday 11:59 PM.",
+    course: { code: "IT402" },
+    type: "Assignment",
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    viewedBy: Array(30).fill(null),
+    comments: [],
+  },
+  {
+    _id: "4",
+    title: "Guest Lecture: AI in Agriculture",
+    content: "Join us for a special guest lecture on AI applications in modern agriculture. Attendance is compulsory for final year students.",
+    course: { code: "IT403" },
+    type: "General",
+    createdAt: new Date(Date.now() - 259200000).toISOString(),
+    viewedBy: Array(60).fill(null),
+    comments: [],
+  },
+];
+
+const filters = ["All", "General", "Assignment", "Urgent"];
+
+export default function AnnouncementsPage() {
+  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, _setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
-  const user = propUser || JSON.parse(localStorage.getItem("user"));
-
   useEffect(() => {
     const fetchAnnouncements = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
         const response = await dashboardService.getNoticeBoard();
-        if (response && response.success) {
-          setAnnouncements(response.data || []);
+        if (response?.success) {
+          setAnnouncements(response.data || fallbackAnnouncements);
+        } else {
+          setAnnouncements(fallbackAnnouncements);
         }
-      } catch {
-        toast.error("Failed to sync notice board.");
-      } finally {
-        setLoading(false);
+      } catch (err) {
+        setAnnouncements(fallbackAnnouncements);
       }
+      setLoading(false);
     };
     fetchAnnouncements();
   }, []);
 
   useEffect(() => {
-    if (selectedAnnouncement) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "unset";
+    if (selectedAnnouncement) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
   }, [selectedAnnouncement]);
 
   const filteredAnnouncements = useMemo(() => {
     return announcements.filter((ann) => {
-      const title = ann.title || "";
-      const matchesSearch = title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+      const matchesSearch = ann.title?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesFilter = activeFilter === "All" || ann.type === activeFilter;
       return matchesSearch && matchesFilter;
     });
@@ -68,384 +117,301 @@ export default function AnnouncementsPage({ user: propUser }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-card flex flex-col items-center justify-center">
-        <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-blue-400 text-xs font-black uppercase tracking-widest">
-          Decrypting Feed
-        </p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading announcements...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-card text-foreground font-sans overflow-x-hidden p-4 md:p-8">
-      <div className="max-w-7xl mx-auto flex flex-col h-[calc(100vh-4rem)]">
-        <header className="mb-8 shrink-0">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <span className="p-2 bg-emerald-500/10 rounded-lg">
-                <MessageSquare className="text-emerald-500" size={24} />
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-3">
+              <span className="p-2 bg-primary/10 rounded-lg">
+                <MessageSquare className="text-primary" size={24} />
               </span>
-              Active Announcements
+              Announcements
             </h1>
-            <div className="flex bg-card p-1.5 rounded-xl border border-border">
-              {["All", "General", "Assignment", "Urgent"].map((f) => (
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+              <input
+                type="text"
+                placeholder="Search announcements..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-card border border-border rounded-lg text-sm focus:outline-none focus:border-primary/50 w-full sm:w-64"
+              />
+            </div>
+
+            <div className="flex gap-1 p-1 bg-card border border-border rounded-lg">
+              {filters.map((filter) => (
                 <button
-                  key={f}
-                  onClick={() => setActiveFilter(f)}
-                  className={`px-5 py-2 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all ${
-                    activeFilter === f
-                      ? "bg-white/10 text-foreground"
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    activeFilter === filter
+                      ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {f}
+                  {filter}
                 </button>
               ))}
             </div>
           </div>
         </header>
 
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-6">
-          {/* Left Column: ACTIVE ANNOUNCEMENTS */}
-          <div className="overflow-y-auto custom-scrollbar pr-2 space-y-4">
-            <style dangerouslySetInnerHTML={{__html: `
-              .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-              .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-              .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
-              .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
-            `}}/>
-            
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
             {filteredAnnouncements.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-12 border border-border rounded-3xl bg-card">
-                <AlertCircle size={48} className="mb-4 opacity-20 text-muted-foreground" />
-                <p className="text-lg font-medium text-muted-foreground">
-                  No {activeFilter.toLowerCase()} broadcasts found
-                </p>
+              <div className="bg-card border border-border p-12 rounded-2xl text-center">
+                <AlertCircle size={48} className="mx-auto text-muted-foreground mb-4 opacity-50" />
+                <p className="text-muted-foreground">No announcements found</p>
               </div>
             ) : (
-              filteredAnnouncements.map((ann, idx) => {
-                const isSelected = selectedAnnouncement?._id === ann._id;
-                const isUrgent = ann.type === "Urgent";
-                return (
-                  <motion.div
-                    key={ann._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    onClick={() => setSelectedAnnouncement(ann)}
-                    className={`p-6 rounded-[20px] transition-all cursor-pointer group border ${
-                      isSelected
-                        ? "bg-muted border-emerald-500/30 shadow-[0_4px_20px_rgba(16,185,129,0.05)]"
-                        : "bg-card border-border hover:border-border"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className={`px-3 py-1 rounded-sm text-[10px] font-black uppercase tracking-wider ${
-                          isUrgent ? "bg-red-500/10 text-red-500" : "bg-emerald-500/10 text-emerald-500"
-                        }`}>
-                          {ann.course?.code || (isUrgent ? "URGENT ALERT" : "DEPT OFFICIAL")}
-                        </span>
-                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-sm text-[10px] font-black uppercase tracking-wider">
-                          98% AI MATCH
-                        </span>
-                      </div>
-                      <div className="flex gap-1 text-amber-400">
-                         {/* Static stars for UI representation */}
-                         {[1,2,3,4,5].map(star => <span key={star}>★</span>)}
-                      </div>
-                    </div>
-
-                    <h3 className={`text-xl font-bold mb-3 line-clamp-2 transition-colors ${
-                      isSelected ? "text-emerald-400" : "text-foreground group-hover:text-emerald-400"
-                    }`}>
-                      {ann.title}
-                    </h3>
-                    
-                    <p className="text-[14px] text-muted-foreground mb-6 line-clamp-2 leading-relaxed">
-                      {ann.content}
-                    </p>
-
-                    <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2">
-                          <Eye size={14} /> 
-                          {ann.viewedBy?.length || 0} VIEWS
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MessageSquare size={14} /> 
-                          {ann.comments?.length || 0} COMMENTS
-                        </div>
-                        <span>
-                          {new Date(ann.createdAt).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
-                        </span>
-                      </div>
-                      <ChevronRight size={18} className={`transition-transform ${isSelected ? "text-emerald-500 translate-x-1" : "text-muted-foreground group-hover:text-foreground"}`} />
-                    </div>
-                  </motion.div>
-                );
-              })
+              filteredAnnouncements.map((ann, idx) => (
+                <AnnouncementCard
+                  key={ann._id}
+                  announcement={ann}
+                  index={idx}
+                  isSelected={selectedAnnouncement?._id === ann._id}
+                  onClick={() => setSelectedAnnouncement(ann)}
+                />
+              ))
             )}
           </div>
 
-          {/* Right Column: INTERACTIVE Q&A */}
-          <div className="hidden lg:flex flex-col bg-card rounded-[24px] border border-border overflow-hidden shadow-2xl relative h-full">
-            {selectedAnnouncement ? (
-               <InteractiveQAPanel ann={selectedAnnouncement} user={user} onClose={() => setSelectedAnnouncement(null)} />
-            ) : (
-               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center border border-border mb-6">
-                    <MessageSquare size={24} className="opacity-50" />
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground mb-2">Interactive Q&A</h3>
-                  <p className="text-sm">Select an announcement from the left to view discussions and ask questions directly to the faculty.</p>
-               </div>
-            )}
+          <div className="hidden lg:block">
+            <div className="bg-card border border-border rounded-2xl p-6 sticky top-24">
+              {selectedAnnouncement ? (
+                <AnnouncementDetail
+                  announcement={selectedAnnouncement}
+                  user={user}
+                  onClose={() => setSelectedAnnouncement(null)}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-12">
+                  <MessageSquare size={40} className="text-muted-foreground mb-4 opacity-50" />
+                  <h3 className="font-semibold mb-2">Select an Announcement</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Click on an announcement from the list to view details and discussions.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        <AnimatePresence>
+          {selectedAnnouncement && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="lg:hidden fixed inset-0 z-50 bg-black/50 flex items-end"
+              onClick={() => setSelectedAnnouncement(null)}
+            >
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                className="bg-background w-full max-h-[85vh] rounded-t-2xl overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <AnnouncementDetail
+                  announcement={selectedAnnouncement}
+                  user={user}
+                  onClose={() => setSelectedAnnouncement(null)}
+                  isMobile
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      
-      {/* Mobile Drawer (Visible only on small screens) */}
-      <AnimatePresence>
-        {selectedAnnouncement && (
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="lg:hidden fixed inset-0 z-50 bg-card flex flex-col"
-          >
-            <InteractiveQAPanel ann={selectedAnnouncement} user={user} onClose={() => setSelectedAnnouncement(null)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
 
-// ==========================================
-// 2. INTERACTIVE Q&A PANEL COMPONENT
-// ==========================================
-function InteractiveQAPanel({ ann, user: _user, onClose }) {
-  const [viewCount, _setViewCount] = useState(ann.viewedBy?.length || 0);
-  const [localComments, setLocalComments] = useState(ann.comments || []);
+function AnnouncementCard({ announcement, index, isSelected, onClick }) {
+  const isUrgent = announcement.type === "Urgent";
+
+  const priorityStyles = {
+    Urgent: "border-l-red-500 bg-red-500/5",
+    Assignment: "border-l-amber-500 bg-amber-500/5",
+    General: "border-l-primary",
+  };
+
+  return (
+    <motion.div
+      custom={index}
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      onClick={onClick}
+      className={`bg-card border border-border rounded-xl p-5 cursor-pointer hover:shadow-md transition-all border-l-4 ${
+        priorityStyles[announcement.type] || priorityStyles.General
+      } ${isSelected ? "ring-2 ring-primary" : ""}`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span
+            className={`px-2 py-1 rounded-md text-xs font-medium ${
+              isUrgent
+                ? "bg-red-500/10 text-red-500"
+                : "bg-primary/10 text-primary"
+            }`}
+          >
+            {announcement.course?.code || announcement.type}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {new Date(announcement.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
+          </span>
+        </div>
+        <ChevronRight
+          size={18}
+          className={`text-muted-foreground transition-transform ${
+            isSelected ? "text-primary rotate-90" : ""
+          }`}
+        />
+      </div>
+
+      <h3 className="font-semibold text-lg mb-2 line-clamp-2">{announcement.title}</h3>
+      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+        {announcement.content}
+      </p>
+
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <Eye size={14} /> {announcement.viewedBy?.length || 0} views
+        </span>
+        <span className="flex items-center gap-1">
+          <MessageSquare size={14} /> {announcement.comments?.length || 0} comments
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+function AnnouncementDetail({ announcement, user, onClose, isMobile }) {
+  const [comments, setComments] = useState(announcement.comments || []);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [replyingTo, setReplyingTo] = useState(null);
 
   useEffect(() => {
-    dashboardService
-      .markAsViewed(ann._id)
-      .then((res) => res && setViewCount(res.viewCount));
-  }, [ann._id]);
-
-  const generateHandle = (name) => {
-    if (!name) return "student";
-    const parts = name.toLowerCase().trim().split(/\s+/);
-    return parts.length === 1 ? parts[0] : `${parts[0]}_${parts[1]}`;
-  };
+    dashboardService.markAsViewed(announcement._id);
+  }, [announcement._id]);
 
   const handlePostComment = async () => {
     if (!commentText.trim()) return;
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      const response = await dashboardService.addComment(ann._id, commentText);
-      if (response && response.comments) {
-        setLocalComments(response.comments);
+      const response = await dashboardService.addComment(announcement._id, commentText);
+      if (response?.comments) {
+        setComments(response.comments);
       }
       setCommentText("");
-      setReplyingTo(null);
-    } catch {
-      toast.error("Failed to post question.");
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) {
+      toast.error("Failed to post comment");
     }
+    setIsSubmitting(false);
   };
 
-  const threads = [];
-  localComments.forEach((c) => {
-    if (!c.content.trim().startsWith("@") || threads.length === 0)
-      threads.push({ parent: c, replies: [] });
-    else threads[threads.length - 1].replies.push(c);
-  });
-
   return (
-    <>
-      {/* Header */}
-      <div className="flex flex-col p-6 border-b border-border bg-muted">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-bold text-foreground">Interactive Q&A</h2>
-          <div className="flex items-center gap-3">
-             <span className="px-3 py-1 bg-blue-600 rounded-md text-[10px] font-black uppercase tracking-wider text-foreground shadow-lg">
-               Active Thread
-             </span>
-             <button onClick={onClose} className="lg:hidden p-2 text-muted-foreground hover:text-foreground">
-               <X size={20} />
-             </button>
-          </div>
-        </div>
-        <p className="text-[13px] text-muted-foreground truncate">
-          Responding to: <span className="text-muted-foreground">{ann.title}</span>
-        </p>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between pb-4 border-b border-border">
+        <h2 className="font-semibold text-lg">Discussion</h2>
+        {isMobile && (
+          <button onClick={onClose} className="p-2 hover:bg-accent rounded-lg">
+            <X size={18} />
+          </button>
+        )}
       </div>
 
-      {/* Thread List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-        {threads.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-3">
-            <MessageSquare size={32} className="opacity-20" />
-            <p className="text-sm font-medium">Be the first to ask a question.</p>
+      <div className="py-4 border-b border-border">
+        <h3 className="font-semibold mb-2">{announcement.title}</h3>
+        <p className="text-sm text-muted-foreground">{announcement.content}</p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto py-4 space-y-4">
+        {comments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <MessageSquare size={32} className="text-muted-foreground mb-2 opacity-50" />
+            <p className="text-sm text-muted-foreground">No questions yet</p>
           </div>
         ) : (
-          threads.map((t, i) => (
-            <div key={i} className="flex flex-col gap-5">
-              <QABubble 
-                comment={t.parent} 
-                generateHandle={generateHandle} 
-                onReply={() => {
-                  setReplyingTo(generateHandle(t.parent.user?.name));
-                  setCommentText(`@${generateHandle(t.parent.user?.name)} `);
-                }} 
-              />
-              {t.replies.map((r, j) => (
-                <div key={j} className="pl-6 border-l-2 border-border ml-3">
-                   <QABubble 
-                     comment={r} 
-                     generateHandle={generateHandle} 
-                     onReply={() => {
-                       setReplyingTo(generateHandle(r.user?.name));
-                       setCommentText(`@${generateHandle(r.user?.name)} `);
-                     }}
-                   />
-                </div>
-              ))}
-            </div>
+          comments.map((comment, i) => (
+            <CommentBubble key={i} comment={comment} />
           ))
         )}
       </div>
 
-      {/* Input Footer */}
-      <div className="p-6 bg-card border-t border-border shrink-0">
-        {replyingTo && (
-           <div className="flex justify-between items-center mb-3">
-              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
-                Replying to <span className="text-blue-400">@{replyingTo}</span>
-              </span>
-              <button onClick={() => setReplyingTo(null)} className="text-muted-foreground hover:text-foreground"><X size={14}/></button>
-           </div>
-        )}
-        <div className="flex items-end gap-3 bg-black border border-border rounded-2xl p-2 focus-within:border-emerald-500/50 transition-colors shadow-inner">
-           <textarea
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => {
-                 if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handlePostComment(); }
-              }}
-              placeholder="Type your question..."
-              className="flex-1 bg-transparent text-sm text-foreground resize-none outline-none max-h-32 min-h-[44px] px-3 py-3 custom-scrollbar"
-              rows={1}
-           />
-           <button
-             onClick={handlePostComment}
-             disabled={!commentText.trim() || isSubmitting}
-             className="shrink-0 w-11 h-11 flex items-center justify-center bg-success hover:bg-emerald-400 disabled:bg-white/5 disabled:text-foreground/20 text-black rounded-xl transition-all font-bold shadow-lg"
-           >
-             <Send size={18} className="translate-x-[1px]" />
-           </button>
+      <div className="pt-4 border-t border-border">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Ask a question..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handlePostComment();
+            }}
+            className="flex-1 bg-card border border-border rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary/50"
+          />
+          <button
+            onClick={handlePostComment}
+            disabled={!commentText.trim() || isSubmitting}
+            className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Send size={18} />
+          </button>
         </div>
-        <p className="text-[10px] text-center text-muted-foreground uppercase font-black tracking-widest mt-4">
-          Press Enter to send, Shift + Enter for multi-line
-        </p>
       </div>
-    </>
+    </div>
   );
 }
 
-// ==========================================
-// 3. Q&A BUBBLE COMPONENT
-// ==========================================
-function QABubble({ comment, generateHandle, onReply }) {
-  // Determine if it's an instructor (in our app schema logic, typically lecturers are separate or marked.
-  // For UI representation, if comment.user?.role === 'lecturer' or based on context:
-  const isInstructor = comment.user?.role === "lecturer" || !comment.user?.role; // Assume lecturer or mock if undefined for UI test
-
-  // Safely grab names
-  const name = comment.user?.name || "Student";
-  const _handle = generateHandle(name);
-  
-  // Format content to highlight @mentions
-  const renderContent = (content) => {
-    if (!content.startsWith("@")) return content;
-    const parts = content.split(" ");
-    return (
-      <>
-        <span className="text-blue-400 font-bold mr-1">{parts[0]}</span>
-        {parts.slice(1).join(" ")}
-      </>
-    );
-  };
-
-  // Upvote mock state
-  const [upvotes, setUpvotes] = useState(comment.likes?.length || Math.floor(Math.random() * 20));
-  const [voted, setVoted] = useState(false);
-  const handleVote = () => { if(!voted) { setUpvotes(u=>u+1); setVoted(true); } else { setUpvotes(u=>u-1); setVoted(false); } };
+function CommentBubble({ comment }) {
+  const isInstructor = comment.user?.role === "lecturer";
 
   return (
-    <div className="flex gap-4">
-      <div className="w-10 h-10 rounded-full bg-white/5 shrink-0 overflow-hidden border border-border flex items-center justify-center">
-        {comment.user?.profilePicture ? (
-          <img src={comment.user.profilePicture} className="w-full h-full object-cover" />
-        ) : (
-          <UserIcon size={16} className="text-muted-foreground" />
-        )}
+    <div className="flex gap-3">
+      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+        <User size={14} className="text-muted-foreground" />
       </div>
-
       <div className="flex-1">
-         <div className="flex items-center gap-3 mb-1.5">
-            <span className="text-sm font-bold text-foreground leading-none">{name}</span>
-            {isInstructor && (
-               <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 uppercase tracking-wider text-[9px] font-black rounded-sm border border-blue-500/20">
-                 Instructor
-               </span>
-            )}
-            <span className="text-[11px] font-medium text-muted-foreground">
-               {new Date(comment.createdAt || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-sm font-medium">{comment.user?.name || "Student"}</span>
+          {isInstructor && (
+            <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded">
+              Instructor
             </span>
-         </div>
-         
-         <div className={`text-[14px] leading-relaxed mb-3 ${
-            isInstructor 
-              ? "bg-card p-4 rounded-xl rounded-tl-none border border-blue-500/10 text-muted-foreground italic" 
-              : "text-neutral-300"
-         }`}>
-            "{renderContent(comment.content)}"
-         </div>
-
-         {isInstructor && (
-            <div className="flex items-center gap-2 mb-3">
-               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-600/10 rounded-md border border-blue-500/20">
-                  <div className="w-3 h-3 rounded-full bg-blue-500 flex items-center justify-center">
-                     <svg className="w-2 h-2 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  </div>
-                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Certified Answer</span>
-               </div>
-            </div>
-         )}
-         
-         <div className="flex items-center gap-4">
-            <button 
-              onClick={handleVote} 
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
-                 voted ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-muted-foreground hover:bg-accent"
-              }`}
-            >
-               ↑ {upvotes}
-            </button>
-            <button onClick={onReply} className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors">
-               Reply
-            </button>
-         </div>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {new Date(comment.createdAt || new Date().toISOString()).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        </div>
+        <p
+          className={`text-sm ${
+            isInstructor ? "italic text-muted-foreground" : ""
+          }`}
+        >
+          {comment.content}
+        </p>
       </div>
     </div>
   );

@@ -149,8 +149,8 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 flex flex-col items-center">
-      <div className="w-full max-w-3xl bg-card backdrop-blur-3xl p-8 sm:p-10 rounded-[32px] border border-border shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen bg-background p-4 md:p-6 flex flex-col items-center">
+      <div className="w-full max-w-3xl bg-card backdrop-blur-3xl p-4 md:p-8 sm:p-10 rounded-2xl md:rounded-[32px] border border-border shadow-xl md:shadow-2xl relative overflow-hidden">
         {/* Abstract Background Glows */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -z-10" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] -z-10" />
@@ -161,7 +161,7 @@ export default function Profile() {
           {/* Avatar with Photo Upload */}
           <div className="flex-shrink-0 relative">
             <div 
-              className="w-28 h-28 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 rounded-full flex items-center justify-center p-1 shadow-2xl cursor-pointer hover:opacity-90 transition-opacity"
+              className="w-28 h-28 bg-blue-600 rounded-full flex items-center justify-center p-1 shadow-xl cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => fileInputRef.current?.click()}
             >
               {user.profilePicture ? (
