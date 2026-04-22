@@ -10,6 +10,18 @@ const copilotService = {
     }
   },
 
+  askAnnouncement: async (question, context = {}) => {
+    try {
+      const response = await apiClient.post('/copilot/ask-announcement', {
+        question,
+        ...context
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to get AI response');
+    }
+  },
+
   generateDigest: async (period = 'weekly') => {
     try {
       const response = await apiClient.get('/notifications/digest', { params: { period } });

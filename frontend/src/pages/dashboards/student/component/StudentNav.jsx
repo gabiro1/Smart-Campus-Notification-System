@@ -26,10 +26,10 @@ const managementItems = [
   { icon: Sparkles, label: "Events", path: "/student/events" },
   { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
   { icon: Clock, label: "Reminders", path: "/student/reminders" },
+  { icon: Bell, label: "Notifications", path: "/student/notifications" },
 ];
 
 const systemItems = [
-  { icon: Bell, label: "Notifications", path: "/student/notifications" },
   { icon: Settings, label: "Settings", path: "/student/settings" },
 ];
 

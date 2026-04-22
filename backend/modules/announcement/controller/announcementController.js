@@ -1,8 +1,6 @@
 import Announcement from "../model/Announcement.js";
 import Course from "../../course/model/Course.js";
 import User from "../../user/model/User.js";
-// 🔧 FIX 1: The missing import that caused the silent crash.
-// (Adjust the relative path if your folder structure differs slightly)
 import NotificationLog from "../../notification/models/NotificationLog.js";
 import fs from "fs/promises";
 import path from "path";
@@ -12,6 +10,7 @@ import { getPersonalizedContentBatch } from "../../../services/aiPersonalization
 import { shouldSendNow } from "../../../utils/quietHours.js";
 import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
 import { ensureCachedTranslation } from "../../../services/translationService.js";
+import { chat } from "../../../services/aiProvider.js";
 
 // ==========================================
 // 1. CREATE ANNOUNCEMENT (The Engine)
@@ -586,8 +585,283 @@ export const rescheduleAnnouncement = async (req, res) => {
       message: "Announcement rescheduled successfully",
       data: announcement
     });
-  } catch (error) {
+} catch (error) {
     console.error("Reschedule Announcement Error:", error);
-    res.status(500).json({ success: false, message: "Failed to reschedule announcement" });
+    res.status(500).json({ success: false, message: 'Failed to reschedule announcement' });
+  }
+};
+
+// ==========================================
+// 9. Q&A: Ask Question (Student)
+// ==========================================
+export const askQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: 'Question content is required' });
+    }
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Announcement not found' });
+    }
+
+    const student = await User.findById(req.user._id).select('name profilePicture');
+    const initials = student.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+    const newQuestion = {
+      user: req.user._id,
+      content: content.trim(),
+      isResolved: false,
+      replies: []
+    };
+
+    announcement.qa.push(newQuestion);
+    await announcement.save();
+    await announcement.populate('qa.user', 'name profilePicture role');
+
+    const savedQuestion = announcement.qa[announcement.qa.length - 1];
+
+    res.status(201).json({
+      success: true,
+      message: 'Question added',
+      question: {
+        id: savedQuestion._id,
+        type: 'student',
+        user: { name: student.name, initials },
+        text: content.trim(),
+        timestamp: savedQuestion.createdAt,
+        replies: []
+      }
+    });
+  } catch (error) {
+    console.error('Ask Question Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to add question' });
+  }
+};
+
+// ==========================================
+// 10. Q&A: AI Answer (Auto-generate)
+// ==========================================
+export const getAIAnswer = async (req, res) => {
+  try {
+    const { id, questionId } = req.params;
+    
+    const announcement = await Announcement.findById(id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Announcement not found' });
+    }
+
+    const question = announcement.qa.id(questionId);
+    if (!question) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    const course = await Course.findById(announcement.course).select('name code');
+    const lecturer = await User.findById(announcement.lecturer).select('name title');
+
+    const systemPrompt = `You are "UniNotify AI", the official academic assistant for a smart campus notification system.
+You help students understand announcements from their lecturers.
+
+ANNOUNCEMENT DETAILS:
+Title: ${announcement.title}
+Course: ${course?.code || 'General'} - ${course?.name || ''}
+Content: ${announcement.content}
+Posted by: ${lecturer?.title || 'Professor'} ${lecturer?.name || 'Unknown'}
+
+INSTRUCTIONS:
+1. Answer the student's question based ONLY on the announcement content provided above.
+2. If the answer cannot be found in the announcement, politely say so and suggest checking other sources or contacting the lecturer.
+3. Be helpful, clear, and concise. Keep response under 4 sentences.
+4. Use a friendly, professional tone.
+5. Do NOT make up information that is not in the announcement.`;
+
+    let aiReply;
+    try {
+      aiReply = await chat({
+        systemPrompt,
+        userMessage: question.content,
+        tier: 'FAST',
+        maxTokens: 300,
+        temperature: 0.4,
+      });
+    } catch (err) {
+      console.error('[AI Answer] Error:', err.message);
+      aiReply = "I'm currently unavailable. Please check the notice board or contact your lecturer for more details.";
+    }
+
+    const aiReplyData = {
+      type: 'ai',
+      content: aiReply,
+      createdAt: new Date()
+    };
+
+    question.replies.push(aiReplyData);
+    await announcement.save();
+
+    res.status(200).json({
+      success: true,
+      reply: {
+        id: aiReplyData._id,
+        type: 'ai',
+        user: { name: 'AI Copilot', initials: 'AI' },
+        text: aiReply,
+        timestamp: aiReplyData.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('AI Answer Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get AI answer' });
+  }
+};
+
+// ==========================================
+// 11. Q&A: Lecturer Answer
+// ==========================================
+export const addLecturerReply = async (req, res) => {
+  try {
+    const { id, questionId } = req.params;
+    const { content } = req.body;
+    
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: 'Reply content is required' });
+    }
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Announcement not found' });
+    }
+
+    if (announcement.lecturer.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Only the lecturer can answer' });
+    }
+
+    const question = announcement.qa.id(questionId);
+    if (!question) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    const lecturer = await User.findById(req.user._id).select('name title role');
+    const initials = lecturer.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+    const replyData = {
+      type: 'lecturer',
+      user: req.user._id,
+      content: content.trim(),
+      createdAt: new Date()
+    };
+
+    question.replies.push(replyData);
+    question.isResolved = true;
+    await announcement.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Reply added',
+      reply: {
+        id: replyData._id,
+        type: 'lecturer',
+        user: { name: lecturer.name, initials, title: lecturer.title },
+        text: content.trim(),
+        timestamp: replyData.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Add Lecturer Reply Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to add reply' });
+  }
+};
+
+// ==========================================
+// 12. Q&A: Edit Question (Student)
+// ==========================================
+export const editQuestion = async (req, res) => {
+  try {
+    const { id, questionId } = req.params;
+    const { content } = req.body;
+    
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: 'Content is required' });
+    }
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Announcement not found' });
+    }
+
+    const question = announcement.qa.id(questionId);
+    if (!question) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    if (question.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'You can only edit your own questions' });
+    }
+
+    question.content = content.trim();
+    await announcement.save();
+    await announcement.populate('qa.user', 'name profilePicture role');
+
+    const updatedQuestion = announcement.qa.id(questionId);
+    res.status(200).json({
+      success: true,
+      message: 'Question updated',
+      question: updatedQuestion
+    });
+  } catch (error) {
+    console.error('Edit Question Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to edit question' });
+  }
+};
+
+// ==========================================
+// 13. Q&A: Delete Question (Student)
+// ==========================================
+export const deleteQuestion = async (req, res) => {
+  try {
+    const { id, questionId } = req.params;
+    
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: 'Announcement not found' });
+    }
+
+    const question = announcement.qa.id(questionId);
+    if (!question) {
+      return res.status(404).json({ success: false, message: 'Question not found' });
+    }
+
+    if (question.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own questions' });
+    }
+
+    announcement.qa.pull(questionId);
+    await announcement.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Question deleted'
+    });
+  } catch (error) {
+    console.error('Delete Question Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete question' });
   }
 };

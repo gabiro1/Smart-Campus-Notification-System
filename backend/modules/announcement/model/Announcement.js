@@ -1,5 +1,19 @@
 import mongoose from "mongoose";
 
+const replySchema = new mongoose.Schema({
+  type: { type: String, enum: ["ai", "lecturer"], required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  content: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const qaSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  content: { type: String, required: true },
+  isResolved: { type: Boolean, default: false },
+  replies: [replySchema]
+}, { timestamps: true });
+
 const commentSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   content: { type: String, required: true },
@@ -18,14 +32,12 @@ const announcementSchema = new mongoose.Schema({
     default: "General"
   },
 
-  // ---> THE NEW UPGRADE: Lifecycle Status <---
   status: {
     type: String,
     enum: ["Draft", "Scheduled", "Active", "Archived"],
-    default: "Active" // By default, new posts go live immediately unless scheduled
+    default: "Active"
   },
 
-  // Scheduling: If set, announcement will be automatically dispatched at this time
   scheduledAt: {
     type: Date,
     default: null
@@ -33,10 +45,9 @@ const announcementSchema = new mongoose.Schema({
 
   attachments: [{ type: String }],
   comments: [commentSchema],
+  qa: [qaSchema],
   viewedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-  // AI Classification metadata (non-breaking addition)
-  // Stores results from classifyNotification() for analytics/debugging
   aiMetadata: {
     priority: { type: String, enum: ['low', 'medium', 'high'], default: null },
     tags: [{ type: String }],
@@ -47,36 +58,21 @@ const announcementSchema = new mongoose.Schema({
     classifiedAt: { type: Date, default: Date.now }
   },
 
-  // EMERGENCY BROADCAST: Requires user acknowledgment
   requiresAcknowledgment: {
     type: Boolean,
     default: false
   },
 
-  // KINYARWANDA TRANSLATION CACHING
-  // Stores AI-translated version to avoid re-translating for each student
-  titleRw: {
-    type: String,
-    default: null
-  },
-  bodyRw: {
-    type: String,
-    default: null
-  },
-
-  // Metadata: when was the translation last updated?
-  translatedAt: {
-    type: Date,
-    default: null
-  }
+  titleRw: { type: String, default: null },
+  bodyRw: { type: String, default: null },
+  translatedAt: { type: Date, default: null }
 }, { timestamps: true });
 
-// Text indexes for natural language search
 announcementSchema.index({ title: 'text', content: 'text' });
 announcementSchema.index({
   title: 'text',
   content: 'text',
-  'course.code': 1, // for filtering by course
+  'course.code': 1,
   createdAt: -1
 });
 

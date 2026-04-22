@@ -1,6 +1,8 @@
 import Class from "../model/Class.js";
 import User from "../../user/model/User.js"; 
 import Department from "../../department/model/Department.js";
+import School from "../../school/model/School.js";
+import College from "../../college/model/College.js";
 
 // ==========================================
 // 1. HOD / ADMINISTRATIVE FUNCTIONS
@@ -340,7 +342,7 @@ export const assignStudentToClass = async (req, res) => {
     const { classId } = req.params;
     const { studentId } = req.body;
 
-    const classItem = await Class.findById(classId);
+    const classItem = await Class.findById(classId).populate('department');
     if (!classItem) {
       return res.status(404).json({ message: "Class not found" });
     }
@@ -358,10 +360,32 @@ export const assignStudentToClass = async (req, res) => {
       return res.status(400).json({ message: "Student already enrolled in this class" });
     }
 
+    // Get hierarchical info from class -> department -> school -> college
+    const department = classItem.department;
+    const school = department?.school ? await School.findById(department.school).populate('college') : null;
+    const college = school?.college ? await College.findById(school.college) : null;
+
+    // Update student with hierarchical info
+    student.department = department?._id;
+    student.school = school?._id;
+    student.college = college?._id;
+    student.level = classItem.level;
+    student.classId = classItem._id;
+    await student.save();
+
     classItem.students.push(studentId);
     await classItem.save();
 
-    res.status(200).json({ message: "Student assigned to class successfully", class: classItem });
+    res.status(200).json({ 
+      message: "Student assigned to class successfully",
+      class: classItem,
+      student: {
+        department: department?.name,
+        school: school?.name,
+        college: college?.name,
+        level: classItem.level
+      }
+    });
   } catch (error) {
     console.error("Assign Student Error:", error);
     res.status(500).json({ message: "Failed to assign student to class." });

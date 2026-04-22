@@ -130,3 +130,65 @@ INSTRUCTIONS:
     });
   }
 };
+
+export const askAnnouncementQuestion = async (req, res) => {
+  try {
+    const { question, announcementTitle, announcementContent, course } = req.body;
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized: please login.',
+      });
+    }
+
+    if (!question || !question.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Question is required.',
+      });
+    }
+
+    const systemPrompt = `You are "UniNotify AI", the official academic assistant for a smart campus notification system.
+You help students understand announcements from their lecturers.
+
+ANNOUNCEMENT DETAILS:
+Title: ${announcementTitle || 'N/A'}
+Course: ${course || 'General'}
+Content: ${announcementContent || 'N/A'}
+
+INSTRUCTIONS:
+1. Answer the student's question based ONLY on the announcement content provided above.
+2. If the answer cannot be found in the announcement, politely say so and suggest checking other sources or contacting the lecturer.
+3. Be helpful, clear, and concise. Keep response under 4 sentences.
+4. Use a friendly, professional tone.
+5. Do NOT make up information that is not in the announcement.`;
+
+    let aiReply;
+    try {
+      aiReply = await chat({
+        systemPrompt,
+        userMessage: question.trim(),
+        tier: 'FAST',
+        maxTokens: 300,
+        temperature: 0.4,
+      });
+    } catch (err) {
+      console.error('[Copilot] AI error:', err.message);
+      aiReply = "I'm currently unavailable. Please check the notice board or contact your lecturer for more details.";
+    }
+
+    return res.status(200).json({
+      success: true,
+      reply: aiReply,
+    });
+
+  } catch (error) {
+    console.error('[Copilot] Unexpected error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process your request. Please try again later.',
+    });
+  }
+};
