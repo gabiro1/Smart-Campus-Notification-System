@@ -10,21 +10,30 @@ const ReminderSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  note: String, // Changed from description to note to match Frontend
-  dueDate: {    // Changed from deadline to dueDate to match Frontend
+  note: String,
+  dueDate: {
     type: Date,
     required: true
   },
   priority: {
     type: String,
-    enum: ["Low", "Medium", "High"], // Changed to match Frontend capitalization
-    default: "Low"
+    enum: ["low", "medium", "high"],
+    default: "medium"
+  },
+  category: {
+    type: String,
+    enum: ["general", "event", "academic", "assignment", "exam", "personal"],
+    default: "general"
+  },
+  referenceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    refPath: "category"
   },
   completed: {
     type: Boolean,
     default: false
   },
-  notified: { // Matches the notification tracking in your Frontend useEffect
+  notified: {
     type: Boolean,
     default: false
   }

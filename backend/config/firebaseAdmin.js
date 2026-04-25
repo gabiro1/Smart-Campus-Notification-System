@@ -4,7 +4,7 @@ import admin from 'firebase-admin';
 
 // 1. Resolve the path to your Firebase service account JSON file
 const serviceAccountPath = path.resolve(
-  './config/FirebaseServc/smart-campus-notification-firebase-adminsdk-fbsvc-a5e6cb3afb.json'
+  './config/FirebaseServc/smart-campus-notification-firebase-adminsdk-fbsvc-2356ba83b6.json'
 );
 
 const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));

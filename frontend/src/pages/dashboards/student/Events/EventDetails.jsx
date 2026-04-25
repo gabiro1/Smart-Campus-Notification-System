@@ -48,6 +48,7 @@ export default function EventDetails() {
       try {
         const response = await apiClient.get(`/events/${eventId}`);
         const eventData = response.data;
+        console.log("Event data from API:", eventData);
         setEvent(eventData);
         
         // Check if user already checked in
@@ -94,21 +95,36 @@ export default function EventDetails() {
     try {
       const response = await apiClient.post(`/events/${eventId}/rate`, { rating: star });
       const data = response.data;
+      console.log("Rating response:", data);
       
-      // Update local rating state
       setUserRating(star);
       
-      // Update event with new rating in the list
-      if (event) {
+      if (data.ratings) {
+        setEvent({ 
+          ...event, 
+          ratings: data.ratings,
+          avgRating: data.avgRating,
+          ratingCount: data.ratingCount
+        });
+      } else if (event) {
         const updatedRatings = [
           ...(event.ratings || []).filter(r => r.studentId?.toString() !== user?._id?.toString()),
           { studentId: user?._id, rating: star }
         ];
-        setEvent({ ...event, ratings: updatedRatings });
+        const newAvgRating = updatedRatings.length > 0
+          ? parseFloat((updatedRatings.reduce((s, r) => s + (r.rating || 0), 0) / updatedRatings.length).toFixed(1))
+          : 0;
+        setEvent({ 
+          ...event, 
+          ratings: updatedRatings,
+          avgRating: newAvgRating,
+          ratingCount: updatedRatings.length
+        });
       }
       
       toast.success(data.message || "Rating submitted!");
     } catch (err) {
+      console.error("Rating error:", err);
       toast.error(err.response?.data?.message || "Rating failed");
     }
   };
@@ -338,11 +354,9 @@ export default function EventDetails() {
                     </button>
                   ))}
                 </div>
-                {event.ratings?.length > 0 && (
-                  <p className="text-[10px] text-center text-muted-foreground mt-2 font-bold">
-                    {(event.ratings.reduce((s, r) => s + (r.rating || 0), 0) / event.ratings.length).toFixed(1)} / 5 ({event.ratings.length} {event.ratings.length === 1 ? 'rating' : 'ratings'})
-                  </p>
-                )}
+                <p className="text-[10px] text-center text-muted-foreground mt-2 font-bold">
+                  {event.avgRating || 0} / 5 ({event.ratingCount || 0} ratings)
+                </p>
                 {userRating > 0 && (
                   <p className="text-[10px] text-center text-emerald-400 mt-1 font-medium">
                     Thanks for rating!

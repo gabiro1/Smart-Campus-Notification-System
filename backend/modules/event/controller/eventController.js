@@ -446,39 +446,52 @@ export const rateEvent = async (req, res) => {
       return res.status(400).json({ message: "Rating must be 1–5" });
 
     const event = await Event.findById(req.params.id);
-    const user = await User.findById(req.user.id);
-
     if (!event) return res.status(404).json({ message: "Event not found" });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(401).json({ message: "User not found" });
+
+    const userIdStr = req.user.id.toString();
+    console.log("Rate event - userId:", userIdStr, "type:", typeof req.user.id);
+    console.log("Rate event - existing ratings before:", JSON.stringify(event.ratings));
 
     // Check if user already rated this event
     const existingRatingIndex = event.ratings.findIndex(
-      r => r.studentId?.toString() === user._id.toString()
+      r => r.studentId?.toString() === userIdStr
     );
 
     if (existingRatingIndex !== -1) {
-      // Update existing rating
+      console.log("Updating existing rating at index:", existingRatingIndex);
       event.ratings[existingRatingIndex].rating = rating;
       event.markModified('ratings');
     } else {
-      // Add new rating
-      event.ratings.push({ studentId: user._id, rating });
+      console.log("Adding new rating for user:", userIdStr);
+      event.ratings.push({ studentId: req.user.id, rating });
+      event.markModified('ratings');
     }
-    await event.save();
 
-    // Update user's interest weights based on rating
-    const adjustment = rating >= 4 ? 2 : rating <= 2 ? -2 : 0;
-    if (event.tags && event.tags.length > 0) {
-      event.tags.forEach((tag) => {
-        if (!user.interestWeights) user.interestWeights = new Map();
-        const currentWeight = user.interestWeights.get(tag) || 0;
-        user.interestWeights.set(tag, Math.max(0, currentWeight + adjustment));
-      });
-      await user.save();
+    await event.save();
+    console.log("Event saved, ratings now:", JSON.stringify(event.ratings));
+
+    // Update user's interest weights based on rating (simplified)
+    try {
+      const adjustment = rating >= 4 ? 2 : rating <= 2 ? -2 : 0;
+      if (event.tags && event.tags.length > 0 && adjustment !== 0) {
+        const currentWeights = user.interestWeights?.toJSON() || {};
+        event.tags.forEach((tag) => {
+          const currentWeight = currentWeights[tag] || 0;
+          currentWeights[tag] = Math.max(0, currentWeight + adjustment);
+        });
+        user.interestWeights = currentWeights;
+        await user.save();
+      }
+    } catch (weightError) {
+      console.error("Interest weight update failed:", weightError);
     }
 
     // Calculate updated stats
     const avgRating = event.ratings.length > 0
-      ? parseFloat((event.ratings.reduce((sum, r) => sum + r.rating, 0) / event.ratings.length).toFixed(1))
+      ? parseFloat((event.ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / event.ratings.length).toFixed(1))
       : 0;
 
     res.json({ 
@@ -486,17 +499,18 @@ export const rateEvent = async (req, res) => {
       message: existingRatingIndex !== -1 ? "Rating updated!" : "Rating submitted!",
       avgRating,
       ratingCount: event.ratings.length,
-      userRating: rating
+      userRating: rating,
+      ratings: event.ratings
     });
   } catch (error) {
-    console.error(error);
+    console.error("Rate event error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
 /* =========================================================
    UPDATE EVENT
-========================================================= */
+ ========================================================= */
 export const updateEvent = async (req, res) => {
   try {
     // Fetch the existing event first to compare
@@ -603,6 +617,7 @@ export const getEventDetails = async (req, res) => {
       avgRating,
       ratingCount: event.ratings.length,
       userMatchScore: matchScore,
+      ratings: event.ratings
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

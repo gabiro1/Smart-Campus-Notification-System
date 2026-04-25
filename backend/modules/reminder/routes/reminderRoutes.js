@@ -6,6 +6,8 @@ import {
   updateReminder,
   deleteReminder,
   getDueReminders,
+  completeReminder,
+  uncompleteReminder,
 
 } from '../controller/reminderController.js';
 import { protect } from '../../../middleware/authMiddleware.js';
@@ -25,13 +27,6 @@ router.get('/', protect, getReminders);
  */
 router.get('/due', protect, getDueReminders);
 
-
-// /**
-//  * @route   GET /api/reminders/:id
-//  * @desc    Get a single reminder details
-//  * @access  Private
-//  */
-// router.get('/:id', protect, getReminderDetails);
 
 /**
  * @route   POST /api/reminders
@@ -53,6 +48,20 @@ router.put('/:id', protect, validateBody(schemas.reminderUpdate), updateReminder
  * @access  Private
  */
 router.delete('/:id', protect, deleteReminder);
+
+/**
+ * @route   POST /api/reminders/:id/complete
+ * @desc    Mark reminder as complete
+ * @access  Private
+ */
+router.post('/:id/complete', protect, completeReminder);
+
+/**
+ * @route   POST /api/reminders/:id/uncomplete
+ * @desc    Mark reminder as incomplete
+ * @access  Private
+ */
+router.post('/:id/uncomplete', protect, uncompleteReminder);
 
 
 export default router;

@@ -37,20 +37,20 @@ export const getReminders = async (req, res) => {
  */
 export const createReminder = async (req, res) => {
   try {
-    const { title, note, dueDate, priority, category } = req.body;
+    const { title, note, dueDate, priority, category, referenceId } = req.body;
 
-    // Basic Validation
     if (!title || !dueDate) {
       return res.status(400).json({ message: "Title and due date are required" });
     }
 
     const reminder = new Reminder({
-      studentId: req.user.id, // Linked to the authenticated user
+      studentId: req.user.id,
       title,
       note,
       dueDate: new Date(dueDate),
-      priority: priority || "Low",
-      category: category || "General",
+      priority: priority || "medium",
+      category: category || "general",
+      referenceId,
     });
 
     await reminder.save();
@@ -136,6 +136,26 @@ export const completeReminder = async (req, res) => {
     const reminder = await Reminder.findOneAndUpdate(
       { _id: req.params.id, studentId: req.user.id },
       { completed: true },
+      { new: true }
+    );
+
+    if (!reminder) return res.status(404).json({ message: "Task not found" });
+
+    res.status(200).json({ success: true, reminder });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Mark reminder as incomplete
+ * @route   POST /api/reminders/:id/uncomplete
+ */
+export const uncompleteReminder = async (req, res) => {
+  try {
+    const reminder = await Reminder.findOneAndUpdate(
+      { _id: req.params.id, studentId: req.user.id },
+      { completed: false },
       { new: true }
     );
 

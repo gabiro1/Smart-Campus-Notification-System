@@ -179,8 +179,9 @@ const RemindersTab = () => {
       setLoading(true);
       const data = await reminderService.getReminders();
       const organized = { High: [], Medium: [], Low: [] };
-      data.reminders.forEach((rem) => {
-        if (organized[rem.priority]) organized[rem.priority].push(rem);
+      (data.reminders || []).forEach((rem) => {
+        const priority = rem.priority?.charAt(0).toUpperCase() + rem.priority?.slice(1).toLowerCase() || "Low";
+        if (organized[priority]) organized[priority].push(rem);
       });
       setColumns(organized);
     } catch {
@@ -211,9 +212,8 @@ const RemindersTab = () => {
     setColumns(newCols);
 
     try {
-      await reminderService.updateReminder(draggableId, {
-        priority: destination.droppableId,
-      });
+      const priority = destination.droppableId.toLowerCase();
+      await reminderService.updateReminder(draggableId, { priority });
       if (source.droppableId !== destination.droppableId)
         toast.success(`Moved to ${destination.droppableId}`);
     } catch {
@@ -229,11 +229,13 @@ const RemindersTab = () => {
       return toast.error("Title and Date are required");
 
     try {
-      const response = await reminderService.createReminder(newReminder);
+      const priority = newReminder.priority?.toLowerCase() || "low";
+      const response = await reminderService.createReminder({ ...newReminder, priority });
       const savedTask = response.reminder;
+      const savedPriority = savedTask.priority?.charAt(0).toUpperCase() + savedTask.priority?.slice(1).toLowerCase() || "Low";
       setColumns((prev) => ({
         ...prev,
-        [savedTask.priority]: [savedTask, ...prev[savedTask.priority]],
+        [savedPriority]: [savedTask, ...prev[savedPriority]],
       }));
       setIsModalOpen(false);
       setNewReminder({ title: "", note: "", dueDate: "", priority: "Low" });

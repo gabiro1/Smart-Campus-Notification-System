@@ -198,15 +198,17 @@ export const reminderCreationSchema = Joi.object({
   title: Joi.string().trim().min(1).max(200).required(),
   note: Joi.string().optional().allow('').max(1000),
   dueDate: Joi.date().iso().required(),
-  priority: Joi.string().valid('Low', 'Medium', 'High').optional().default('Low'),
-  category: Joi.string().optional().allow('').max(50)
+  priority: Joi.string().valid('low', 'medium', 'high').optional().default('medium'),
+  category: Joi.string().valid('general', 'event', 'academic', 'assignment', 'exam', 'personal').optional().default('general'),
+  referenceId: Joi.string().optional()
 });
 
 export const reminderUpdateSchema = Joi.object({
   title: Joi.string().trim().min(1).max(200).optional(),
   note: Joi.string().optional().allow('').max(1000),
   dueDate: Joi.date().iso().optional(),
-  priority: Joi.string().valid('Low', 'Medium', 'High').optional(),
+  priority: Joi.string().valid('low', 'medium', 'high').optional(),
+  category: Joi.string().valid('general', 'event', 'academic', 'assignment', 'exam', 'personal').optional(),
   completed: Joi.boolean().optional()
 });
 
