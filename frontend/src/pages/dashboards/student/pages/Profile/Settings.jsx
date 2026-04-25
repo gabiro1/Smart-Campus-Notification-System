@@ -142,17 +142,17 @@ export default function Settings() {
     try {
       setLoading(true);
       const data = await authService.getCurrentUser();
-      if (data.success && data.user) {
-        setUser(data.user);
-        if (data.user.notificationPreferences) {
-          setPreferences(data.user.notificationPreferences);
+      const userData = data.data || data.user;
+      if (data.success && userData) {
+        setUser(userData);
+        if (userData.notificationPreferences) {
+          setSettings(prev => ({ ...prev, ...userData.notificationPreferences }));
         }
-        // Quiet Hours
-        if (data.user.quietHours?.startTime && data.user.quietHours?.endTime) {
+        if (userData.quietHours?.startTime && userData.quietHours?.endTime) {
           setQuietHoursEnabled(true);
           setQuietHours({
-            startTime: data.user.quietHours.startTime,
-            endTime: data.user.quietHours.endTime
+            startTime: userData.quietHours.startTime,
+            endTime: userData.quietHours.endTime
           });
         }
       }
@@ -378,6 +378,50 @@ export default function Settings() {
                         className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-muted-foreground cursor-not-allowed capitalize"
                       />
                     </div>
+                    {user?.studentID && (
+                      <div>
+                        <label className="text-xs text-muted-foreground uppercase">Student ID</label>
+                        <input
+                          type="text"
+                          defaultValue={user.studentID}
+                          disabled
+                          className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-muted-foreground cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    {user?.department?.name && (
+                      <div>
+                        <label className="text-xs text-muted-foreground uppercase">Department</label>
+                        <input
+                          type="text"
+                          defaultValue={user.department.name}
+                          disabled
+                          className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-muted-foreground cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    {user?.school?.name && (
+                      <div>
+                        <label className="text-xs text-muted-foreground uppercase">School</label>
+                        <input
+                          type="text"
+                          defaultValue={user.school.name}
+                          disabled
+                          className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-muted-foreground cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    {user?.college?.name && (
+                      <div>
+                        <label className="text-xs text-muted-foreground uppercase">College</label>
+                        <input
+                          type="text"
+                          defaultValue={user.college.name}
+                          disabled
+                          className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-muted-foreground cursor-not-allowed"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4 border-t border-border">
@@ -401,9 +445,7 @@ export default function Settings() {
                       </div>
                     </div>
                   </div>
-
-                  
-                </div>
+</div>
               </GlassCard>
             </motion.div>
           )}
@@ -680,16 +722,14 @@ export default function Settings() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-accent/50 rounded-xl">
                     <div>
-                      <h4 className="font-medium text-foreground">Delete Account</h4>
-                      <p className="text-sm text-muted-foreground">Permanently remove your account</p>
+                      <h4 className="font-medium text-foreground">Profile Visibility</h4>
+                      <p className="text-sm text-muted-foreground">Control who can see your profile</p>
                     </div>
-                    <button
-                      onClick={() => setShowDeleteModal(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-foreground text-sm font-bold rounded-lg transition-colors"
-                    >
-                      <Trash2 size={16} />
-                      Delete
-                    </button>
+                    <select className="bg-accent border border-border rounded-lg px-3 py-2 text-foreground text-sm">
+                      <option value="students">Students Only</option>
+                      <option value="staff">Staff Only</option>
+                      <option value="everyone">Everyone</option>
+                    </select>
                   </div>
                 </div>
               </GlassCard>
