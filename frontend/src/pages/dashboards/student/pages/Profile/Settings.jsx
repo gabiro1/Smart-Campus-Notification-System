@@ -54,6 +54,13 @@ export default function Settings() {
   });
   const [changingPassword, setChangingPassword] = useState(false);
   
+  // Profile form state
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    email: "",
+    phoneNumber: ""
+  });
+  
   // Delete Account Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
@@ -78,14 +85,29 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Update profile first
+      await authService.updateProfile({
+        name: profileForm.name,
+        phoneNumber: profileForm.phoneNumber
+      });
+      
+      // Update notification preferences
       await authService.updateNotificationPreferences(settings);
+      
+      // Update theme if changed
       if (settings.theme === "dark" && !isDarkMode) {
         toggleTheme();
       } else if (settings.theme === "light" && isDarkMode) {
         toggleTheme();
       }
+      
+      // Update localStorage
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('user', JSON.stringify({ ...storedUser, ...profileForm }));
+      
       toast.success("Settings saved successfully");
-    } catch {
+    } catch (error) {
+      console.error("Save error:", error);
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);
@@ -141,10 +163,17 @@ export default function Settings() {
   const loadPreferences = async () => {
     try {
       setLoading(true);
-      const data = await authService.getCurrentUser();
-      const userData = data.data || data.user;
-      if (data.success && userData) {
+      const response = await authService.getCurrentUser();
+      console.log("Profile response:", response);
+      
+      const userData = response.data || response.user || response;
+      if (userData && (userData.name || userData.email)) {
         setUser(userData);
+        setProfileForm({
+          name: userData.name || "",
+          email: userData.email || "",
+          phoneNumber: userData.phoneNumber || ""
+        });
         if (userData.notificationPreferences) {
           setSettings(prev => ({ ...prev, ...userData.notificationPreferences }));
         }
@@ -155,10 +184,28 @@ export default function Settings() {
             endTime: userData.quietHours.endTime
           });
         }
+      } else {
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (storedUser.name) {
+          setUser(storedUser);
+          setProfileForm({
+            name: storedUser.name || "",
+            email: storedUser.email || "",
+            phoneNumber: storedUser.phoneNumber || ""
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to load preferences:", error);
-      toast.error("Failed to load settings");
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.name) {
+        setUser(storedUser);
+        setProfileForm({
+          name: storedUser.name || "",
+          email: storedUser.email || "",
+          phoneNumber: storedUser.phoneNumber || ""
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -167,14 +214,25 @@ export default function Settings() {
   // Save settings
   const saveSettings = async () => {
     try {
-      await apiClient.put('/users/profile', {
-        quietHours: quietHoursEnabled ? quietHours : { startTime: null, endTime: null },
-        theme: settings.theme,
-        themePreference: settings.theme,
+      setSaving(true);
+      
+      // Update profile if changed
+      const profileResponse = await authService.updateProfile({
+        name: profileForm.name,
+        phoneNumber: profileForm.phoneNumber
       });
-      toast.success("Settings updated!");
+      
+      if (profileResponse.success) {
+        // Update localStorage
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...storedUser, ...profileForm }));
+      }
+      
+      toast.success("Settings saved successfully");
     } catch (error) {
-      toast.error("Failed to update settings");
+      toast.error("Failed to save settings");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -348,7 +406,8 @@ export default function Settings() {
                       <label className="text-xs text-muted-foreground uppercase">Full Name</label>
                       <input
                         type="text"
-                        defaultValue={user?.name || ""}
+                        value={profileForm.name}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
                         className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
                       />
                     </div>
@@ -356,15 +415,17 @@ export default function Settings() {
                       <label className="text-xs text-muted-foreground uppercase">Email</label>
                       <input
                         type="email"
-                        defaultValue={user?.email || ""}
-                        className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
+                        value={profileForm.email}
+                        disabled
+                        className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-muted-foreground cursor-not-allowed"
                       />
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground uppercase">Phone Number</label>
                       <input
                         type="tel"
-                        defaultValue={user?.phoneNumber || ""}
+                        value={profileForm.phoneNumber}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
                         placeholder="+1234567890"
                         className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
                       />
