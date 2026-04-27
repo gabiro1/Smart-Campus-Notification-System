@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Send,
   Type,
@@ -24,6 +24,8 @@ import announcementService from "../../../../services/announcementService";
 
 const LecturerCreateAnnouncement = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
 
   // --- FORM STATE ---
   // CHANGED: targetClass is now courseId
@@ -38,6 +40,11 @@ const LecturerCreateAnnouncement = () => {
   // AI Suggestion State
   const [draftNotes, setDraftNotes] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [paraphraseLoading, setParaphraseLoading] = useState(false);
+
+  // CHANGED: myClasses is now myCourses
+  const [myCourses, setMyCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
 
   // Scheduling UI state
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
@@ -46,12 +53,35 @@ const LecturerCreateAnnouncement = () => {
   const [requiresAcknowledgment, setRequiresAcknowledgment] = useState(false);
 
   const [attachments, setAttachments] = useState([]);
+  const [currentDraftId, setCurrentDraftId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
-  // CHANGED: myClasses is now myCourses
-  const [myCourses, setMyCourses] = useState([]);
-  const [loadingCourses, setLoadingCourses] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // --- FETCH ANNOUNCEMENT FOR EDIT ---
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchAnnouncement = async () => {
+        try {
+          const response = await announcementService.getAnnouncementById(id);
+          if (response.success && response.data) {
+            const ann = response.data;
+            setFormData({
+              title: ann.title || "",
+              content: ann.content || "",
+              courseId: ann.course?._id || "",
+              type: ann.type || "General",
+              scheduledAt: ann.scheduledAt ? new Date(ann.scheduledAt).toISOString().slice(0, 16) : "",
+            });
+            setRequiresAcknowledgment(ann.requiresAcknowledgment || false);
+          }
+        } catch (error) {
+          toast.error("Failed to load announcement");
+          navigate("/lecturer/announcements");
+        }
+      };
+      fetchAnnouncement();
+    }
+  }, [id, isEditMode]);
 
   // --- FETCH LECTURER'S COURSES ---
   useEffect(() => {
@@ -73,6 +103,71 @@ const LecturerCreateAnnouncement = () => {
     };
     fetchMyCourses();
   }, []);
+
+  // --- AUTO-SAVE DRAFT TO LOCALSTORAGE ---
+  const DRAFT_KEY = "announcement_draft";
+  const DRAFT_ID_KEY = "announcement_draft_id";
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(DRAFT_KEY);
+    const savedDraftId = localStorage.getItem(DRAFT_ID_KEY);
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        if (draft.title || draft.content) {
+          setFormData((prev) => ({
+            ...prev,
+            title: draft.title || "",
+            content: draft.content || "",
+            courseId: draft.courseId || "",
+            type: draft.type || "General",
+            scheduledAt: draft.scheduledAt || "",
+          }));
+          setRequiresAcknowledgment(draft.requiresAcknowledgment || false);
+          if (savedDraftId) setCurrentDraftId(savedDraftId);
+          toast.success("Draft restored from previous session");
+        }
+      } catch (e) {
+        console.error("Failed to restore draft", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      if (formData.title || formData.content) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...formData, requiresAcknowledgment }));
+        
+        try {
+          const draftData = new FormData();
+          draftData.append("title", formData.title);
+          draftData.append("content", formData.content);
+          draftData.append("courseId", formData.courseId || "");
+          draftData.append("type", formData.type);
+          draftData.append("requiresAcknowledgment", requiresAcknowledgment.toString());
+          
+          if (currentDraftId) {
+            await announcementService.updateDraft(currentDraftId, draftData);
+          } else {
+            const result = await announcementService.saveDraft(draftData);
+            if (result.data?._id) {
+              setCurrentDraftId(result.data._id);
+              localStorage.setItem(DRAFT_ID_KEY, result.data._id);
+            }
+          }
+        } catch (e) {
+          console.error("Save draft on exit failed:", e);
+        }
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+}, [formData, requiresAcknowledgment, currentDraftId]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(DRAFT_ID_KEY);
+  };
 
   // --- HANDLE INPUT CHANGES ---
   const handleChange = (e) => {
@@ -100,6 +195,29 @@ const LecturerCreateAnnouncement = () => {
       toast.error(msg);
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  // Paraphrase/Improve content handler
+  const handleParaphrase = async () => {
+    if (!formData.content.trim()) {
+      return toast.error("Please enter content to improve.");
+    }
+
+    setParaphraseLoading(true);
+    try {
+      const result = await announcementService.paraphraseContent(formData.content);
+      if (result.success && result.data) {
+        setFormData((prev) => ({ ...prev, content: result.data }));
+        toast.success("Content improved!");
+      } else {
+        throw new Error(result.message || "AI failed to improve content");
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || error.message || "Failed to improve content";
+      toast.error(msg);
+    } finally {
+      setParaphraseLoading(false);
     }
   };
 
@@ -164,6 +282,7 @@ const LecturerCreateAnnouncement = () => {
       await announcementService.createAnnouncement(submitData);
 
       toast.success("Announcement broadcasted successfully!");
+      clearDraft();
 
       // Reset form
       setFormData({ title: "", content: "", courseId: "", type: "General", scheduledAt: "" });
@@ -409,9 +528,25 @@ const LecturerCreateAnnouncement = () => {
                 className="w-full bg-background border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-neutral-600 resize-none"
                 required
               ></textarea>
-              <p className="text-xs text-muted-foreground mt-1.5">
-                Use the AI assistant above to transform rough notes, then edit as needed.
-              </p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-muted-foreground">
+                  Use the AI assistant above to transform rough notes, then edit as needed.
+                </p>
+                {formData.content && (
+                  <button
+                    type="button"
+                    onClick={handleParaphrase}
+                    disabled={paraphraseLoading}
+                    className="text-xs text-primary hover:text-primary/80 font-medium disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {paraphraseLoading ? (
+                      <>Improvesing...</>
+                    ) : (
+                      <>Improve with AI</>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div>

@@ -295,6 +295,58 @@ export const getLecturerAnnouncements = async (req, res) => {
 };
 
 // ==========================================
+// GET LECTURER'S Q&A QUESTIONS
+// ==========================================
+export const getLecturerQuestions = async (req, res) => {
+  try {
+    const lecturerId = req.user._id;
+    
+    // Get all announcements by this lecturer
+    const announcements = await Announcement.find({ lecturer: lecturerId }).select("_id title");
+    
+    if (announcements.length === 0) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+    
+    const announcementIds = announcements.map((a) => a._id);
+    
+    // Get all questions for these announcements
+    const questions = await Announcement.find({
+      _id: { $in: announcementIds },
+      "qa.0": { $exists: true }
+    })
+      .populate("lecturer", "name")
+      .populate("student", "name")
+      .select("title qa")
+      .lean();
+    
+    // Flatten and format questions
+    const questionsData = [];
+    for (const ann of questions) {
+      for (const q of ann.qa || []) {
+        questionsData.push({
+          _id: q._id,
+          content: q.content,
+          student: q.student,
+          replies: q.replies || [],
+          announcement: ann._id,
+          announcementTitle: ann.title,
+          createdAt: q.createdAt,
+        });
+      }
+    }
+    
+    // Sort by date
+    questionsData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    res.status(200).json({ success: true, data: questionsData });
+  } catch (error) {
+    console.error("Fetch Lecturer Questions Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+// ==========================================
 // 3. UPDATE & DELETE ANNOUNCEMENTS
 // ==========================================
 export const updateAnnouncement = async (req, res) => {
@@ -325,6 +377,26 @@ export const updateAnnouncement = async (req, res) => {
   } catch (error) {
     console.error("Update Announcement Error:", error);
     res.status(500).json({ message: "Failed to update broadcast" });
+  }
+};
+
+// ==========================================
+// GET ANNOUNCEMENT BY ID
+// ==========================================
+export const getAnnouncementById = async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id)
+      .populate("course", "name code")
+      .populate("lecturer", "name email");
+    
+    if (!announcement) {
+      return res.status(404).json({ success: false, message: "Announcement not found" });
+    }
+
+    res.status(200).json({ success: true, data: announcement });
+  } catch (error) {
+    console.error("Get Announcement Error:", error);
+    res.status(500).json({ success: false, message: "Failed to get announcement" });
   }
 };
 
@@ -863,5 +935,167 @@ export const deleteQuestion = async (req, res) => {
   } catch (error) {
     console.error('Delete Question Error:', error);
     res.status(500).json({ success: false, message: 'Failed to delete question' });
+  }
+};
+
+// ==========================================
+// SAVE DRAFT ANNOUNCEMENT
+// ==========================================
+export const saveDraft = async (req, res) => {
+  try {
+    const { title, content, courseId, type, requiresAcknowledgment = false } = req.body;
+    const lecturerId = req.user?._id;
+
+    if (!lecturerId) return res.status(401).json({ message: "Unauthorized access" });
+
+    // Validate course if provided
+    if (courseId) {
+      const course = await Course.findById(courseId);
+      if (!course) return res.status(404).json({ message: "Course not found" });
+      if (!course.lecturer.equals(lecturerId)) {
+        return res.status(403).json({ message: "You are not authorized to post in this course" });
+      }
+    }
+
+    // Handle file uploads
+    const attachedFileUrls = [];
+    if (req.files && req.files.length > 0) {
+      const uploadDir = path.join(process.cwd(), "uploads");
+      try {
+        await fs.access(uploadDir);
+      } catch {
+        await fs.mkdir(uploadDir, { recursive: true });
+      }
+
+      for (const file of req.files) {
+        try {
+          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          const ext = path.extname(file.originalname);
+          const filename = `attachment-${uniqueSuffix}${ext}`;
+          const filePath = path.join(uploadDir, filename);
+          await fs.writeFile(filePath, file.buffer);
+          attachedFileUrls.push(`/uploads/${filename}`);
+        } catch (fileErr) {
+          console.error("Attachment Save Error:", fileErr);
+        }
+      }
+    }
+
+    // Create as Draft
+    const newAnnouncement = new Announcement({
+      title: title || "Untitled Draft",
+      content: content || "",
+      lecturer: lecturerId,
+      course: courseId || null,
+      type: type || "General",
+      attachments: attachedFileUrls,
+      status: "Draft",
+      scheduledAt: null,
+      requiresAcknowledgment: requiresAcknowledgment === true || requiresAcknowledgment === 'true'
+    });
+
+    await newAnnouncement.save();
+    
+    res.status(201).json({
+      success: true,
+      message: "Draft saved successfully",
+      data: newAnnouncement
+    });
+  } catch (error) {
+    console.error("Save Draft Error:", error);
+    res.status(500).json({ success: false, message: "Failed to save draft" });
+  }
+};
+
+// ==========================================
+// UPDATE DRAFT ANNOUNCEMENT
+// ==========================================
+export const updateDraft = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, courseId, type, requiresAcknowledgment = false } = req.body;
+    const lecturerId = req.user?._id;
+
+    if (!lecturerId) return res.status(401).json({ message: "Unauthorized access" });
+
+    const announcement = await Announcement.findById(id);
+    if (!announcement) return res.status(404).json({ message: "Draft not found" });
+    
+    if (announcement.lecturer.toString() !== lecturerId.toString()) {
+      return res.status(403).json({ message: "Not authorized to edit this draft" });
+    }
+
+    if (announcement.status !== "Draft") {
+      return res.status(400).json({ message: "Can only update draft announcements" });
+    }
+
+    // Handle file uploads
+    const attachedFileUrls = [...(announcement.attachments || [])];
+    if (req.files && req.files.length > 0) {
+      const uploadDir = path.join(process.cwd(), "uploads");
+      try {
+        await fs.access(uploadDir);
+      } catch {
+        await fs.mkdir(uploadDir, { recursive: true });
+      }
+
+      for (const file of req.files) {
+        try {
+          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          const ext = path.extname(file.originalname);
+          const filename = `attachment-${uniqueSuffix}${ext}`;
+          const filePath = path.join(uploadDir, filename);
+          await fs.writeFile(filePath, file.buffer);
+          attachedFileUrls.push(`/uploads/${filename}`);
+        } catch (fileErr) {
+          console.error("Attachment Save Error:", fileErr);
+        }
+      }
+    }
+
+    announcement.title = title || announcement.title;
+    announcement.content = content || announcement.content;
+    if (courseId) announcement.course = courseId;
+    announcement.type = type || announcement.type;
+    announcement.attachments = attachedFileUrls;
+    announcement.requiresAcknowledgment = requiresAcknowledgment === true || requiresAcknowledgment === 'true';
+
+    await announcement.save();
+    await announcement.populate("course", "name code");
+
+    res.status(200).json({
+      success: true,
+      message: "Draft updated successfully",
+      data: announcement
+    });
+  } catch (error) {
+    console.error("Update Draft Error:", error);
+    res.status(500).json({ success: false, message: "Failed to update draft" });
+  }
+};
+
+// ==========================================
+// PARAPHASE CONTENT WITH AI
+// ==========================================
+export const paraphraseContent = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ success: false, message: "Content is required" });
+
+    // Use the AI service to paraphrase
+    const result = await chat([
+      { role: "system", content: "You are a professional communication assistant. Paraphrase and improve the given text to be clearer and more professional while maintaining the original meaning." },
+      { role: "user", content: `Paraphrase this announcement: ${content}` }
+    ]);
+
+    const improvedContent = result?.choices?.[0]?.message?.content || content;
+
+    res.status(200).json({
+      success: true,
+      data: improvedContent
+    });
+  } catch (error) {
+    console.error("Paraphrase Error:", error);
+    res.status(500).json({ success: false, message: "Failed to paraphrase content" });
   }
 };

@@ -12,7 +12,9 @@ import {
   X,
   Video,
   Users,
+  QrCode,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import eventService from "../../../../services/eventService";
 import reminderService from "../../../../services/reminderService";
 import toast from "react-hot-toast";
@@ -23,8 +25,39 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
   const [userRatedStar, setUserRatedStar] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [reminderLoading, setReminderLoading] = useState(false);
   const [reminderSet, setReminderSet] = useState(false);
+  const [checkedIn, setCheckedIn] = useState(false);
+  const [qrSize, setQrSize] = useState(160);
+
+  const getUserData = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const currentUser = getUserData();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setQrSize(Math.min(window.innerWidth - 100, 180));
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (storedUser._id && event.checkedInBy) {
+      const isCheckedIn = event.checkedInBy.some(
+        c => c.studentId?.toString() === storedUser._id.toString()
+      );
+      if (isCheckedIn) setCheckedIn(true);
+    }
+  }, [event]);
 
   useEffect(() => {
     setIsBookmarked(initialBookmark);
@@ -209,7 +242,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm" 
             onClick={() => setShowModal(false)}
           >
             <motion.div 
@@ -217,7 +250,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
               animate={{ scale: 1, opacity: 1 }} 
               exit={{ scale: 0.95, opacity: 0 }} 
               onClick={(e) => e.stopPropagation()} 
-              className="w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
+              className="w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] bg-card border border-border rounded-xl shadow-2xl overflow-hidden m-0 sm:m-4"
             >
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -232,7 +265,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
                 </button>
               </div>
               
-              <div className="p-4 space-y-4">
+              <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto max-h-[calc(85vh-60px)] sm:max-h-[calc(90vh-60px)]">
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">{event.title}</h2>
                   <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
@@ -255,13 +288,27 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
                 )}
 
                 <div className="flex flex-wrap gap-2 pt-2">
+                  {checkedIn ? (
+                    <div className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-400 font-medium">
+                      <Check size={14} /> Checked In
+                    </div>
+                  ) : (
+                    <motion.button 
+                      onClick={() => setShowQRModal(true)} 
+                      whileHover={{ scale: 1.02 }} 
+                      whileTap={{ scale: 0.98 }} 
+                      className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium"
+                    >
+                      <QrCode size={14} /> QR Check-In
+                    </motion.button>
+                  )}
                   <motion.button 
                     onClick={() => setShowReminder(true)} 
                     whileHover={{ scale: 1.02 }} 
                     whileTap={{ scale: 0.98 }} 
                     className="flex-1 min-w-[120px] flex items-center justify-center gap-2 px-3 py-2 bg-primary text-primary-foreground hover:opacity-90 rounded-lg text-sm font-medium"
                   >
-                    <BellPlus size={14} /> Set Reminder
+                    <BellPlus size={14} /> Reminder
                   </motion.button>
                   <motion.button 
                     onClick={handleBookmark} 
@@ -284,7 +331,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm" 
             onClick={() => { setShowReminder(false); setReminderSet(false); }}
           >
             <motion.div 
@@ -292,7 +339,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
               animate={{ scale: 1, opacity: 1 }} 
               exit={{ scale: 0.95, opacity: 0 }} 
               onClick={(e) => e.stopPropagation()} 
-              className="w-full max-w-sm bg-card border border-border rounded-xl p-5 shadow-2xl"
+              className="w-full max-w-sm max-h-[85vh] sm:max-h-[90vh] bg-card border border-border rounded-xl p-4 sm:p-5 shadow-2xl overflow-y-auto m-0 sm:m-4"
             >
               {reminderSet ? (
                 <div className="text-center py-4">
@@ -348,13 +395,60 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
                       </div>
                       1 week before
                     </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
+</div>
+              </>
+            )}
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* QR Check-in Modal */}
+    <AnimatePresence>
+      {showQRModal && (
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }} 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm" 
+          onClick={() => setShowQRModal(false)}
+        >
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }} 
+            exit={{ scale: 0.95, opacity: 0 }} 
+            onClick={(e) => e.stopPropagation()} 
+            className="w-full max-w-xs sm:max-w-sm bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-2xl m-0 sm:m-4"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-foreground">Check-In</h3>
+              <button onClick={() => setShowQRModal(false)} className="p-1 hover:bg-accent rounded-lg">
+                <X size={18} className="text-muted-foreground" />
+              </button>
+            </div>
+             
+            <div className="flex justify-center mb-4">
+              <div className="bg-white p-3 sm:p-4 rounded-xl">
+                <QRCodeSVG
+                  value={JSON.stringify({
+                    e: event._id || event.id,
+                    s: currentUser.studentID || currentUser._id,
+                    n: currentUser.name
+                  })}
+                  size={qrSize}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+            </div>
+            
+            <p className="text-muted-foreground text-xs text-center mb-4">
+              Show this QR code to the organizer to record your attendance
+            </p>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </>
   );
 }

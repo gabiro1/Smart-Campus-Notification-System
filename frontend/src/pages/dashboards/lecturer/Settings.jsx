@@ -440,32 +440,6 @@ export default function Settings() {
           <LogOut size={18} /> Sign Out
         </button>
       </div>
-
-      {/* Danger Zone */}
-      <div className="max-w-5xl mx-auto mt-8">
-        <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-red-500/10 rounded-lg">
-              <AlertTriangle size={20} className="text-red-400" />
-            </div>
-            <h3 className="text-lg font-bold text-foreground">Danger Zone</h3>
-          </div>
-          <p className="text-sm text-muted-foreground mb-6">
-            These actions are irreversible. Please proceed with caution.
-          </p>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-background/50 border border-border rounded-xl">
-              <div>
-                <p className="text-sm font-medium text-foreground">Delete Account</p>
-                <p className="text-xs text-muted-foreground mt-1">Permanently delete your account and all associated data.</p>
-              </div>
-              <button className="px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/30 rounded-lg text-sm font-medium transition-colors">
-                Delete Account
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

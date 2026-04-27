@@ -8,6 +8,7 @@ import LecturerNotifications from "../pages/dashboards/lecturer/pages/Notificati
 import LecturerClasses from "../pages/dashboards/lecturer/pages/MyClasses";
 import LecturerAnalytics from "../pages/dashboards/lecturer/pages/Analytics";
 import LecturerSettings from "../pages/dashboards/lecturer/Settings";
+import LecturerAnnouncementQA from "../pages/dashboards/lecturer/pages/AnnouncementQA";
 import MessagesTab from "../pages/Message/MessagesTab";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
 import SupportPage from "../pages/dashboards/shared/SupportPage";
@@ -33,11 +34,29 @@ export const lecturerRoutes = [
     }
   />,
   <Route
+    key="edit"
+    path="edit/:id"
+    element={
+      <ProtectedRoute allowedRoles={["lecturer"]}>
+        <LecturerCreateAnnouncement />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
     key="announcements"
     path="announcements"
     element={
       <ProtectedRoute allowedRoles={["lecturer"]}>
         <LecturerAnnouncements />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="qa"
+    path="qa"
+    element={
+      <ProtectedRoute allowedRoles={["lecturer"]}>
+        <LecturerAnnouncementQA />
       </ProtectedRoute>
     }
   />,

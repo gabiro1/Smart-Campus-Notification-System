@@ -60,7 +60,7 @@ export default function Dashboard({ user: propUser }) {
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Welcome back, {user?.name?.split(' ')[0] || 'Lecturer'} 👋
+            Welcome back, {user?.name?.split(' ')[0] || 'Lecturer'}!
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">
             Here's what's happening with your announcements today.

@@ -26,8 +26,11 @@
   --popover: #ffffff;
   --popover-foreground: #0f172a;
   
-  --primary: #0f172a;
+--primary: #0f172a;
   --primary-foreground: #fafafa;
+  
+  --success: #10b981;
+  --success-foreground: #ffffff;
   
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;

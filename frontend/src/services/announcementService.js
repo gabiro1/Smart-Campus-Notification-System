@@ -11,6 +11,16 @@ const announcementService = {
     return response.data;
   },
 
+  // Update existing draft
+  updateDraft: async (draftId, formData) => {
+    const response = await apiClient.patch(`/announcements/draft/${draftId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // 8. Lecturer: Get ONLY my announcements for the management table
   getLecturerAnnouncements: async () => {
     try {
@@ -25,6 +35,18 @@ const announcementService = {
   // 2. Lecturer: Delete Announcement (The "Oops" Button)
   deleteAnnouncement: async (announcementId) => {
     const response = await apiClient.delete(`/announcements/${announcementId}`);
+    return response.data;
+  },
+
+  // Get announcement by ID for editing
+  getAnnouncementById: async (id) => {
+    const response = await apiClient.get(`/announcements/${id}`);
+    return response.data;
+  },
+
+  // Paraphrase/Improve content with AI
+  paraphraseContent: async (content) => {
+    const response = await apiClient.post('/announcements/paraphrase', { content });
     return response.data;
   },
 

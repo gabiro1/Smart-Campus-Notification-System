@@ -58,7 +58,12 @@ export default function Login() {
         throw new Error("Invalid server response");
       }
 
-      toast.success(`Welcome back, ${data.user.name}!`);
+      // Only show welcome toast once per session (not on page refresh)
+      if (!sessionStorage.getItem("justLoggedIn")) {
+        toast.success(`Welcome back, ${data.user.name}!`);
+        sessionStorage.setItem("justLoggedIn", "true");
+      }
+      
       startSession(data.user, data.token);
     } catch (error) {
       const message =

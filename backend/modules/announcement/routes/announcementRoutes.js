@@ -4,6 +4,7 @@ import {
   getClassAnnouncements,
   addComment,
   getLecturerAnnouncements,
+  getLecturerQuestions,
   markAsViewed,
   deleteComment,
   updateAnnouncement,
@@ -18,7 +19,11 @@ import {
   getAIAnswer,
   addLecturerReply,
   editQuestion,
-  deleteQuestion
+  deleteQuestion,
+  saveDraft,
+  updateDraft,
+  paraphraseContent,
+  getAnnouncementById
 } from "../controller/announcementController.js";
 import { protect, authorize } from "../../../middleware/authMiddleware.js";
 import upload from "../../../middleware/uploadMiddleware.js";
@@ -30,11 +35,16 @@ const router = express.Router();
 router.use(protect);
 
 router.get("/lecturer-manage", authorize("lecturer", "hod"), getLecturerAnnouncements);
+router.get("/lecturer-questions", authorize("lecturer", "hod"), getLecturerQuestions);
 router.get("/dashboard-stats", authorize("lecturer", "hod"), getLecturerStats);
 
 router.post("/create", authorize("lecturer", "hod"), upload.array("attachments", 5), validateBody(schemas.announcementCreation), auditLog('announcement'), createAnnouncement);
+router.post("/draft", authorize("lecturer", "hod"), upload.array("attachments", 5), saveDraft);
+router.patch("/draft/:id", authorize("lecturer", "hod"), upload.array("attachments", 5), updateDraft);
+router.post("/paraphrase", authorize("lecturer", "hod"), paraphraseContent);
 
 router.patch("/:id", authorize("lecturer", "hod"), validateBody(schemas.announcementUpdate), auditLog('announcement', { captureChanges: true }), updateAnnouncement);
+router.get("/:id", getAnnouncementById);
 router.delete("/:id", authorize("lecturer", "hod"), auditLog('announcement'), deleteAnnouncement);
 
 router.get("/scheduled", authorize("lecturer", "hod"), getScheduledAnnouncements);

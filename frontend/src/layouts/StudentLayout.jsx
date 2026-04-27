@@ -11,13 +11,16 @@ export default function StudentLayout() {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
+      const tablet = window.innerWidth >= 768 && window.innerWidth < 1024;
       setIsMobile(mobile);
-      setSidebarCollapsed(mobile);
+      setIsTablet(tablet);
+      setSidebarCollapsed(mobile || tablet);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -32,10 +35,12 @@ export default function StudentLayout() {
     }
   };
 
+  const effectiveCollapsed = sidebarCollapsed || isTablet;
+
   return (
     <div className="min-h-screen bg-card relative">
       <StudentNav 
-        collapsed={sidebarCollapsed} 
+        collapsed={effectiveCollapsed} 
         onToggle={toggleSidebar} 
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
@@ -44,10 +49,10 @@ export default function StudentLayout() {
 
       <div 
         className={`flex-1 min-h-screen relative z-10 flex flex-col transition-all duration-300 ${
-          isMobile ? 'ml-16' : (sidebarCollapsed ? 'ml-20' : 'ml-56')
+          isMobile ? 'ml-14' : (effectiveCollapsed ? 'ml-16' : 'ml-56')
         }`}
       >
-        <StudentHeader onToggleSidebar={toggleSidebar} collapsed={sidebarCollapsed} />
+        <StudentHeader onToggleSidebar={toggleSidebar} collapsed={effectiveCollapsed} />
         <EmergencyBanner />
         <main className="flex-1 flex flex-col w-full h-full relative pt-2">
           <Outlet />

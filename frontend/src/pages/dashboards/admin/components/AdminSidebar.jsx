@@ -25,7 +25,7 @@ const coreItems = [
 ];
 
 const managementItems = [
-  { icon: Users, label: "Users", path: "/admin/users", badge: 124 },
+  { icon: Users, label: "Users", path: "/admin/users" },
   { icon: GraduationCap, label: "Academic", path: "/admin/academic" },
   { icon: Scale, label: "Governance", path: "/admin/governance" },
 ];

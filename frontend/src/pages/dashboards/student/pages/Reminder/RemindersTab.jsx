@@ -177,15 +177,42 @@ const RemindersTab = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const data = await reminderService.getReminders();
+      let allReminders = [];
+      
+      // Try API first
+      try {
+        const data = await reminderService.getReminders();
+        allReminders = data.reminders || [];
+      } catch (apiError) {
+        console.log("API unavailable, checking local storage");
+      }
+      
+      // Also check localStorage for offline-created reminders
+      const localReminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
+      
+      // Merge both sources (localStorage takes precedence if duplicate)
+      const combined = [...allReminders];
+      localReminders.forEach(local => {
+        if (!combined.some(r => r.id === local.id || r._id === local.id)) {
+          combined.push(local);
+        }
+      });
+      
       const organized = { High: [], Medium: [], Low: [] };
-      (data.reminders || []).forEach((rem) => {
+      (combined).forEach((rem) => {
         const priority = rem.priority?.charAt(0).toUpperCase() + rem.priority?.slice(1).toLowerCase() || "Low";
         if (organized[priority]) organized[priority].push(rem);
       });
       setColumns(organized);
     } catch {
-      toast.error("Error connecting to server");
+      // Fallback to localStorage only
+      const localReminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
+      const organized = { High: [], Medium: [], Low: [] };
+      localReminders.forEach((rem) => {
+        const priority = rem.priority?.charAt(0).toUpperCase() + rem.priority?.slice(1).toLowerCase() || "Low";
+        if (organized[priority]) organized[priority].push(rem);
+      });
+      setColumns(organized);
     } finally {
       setLoading(false);
     }
@@ -193,6 +220,13 @@ const RemindersTab = () => {
 
   useEffect(() => {
     fetchTasks();
+  }, []);
+  
+  // Refresh when page gains focus (to catch localStorage changes from other pages)
+  useEffect(() => {
+    const handleFocus = () => fetchTasks();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // Drag and Drop Logic
