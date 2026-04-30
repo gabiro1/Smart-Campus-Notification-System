@@ -418,6 +418,7 @@ export default function Register() {
                     onError={() => {
                       toast.error("Google sign up failed");
                     }}
+                    useOneTap={false}
                     theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
                     text="continue_with"
                     shape="rectangular"

@@ -274,6 +274,7 @@ export default function Login() {
                     onError={() => {
                       toast.error("Google sign in failed");
                     }}
+                    useOneTap={false}
                     theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
                     text="continue_with"
                     shape="rectangular"
