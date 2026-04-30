@@ -21,7 +21,17 @@ const authService = {
     }
   },
 
-  // 3. Get current user profile
+  // 3. Google Auth
+  googleAuth: async (credential) => {
+    try {
+      const response = await apiClient.post('/users/auth/google', { credential });
+      return response.data; // Returns { success, token, user }
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Google authentication failed.');
+    }
+  },
+
+  // 4. Get current user profile
   getCurrentUser: async () => {
     try {
       const response = await apiClient.get('/users/profile');
@@ -31,7 +41,7 @@ const authService = {
     }
   },
 
-  // 4. Update profile (e.g. changing AI interests)
+  // 5. Update profile (e.g. changing AI interests)
   updateProfile: async (userData) => {
     try {
       const response = await apiClient.put('/users/profile', userData);
@@ -41,7 +51,7 @@ const authService = {
     }
   },
 
-  // 5. Update notification preferences
+  // 6. Update notification preferences
   updateNotificationPreferences: async (preferences) => {
     try {
       const response = await apiClient.put('/users/notification-preferences', { preferences });

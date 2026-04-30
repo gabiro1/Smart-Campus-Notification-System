@@ -814,4 +814,111 @@ export const uploadProfilePhoto = async (req, res) => {
     console.error('UploadPhoto error:', error);
     res.status(500).json({ success: false, message: "Failed to upload photo" });
   }
+};// @desc    Google OAuth login/register
+// @route   POST /api/users/auth/google
+// @access  Public
+export const googleAuth = async (req, res) => {
+  try {
+    const { credential, role = 'student' } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ success: false, message: 'Google credential is required' });
+    }
+
+    // Verify Google token
+    const { OAuth2Client } = await import('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      return res.status(400).json({ success: false, message: 'Invalid Google token' });
+    }
+
+    const { sub: googleId, email, name, picture: profilePicture } = payload;
+
+    // Check if user exists with this Google ID
+    let user = await User.findOne({ googleId });
+
+    if (!user) {
+      // Check if user exists with same email (local account)
+      user = await User.findOne({ email });
+
+      if (user) {
+        // Link Google account to existing local account
+        user.googleId = googleId;
+        user.provider = 'google';
+        if (!user.profilePicture && profilePicture) {
+          user.profilePicture = profilePicture;
+        }
+        await user.save();
+      } else {
+        // Create new user from Google data
+        const School = (await import('../../school/model/School.js')).default;
+        const Department = (await import('../../department/model/Department.js')).default;
+        
+        const defaultSchool = await School.findOne({}).select('_id');
+        const defaultDept = await Department.findOne({}).select('_id');
+
+        user = await User.create({
+          name,
+          email,
+          googleId,
+          provider: 'google',
+          profilePicture,
+          role: 'student',
+          school: defaultSchool?._id,
+          department: defaultDept?._id,
+          level: 'Year 1',
+          password: await bcrypt.hash(Math.random().toString(36).slice(-12), 12),
+          emailVerified: true,
+        });
+      }
+    }
+
+    // Populate user data
+    const populatedUser = await User.findById(user._id)
+      .populate('department', 'name code')
+      .populate('classId', 'name code level');
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user._id, role: user.role, department: user.department?._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    // Build user data response
+    const userData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture,
+      emailVerified: true,
+    };
+
+    if (user.role === 'student') {
+      userData.studentID = user.studentID;
+      userData.level = user.level;
+      userData.interests = user.interests;
+      userData.classInfo = populatedUser.classId;
+      userData.notificationPreferences = user.notificationPreferences;
+      userData.quietHours = user.quietHours;
+      userData.hasCompletedOnboarding = user.hasCompletedOnboarding;
+    }
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: userData,
+    });
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    res.status(500).json({ success: false, message: 'Google authentication failed' });
+  }
 };

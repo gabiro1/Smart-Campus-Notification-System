@@ -23,6 +23,7 @@
     "express-async-handler": "^1.2.0",
     "express-rate-limit": "^7.5.1",
     "firebase-admin": "^13.6.1",
+    "google-auth-library": "^10.6.2",
     "groq-sdk": "^1.1.2",
     "helmet": "^6.2.0",
     "ics": "^3.11.0",

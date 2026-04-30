@@ -23,6 +23,7 @@ import Navbar from "../../layouts/Navbar";
 import Footer from "../../layouts/Footer";
 import apiClient from "../../services/apiClient";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 const BENEFITS = [
   { icon: Bell, text: "Instant campus alerts" },
@@ -393,6 +394,35 @@ export default function Register() {
                       </>
                     )}
                   </button>
+
+                  <div className="relative flex items-center gap-4 py-2">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs text-muted-foreground">OR</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        const data = await apiClient.post("/users/auth/google", {
+                          credential: credentialResponse.credential,
+                        });
+                        if (data.data?.success) {
+                          toast.success(`Welcome, ${data.data.user.name}!`);
+                          startSession(data.data.user, data.data.token);
+                        }
+                      } catch (error) {
+                        toast.error(error.response?.data?.message || "Google sign up failed");
+                      }
+                    }}
+                    onError={() => {
+                      toast.error("Google sign up failed");
+                    }}
+                    theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                    text="continue_with"
+                    shape="rectangular"
+                    width="400"
+                  />
 
                   <p className="text-center text-muted-foreground text-sm">
                     Already have an account?{" "}

@@ -12,7 +12,6 @@ import {
   X,
   Megaphone,
   BookOpen,
-  FileText,
   GraduationCap,
   User,
 } from "lucide-react";
@@ -28,7 +27,6 @@ const mainItems = [
 
 const academicItems = [
   { icon: GraduationCap, label: "Timetable", path: "/student/timetable" },
-  { icon: FileText, label: "Assignments", path: "/student/assignments" },
   { icon: Bell, label: "Notifications", path: "/student/notifications" },
 ];
 

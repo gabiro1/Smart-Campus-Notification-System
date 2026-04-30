@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { register, login, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyEmail, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto } from '../controller/authController.js';
+import { register, login, googleAuth, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyEmail, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto } from '../controller/authController.js';
 import { protect, authorize  } from '../../../middleware/authMiddleware.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
@@ -9,6 +9,7 @@ import upload from '../../../middleware/uploadMiddleware.js';
 // Public auth endpoints with validation
 router.post('/register', validateBody(schemas.userRegistration), auditLog('user'), register);
 router.post('/login', validateBody(schemas.userLogin), auditLog('user', { customAction: 'LOGIN' }), login);
+router.post('/auth/google', auditLog('user', { customAction: 'GOOGLE_AUTH' }), googleAuth);
 
 // Email verification
 router.post('/request-verification', protect, requestVerification);
