@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Reminder from "../model/Reminder.js";
 
 /**
@@ -9,13 +10,13 @@ export const getReminders = async (req, res) => {
     const { page = 1, limit = 50 } = req.query;
     const skip = (page - 1) * limit;
 
-    // We only fetch reminders belonging to the logged-in user (req.user.id)
-    const reminders = await Reminder.find({ studentId: req.user.id })
+    // We only fetch reminders belonging to the logged-in user (req.user._id)
+    const reminders = await Reminder.find({ studentId: req.user._id })
       .sort({ dueDate: 1 }) // Closest deadlines first
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await Reminder.countDocuments({ studentId: req.user.id });
+    const total = await Reminder.countDocuments({ studentId: req.user._id });
 
     res.status(200).json({
       success: true,
@@ -43,8 +44,22 @@ export const createReminder = async (req, res) => {
       return res.status(400).json({ message: "Title and due date are required" });
     }
 
+    // Check for duplicate reminder (same referenceId and student)
+    if (referenceId) {
+      const existing = await Reminder.findOne({ 
+        studentId: req.user._id, 
+        referenceId: referenceId 
+      });
+      if (existing) {
+        return res.status(409).json({ 
+          success: false, 
+          message: "A reminder for this item already exists" 
+        });
+      }
+    }
+
     const reminder = new Reminder({
-      studentId: req.user.id,
+      studentId: req.user._id,
       title,
       note,
       dueDate: new Date(dueDate),
@@ -73,8 +88,13 @@ export const updateReminder = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate if id is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid reminder ID format" });
+    }
+
     // Verify ownership before updating
-    const reminder = await Reminder.findOne({ _id: id, studentId: req.user.id });
+    const reminder = await Reminder.findOne({ _id: id, studentId: req.user._id });
 
     if (!reminder) {
       return res.status(404).json({ message: "Task not found or unauthorized access" });
@@ -109,8 +129,13 @@ export const deleteReminder = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate if id is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid reminder ID format" });
+    }
+
     // Verify ownership before deletion
-    const reminder = await Reminder.findOne({ _id: id, studentId: req.user.id });
+    const reminder = await Reminder.findOne({ _id: id, studentId: req.user._id });
 
     if (!reminder) {
       return res.status(404).json({ message: "Task not found or unauthorized" });
@@ -133,8 +158,15 @@ export const deleteReminder = async (req, res) => {
  */
 export const completeReminder = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    // Validate if id is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid reminder ID format" });
+    }
+
     const reminder = await Reminder.findOneAndUpdate(
-      { _id: req.params.id, studentId: req.user.id },
+      { _id: id, studentId: req.user._id },
       { completed: true },
       { new: true }
     );
@@ -153,8 +185,15 @@ export const completeReminder = async (req, res) => {
  */
 export const uncompleteReminder = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    // Validate if id is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid reminder ID format" });
+    }
+
     const reminder = await Reminder.findOneAndUpdate(
-      { _id: req.params.id, studentId: req.user.id },
+      { _id: id, studentId: req.user._id },
       { completed: false },
       { new: true }
     );
@@ -175,7 +214,7 @@ export const getDueReminders = async (req, res) => {
   try {
     const now = new Date();
     const reminders = await Reminder.find({
-      studentId: req.user.id,
+      studentId: req.user._id,
       completed: false,
       dueDate: { $lte: now },
     }).sort({ dueDate: 1 });

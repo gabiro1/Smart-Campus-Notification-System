@@ -11,8 +11,7 @@ import EventDetails from "../pages/dashboards/student/Events/EventDetails";
 import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
 import TimeTable from "../pages/dashboards/student/component/TimeTable";
 import MessagesTab from "../pages/Message/MessagesTab";
-import Profile from "../pages/dashboards/student/pages/Profile/Profile";
-import Settings from "../pages/dashboards/student/pages/Profile/Settings";
+import Settings from "../pages/dashboards/student/pages/Settings/Settings";
 
 export const studentRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -99,15 +98,6 @@ export const studentRoutes = [
     }
   />,
   <Route
-    key="profile"
-    path="profile"
-    element={
-      <ProtectedRoute allowedRoles={["student", "class_rep", "admin"]}>
-        <Profile />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
     key="settings"
     path="settings"
     element={
@@ -115,5 +105,11 @@ export const studentRoutes = [
         <Settings />
       </ProtectedRoute>
     }
+  />,
+  // Redirect old /student/profile to /student/settings
+  <Route
+    key="profile-redirect"
+    path="profile"
+    element={<Navigate to="settings" replace />}
   />,
 ];

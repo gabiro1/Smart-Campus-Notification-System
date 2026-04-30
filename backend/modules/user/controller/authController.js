@@ -262,17 +262,21 @@ export const login = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
-      .populate('college', 'name code')
-      .populate('school', 'name code')
-      .populate('department', 'name code')
-      .populate('classId', 'name code level');
+      .populate([
+        { path: 'college', select: 'name code' },
+        { path: 'school', select: 'name code' },
+        { path: 'department', select: 'name code' },
+        { path: 'classId', select: 'name code level' }
+      ]);
     
     if (user) {
+      console.log("Profile loaded for user:", user.email, "classId:", user.classId);
       res.status(200).json({ success: true, data: user });
     } else {
       res.status(404).json({ success: false, message: "User not found" });
     }
   } catch (error) {
+    console.error("Error fetching profile:", error);
     res.status(500).json({ success: false, message: "Server error fetching profile" });
   }
 };

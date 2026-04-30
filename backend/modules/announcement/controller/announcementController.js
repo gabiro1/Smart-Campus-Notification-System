@@ -261,15 +261,38 @@ export const getMyAnnouncements = async (req, res) => {
 
     const student = await User.findById(req.user._id);
 
-    if (!student || !student.classId) {
+    if (!student) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    console.log("Student:", student.email, "classId:", student.classId);
+
+    if (!student.classId) {
+      console.log("Student has no classId assigned");
       return res.status(200).json({ success: true, data: [] });
     }
 
-    const announcements = await Announcement.find({ targetClass: student.classId })
+    // Find announcements targeted to student's class (only active ones)
+    const announcements = await Announcement.find({ 
+      targetClass: student.classId,
+      status: "Active"
+    })
       .populate("lecturer", "name profilePicture") 
       .populate("course", "name code") 
       .populate("comments.user", "name role profilePicture") 
       .sort({ createdAt: -1 }); 
+
+    console.log("Found announcements:", announcements.length, "for class:", student.classId);
+    if (announcements.length > 0) {
+      console.log("First announcement:", announcements[0].title, "status:", announcements[0].status, "targetClass:", announcements[0].targetClass);
+    } else {
+      // Debug: check if there are any announcements with this classId
+      const allForClass = await Announcement.find({ targetClass: student.classId });
+      console.log("All announcements for this class (any status):", allForClass.length);
+      if (allForClass.length > 0) {
+        console.log("Available announcements:", allForClass.map(a => ({ title: a.title, status: a.status })));
+      }
+    }
 
     res.status(200).json({ success: true, data: announcements });
   } catch (error) {

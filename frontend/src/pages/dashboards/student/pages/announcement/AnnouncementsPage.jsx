@@ -29,6 +29,8 @@ import { toast } from "react-hot-toast";
 import apiClient from "../../../../../services/apiClient";
 import reminderService from "../../../../../services/reminderService";
 
+const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
+
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i) => ({
@@ -50,73 +52,8 @@ const courseColors = {
 
 const getCourseStyle = (code) => courseColors[code] || courseColors.DEFAULT;
 
-const fallbackAnnouncements = [
-  {
-    _id: "fb1",
-    title: "Final Exam Schedule Released",
-    content: "The final examination timetable for this semester has been published. Please check your student portal for your individual schedule. Contact the examination office if you have any conflicts.",
-    type: "General",
-    course: { code: "IT4261" },
-    lecturer: { name: "Dr. Sarah Johnson" },
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    isRead: false,
-    isPinned: false,
-    qa: [],
-  },
-  {
-    _id: "fb2",
-    title: "Assignment Submission Deadline Extended",
-    content: "Due to technical issues with the submission portal, the deadline for the AI Project proposal has been extended by 48 hours. New deadline is now Sunday 11:59 PM.",
-    type: "Assignment",
-    course: { code: "IT4250" },
-    lecturer: { name: "Prof. Michael Chen" },
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-    isRead: false,
-    isPinned: false,
-    deadline: "Sunday 11:59 PM",
-    qa: [],
-  },
-  {
-    _id: "fb3",
-    title: "Campus Closure Notice - Maintenance",
-    content: "The main campus will be closed this weekend for scheduled maintenance. All weekend classes are cancelled. Online classes will proceed as normal.",
-    type: "Urgent",
-    course: { code: "ADMIN" },
-    lecturer: { name: "Campus Administration" },
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    isRead: false,
-    isPinned: true,
-    deadline: "Saturday 6:00 AM",
-    qa: [],
-  },
-  {
-    _id: "fb4",
-    title: "Guest Lecture: AI in Modern Agriculture",
-    content: "We are hosting a guest lecture on AI applications in agriculture. All students are encouraged to attend. Certificate of attendance will be provided.",
-    type: "General",
-    course: { code: "IT4200" },
-    lecturer: { name: "Dr. Emily Watson" },
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    isRead: true,
-    isPinned: false,
-    qa: [],
-  },
-  {
-    _id: "fb5",
-    title: "Quiz 2 Results Available",
-    content: "Your results for Database Systems Quiz 2 are now available. The average score was 78%. Please review your answers and reach out if you have questions.",
-    type: "General",
-    course: { code: "CS301" },
-    lecturer: { name: "Dr. James Wilson" },
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    isRead: true,
-    isPinned: false,
-    qa: [],
-  },
-];
-
 export default function AnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState(fallbackAnnouncements);
+  const [announcements, setAnnouncements] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,14 +69,17 @@ export default function AnnouncementsPage() {
         if (response.data?.data && response.data.data.length > 0) {
           setAnnouncements(response.data.data);
           setSelectedAnnouncement(response.data.data[0]);
+        } else {
+          setAnnouncements([]);
+          setSelectedAnnouncement(null);
         }
       } catch (err) {
         console.error("Fetch error:", err);
-        if (fallbackAnnouncements.length > 0) {
-          setSelectedAnnouncement(fallbackAnnouncements[0]);
-        }
+        setAnnouncements([]);
+        setSelectedAnnouncement(null);
+      } finally {
+        setTimeout(() => setIsInitialLoad(false), 300);
       }
-      setTimeout(() => setIsInitialLoad(false), 300);
     };
     fetchAnnouncements();
   }, []);
@@ -460,22 +400,28 @@ function DetailPanel({ announcement, isBookmarked, onToggleBookmark, onMarkAsRea
       note: announcement.content,
       dueDate: dueDate.toISOString(),
       priority: isUrgent ? "High" : "Medium",
+      referenceId: announcement._id,
     };
     
-    let saved = false;
+    // Check localStorage for existing reminder with same referenceId
+    const localReminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
+    const existsLocal = localReminders.some(r => r.referenceId === announcement._id);
+    if (existsLocal) {
+      return toast.error("A reminder for this announcement already exists");
+    }
+    
     try {
       await reminderService.createReminder(reminderData);
       toast.success("Reminder created!");
-      saved = true;
     } catch (error) {
+      if (error.response?.status === 409) {
+        return toast.error("A reminder for this announcement already exists");
+      }
       // Fallback to localStorage
-    }
-    
-    if (!saved) {
       const reminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
       const newReminder = { ...reminderData, id: Date.now(), createdAt: new Date().toISOString() };
       localStorage.setItem('localReminders', JSON.stringify([...reminders, newReminder]));
-      toast.success("Reminder saved!");
+      toast.success("Reminder saved locally!");
     }
   };
 
@@ -555,6 +501,26 @@ function DetailPanel({ announcement, isBookmarked, onToggleBookmark, onMarkAsRea
             {isExpanded ? "Show less" : "Read more"}
             <ChevronRight size={12} className={`transition-transform ${isExpanded ? "rotate-90" : ""}`} />
           </button>
+        )}
+
+        {announcement.attachments?.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Attachments ({announcement.attachments.length})</p>
+            <div className="flex flex-wrap gap-2">
+              {announcement.attachments.map((url, idx) => (
+                <a
+                  key={idx}
+                  href={url.startsWith('http') ? url : `${BACKEND_URL}${url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors text-xs text-foreground"
+                >
+                  <FileText size={14} />
+                  <span className="truncate max-w-[150px]">{url.split('/').pop()}</span>
+                </a>
+              ))}
+            </div>
+          </div>
         )}
 
         <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">

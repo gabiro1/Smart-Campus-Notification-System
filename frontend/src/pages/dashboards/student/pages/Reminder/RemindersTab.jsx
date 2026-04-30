@@ -56,7 +56,7 @@ const TaskCard = ({ item, priorityKey, index, onDelete, onEdit }) => {
   };
 
   return (
-    <Draggable key={item._id} draggableId={item._id} index={index}>
+    <Draggable key={String(item._id)} draggableId={String(item._id)} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -187,16 +187,22 @@ const RemindersTab = () => {
         console.log("API unavailable, checking local storage");
       }
       
-      // Also check localStorage for offline-created reminders
-      const localReminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
-      
-      // Merge both sources (localStorage takes precedence if duplicate)
-      const combined = [...allReminders];
-      localReminders.forEach(local => {
-        if (!combined.some(r => r.id === local.id || r._id === local.id)) {
-          combined.push(local);
-        }
-      });
+       // Also check localStorage for offline-created reminders
+       const localReminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
+       
+       // Normalize localStorage items to use _id as string
+       const normalizedLocal = localReminders.map(r => ({
+         ...r,
+         _id: String(r._id || r.id || `local_${Date.now()}_${Math.random()}`)
+       }));
+       
+       // Merge both sources (localStorage takes precedence if duplicate)
+       const combined = [...allReminders];
+       normalizedLocal.forEach(local => {
+         if (!combined.some(r => r._id === local._id)) {
+           combined.push(local);
+         }
+       });
       
       const organized = { High: [], Medium: [], Low: [] };
       (combined).forEach((rem) => {
@@ -232,7 +238,7 @@ const RemindersTab = () => {
   // Drag and Drop Logic
   const onDragEnd = async (result) => {
     if (!result.destination) return;
-    const { source, destination, draggableId } = result;
+    const { source, destination } = result;
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -247,7 +253,11 @@ const RemindersTab = () => {
 
     try {
       const priority = destination.droppableId.toLowerCase();
-      await reminderService.updateReminder(draggableId, { priority });
+      // Only update API if it's a valid MongoDB ObjectId
+      const isValidObjectId = (str) => /^[0-9a-fA-F]{24}$/.test(String(str));
+      if (removed._id && isValidObjectId(removed._id)) {
+        await reminderService.updateReminder(removed._id, { priority });
+      }
       if (source.droppableId !== destination.droppableId)
         toast.success(`Moved to ${destination.droppableId}`);
     } catch {
@@ -274,8 +284,12 @@ const RemindersTab = () => {
       setIsModalOpen(false);
       setNewReminder({ title: "", note: "", dueDate: "", priority: "Low" });
       toast.success("Task Created");
-    } catch {
-      toast.error("Failed to save task");
+    } catch (error) {
+      if (error.response?.status === 409) {
+        toast.error("A reminder for this item already exists");
+      } else {
+        toast.error("Failed to save task");
+      }
     }
   };
 
@@ -283,7 +297,19 @@ const RemindersTab = () => {
   const handleUpdateReminder = async (e) => {
     e.preventDefault();
     try {
-      await reminderService.updateReminder(editingTask._id, editingTask);
+      const isValidObjectId = (str) => /^[0-9a-fA-F]{24}$/.test(String(str));
+      
+      // Only update via API if it's a valid MongoDB ObjectId
+      if (editingTask._id && isValidObjectId(editingTask._id)) {
+        await reminderService.updateReminder(editingTask._id, editingTask);
+      } else {
+        // Update in localStorage for local reminders
+        const localReminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
+        const updated = localReminders.map(r => 
+          String(r._id || r.id) === String(editingTask._id) ? editingTask : r
+        );
+        localStorage.setItem('localReminders', JSON.stringify(updated));
+      }
       toast.success("Task Updated");
       setIsEditModalOpen(false);
       fetchTasks(); // Refresh list to ensure correct ordering/columns
@@ -294,14 +320,29 @@ const RemindersTab = () => {
 
   const deleteReminder = async (col, id) => {
     try {
-      await reminderService.deleteReminder(id);
+      // Check if this is a local reminder (not on server)
+      // Valid MongoDB ObjectId: 24 character hex string
+      const isValidObjectId = (str) => /^[0-9a-fA-F]{24}$/.test(String(str));
+      
+      if (String(id).startsWith('local_') || !isValidObjectId(id)) {
+        // Delete from localStorage
+        const localReminders = JSON.parse(localStorage.getItem('localReminders') || '[]');
+        const updated = localReminders.filter(r => String(r._id || r.id) !== String(id));
+        localStorage.setItem('localReminders', JSON.stringify(updated));
+        toast.success("Task Deleted");
+      } else {
+        // Delete from server
+        await reminderService.deleteReminder(id);
+        toast.success("Task Deleted");
+      }
+      
+      // Update UI state
       setColumns((prev) => ({
         ...prev,
-        [col]: prev[col].filter((r) => r._id !== id),
+        [col]: prev[col].filter((r) => String(r._id) !== String(id)),
       }));
-      toast.success("Task Deleted");
     } catch {
-      toast.error("Could not delete from server");
+      toast.error("Could not delete task");
     }
   };
 

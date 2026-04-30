@@ -191,17 +191,10 @@ export default function Navbar() {
                       </div>
                       <div className="p-1.5">
                         <Link
-                          to="/profile"
-                          className="flex items-center gap-2.5 px-3 py-2 text-xs text-foreground hover:bg-accent rounded-lg transition-colors"
-                        >
-                          <User size={14} className="text-foreground" />
-                          Profile
-                        </Link>
-                        <Link
                           to="/settings"
                           className="flex items-center gap-2.5 px-3 py-2 text-xs text-foreground hover:bg-accent rounded-lg transition-colors"
                         >
-                          <Settings size={14} className="text-foreground" />
+                          <User size={14} className="text-foreground" />
                           Settings
                         </Link>
                         <button
@@ -326,7 +319,6 @@ export default function Navbar() {
                       </>
                     )}
                     <div className="pt-4 border-t space-y-1">
-                      <MobileMenuLink to="/profile" label="Profile" onClick={() => setMobileMenuOpen(false)} />
                       <MobileMenuLink to="/settings" label="Settings" onClick={() => setMobileMenuOpen(false)} />
                       <button
                         onClick={() => { logout(); navigate("/"); setMobileMenuOpen(false); }}

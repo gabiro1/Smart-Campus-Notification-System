@@ -43,6 +43,9 @@ router.post("/draft", authorize("lecturer", "hod"), upload.array("attachments", 
 router.patch("/draft/:id", authorize("lecturer", "hod"), upload.array("attachments", 5), updateDraft);
 router.post("/paraphrase", authorize("lecturer", "hod"), paraphraseContent);
 
+router.get("/my-feed", getMyAnnouncements);
+router.get("/class/:classId", getClassAnnouncements);
+
 router.patch("/:id", authorize("lecturer", "hod"), validateBody(schemas.announcementUpdate), auditLog('announcement', { captureChanges: true }), updateAnnouncement);
 router.get("/:id", getAnnouncementById);
 router.delete("/:id", authorize("lecturer", "hod"), auditLog('announcement'), deleteAnnouncement);
@@ -50,9 +53,6 @@ router.delete("/:id", authorize("lecturer", "hod"), auditLog('announcement'), de
 router.get("/scheduled", authorize("lecturer", "hod"), getScheduledAnnouncements);
 router.delete("/scheduled/:id/cancel", authorize("lecturer", "hod"), cancelScheduledAnnouncement);
 router.patch("/scheduled/:id/reschedule", authorize("lecturer", "hod"), rescheduleAnnouncement);
-
-router.get("/my-feed", getMyAnnouncements);
-router.get("/class/:classId", getClassAnnouncements);
 
 router.patch("/:id/view", markAsViewed);
 

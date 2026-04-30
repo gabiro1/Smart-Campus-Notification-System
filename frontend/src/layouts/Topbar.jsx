@@ -5,7 +5,7 @@ const TAB_TITLES = {
   notifications: "Notifications",
   reminders: "Reminders",
   summary: "AI Summary",
-  profile: "My Profile",
+  settings: "Settings",
 };
 
 export default function Topbar({ tab, user, unreadCount, setTab }) {
@@ -77,9 +77,9 @@ export default function Topbar({ tab, user, unreadCount, setTab }) {
           )}
         </div>
 
-        {/* Avatar */}
+        {/* Avatar - links to settings */}
         <div
-          onClick={() => setTab("profile")}
+          onClick={() => setTab("settings")}
           style={{
             width: 34,
             height: 34,

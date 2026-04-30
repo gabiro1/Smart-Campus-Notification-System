@@ -35,7 +35,6 @@ const academicItems = [
 const personalItems = [
   { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
   { icon: Clock, label: "Reminders", path: "/student/reminders" },
-  { icon: User, label: "Profile", path: "/student/profile" },
 ];
 
 const systemItems = [

@@ -5,7 +5,7 @@ const NAV_ITEMS = [
   { id: "notifications", label: "Alerts", icon: ICONS.bell },
   { id: "reminders", label: "Tasks", icon: ICONS.reminder },
   { id: "summary", label: "AI", icon: ICONS.spark },
-  { id: "profile", label: "Me", icon: ICONS.user },
+  { id: "settings", label: "Me", icon: ICONS.user },
 ];
 
 export default function BottomNav({ tab, setTab, unreadCount, pendingCount }) {
