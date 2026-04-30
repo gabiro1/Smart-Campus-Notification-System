@@ -21,10 +21,10 @@ const authService = {
     }
   },
 
-  // 3. Google Auth
-  googleAuth: async (credential) => {
+  // 3. Google Auth (Firebase)
+  firebaseGoogleAuth: async (idToken) => {
     try {
-      const response = await apiClient.post('/users/auth/google', { credential });
+      const response = await apiClient.post('/users/auth/google', { credential: idToken });
       return response.data; // Returns { success, token, user }
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Google authentication failed.');

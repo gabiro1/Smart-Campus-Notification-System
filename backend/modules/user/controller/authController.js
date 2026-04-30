@@ -814,7 +814,7 @@ export const uploadProfilePhoto = async (req, res) => {
     console.error('UploadPhoto error:', error);
     res.status(500).json({ success: false, message: "Failed to upload photo" });
   }
-};// @desc    Google OAuth login/register
+};// @desc    Google OAuth login/register (Firebase)
 // @route   POST /api/users/auth/google
 // @access  Public
 export const googleAuth = async (req, res) => {
@@ -822,24 +822,18 @@ export const googleAuth = async (req, res) => {
     const { credential, role = 'student' } = req.body;
 
     if (!credential) {
-      return res.status(400).json({ success: false, message: 'Google credential is required' });
+      return res.status(400).json({ success: false, message: 'Firebase ID token is required' });
     }
 
-    // Verify Google token
-    const { OAuth2Client } = await import('google-auth-library');
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    if (!payload) {
-      return res.status(400).json({ success: false, message: 'Invalid Google token' });
+    // Verify Firebase token
+    const admin = (await import('../../../config/firebaseAdmin.js')).default;
+    const decodedToken = await admin.auth().verifyIdToken(credential);
+    
+    if (!decodedToken) {
+      return res.status(400).json({ success: false, message: 'Invalid Firebase token' });
     }
 
-    const { sub: googleId, email, name, picture: profilePicture } = payload;
+    const { uid: googleId, email, name, picture: profilePicture } = decodedToken;
 
     // Check if user exists with this Google ID
     let user = await User.findOne({ googleId });
@@ -865,7 +859,7 @@ export const googleAuth = async (req, res) => {
         const defaultDept = await Department.findOne({}).select('_id');
 
         user = await User.create({
-          name,
+          name: name || 'User',
           email,
           googleId,
           provider: 'google',
