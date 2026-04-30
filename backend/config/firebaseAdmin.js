@@ -1,13 +1,28 @@
 import admin from 'firebase-admin';
+import path from 'path';
+import { readFileSync } from 'fs';
+
+const serviceAccountPath = path.join(
+  process.cwd(),
+  'backend',
+  'config',
+  'FirebaseServc',
+  'smart-campus-notification-firebase-adminsdk-fbsvc-3d632ba81d.json'
+);
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
+  try {
+    // Read the service account JSON file (Windows-compatible)
+    const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
+    
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log('✅ Firebase Admin initialized from JSON file');
+  } catch (error) {
+    console.error('❌ Failed to initialize Firebase Admin:', error.message);
+    throw error;
+  }
 }
 
 export default admin;
