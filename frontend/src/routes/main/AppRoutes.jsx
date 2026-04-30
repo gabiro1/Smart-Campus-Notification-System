@@ -6,7 +6,6 @@ import { useAuth } from "../../context/AuthContext";
 // --- AUTH PAGES ---
 import ForgotPassword from "../../pages/auth/ForgotPassword";
 import ResetPassword from "../../pages/auth/ResetPassword";
-import VerifyEmail from "../../pages/auth/VerifyEmail";
 
 // --- LAYOUTS ONLY ---
 import AdminLayout from "../../layouts/AdminLayout";
@@ -36,6 +35,56 @@ function ProfileRedirect() {
   
   // Dynamically redirect based on the authenticated user's role
   return <Navigate to={`/${user.role}/profile`} replace />;
+}
+
+export default function AppRoutes() {
+  return (
+    <ToastProvider>
+      <Routes>
+        {/* Unprotected Public Routes */}
+        {publicRoutes}
+
+        {/* Global Nav Fallback Fixes */}
+        <Route path="/profile" element={<ProfileRedirect />} />
+
+        {/* Auth Pages (public, no layout) */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* Protected Role-Based Layouts */}
+        <Route path="/student" element={<StudentLayout />}>
+          {studentRoutes}
+        </Route>
+
+        <Route path="/admin" element={<AdminLayout />}>
+          {adminRoutes}
+        </Route>
+
+        <Route path="/hod" element={<HodLayout />}>
+          {hodRoutes}
+        </Route>
+
+        <Route path="/dean" element={<DeanLayout />}>
+          {deanRoutes}
+        </Route>
+
+        <Route path="/lecturer" element={<LecturerLayout />}>
+          {lecturerRoutes}
+        </Route>
+
+        <Route path="/guild" element={<GuildLayout />}>
+          {guildRoutes}
+        </Route>
+
+        <Route path="/principal" element={<PrincipalLayout />}>
+          {principalRoutes}
+        </Route>
+
+        {/* 404 Catch-all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ToastProvider>
+  );
 }
 
 export default function AppRoutes() {

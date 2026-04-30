@@ -232,9 +232,6 @@ export default function Login() {
                     <Link to="/forgot-password" className="text-blue-500 hover:text-blue-400 hover:underline">
                       Forgot password?
                     </Link>
-                    <Link to="/verify-email/resend" className="text-muted-foreground hover:text-foreground transition-colors">
-                      Verify email?
-                    </Link>
                   </div>
 
                   <button

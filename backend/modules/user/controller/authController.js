@@ -497,15 +497,41 @@ export const completeOnboarding = async (req, res) => {
     user.hasCompletedOnboarding = true;
     await user.save();
 
+    // Generate JWT for auto-login
+    const token = jwt.sign(
+      { id: user._id, role: user.role, department: user.department },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+
+    // Populate user data for response
+    await user.populate('department', 'name code');
+    await user.populate('classId', 'name code level');
+
+    // Build user data object (similar to login response)
+    const userData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department,
+      phoneNumber: user.phoneNumber,
+      profilePicture: user.profilePicture,
+      languagePreference: user.languagePreference,
+      studentID: user.studentID,
+      level: user.level,
+      interests: user.interests,
+      classInfo: user.classId,
+      notificationPreferences: user.notificationPreferences,
+      quietHours: user.quietHours,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+    };
+
     res.status(200).json({
       success: true,
       message: "Onboarding completed successfully",
-      user: {
-        interests: user.interests,
-        notificationPreferences: user.notificationPreferences,
-        quietHours: user.quietHours,
-        hasCompletedOnboarding: user.hasCompletedOnboarding
-      }
+      token,
+      user: userData
     });
   } catch (error) {
     console.error("Onboarding Error:", error);

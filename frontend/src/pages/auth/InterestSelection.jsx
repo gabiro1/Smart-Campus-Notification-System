@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Check, Loader2, Sparkles, BookOpen, Code, Flame, Trophy, Music, Palette, Globe, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, Loader2, Sparkles, BookOpen, Code, Flame, Trophy, Music, Palette, Globe, Zap, Rocket, PartyPopper } from "lucide-react";
 import apiClient from "../../services/apiClient";
+import { useAuth } from "../../context/AuthContext";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../../layouts/Navbar";
 import Footer from "../../layouts/Footer";
@@ -21,9 +22,11 @@ const INTERESTS = [
 export default function InterestSelection() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { login: startSession } = useAuth();
   const userId = searchParams.get("userId");
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
 
   const toggleInterest = (interestId) => {
     if (selectedInterests.includes(interestId)) {
@@ -45,17 +48,29 @@ export default function InterestSelection() {
 
     setLoading(true);
     try {
-      await apiClient.post("/users/complete-onboarding", {
+      const { data } = await apiClient.post("/users/complete-onboarding", {
         userId,
         interests: selectedInterests,
       });
 
-      toast.success("Profile setup complete!");      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      toast.success("Profile setup complete! Redirecting...");
+      
+      // Show advanced loader then auto-login
+      setShowLoader(true);
+      setLoading(false);
+      
+      // Auto-login with the token from response
+      if (data.token && data.user) {
+        setTimeout(() => {
+          startSession(data.user, data.token);
+          // Navigation will be handled by AuthContext based on user role
+        }, 2000);
+      } else {
+        // Fallback to login page if no token
+        setTimeout(() => navigate("/login"), 2000);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to save interests");
-    } finally {
       setLoading(false);
     }
   };
