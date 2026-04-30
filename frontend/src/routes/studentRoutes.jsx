@@ -11,7 +11,7 @@ import EventDetails from "../pages/dashboards/student/Events/EventDetails";
 import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
 import TimeTable from "../pages/dashboards/student/component/TimeTable";
 import MessagesTab from "../pages/Message/MessagesTab";
-import Settings from "../pages/dashboards/student/pages/Settings/Settings";
+import Settings from "../pages/dashboards/student/pages/settings/Settings";
 
 export const studentRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
