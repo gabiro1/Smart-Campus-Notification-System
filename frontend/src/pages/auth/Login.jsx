@@ -7,7 +7,6 @@ import Navbar from "../../layouts/Navbar";
 import Footer from "../../layouts/Footer";
 import authService from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
-import { auth, GoogleAuthProvider, signInWithPopup } from "../../firebase";
 
 const FEATURES = [
   { icon: Bell, text: "Instant campus alerts" },
@@ -263,6 +262,7 @@ export default function Login() {
                     type="button"
                     onClick={async () => {
                       try {
+                        const { auth, GoogleAuthProvider, signInWithPopup } = await import("../../firebase");
                         const provider = new GoogleAuthProvider();
                         const result = await signInWithPopup(auth, provider);
                         const idToken = await result.user.getIdToken();

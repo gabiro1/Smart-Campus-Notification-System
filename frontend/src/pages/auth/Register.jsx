@@ -23,7 +23,6 @@ import Navbar from "../../layouts/Navbar";
 import Footer from "../../layouts/Footer";
 import apiClient from "../../services/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import { GoogleLogin } from "@react-oauth/google";
 
 const BENEFITS = [
   { icon: Bell, text: "Instant campus alerts" },
@@ -405,6 +404,7 @@ export default function Register() {
                     type="button"
                     onClick={async () => {
                       try {
+                        const { auth, GoogleAuthProvider, signInWithPopup } = await import("../../firebase");
                         const provider = new GoogleAuthProvider();
                         const result = await signInWithPopup(auth, provider);
                         const idToken = await result.user.getIdToken();

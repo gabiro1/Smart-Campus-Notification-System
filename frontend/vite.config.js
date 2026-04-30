@@ -18,6 +18,10 @@ export default defineConfig({
   
   base: '/',
   
+  optimizeDeps: {
+    include: ['firebase/app', 'firebase/auth']
+  },
+  
   build: {
     outDir: 'dist',
     emptyOutDir: true,
