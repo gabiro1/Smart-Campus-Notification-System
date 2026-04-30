@@ -147,7 +147,10 @@ export const register = async (req, res) => {
     const allowedRoles = ["student"];
     const assignedRole = allowedRoles.includes(role) ? role : "student";
 
-    // 5. Build user object defensively
+    // 5. Generate OTP
+    const otp = generateOTP();
+
+    // 6. Build user object defensively
     const userData = {
       name,
       email,
@@ -155,7 +158,10 @@ export const register = async (req, res) => {
       phoneNumber,
       role: assignedRole,
       interests: interests || [],
-      profilePicture: profilePicture || ""
+      profilePicture: profilePicture || "",
+      emailVerified: false,
+      emailVerificationToken: otp,
+      emailVerificationExpires: Date.now() + 10 * 60 * 1000 // 10 minutes
     };
 
     // Only assign level if they are actually a student
@@ -168,29 +174,16 @@ export const register = async (req, res) => {
     if (school && isValidId(school)) userData.school = school;
     if (department && isValidId(department)) userData.department = department;
 
-    // 6. Create user
+    // 7. Create user (but don't activate until OTP verified)
     const user = await User.create(userData);
 
-    // 7. Generate JWT
-    const token = jwt.sign(
-      { id: user._id, role: user.role, department: user.department },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // 8. Send OTP to email
+    await sendOTPEmail(email, otp);
 
     res.status(201).json({
       success: true,
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        department: user.department,
-        level: user.level,
-        interests: user.interests,
-        profilePicture: user.profilePicture 
-      }
+      message: "Account created! Please verify your email with the OTP sent.",
+      email: user.email
     });
 
   } catch (error) {
@@ -645,19 +638,69 @@ export const requestVerification = async (req, res) => {
   }
 };
 
-// @desc    Verify email address
-// @route   GET /api/users/verify-email/:token
+// @desc    Generate and send OTP to email
+// @route   POST /api/users/register (modified)
 // @access  Public
-export const verifyEmail = async (req, res) => {
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+const sendOTPEmail = async (email, otp) => {
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    to: email,
+    from: process.env.EMAIL_USER,
+    subject: 'Verify Your Email - UniNotify AI',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+          .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #2563eb, #7c3aed); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+          .content { padding: 30px; text-align: center; }
+          .otp { font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 8px; margin: 20px 0; }
+          .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UniNotify AI</h1>
+          </div>
+          <div class="content">
+            <h2 style="color: #1f2937; margin-top: 0;">Verify Your Email</h2>
+            <p style="color: #4b5563; line-height: 1.6;">Enter the 6-digit code below to verify your email address:</p>
+            <div class="otp">${otp}</div>
+            <p style="color: #6b7280; font-size: 14px;">This code expires in <strong>10 minutes</strong>.</p>
+          </div>
+          <div class="footer">
+            <p>UniNotify AI - Smart Campus Notification System</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  });
+};
+
+// @desc    Verify OTP code
+// @route   POST /api/users/verify-otp
+// @access  Public
+export const verifyOTP = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { email, otp } = req.body;
+    
     const user = await User.findOne({
-      emailVerificationToken: token,
+      email,
+      emailVerificationToken: otp,
       emailVerificationExpires: { $gt: Date.now() }
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP code" });
     }
 
     user.emailVerified = true;
@@ -665,10 +708,36 @@ export const verifyEmail = async (req, res) => {
     user.emailVerificationExpires = undefined;
     await user.save();
 
-    res.status(200).json({ success: true, message: "Email verified successfully" });
+    res.status(200).json({ success: true, message: "Email verified successfully", userId: user._id });
   } catch (error) {
-    console.error("Email Verification Error:", error);
+    console.error("OTP Verification Error:", error);
     res.status(500).json({ success: false, message: "Verification failed" });
+  }
+};
+
+// @desc    Resend OTP code
+// @route   POST /api/users/resend-otp
+// @access  Public
+export const resendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const otp = generateOTP();
+    user.emailVerificationToken = otp;
+    user.emailVerificationExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    await sendOTPEmail(email, otp);
+
+    res.status(200).json({ success: true, message: "New OTP sent to your email" });
+  } catch (error) {
+    console.error("Resend OTP Error:", error);
+    res.status(500).json({ success: false, message: "Failed to resend OTP" });
   }
 };
 

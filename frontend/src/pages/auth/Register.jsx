@@ -126,9 +126,9 @@ export default function Register() {
       const { data } = await apiClient.post("/users/register", formData);
 
       toast.success(
-        "Account created successfully! Please verify your email.",
+        "Account created! Redirecting to verification...",
         {
-          duration: 4000,
+          duration: 2000,
           position: "top-center",
           style: {
             background: "#171717",
@@ -139,7 +139,8 @@ export default function Register() {
         }
       );
 
-      setTimeout(() => navigate("/login"), 1500);
+      // Redirect to OTP verification page
+      setTimeout(() => navigate(`/verify-otp?email=${encodeURIComponent(data.email || formData.email)}`), 1500);
     } catch (error) {
       const serverMsg =
         error.response?.data?.message ||

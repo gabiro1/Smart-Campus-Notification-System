@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { register, login, googleAuth, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyEmail, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto } from '../controller/authController.js';
+import { register, login, googleAuth, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyOTP, resendOTP, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto } from '../controller/authController.js';
 import { protect, authorize  } from '../../../middleware/authMiddleware.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
@@ -11,9 +11,10 @@ router.post('/register', validateBody(schemas.userRegistration), auditLog('user'
 router.post('/login', validateBody(schemas.userLogin), auditLog('user', { customAction: 'LOGIN' }), login);
 router.post('/auth/google', auditLog('user', { customAction: 'GOOGLE_AUTH' }), googleAuth);
 
-// Email verification
+// OTP verification (replaces old email link verification)
+router.post('/verify-otp', verifyOTP);
+router.post('/resend-otp', resendOTP);
 router.post('/request-verification', protect, requestVerification);
-router.get('/verify-email/:token', verifyEmail);
 
 // Password reset
 router.post('/forgot-password', validateBody(schemas.passwordReset), forgotPassword);
@@ -31,6 +32,6 @@ router.put('/notification-preferences', protect, updateNotificationPreferences);
 router.put('/onboarding', protect, authorize('student'), completeOnboarding);
 router.delete('/profile/:id', protect, auditLog('user'), deleteUser);
 
-router.post('/enroll', protect, authorize('hod', 'admin'), auditLog('user', { customAction: 'ENROLL_STUDENT' }), enrollStudent); // HODs and Admins can enroll students
+router.post('/enroll', protect, authorize('hod', 'admin'), auditLog('user', { customAction: 'ENROLL_STUDENT' }), enrollStudent);
 
 export default router;
