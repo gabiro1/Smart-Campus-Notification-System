@@ -1,11 +1,15 @@
 import apiClient from './apiClient';
 
 const notificationService = {
-  // Get notifications
-  getNotifications: async (page = 1, limit = 20) => {
-    const response = await apiClient.get('/notifications', {
-      params: { page, limit },
-    });
+  // Get notifications (with optional filters)
+  getNotifications: async ({ page = 1, limit = 20, type, status, priority, search, isPinned } = {}) => {
+    const params = { page, limit };
+    if (type) params.type = type;
+    if (status) params.status = status;
+    if (priority) params.priority = priority;
+    if (search) params.search = search;
+    if (isPinned !== undefined) params.isPinned = isPinned;
+    const response = await apiClient.get('/notifications', { params });
     return response.data;
   },
 
@@ -91,6 +95,18 @@ const notificationService = {
   // Get acknowledgment statistics for a broadcast (admin/lecturer)
   getAcknowledgmentStats: async (referenceId) => {
     const response = await apiClient.get(`/notifications/stats/acknowledgment/${referenceId}`);
+    return response.data;
+  },
+
+  // Toggle pin/unpin
+  togglePin: async (id) => {
+    const response = await apiClient.put(`/notifications/${id}/pin`);
+    return response.data;
+  },
+
+  // Toggle mute/unmute
+  toggleMute: async (id) => {
+    const response = await apiClient.put(`/notifications/${id}/mute`);
     return response.data;
   },
 };

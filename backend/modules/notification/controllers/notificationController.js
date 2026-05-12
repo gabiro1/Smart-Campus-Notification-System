@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import nodemailer from "nodemailer";
 import NotificationLog from "../models/NotificationLog.js";
 import User from "../../user/model/User.js";
-import { sendPushNotification, subscribeToTopics } from "../../../config/firebaseAdmin.js";
+import { sendPushNotification, subscribeToTopic } from "../../../config/firebaseAdmin.js";
 import { sendSMSViaTwilio } from "../../../services/smsService.js";
 import { summarizeNotifications } from "../../../services/aiProvider.js";
 import { generateVariantForRole } from "../../../services/aiPersonalizationService.js";
@@ -34,30 +34,44 @@ const escapeHTML = (str) => {
 export const getNotifications = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { page = 1, limit = 20 } = req.query;
+        const { page = 1, limit = 20, type, status, priority, search, isPinned } = req.query;
         const skip = (page - 1) * limit;
 
-        console.log('[GetNotifications] userId:', userId);
+        const userMatch = [
+            { studentId: userId },
+            { recipientId: userId }
+        ];
 
-        // Support both studentId (legacy) and recipientId for all user types
-        const query = {
-            $or: [
-                { studentId: userId },
-                { recipientId: userId }
-            ]
-        };
-        console.log('[GetNotifications] Query:', JSON.stringify(query));
-        
+        const filters = [];
+        if (type) filters.push({ type });
+        if (status) filters.push({ status });
+        if (priority) filters.push({ priority });
+        if (isPinned !== undefined) filters.push({ isPinned: isPinned === 'true' });
+        if (search) {
+            const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            filters.push({
+                $or: [
+                    { title: { $regex: escaped, $options: 'i' } },
+                    { message: { $regex: escaped, $options: 'i' } }
+                ]
+            });
+        }
+
+        const query = filters.length > 0
+            ? { $and: [{ $or: userMatch }, ...filters] }
+            : { $or: userMatch };
+
         const notifications = await NotificationLog.find(query)
-            .sort({ createdAt: -1 })
+            .sort({ isPinned: -1, createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit))
             .lean();
 
-        console.log('[GetNotifications] Found:', notifications.length);
-
         const total = await NotificationLog.countDocuments(query);
-        const unreadCount = await NotificationLog.countDocuments({ ...query, status: "unread" });
+        const unreadCount = await NotificationLog.countDocuments({
+            $or: [{ studentId: userId }, { recipientId: userId }],
+            status: "unread"
+        });
 
         res.status(200).json({
             success: true,
@@ -142,6 +156,40 @@ export const deleteNotification = async (req, res) => {
         res.status(200).json({ success: true, message: "Notification deleted from inbox." });
     } catch (error) {
         res.status(500).json({ success: false, message: "Failed to delete notification." });
+    }
+};
+
+export const togglePin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user._id;
+        const notif = await NotificationLog.findOne({
+            _id: id,
+            $or: [{ studentId: userId }, { recipientId: userId }]
+        });
+        if (!notif) return res.status(404).json({ success: false, message: "Not found." });
+        notif.isPinned = !notif.isPinned;
+        await notif.save();
+        res.status(200).json({ success: true, isPinned: notif.isPinned });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Failed to toggle pin." });
+    }
+};
+
+export const toggleMute = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user._id;
+        const notif = await NotificationLog.findOne({
+            _id: id,
+            $or: [{ studentId: userId }, { recipientId: userId }]
+        });
+        if (!notif) return res.status(404).json({ success: false, message: "Not found." });
+        notif.isMuted = !notif.isMuted;
+        await notif.save();
+        res.status(200).json({ success: true, isMuted: notif.isMuted });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Failed to toggle mute." });
     }
 };
 

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Announcement from '../../announcement/model/Announcement.js'; // Path to your model
 import User from '../../user/model/User.js'; 
 import Timetable from '../../timetable/model/Timetable.js';
+import Bookmark from '../../event/model/Bookmark.js';
 
 // ✅ THE FIX: Dashboard Controller
 export const getStudentDashboard = async (req, res) => {
@@ -43,14 +44,16 @@ export const getStudentDashboard = async (req, res) => {
       dayOfWeek: entry.dayOfWeek
     }));
 
-    // 4. MAP RESPONSE
+    // 4. Count actual bookmarks from Bookmark collection
+    const bookmarkCount = await Bookmark.countDocuments({ userId: student._id });
+
+    // 5. MAP RESPONSE
     res.status(200).json({
       success: true,
       stats: {
-        // ✅ Now using the actual fields from User schema
         attendanceRate: student.attendanceRate || 0,
         aiMatchAvg: 85,
-        savedCount: student.savedEvents?.length || 0,
+        savedCount: bookmarkCount,
         campusPulse: announcements.length 
       },
       schedule: schedule, 

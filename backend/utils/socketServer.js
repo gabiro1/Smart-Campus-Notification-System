@@ -80,6 +80,60 @@ export const initSocket = (server) => {
       console.log(`🏠 User ${socket.user.name} joined rooms: ${rooms.join(", ")}`);
     }
 
+    socket.join(`user:${userId}`);
+
+    if (socket.user.role) {
+      socket.join(`role:${socket.user.role}`);
+    }
+
+    socket.on("thread:join", ({ threadId }) => {
+      if (threadId) {
+        socket.join(`thread:${threadId}`);
+        console.log(`💬 User ${socket.user.name} joined thread: ${threadId}`);
+      }
+    });
+
+    socket.on("thread:leave", ({ threadId }) => {
+      if (threadId) {
+        socket.leave(`thread:${threadId}`);
+      }
+    });
+
+    socket.on("thread:typing", ({ threadId, isTyping }) => {
+      socket.to(`thread:${threadId}`).emit("thread:typing", {
+        threadId,
+        userId,
+        userName: socket.user.name,
+        isTyping
+      });
+    });
+
+    socket.on("thread:read", ({ threadId, messageIds }) => {
+      socket.to(`thread:${threadId}`).emit("message:read", {
+        threadId,
+        messageIds,
+        readBy: { userId, readAt: new Date().toISOString() }
+      });
+    });
+
+    socket.on("ticket:join", ({ ticketId }) => {
+      if (ticketId) {
+        socket.join(`ticket:${ticketId}`);
+      }
+    });
+
+    socket.on("ticket:leave", ({ ticketId }) => {
+      if (ticketId) {
+        socket.leave(`ticket:${ticketId}`);
+      }
+    });
+
+    socket.on("escalation:join", ({ escalationId }) => {
+      if (escalationId) {
+        socket.join(`escalation:${escalationId}`);
+      }
+    });
+
     socket.on("disconnect", () => {
       console.log(`🔌 WebSocket disconnected: ${socket.id}`);
       userSocketMap.delete(userId);

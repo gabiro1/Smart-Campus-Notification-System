@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "opencode-windows-x64": "^1.14.19"
+    "opencode-windows-x64": "^1.14.19",
+    "react-qr-code": "^2.0.21"
   }
 }

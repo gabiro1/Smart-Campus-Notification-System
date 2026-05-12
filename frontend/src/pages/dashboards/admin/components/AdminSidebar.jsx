@@ -15,6 +15,7 @@ import {
   Bell,
   X,
   User,
+  Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -27,6 +28,7 @@ const coreItems = [
 const managementItems = [
   { icon: Users, label: "Users", path: "/admin/users" },
   { icon: GraduationCap, label: "Academic", path: "/admin/academic" },
+  { icon: Calendar, label: "Timetable", path: "/admin/timetable" },
   { icon: Scale, label: "Governance", path: "/admin/governance" },
 ];
 

@@ -5,6 +5,8 @@ import {
     markAllAsRead,
     getUnreadCount,
     deleteNotification,
+    togglePin,
+    toggleMute,
     registerDevice,
     sendNotification,
     getSentHistory,
@@ -93,6 +95,12 @@ router.post(
 
 // Mark single notification as read
 router.put('/:id/read', markAsRead);
+
+// Pin / Unpin
+router.put('/:id/pin', togglePin);
+
+// Mute / Unmute
+router.put('/:id/mute', toggleMute);
 
 // Delete notification
 router.delete('/:id', deleteNotification);

@@ -5,15 +5,6 @@ import notificationService from '../services/notificationService';
 import toast from 'react-hot-toast';
 import React from 'react';
 
-/**
- * useRealTimeNotifications
- * ------------------------
- * Handles full lifecycle of notifications:
- * 1. Initial sync (last 20 notifications + unread count)
- * 2. Real-time updates via WebSocket
- * 3. Instant toasts
- * 4. Utility actions: markAsRead, clearAll
- */
 export const useRealTimeNotifications = () => {
   const { socket } = useSocket();
   const { user } = useAuth();
@@ -21,33 +12,27 @@ export const useRealTimeNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isThrottled, setIsThrottled] = useState(false);
-
-  // Strict execution guards
-  const hasSyncedInitial = useRef(false);
   const isLoadingRef = useRef(false);
 
-  // --- 1. Initial fetch + merge unread count
   const syncNotifications = useCallback(async () => {
-    // Guard Clauses: check if unauthenticated, already loading, throttled, or already synced initial
-    if (!user || isLoadingRef.current || isThrottled || hasSyncedInitial.current) {
-      return;
-    }
+    if (!user || isLoadingRef.current || isThrottled) return;
 
     isLoadingRef.current = true;
     setLoading(true);
 
     try {
-      const { notifications: fetched, unreadCount: unread } = await notificationService.getNotifications(1, 20);
-      setNotifications(fetched || []);
-      setUnreadCount(unread || 0);
-      hasSyncedInitial.current = true;
+      const res = await notificationService.getNotifications({ page: 1, limit: 20 });
+      const fetched = res?.notifications || res?.data || [];
+      const unread = res?.unreadCount ?? res?.unread ?? 0;
+      setNotifications(fetched);
+      setUnreadCount(unread);
     } catch (err) {
       const statusCode = err?.response?.status || err?.status;
       if (statusCode === 429) {
         setIsThrottled(true);
         toast.error('Too many requests. Connection throttled, please wait.');
       } else {
-        console.error('❌ Sync Failure:', err.message);
+        console.error('Notification sync failure:', err.message);
       }
     } finally {
       isLoadingRef.current = false;
@@ -56,65 +41,85 @@ export const useRealTimeNotifications = () => {
   }, [isThrottled]);
 
   useEffect(() => {
-    if (user) {
-      syncNotifications();
-    }
-  }, [user]); // Run when the authenticated user is available
+    if (user) syncNotifications();
+  }, [user]);
 
-  // --- 2. WebSocket listener for real-time
+  useEffect(() => {
+    if (!user) return;
+    syncNotifications();
+    const interval = setInterval(syncNotifications, 15000);
+    return () => clearInterval(interval);
+  }, [user, syncNotifications]);
+
   useEffect(() => {
     if (!socket) return;
 
     const handleNewNotification = (notif) => {
-      // Validate required fields
-      if (!notif._id || !notif.title || !notif.message) return;
+      if (!notif?.title) return;
 
-      console.log('🔔 Real-time Notification:', notif);
+      const normalized = {
+        _id: notif._id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        title: notif.title,
+        message: notif.message || notif.body || '',
+        body: notif.body || notif.message || '',
+        type: notif.type || 'info',
+        data: notif.data || {},
+        status: 'unread',
+        createdAt: notif.timestamp || new Date().toISOString(),
+      };
 
-      // Update state
-      setNotifications((prev) => [notif, ...prev]);
+      console.log('Real-time Notification:', normalized);
+
+      setNotifications((prev) => {
+        const exists = prev.some((n) => n._id === normalized._id);
+        return exists ? prev : [normalized, ...prev];
+      });
       setUnreadCount((prev) => prev + 1);
 
-      // Show toast
-      toast.custom((t) => (
-        <div
-          className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-[#111] shadow-2xl rounded-[15px] pointer-events-auto flex ring-1 ring-white/10 overflow-hidden border border-white/5`}
-        >
-          <div className="flex-1 w-0 p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 pt-0.5">
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                  notif.type === 'event' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'
-                }`}>
-                  <span className="font-black text-xs uppercase">{notif.type?.[0] || 'N'}</span>
+      toast.custom(
+        (t) => (
+          <div
+            className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-[#111] shadow-2xl rounded-[15px] pointer-events-auto flex ring-1 ring-white/10 overflow-hidden border border-white/5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div
+                    className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                      normalized.type === 'event'
+                        ? 'bg-blue-500/10 text-blue-400'
+                        : 'bg-amber-500/10 text-amber-400'
+                    }`}
+                  >
+                    <span className="font-black text-xs uppercase">{normalized.type?.[0] || 'N'}</span>
+                  </div>
+                </div>
+                <div className="ml-3 flex-1 text-left">
+                  <p className="text-sm font-bold text-white uppercase tracking-tight">{normalized.title}</p>
+                  <p className="mt-1 text-xs text-neutral-400 leading-relaxed">{normalized.message}</p>
                 </div>
               </div>
-              <div className="ml-3 flex-1 text-left">
-                <p className="text-sm font-bold text-white uppercase tracking-tight">{notif.title}</p>
-                <p className="mt-1 text-xs text-neutral-400 leading-relaxed">{notif.message}</p>
-              </div>
+            </div>
+            <div className="flex border-l border-white/5">
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="px-6 border border-transparent rounded-none rounded-r-[15px] flex items-center justify-center text-xs font-black text-neutral-500 hover:text-white transition-colors"
+              >
+                CLOSE
+              </button>
             </div>
           </div>
-          <div className="flex border-l border-white/5">
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="px-6 border border-transparent rounded-none rounded-r-[15px] flex items-center justify-center text-xs font-black text-neutral-500 hover:text-white transition-colors"
-            >
-              CLOSE
-            </button>
-          </div>
-        </div>
-      ), { duration: 4000 });
+        ),
+        { duration: 4000 }
+      );
     };
 
     socket.on('notification:new', handleNewNotification);
-
     return () => {
       socket.off('notification:new', handleNewNotification);
     };
   }, [socket]);
 
-  // --- 3. Mark a single notification as read
   const markAsRead = async (notifId) => {
     try {
       await notificationService.markAsRead(notifId);
@@ -127,7 +132,6 @@ export const useRealTimeNotifications = () => {
     }
   };
 
-  // --- 4. Mark all as read
   const clearAll = async () => {
     try {
       await notificationService.markAllAsRead();

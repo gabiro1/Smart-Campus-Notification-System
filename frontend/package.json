@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "generate:sw": "node scripts/generate-firebase-sw.mjs",
+    "predev": "npm run generate:sw",
     "dev": "vite",
+    "prebuild": "npm run generate:sw",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -24,9 +27,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dexie": "^4.4.2",
     "firebase": "^12.12.1",
     "framer-motion": "^12.35.0",
     "html5-qrcode": "^2.3.8",
+    "jwt-decode": "^3.1.2",
     "lucide-react": "^0.564.0",
     "path": "^0.12.7",
     "qrcode.react": "^4.2.0",
@@ -34,11 +39,13 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
+    "react-qr-code": "^2.0.21",
     "react-router-dom": "^7.13.0",
     "recharts": "^3.7.0",
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "vite-plugin-pwa": "^1.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

@@ -1,15 +1,19 @@
 // MongoDB Initialization Script
 // This script runs when the MongoDB container is first created
 
-// Create admin user
+// Create admin user (only if not already created by MONGO_INITDB_ROOT_USERNAME)
+// Docker's official mongo image auto-creates root user from env vars, so this is a fallback.
 db = db.getSiblingDB('admin');
-db.createUser({
-    user: process.env.MONGO_ROOT_USER || 'admin',
-    pwd: process.env.MONGO_ROOT_PASSWORD || 'password',
-    roles: [
-        { role: 'root', db: 'admin' }
-    ]
-});
+const existingUsers = db.getUsers().users.map(u => u.user);
+if (!existingUsers.includes(process.env.MONGO_INITDB_ROOT_USERNAME || process.env.MONGO_ROOT_USER || 'admin')) {
+    db.createUser({
+        user: process.env.MONGO_INITDB_ROOT_USERNAME || process.env.MONGO_ROOT_USER || 'admin',
+        pwd: process.env.MONGO_INITDB_ROOT_PASSWORD || process.env.MONGO_ROOT_PASSWORD || 'password',
+        roles: [
+            { role: 'root', db: 'admin' }
+        ]
+    });
+}
 
 // Create application database and user
 db = db.getSiblingDB(process.env.MONGO_DATABASE || 'uni-notify');
@@ -17,7 +21,7 @@ db = db.getSiblingDB(process.env.MONGO_DATABASE || 'uni-notify');
 // Create application user with readWrite role
 db.createUser({
     user: 'appuser',
-    pwd: 'apppassword', // Change this in production!
+    pwd: process.env.MONGO_APP_PASSWORD || 'apppassword', // ⚠️ Override via MONGO_APP_PASSWORD env var in production!
     roles: [
         { role: 'readWrite', db: process.env.MONGO_DATABASE || 'uni-notify' }
     ]

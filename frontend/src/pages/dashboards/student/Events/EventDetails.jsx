@@ -82,6 +82,7 @@ export default function EventDetails() {
     setIsBookmarked(newState);
     try {
       await eventService.toggleBookmark(eventId);
+      window.dispatchEvent(new Event('bookmark-changed'));
       toast.success(newState ? "Saved to bookmarks!" : "Removed from bookmarks", {
         style: { background: '#171717', color: '#fff', border: '1px solid #333' }
       });

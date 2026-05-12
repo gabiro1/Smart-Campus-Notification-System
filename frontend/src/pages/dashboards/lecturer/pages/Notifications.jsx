@@ -302,8 +302,8 @@ export default function Notifications() {
                 animate={{ opacity: 1 }}
                 className="pl-16 md:pl-20 py-10"
               >
-                <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
-                  <Bell size={32} className="text-neutral-600 mb-3" />
+                <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-2xl bg-muted/20">
+                  <Bell size={32} className="text-muted-foreground mb-3" />
                   <p className="text-muted-foreground font-medium">
                     You're all caught up!
                   </p>
@@ -342,7 +342,7 @@ export default function Notifications() {
               <button
                 onClick={generateDigest}
                 disabled={generatingDigest}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
               >
                 {generatingDigest ? (
                   <Loader2 size={16} className="animate-spin" />

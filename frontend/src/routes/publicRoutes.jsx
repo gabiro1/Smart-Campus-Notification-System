@@ -10,6 +10,7 @@ import Register from "../pages/auth/Register";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyOTP from "../pages/auth/VerifyOTP";
+import GoogleAuth from "../pages/auth/GoogleAuth";
 import InterestSelection from "../pages/auth/InterestSelection";
 
 export const publicRoutes = [
@@ -22,5 +23,6 @@ export const publicRoutes = [
   <Route key="forgot-password" path="/forgot-password" element={<ForgotPassword />} />,
   <Route key="reset-password" path="/reset-password" element={<ResetPassword />} />,
   <Route key="verify-otp" path="/verify-otp" element={<VerifyOTP />} />,
+  <Route key="google-auth" path="/google-auth" element={<GoogleAuth />} />,
   <Route key="interest-selection" path="/interest-selection" element={<InterestSelection />} />,
 ];

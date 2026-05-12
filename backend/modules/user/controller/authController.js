@@ -335,7 +335,7 @@ export const updateProfile = async (req, res) => {
         user: updatedUser
       });
     } else {
-      res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
   } catch (error) {
     console.error('UpdateProfile error:', error);
@@ -1009,5 +1009,14 @@ export const googleAuth = async (req, res) => {
   } catch (error) {
     console.error('Google Auth Error:', error.message);
     res.status(500).json({ success: false, message: error.message || 'Google authentication failed' });
+  }
+};
+
+export const updateLastActive = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { lastActiveAt: new Date() });
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to update last active' });
   }
 };

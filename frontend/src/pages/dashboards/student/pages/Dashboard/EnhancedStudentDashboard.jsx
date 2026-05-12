@@ -149,7 +149,12 @@ export default function EnhancedStudentDashboard() {
   useEffect(() => {
     loadDashboardData();
     const interval = setInterval(() => loadDashboardData(true), 300000);
-    return () => clearInterval(interval);
+    const onBookmarkChange = () => loadDashboardData(true);
+    window.addEventListener('bookmark-changed', onBookmarkChange);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('bookmark-changed', onBookmarkChange);
+    };
   }, [loadDashboardData]);
 
   const handleCheckIn = async (eventId) => {
@@ -179,8 +184,15 @@ export default function EnhancedStudentDashboard() {
     return filtered.slice(0, 8);
   }, [events, activeTab]);
 
-  const toggleBookmark = (id) => {
-    setBookmarked(prev => prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]);
+  const toggleBookmark = async (id) => {
+    const wasBookmarked = bookmarked.includes(id);
+    setBookmarked(prev => wasBookmarked ? prev.filter(b => b !== id) : [...prev, id]);
+    try {
+      await eventService.toggleBookmark(id);
+      window.dispatchEvent(new Event('bookmark-changed'));
+    } catch {
+      setBookmarked(prev => wasBookmarked ? [...prev, id] : prev.filter(b => b !== id));
+    }
   };
 
   const getGreeting = () => {

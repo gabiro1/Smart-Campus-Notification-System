@@ -26,8 +26,10 @@ export const notificationWorker = new Worker(
       // Emits to the room (e.g., room_dept_IT) where specific students are listening.
       if (room && io) {
         io.to(room).emit('notification:new', {
+          _id: job.id || `job_${Date.now()}`,
           title,
           body,
+          message: body,
           data,
           type,
           timestamp: job.data.timestamp,

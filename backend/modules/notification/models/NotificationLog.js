@@ -78,7 +78,17 @@ const NotificationLogSchema = new mongoose.Schema({
     },
 
     receivedAt: Date,
-    readAt: Date
+    readAt: Date,
+
+    // User-managed flags
+    isPinned: {
+        type: Boolean,
+        default: false
+    },
+    isMuted: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 
 // ==========================================

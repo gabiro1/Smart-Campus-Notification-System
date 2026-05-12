@@ -12,7 +12,7 @@ export const generateURStudentID = async () => {
     const year = new Date().getFullYear().toString().slice(-2);
     
     // 2. Generate a random 6-digit number (e.g., "001232")
-    const randomSequence = Math.floor(Math.random() * 1000000).toString().padStart(3, '0');
+    const randomSequence = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
     
     // 3. Combine them: Year + 2 + Sequence (e.g., "262001232")
     newID = `${year}2${randomSequence}`;
@@ -40,7 +40,7 @@ export const protect = async (req, res, next) => {
             req.user = await User.findById(decoded.id).select('-password');
             next();
         } catch (error) {
-            res.status(401).json({ message: "Not authorized, token failed" });
+            return res.status(401).json({ message: "Not authorized, token failed" });
         }
     }
 

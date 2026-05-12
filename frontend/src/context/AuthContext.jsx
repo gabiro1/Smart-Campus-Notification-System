@@ -1,85 +1,70 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import jwt_decode from 'jwt-decode'
 
-const AuthContext = createContext();
+const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null)
+  const [token, setToken] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const navigate = useNavigate();
+  const buildUser = useCallback((decoded, storedUser = {}) => ({
+    id: decoded.id,
+    role: decoded.role,
+    department: decoded.department,
+    name: storedUser.name || decoded.name,
+    email: storedUser.email || decoded.email,
+    hasCompletedOnboarding: storedUser.hasCompletedOnboarding,
+  }), [])
 
-  // --- WAKE UP & HYDRATE ---
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("authToken");
-
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
+    const storedToken = localStorage.getItem('token') || localStorage.getItem('authToken')
+    if (storedToken) {
+      try {
+        const decoded = jwt_decode(storedToken)
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+        setToken(storedToken)
+        setUser(buildUser(decoded, storedUser))
+      } catch {
+        localStorage.removeItem('token')
+        localStorage.removeItem('authToken')
+      }
     }
+    setLoading(false)
+  }, [buildUser])
 
-    setIsLoading(false);
-  }, []);
-
-  // --- LOGIN ACTION ---
-  const login = (userData, authToken) => {
-    setUser(userData);
-    setToken(authToken);
-
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("authToken", authToken);
-
-    // Strict Role-Based Routing
-    if (userData.role === "student") {
-      navigate("/student/dashboard");
-    } else if (userData.role === "hod") {
-      navigate("/hod/dashboard");
-    } else if (userData.role === "lecturer") {
-      navigate("/lecturer/console");
-    } else {
-      navigate("/admin/overview");
+  const login = (userData, newToken) => {
+    localStorage.setItem('token', newToken)
+    if (userData) {
+      localStorage.setItem('user', JSON.stringify(userData))
     }
-  };
+    const decoded = jwt_decode(newToken)
+    setToken(newToken)
+    setUser(buildUser(decoded, userData || {}))
+  }
 
-  // --- UPDATE USER ACTION ---
-  // Keeps the UI perfectly synced without forcing a logout
   const updateUser = (newUserData) => {
-    setUser(newUserData);
-    localStorage.setItem("user", JSON.stringify(newUserData));
-  };
+    setUser(prev => {
+      const updated = { ...prev, ...newUserData }
+      const stored = JSON.parse(localStorage.getItem('user') || '{}')
+      localStorage.setItem('user', JSON.stringify({ ...stored, ...newUserData }))
+      return updated
+    })
+  }
 
-  // --- LOGOUT ACTION ---
   const logout = () => {
-    setUser(null);
-    setToken(null);
-
-    localStorage.removeItem("user");
-    localStorage.removeItem("authToken");
-
-    navigate("/login");
-  };
+    localStorage.removeItem('token')
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+    setToken(null)
+    setUser(null)
+  }
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, isLoading, login, logout, updateUser }}
-    >
-      {!isLoading ? (
-        children
-      ) : (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center text-blue-500 font-bold tracking-widest uppercase text-sm animate-pulse">
-          Securing Portal...
-        </div>
-      )}
+    <AuthContext.Provider value={{ user, token, loading, login, logout, updateUser }}>
+      {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext)

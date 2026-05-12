@@ -11,7 +11,7 @@ import {
     getNotificationSummary,
     getUnreadCount
 } from '../controllers/notificationController.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize } from '../../../middleware/authMiddleware.js';
 
 // Get all notifications for current user (paginated)
 router.get('/', protect, getNotifications);

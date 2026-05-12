@@ -2,15 +2,94 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <!-- ================= PWA CORE ================= -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- ================= VIEWPORT ================= -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <!-- ================= APP META ================= -->
+    <meta name="description" content="Smart Campus Notification System - AI-powered event alerts and reminders for students and staff." />
+    <meta name="application-name" content="SmartCampus" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- ================= IOS SUPPORT ================= -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SmartCampus" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+
+    <!-- ================= FAVICON SAFETY ================= -->
+    <link rel="icon" href="/icons/icon-192x192.png" />
+
+    <!-- ================= TITLE ================= -->
+    <title>Smart Campus Notification System</title>
+
+    <!-- ================= FONTS ================= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Poppins:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- ================= GLOBAL STYLES ================= -->
+    <style>
+      body {
+        margin: 0;
+        overscroll-behavior-y: contain;
+        font-family: "Poppins", sans-serif;
+        background: #000;
+      }
+
+      /* Prevent white flash on load (PWA polish) */
+      html, body {
+        background-color: #000;
+      }
+    </style>
   </head>
+
   <body>
     <div id="root"></div>
+
+    <!-- ================= MAIN APP ================= -->
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- ================= SERVICE WORKER (HARDENED) ================= -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+          try {
+            const registration = await navigator.serviceWorker.register("/sw.js", {
+              scope: "/"
+            });
+
+            console.log("✅ Service Worker registered:", registration.scope);
+
+            // Detect updates (important for production)
+            registration.onupdatefound = () => {
+              const newWorker = registration.installing;
+
+              if (newWorker) {
+                newWorker.onstatechange = () => {
+                  if (newWorker.state === "installed") {
+                    if (navigator.serviceWorker.controller) {
+                      console.log("🔄 New version available");
+                    } else {
+                      console.log("📦 App cached for offline use");
+                    }
+                  }
+                };
+              }
+            };
+          } catch (err) {
+            console.error("❌ Service Worker registration failed:", err);
+          }
+        });
+      }
+    </script>
   </body>
 </html>

@@ -330,7 +330,36 @@ createUser: async (userData) => {
     const response = await apiClient.delete(`/courses/${id}`);
     return response.data;
   },
+  // ==========================================
+  // TIMETABLE MANAGEMENT
+  // ==========================================
+
+  getTimetable: async (filters = {}) => {
+    const response = await apiClient.get('/timetable', { params: filters });
+    return response.data;
+  },
+
+  getTimetableByClass: async (classId) => {
+    const response = await apiClient.get(`/timetable/class/${classId}`);
+    return response.data;
+  },
+
+  createTimetableEntry: async (data) => {
+    const response = await apiClient.post('/timetable', data);
+    return response.data;
+  },
+
+  updateTimetableEntry: async (id, data) => {
+    const response = await apiClient.put(`/timetable/${id}`, data);
+    return response.data;
+  },
+
+  deleteTimetableEntry: async (id) => {
+    const response = await apiClient.delete(`/timetable/${id}`);
+    return response.data;
+  },
 
 };
+
 
 export default adminService;

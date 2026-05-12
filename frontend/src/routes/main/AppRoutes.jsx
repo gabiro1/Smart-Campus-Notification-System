@@ -10,7 +10,7 @@ import ResetPassword from "../../pages/auth/ResetPassword";
 // --- LAYOUTS ONLY ---
 import AdminLayout from "../../layouts/AdminLayout";
 import StudentLayout from "../../layouts/StudentLayout";
-import GuildLayout from "../../pages/dashboards/guild_president/Components/DashboardLayout";
+import GuildLayout from "../../pages/dashboards/guild_president/components/DashboardLayout";
 import LecturerLayout from "../../pages/dashboards/lecturer/components/DashboardLayout";
 import HodLayout from "../../pages/dashboards/hod/components/DashboardLayout";
 import DeanLayout from "../../pages/dashboards/dean/components/DashboardLayout";

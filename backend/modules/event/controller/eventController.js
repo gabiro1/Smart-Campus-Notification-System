@@ -4,12 +4,11 @@ import Bookmark from "../model/Bookmark.js";
 import User from "../../user/model/User.js";
 import NotificationLog from "../../notification/models/NotificationLog.js";
 import { getTargetedUsers } from "../../../utils/notificationEngine.js";
-import { sendPushNotification } from "../../../config/firebaseAdmin.js";
+import { sendPushNotification, sendMulticastNotification } from "../../../config/firebaseAdmin.js";
 import { calculateMatchScore } from "../../../utils/mlEngine.js";
 import Tesseract from "tesseract.js";
 import fs from "fs";
 import path from "path";
-import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
 import ics from 'ics';
 import { classifyWithFallback } from "../../../services/aiClassificationService.js";
 import { scheduleEventReminders, cancelEventReminders, updateEventReminders } from "../../../services/eventReminderScheduler.js";
@@ -781,6 +780,7 @@ export const getPendingApprovals = async (req, res) => {
     let query = { status: "pending" };
 
     if (admin.role === "dean") query.targetSchool = admin.school;
+    else if (admin.role === "hod") query.targetDept = admin.department;
     else if (admin.role === "lecturer") query.targetDept = admin.department;
 
     const events = await Event.find(query)
@@ -907,7 +907,7 @@ export const broadcastEvent = async (event, isUpdate = false) => {
       const pushPromises = [];
       for (const { title, body, tokens } of tokenGroups.values()) {
         pushPromises.push(
-          sendMulticastNotification(tokens, title, body).catch(err => {
+          sendMulticastNotification(tokens, { title, body }).catch(err => {
             console.error(`[Personalization] Push failed for group of ${tokens.length} tokens:`, err.message);
           })
         );

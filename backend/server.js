@@ -14,6 +14,7 @@ import eventRoutes from './modules/event/routes/eventRoutes.js';
 import notificationRoutes from './modules/notification/routes/notificationRoutes.js';
 import reminderRoutes from './modules/reminder/routes/reminderRoutes.js';
 import adminRoutes from './modules/admin/routes/adminRoutes.js';
+import settingsRoutes from './modules/settings/routes/settingsRoutes.js';
 import backupRoutes from './modules/backup/routes/backupRoutes.js';
 import messageRoutes from './modules/message/routes/messageRoutes.js'; // For the new messaging system
 import { startReminderCron } from './services/reminderCron.js'; // Import the cron job for reminders
@@ -40,6 +41,16 @@ import searchRoutes from './modules/search/routes/searchRoutes.js'; // Smart sea
 import supportRoutes from './modules/support/routes/supportRoutes.js'; // Support Tickets
 import smsRoutes from './modules/sms/routes/messageRoutes.js'; // SMS Module
 import dropdownsRoutes from './modules/dropdowns/routes/dropdownsRoutes.js'; // Public dropdowns for registration
+
+// Communication Module Routes
+import contactRoutes from './modules/communication/routes/contactRoutes.js';
+import conversationRoutes from './modules/communication/routes/conversationRoutes.js';
+import commMessageRoutes from './modules/communication/routes/messageRoutes.js';
+import ticketRoutes from './modules/communication/routes/ticketRoutes.js';
+import requestRoutes from './modules/communication/routes/requestRoutes.js';
+import escalationRoutes from './modules/communication/routes/escalationRoutes.js';
+import officeRoutes from './modules/communication/routes/officeRoutes.js';
+import moderationRoutes from './modules/communication/routes/moderationRoutes.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -69,6 +80,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
+    'http://localhost:8000',
     'https://smart-campus-notification-system.vercel.app'
   ],
   credentials: true,
@@ -175,8 +187,19 @@ app.use('/api/ai', aiRoutes); // AI Announcement Suggester
 app.use('/api/governance/announcements', governanceRoutes); // Governance Engine
 app.use('/api/admin/audit-logs', auditRoutes);
 app.use('/api/support', supportRoutes); // Support Tickets
-app.use('/api/messages', smsRoutes); // SMS Module (under messages)
+app.use('/api/sms', smsRoutes); // SMS Module
 app.use('/api/dropdowns', dropdownsRoutes); // Public dropdowns for registration
+app.use('/api/settings', settingsRoutes); // System settings
+
+// Communication Module Routes
+app.use('/api/communication/contacts', contactRoutes);
+app.use('/api/communication/conversations', conversationRoutes);
+app.use('/api/communication/messages', commMessageRoutes);
+app.use('/api/communication/tickets', ticketRoutes);
+app.use('/api/communication/requests', requestRoutes);
+app.use('/api/communication/escalations', escalationRoutes);
+app.use('/api/communication/offices', officeRoutes);
+app.use('/api/communication/moderation', moderationRoutes);
 
 // 5. ROOT ROUTE (Health Check)
 app.get('/', (req, res) => {

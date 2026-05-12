@@ -89,6 +89,7 @@ export default function EventCard({ event, onRate, onBookmark, initialBookmark =
     setIsBookmarked(newState);
     try {
       await eventService.toggleBookmark(event._id || event.id);
+      window.dispatchEvent(new Event('bookmark-changed'));
       if (newState) toast.success("Saved", { style: { background: '#111214', color: '#fff', border: '1px solid #1E2023' } });
     } catch (err) {
       setIsBookmarked(!newState);

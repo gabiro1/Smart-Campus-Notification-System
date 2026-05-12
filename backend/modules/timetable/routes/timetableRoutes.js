@@ -7,7 +7,7 @@ import {
   updateTimetable,
   deleteTimetable
 } from "../controller/timetableController.js";
-import {protect} from "../../../middleware/authMiddleware.js";
+import { protect, authorize } from "../../../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -17,8 +17,8 @@ router.get("/class/:classId", protect, getTimetableByClass);
 router.get("/lecturer/:lecturerId", protect, getTimetableByLecturer);
 
 // Admin/HOD only for mutations
-router.post("/", protect, createTimetable);
-router.put("/:id", protect, updateTimetable);
-router.delete("/:id", protect, deleteTimetable);
+router.post("/", protect, authorize('admin', 'hod'), createTimetable);
+router.put("/:id", protect, authorize('admin', 'hod'), updateTimetable);
+router.delete("/:id", protect, authorize('admin', 'hod'), deleteTimetable);
 
 export default router;

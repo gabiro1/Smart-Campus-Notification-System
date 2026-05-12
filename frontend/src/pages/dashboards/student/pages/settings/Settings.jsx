@@ -44,8 +44,10 @@ export default function Settings() {
     push: true,
     email: true,
     sms: false,
-    digestEnabled: true,
+    digestFrequency: "off",
     quietHoursEnabled: false,
+    inAppSound: false,
+    vibration: false,
     quietHours: { startTime: "22:00", endTime: "07:00" },
     profileVisibility: "students",
     languagePreference: "en",
@@ -227,15 +229,29 @@ export default function Settings() {
     }
   };
 
-  const handleAddInterest = () => {
-    if (newInterest.trim() && !interests.includes(newInterest.trim())) {
-      setInterests(prev => [...prev, newInterest.trim()]);
-      setNewInterest('');
+  const handleAddInterest = async () => {
+    const tag = newInterest.trim();
+    if (!tag || interests.includes(tag)) return;
+    const updated = [...interests, tag];
+    setInterests(updated);
+    setNewInterest('');
+    try {
+      await apiClient.put('/users/profile', { interests: updated });
+    } catch {
+      setInterests(interests);
+      toast.error('Failed to save interest');
     }
   };
 
-  const handleRemoveInterest = (interestToRemove) => {
-    setInterests(prev => prev.filter(i => i !== interestToRemove));
+  const handleRemoveInterest = async (interestToRemove) => {
+    const updated = interests.filter(i => i !== interestToRemove);
+    setInterests(updated);
+    try {
+      await apiClient.put('/users/profile', { interests: updated });
+    } catch {
+      setInterests(interests);
+      toast.error('Failed to remove interest');
+    }
   };
 
   const handleCategoryToggle = (categoryId, channel) => {
@@ -292,10 +308,19 @@ export default function Settings() {
       localStorage.removeItem('user');
       toast.success("Logged out successfully!");
       window.location.href = '/login';
-    } catch (error) {
+    } catch {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/login';
+    }
+  };
+
+  const handleRequestVerification = async () => {
+    try {
+      await apiClient.post('/users/request-verification');
+      toast.success("Verification email sent!");
+    } catch {
+      toast.error("Failed to send verification email");
     }
   };
 
@@ -324,17 +349,31 @@ export default function Settings() {
     try {
       await apiClient.post('/users/request-verification');
       toast.success("Verification email sent!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to send verification email");
     }
   };
 
   const formatDate = (date) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return d.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -439,7 +478,7 @@ export default function Settings() {
                         onChange={handlePhotoUpload}
                         className="hidden"
                       />
-                      <div className="absolute -bottom-1 left-1 w-5 h-5 bg-green-500 border-4 border-card rounded-full" />
+                      <div className="absolute -bottom-1 left-1 w-5 h-5 bg-green-500 border-4 border-background rounded-full" />
                     </div>
 
                     <div className="flex-1 text-center sm:text-left pt-2 w-full">
@@ -480,7 +519,7 @@ export default function Settings() {
                               type="text"
                               value={profileForm.name}
                               onChange={(e) => setProfileForm(p => ({...p, name: e.target.value}))}
-                              className="w-full bg-black/40 border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-bold"
+                              className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-bold"
                             />
                           </div>
                         </div>
@@ -509,7 +548,7 @@ export default function Settings() {
                           <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2.5 rounded-full text-sm font-bold transition-all disabled:opacity-50"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all disabled:opacity-50"
                           >
                             {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                             Save
@@ -521,7 +560,7 @@ export default function Settings() {
 
                   {/* Personal Info Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 w-full">
-                    <div className="bg-black/30 border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+                    <div className="bg-muted border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-accent">
                       <div className="bg-accent p-3 rounded-full text-muted-foreground mt-1 flex-shrink-0">
                         <Mail size={18} />
                       </div>
@@ -531,7 +570,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className="bg-black/30 border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+                    <div className="bg-muted border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-accent">
                       <div className="bg-accent p-3 rounded-full text-muted-foreground mt-1 flex-shrink-0">
                         <Building2 size={18} />
                       </div>
@@ -545,7 +584,7 @@ export default function Settings() {
                             value={profileForm.phoneNumber}
                             onChange={(e) => setProfileForm(p => ({...p, phoneNumber: e.target.value}))}
                             placeholder="+250..."
-                            className="w-full bg-black/40 border border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm mt-1"
+                            className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm mt-1"
                           />
                         )}
                       </div>
@@ -554,7 +593,7 @@ export default function Settings() {
 
                   {/* Academic Info Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 w-full">
-                    <div className="bg-black/30 border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+                    <div className="bg-muted border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-accent">
                       <div className="bg-accent p-3 rounded-full text-purple-400 mt-1 flex-shrink-0">
                         <Building2 size={18} />
                       </div>
@@ -564,7 +603,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className="bg-black/30 border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+                    <div className="bg-muted border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-accent">
                       <div className="bg-accent p-3 rounded-full text-blue-400 mt-1 flex-shrink-0">
                         <Building size={18} />
                       </div>
@@ -574,7 +613,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className="bg-black/30 border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+                    <div className="bg-muted border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-accent">
                       <div className="bg-accent p-3 rounded-full text-emerald-400 mt-1 flex-shrink-0">
                         <BookOpen size={18} />
                       </div>
@@ -584,7 +623,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className="bg-black/30 border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+                    <div className="bg-muted border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-accent">
                       <div className="bg-accent p-3 rounded-full text-amber-400 mt-1 flex-shrink-0">
                         <GraduationCap size={18} />
                       </div>
@@ -597,7 +636,7 @@ export default function Settings() {
                     </div>
 
                     {/* Level/Year - Display Only */}
-                    <div className="bg-black/30 border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/[0.03]">
+                    <div className="bg-muted border border-border p-5 rounded-2xl flex items-start gap-4 transition-colors hover:bg-accent">
                       <div className="bg-accent p-3 rounded-full text-blue-400 mt-1 flex-shrink-0">
                         <Calendar size={18} />
                       </div>
@@ -642,7 +681,7 @@ export default function Settings() {
                       </AnimatePresence>
 
                       {!interests?.length && !isEditing && (
-                        <span className="text-neutral-600 text-sm italic py-2">No interests added yet. Click edit to add tags.</span>
+                        <span className="text-muted-foreground text-sm italic py-2">No interests added yet. Click edit to add tags.</span>
                       )}
 
                       {isEditing && (
@@ -658,7 +697,7 @@ export default function Settings() {
                               }
                             }}
                             placeholder="Add interest..."
-                            className="bg-black/40 border border-border rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-40 placeholder:text-neutral-600"
+                            className="bg-muted border border-border rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-40 placeholder:text-muted-foreground"
                           />
                           <button
                             onClick={handleAddInterest}
@@ -680,7 +719,7 @@ export default function Settings() {
                     </label>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div className="bg-black/30 border border-border p-4 rounded-xl text-center">
+                      <div className="bg-muted border border-border p-4 rounded-xl text-center">
                         <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                           <User size={16} />
                         </div>
@@ -688,7 +727,7 @@ export default function Settings() {
                         <div className="text-foreground font-medium text-sm capitalize">{user?.role?.replace('_', ' ')}</div>
                       </div>
 
-                      <div className="bg-black/30 border border-border p-4 rounded-xl text-center">
+                      <div className="bg-muted border border-border p-4 rounded-xl text-center">
                         <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                           <Calendar size={16} />
                         </div>
@@ -696,7 +735,7 @@ export default function Settings() {
                         <div className="text-foreground font-medium text-sm">{formatDate(user?.createdAt)}</div>
                       </div>
 
-                      <div className="bg-black/30 border border-border p-4 rounded-xl text-center">
+                      <div className="bg-muted border border-border p-4 rounded-xl text-center">
                         <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                           <Clock size={16} />
                         </div>
@@ -704,7 +743,7 @@ export default function Settings() {
                         <div className="text-foreground font-medium text-sm">{formatDate(user?.lastActiveAt)}</div>
                       </div>
 
-                      <div className="bg-black/30 border border-border p-4 rounded-xl text-center">
+                      <div className="bg-muted border border-border p-4 rounded-xl text-center">
                         <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                           <CheckCircle2 size={16} />
                         </div>
@@ -826,14 +865,71 @@ export default function Settings() {
                     <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Digest</h3>
                     <div className="flex items-center justify-between p-4 bg-accent/50 rounded-xl">
                       <div>
-                        <h4 className="font-medium text-foreground">Daily Digest</h4>
-                        <p className="text-sm text-muted-foreground">AI summary delivered to email</p>
+                        <h4 className="font-medium text-foreground">Email Digest</h4>
+                        <p className="text-sm text-muted-foreground">Receive a summary of unread activity</p>
+                      </div>
+                      <select
+                        value={settings.digestFrequency || "off"}
+                        onChange={(e) => {
+                          setSettings(prev => ({ ...prev, digestFrequency: e.target.value }));
+                        }}
+                        className="bg-background border border-border text-foreground rounded-lg px-3 py-2 text-sm cursor-pointer focus:outline-none"
+                      >
+                        <option value="off">Off</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* In-App Sound & Vibration */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Device</h3>
+                    <div className="flex items-center justify-between p-4 bg-accent/50 rounded-xl">
+                      <div>
+                        <h4 className="font-medium text-foreground">In-App Sound</h4>
+                        <p className="text-sm text-muted-foreground">Play a sound for new notifications</p>
                       </div>
                       <button
-                        onClick={() => handleToggle("digestEnabled")}
-                        className={`w-14 h-8 rounded-full transition-colors ${settings.digestEnabled ? "bg-blue-600" : "bg-accent"}`}
+                        onClick={() => {
+                          const next = !settings.inAppSound;
+                          setSettings(prev => ({ ...prev, inAppSound: next }));
+                          if (next) {
+                            try {
+                              const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                              const o = ctx.createOscillator();
+                              const g = ctx.createGain();
+                              o.connect(g); g.connect(ctx.destination);
+                              o.frequency.value = 520; g.gain.value = 0.1;
+                              g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+                              o.start(); o.stop(ctx.currentTime + 0.4);
+                            } catch (e) { console.warn("Audio not available", e); }
+                          }
+                        }}
+                        className={`w-14 h-8 rounded-full transition-colors ${settings.inAppSound ? "bg-blue-600" : "bg-accent"}`}
                       >
-                        <div className={`w-6 h-6 rounded-full bg-white shadow-lg transition-transform ${settings.digestEnabled ? "translate-x-7" : "translate-x-1"}`} />
+                        <div className={`w-6 h-6 rounded-full bg-white shadow-lg transition-transform ${settings.inAppSound ? "translate-x-7" : "translate-x-1"}`} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-accent/50 rounded-xl">
+                      <div>
+                        <h4 className="font-medium text-foreground">Vibration</h4>
+                        <p className="text-sm text-muted-foreground">Vibrate on urgent alerts (mobile)</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const next = !settings.vibration;
+                          setSettings(prev => ({ ...prev, vibration: next }));
+                          if (next) {
+                            try {
+                              if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                            } catch (e) { console.warn("Vibration not available", e); }
+                          }
+                        }}
+                        className={`w-14 h-8 rounded-full transition-colors ${settings.vibration ? "bg-blue-600" : "bg-accent"}`}
+                      >
+                        <div className={`w-6 h-6 rounded-full bg-white shadow-lg transition-transform ${settings.vibration ? "translate-x-7" : "translate-x-1"}`} />
                       </button>
                     </div>
                   </div>
@@ -886,7 +982,7 @@ export default function Settings() {
                         }
                       }}
                       placeholder="Add interest..."
-                      className="bg-black/40 border border-border rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-40 placeholder:text-neutral-600"
+                      className="bg-muted border border-border rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-40 placeholder:text-muted-foreground"
                     />
                     <button
                       onClick={handleAddInterest}
@@ -905,7 +1001,7 @@ export default function Settings() {
                   <select
                     value={settings.languagePreference}
                     onChange={(e) => setSettings(prev => ({ ...prev, languagePreference: e.target.value }))}
-                    className="w-full bg-black/40 border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                    className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
                   >
                     <option value="en">English</option>
                     <option value="rw">Kinyarwanda</option>

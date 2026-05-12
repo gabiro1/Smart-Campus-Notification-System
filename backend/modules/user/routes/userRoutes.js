@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { register, login, googleAuth, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyOTP, resendOTP, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto } from '../controller/authController.js';
+import { register, login, googleAuth, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyOTP, resendOTP, verifyEmail, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto, updateLastActive } from '../controller/authController.js';
 import { protect, authorize  } from '../../../middleware/authMiddleware.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
@@ -30,7 +30,8 @@ router.put('/profile', protect, validateBody(schemas.userProfileUpdate), auditLo
 router.post('/profile/photo', protect, upload.single('profilePicture'), uploadProfilePhoto);
 router.put('/notification-preferences', protect, updateNotificationPreferences);
 router.put('/onboarding', protect, authorize('student'), completeOnboarding);
-router.delete('/profile/:id', protect, auditLog('user'), deleteUser);
+router.put('/last-active', protect, updateLastActive);
+router.delete('/profile', protect, auditLog('user'), deleteUser);
 
 router.post('/enroll', protect, authorize('hod', 'admin'), auditLog('user', { customAction: 'ENROLL_STUDENT' }), enrollStudent);
 

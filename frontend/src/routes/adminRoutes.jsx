@@ -15,6 +15,7 @@ import SupportTickets from "../pages/dashboards/admin/pages/SupportTickets";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
 import AcademicStructure from "../pages/dashboards/admin/pages/AcademicStructure";
 import SMSTestPage from "../pages/dashboards/admin/pages/SMSTestPage";
+import TimetableManagement from "../pages/dashboards/admin/pages/TimetableManagement";
 
 export const adminRoutes = [
   <Route key="index" index element={<Navigate to="overview" replace />} />,
@@ -141,6 +142,15 @@ export const adminRoutes = [
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <SMSTestPage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="timetable"
+    path="timetable"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <TimetableManagement />
       </ProtectedRoute>
     }
   />,

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../modules/user/model/User.js";
 
 export const getTargetedUsers = async (event) => {

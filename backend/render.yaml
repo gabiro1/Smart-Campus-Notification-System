@@ -1,34 +1,43 @@
-# ==========================================
-# Render Deployment Configuration
-# Free Tier: 512MB RAM, 0.5 CPU
-# Cold Start: ~30 seconds (spins down after 15 min inactivity)
-# ==========================================
-
-# Build Command
-buildCommand: npm install && npm run build
-
-# Start Command
-startCommand: npm start
-
-# Node Version
-nodeVersion: 22
-
-# Environment Variables (set in Render Dashboard)
-# NODE_ENV=production
-# PORT=8000
-# MONGO_URI=<your-mongodb-atlas-uri>
-# JWT_SECRET=<generate-secure-string>
-# JWT_REFRESH_SECRET=<generate-secure-string>
-# EMAIL_USER=<your-gmail>
-# EMAIL_APP_PASSWORD=<app-password>
-# GEMINI_API_KEY=<gemini-key>
-# GROQ_API_KEY=<groq-key>
-# REDIS_URL=<upstash-redis-url>
-
-# Health Check
-healthCheckPath: /health
-
-# Auto Deploy
-autoDeploy: true
-
-# Regions: oregon (default), frankfurt, ohio
+services:
+  - type: web
+    name: smart-campus-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8000"
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_APP_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: TWILIO_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_NUMBER
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false

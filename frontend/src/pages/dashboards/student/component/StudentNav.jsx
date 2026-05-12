@@ -14,6 +14,7 @@ import {
   BookOpen,
   GraduationCap,
   User,
+  Users,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../../../../context/AuthContext";
@@ -22,8 +23,10 @@ const mainItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard" },
   { icon: Megaphone, label: "Announcements", path: "/student/announcements" },
   { icon: Calendar, label: "Events", path: "/student/events" },
-  { icon: MessageSquare, label: "Messages", path: "/student/messages" },
+  { icon: MessageSquare, label: "Inbox", path: "/student/communication/inbox" },
 ];
+
+const contactSubItem = { icon: Users, label: "Contacts", path: "/student/communication/contacts" };
 
 const academicItems = [
   { icon: GraduationCap, label: "Timetable", path: "/student/timetable" },
@@ -82,6 +85,27 @@ export default function StudentSidebar({ collapsed: collapsedProp = false, onTog
     );
   };
 
+  const renderContactsSubItem = (isCollapsed) => {
+    const isActive = location.pathname === "/student/communication/contacts";
+    if (isCollapsed) return null;
+    return (
+      <button
+        onClick={() => {
+          navigate("/student/communication/contacts");
+          setIsOpen?.(false);
+        }}
+        className={`w-full flex items-center gap-2.5 py-1.5 pl-9 pr-2.5 rounded-lg transition-all text-[12px] group ${
+          isActive
+            ? "text-foreground font-medium"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+        }`}
+      >
+        <Users size={14} className="shrink-0" />
+        <span className="flex-1 text-left truncate">Contacts</span>
+      </button>
+    );
+  };
+
   const renderNavGroup = (title, items, isCollapsed) => (
     <div className="space-y-0.5">
       {!isCollapsed && (
@@ -92,6 +116,7 @@ export default function StudentSidebar({ collapsed: collapsedProp = false, onTog
       {items.map((item, idx) => (
         <div key={item.path || idx}>
           {renderNavItem(item, isCollapsed)}
+          {item.label === "Inbox" && renderContactsSubItem(isCollapsed)}
         </div>
       ))}
     </div>
@@ -108,7 +133,7 @@ export default function StudentSidebar({ collapsed: collapsedProp = false, onTog
           </div>
 
           <nav className="flex-1 py-2 px-1.5 space-y-0.5 overflow-y-auto custom-scrollbar">
-            {[...mainItems, ...academicItems, ...personalItems].map((item, idx) => {
+            {[...mainItems, contactSubItem, ...academicItems, ...personalItems].map((item, idx) => {
               const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
               return (
                 <button

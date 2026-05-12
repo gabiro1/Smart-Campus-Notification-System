@@ -32,14 +32,16 @@ function EventQuickModal({ event, onClose, onRate }) {
     ? event.ratings.reduce((s, r) => s + (r.rating || 0), 0) / event.ratings.length : 0);
 
   const handleBookmark = async () => {
-    setIsBookmarked(!isBookmarked);
+    const newState = !isBookmarked;
+    setIsBookmarked(newState);
     try {
       await eventService.toggleBookmark(event._id || event.id);
-      toast.success(isBookmarked ? "Removed from bookmarks" : "Saved to bookmarks", {
+      window.dispatchEvent(new Event('bookmark-changed'));
+      toast.success(newState ? "Saved to bookmarks" : "Removed from bookmarks", {
         style: { background: '#111214', color: '#fff', border: '1px solid #1E2023' }
       });
     } catch {
-      setIsBookmarked(!isBookmarked);
+      setIsBookmarked(!newState);
     }
   };
 
