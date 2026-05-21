@@ -412,7 +412,7 @@ export default function SchoolStaffOversight() {
           icon={Users}
           value={insights.inactiveStaff}
           label="Inactive Staff Members"
-          trend={inactiveStaff > 0 ? -8 : 0}
+          trend={insights.inactiveStaff > 0 ? -8 : 0}
           subtitle={insights.inactiveStaff > 0 ? `${insights.inactiveStaff} staff need engagement follow-up` : "All staff actively participating"}
         />
       </div>
