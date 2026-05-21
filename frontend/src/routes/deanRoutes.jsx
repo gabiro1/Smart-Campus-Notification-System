@@ -9,6 +9,7 @@ import DeanRoles from "../pages/dashboards/dean/pages/RoleManagement";
 import DeanReportInbox from "../pages/dashboards/dean/pages/ReportInbox";
 import DeanAnnouncements from "../pages/dashboards/dean/pages/AllAnnouncements";
 import DeanReports from "../pages/dashboards/dean/pages/Reports";
+import DeanReportCreate from "../pages/dashboards/hod/pages/ReportManagement";
 import DeanSettings from "../pages/dashboards/dean/pages/SchoolSettings";
 import MessagesTab from "../pages/Message/MessagesTab";
 
@@ -38,6 +39,15 @@ export const deanRoutes = [
     element={
       <ProtectedRoute allowedRoles={["dean"]}>
         <DeanReportInbox />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="report-create"
+    path="report-create"
+    element={
+      <ProtectedRoute allowedRoles={["dean"]}>
+        <DeanReportCreate />
       </ProtectedRoute>
     }
   />,

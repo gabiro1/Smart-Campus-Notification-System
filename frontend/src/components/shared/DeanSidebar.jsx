@@ -38,9 +38,10 @@ const navSections = [
     ],
   },
   {
-    label: "Communication",
+    label: "Governance",
     items: [
       { path: "/dean/report-inbox", label: "Report Inbox", icon: FileText },
+      { path: "/dean/report-create", label: "Create Report", icon: PieChart },
       { path: "/dean/roles", label: "Staff Oversight", icon: UserCheck },
     ],
   },
