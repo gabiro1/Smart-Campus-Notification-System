@@ -13,6 +13,8 @@ import {
   Settings,
   LogOut,
   Activity,
+  Shield,
+  UserCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -35,9 +37,9 @@ const navSections = [
     ],
   },
   {
-    label: "Administration",
+    label: "Communication Governance",
     items: [
-      { path: "/dean/roles", label: "Role Management", icon: Users },
+      { path: "/dean/roles", label: "Staff Oversight", icon: UserCheck },
     ],
   },
   {
