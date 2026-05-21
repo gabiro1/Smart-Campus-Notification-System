@@ -9,6 +9,7 @@ import {
   BarChart3,
   GraduationCap,
   LogOut,
+  FileText,
 } from "lucide-react";
 
 const sections = [
@@ -22,6 +23,7 @@ const sections = [
     label: "Governance",
     items: [
       { path: "/principal/approvals", label: "Approvals", icon: ShieldAlert },
+      { path: "/principal/report-inbox", label: "Report Inbox", icon: FileText },
       { path: "/principal/departments", label: "Departments", icon: Building2 },
       { path: "/principal/reports-analytics", label: "Reports & Analytics", icon: BarChart3 },
     ],

@@ -163,7 +163,7 @@ function LifecycleTimeline({ entries }) {
 }
 
 /* ─── Main Component ─── */
-export default function ReportInbox() {
+export default function ReportInbox({ hideCreate = false }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
@@ -401,12 +401,14 @@ export default function ReportInbox() {
             Review, approve, and acknowledge departmental reports.
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3 py-2 rounded-xl transition-all"
-        >
-          <Plus size={14} /> New Report
-        </button>
+        {!hideCreate && (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3 py-2 rounded-xl transition-all"
+          >
+            <Plus size={14} /> New Report
+          </button>
+        )}
       </motion.div>
 
       {/* Summary bar */}
@@ -729,7 +731,7 @@ export default function ReportInbox() {
 
       {/* Create Report Modal */}
       <AnimatePresence>
-        {showCreate && (
+        {!hideCreate && showCreate && (
           <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-8 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0 }}

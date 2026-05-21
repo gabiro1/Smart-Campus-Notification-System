@@ -6,6 +6,7 @@ import GlobalBroadcast from "../pages/dashboards/principal/pages/GlobalBroadcast
 import PrincipalDepartments from "../pages/dashboards/principal/pages/PrincipalDepartments";
 import PrincipalApprovals from "../pages/dashboards/principal/pages/PrincipalApprovals";
 import ReportsAnalytics from "../pages/dashboards/principal/pages/ReportsAnalytics";
+import ReportInbox from "../pages/dashboards/dean/pages/ReportInbox";
 
 export const principalRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -24,6 +25,15 @@ export const principalRoutes = [
     element={
       <ProtectedRoute allowedRoles={["principal"]}>
         <PrincipalDepartments />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="report-inbox"
+    path="report-inbox"
+    element={
+      <ProtectedRoute allowedRoles={["principal"]}>
+        <ReportInbox hideCreate />
       </ProtectedRoute>
     }
   />,
