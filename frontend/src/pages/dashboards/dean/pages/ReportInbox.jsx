@@ -19,11 +19,18 @@ import {
   MessageSquare,
   Download,
   ThumbsUp,
+  Plus,
+  Sparkles,
+  Upload,
+  Paperclip,
+  File,
+  Trash2,
 } from "lucide-react";
 import { GlassCard } from "@/components/shared";
 import EmptyState from "@/components/shared/feedback/EmptyState";
 import LoadingSkeleton from "@/components/shared/feedback/LoadingSkeleton";
 import reportService from "../../../../services/reportService";
+import copilotService from "../../../../services/copilotService";
 
 /* ─── Status Config ─── */
 const STATUS_CONFIG = {
@@ -167,6 +174,16 @@ export default function ReportInbox() {
   const [filter, setFilter] = useState("all");
   const [counts, setCounts] = useState({ pending_review: 0, under_review: 0, total: 0 });
 
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: "", summary: "", reportingPeriod: { start: "", end: "", label: "" },
+    metrics: [], notes: "", riskFlags: [],
+  });
+  const [createFiles, setCreateFiles] = useState([]);
+  const [aiLoading, setAiLoading] = useState(null);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
   const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
@@ -238,6 +255,136 @@ export default function ReportInbox() {
     }
   };
 
+  const handleAIParaphrase = async (field) => {
+    const text = createForm[field];
+    if (!text?.trim()) return;
+    setAiLoading(field);
+    try {
+      const res = await copilotService.paraphrase(text, "professional");
+      if (res?.paraphrased) setCreateForm(prev => ({ ...prev, [field]: res.paraphrased }));
+    } catch (err) {
+      console.error("AI paraphrase failed:", err);
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const addMetric = () => setCreateForm(prev => ({ ...prev, metrics: [...prev.metrics, { label: "", value: "", unit: "", trend: "stable" }] }));
+  const updateMetric = (idx, field, value) => setCreateForm(prev => {
+    const m = [...prev.metrics]; m[idx] = { ...m[idx], [field]: value }; return { ...prev, metrics: m };
+  });
+  const removeMetric = (idx) => setCreateForm(prev => ({ ...prev, metrics: prev.metrics.filter((_, i) => i !== idx) }));
+
+  const addRiskFlag = () => setCreateForm(prev => ({ ...prev, riskFlags: [...prev.riskFlags, { severity: "info", message: "" }] }));
+  const updateRiskFlag = (idx, field, value) => setCreateForm(prev => {
+    const r = [...prev.riskFlags]; r[idx] = { ...r[idx], [field]: value }; return { ...prev, riskFlags: r };
+  });
+  const removeRiskFlag = (idx) => setCreateForm(prev => ({ ...prev, riskFlags: prev.riskFlags.filter((_, i) => i !== idx) }));
+
+  const handleFileSelect = (e) => {
+    setCreateFiles(prev => [...prev, ...Array.from(e.target.files || [])]);
+    e.target.value = "";
+  };
+  const handleDrop = (e) => {
+    e.preventDefault(); setDragOver(false);
+    setCreateFiles(prev => [...prev, ...Array.from(e.dataTransfer.files || [])]);
+  };
+  const removeFile = (idx) => setCreateFiles(prev => prev.filter((_, i) => i !== idx));
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const handleCreateDraft = async () => {
+    if (!createForm.title.trim()) return;
+    setCreateLoading(true);
+    try {
+      const hasFiles = createFiles.length > 0;
+      let payload;
+      if (hasFiles) {
+        const fd = new FormData();
+        fd.append("title", createForm.title);
+        fd.append("summary", createForm.summary);
+        fd.append("reportingPeriod", JSON.stringify(createForm.reportingPeriod));
+        fd.append("metrics", JSON.stringify(createForm.metrics.filter(m => m.label.trim()).map(m => ({
+          label: m.label, value: isNaN(Number(m.value)) ? m.value : Number(m.value), unit: m.unit, trend: m.trend === "stable" ? null : m.trend,
+        }))));
+        fd.append("notes", createForm.notes);
+        fd.append("riskFlags", JSON.stringify(createForm.riskFlags.filter(r => r.message.trim()).map(r => ({ severity: r.severity, message: r.message }))));
+        createFiles.forEach(f => fd.append("attachments", f));
+        payload = fd;
+      } else {
+        payload = {
+          title: createForm.title, summary: createForm.summary,
+          reportingPeriod: createForm.reportingPeriod,
+          metrics: createForm.metrics.filter(m => m.label.trim()).map(m => ({
+            label: m.label, value: isNaN(Number(m.value)) ? m.value : Number(m.value), unit: m.unit, trend: m.trend === "stable" ? null : m.trend,
+          })),
+          notes: createForm.notes,
+          riskFlags: createForm.riskFlags.filter(r => r.message.trim()).map(r => ({ severity: r.severity, message: r.message })),
+        };
+      }
+      await reportService.create(payload);
+      setShowCreate(false);
+      setCreateFiles([]);
+      setCreateForm({ title: "", summary: "", reportingPeriod: { start: "", end: "", label: "" }, metrics: [], notes: "", riskFlags: [] });
+    } catch (err) {
+      console.error("Failed to create report:", err);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateSubmit = async () => {
+    if (!createForm.title.trim()) return;
+    setCreateLoading(true);
+    try {
+      const hasFiles = createFiles.length > 0;
+      let payload;
+      if (hasFiles) {
+        const fd = new FormData();
+        fd.append("title", createForm.title);
+        fd.append("summary", createForm.summary);
+        fd.append("reportingPeriod", JSON.stringify(createForm.reportingPeriod));
+        fd.append("metrics", JSON.stringify(createForm.metrics.filter(m => m.label.trim()).map(m => ({
+          label: m.label, value: isNaN(Number(m.value)) ? m.value : Number(m.value), unit: m.unit, trend: m.trend === "stable" ? null : m.trend,
+        }))));
+        fd.append("notes", createForm.notes);
+        fd.append("riskFlags", JSON.stringify(createForm.riskFlags.filter(r => r.message.trim()).map(r => ({ severity: r.severity, message: r.message }))));
+        createFiles.forEach(f => fd.append("attachments", f));
+        payload = fd;
+      } else {
+        payload = {
+          title: createForm.title, summary: createForm.summary,
+          reportingPeriod: createForm.reportingPeriod,
+          metrics: createForm.metrics.filter(m => m.label.trim()).map(m => ({
+            label: m.label, value: isNaN(Number(m.value)) ? m.value : Number(m.value), unit: m.unit, trend: m.trend === "stable" ? null : m.trend,
+          })),
+          notes: createForm.notes,
+          riskFlags: createForm.riskFlags.filter(r => r.message.trim()).map(r => ({ severity: r.severity, message: r.message })),
+        };
+      }
+      const res = await reportService.create(payload);
+      const id = res.data?._id || res.report?._id;
+      if (id) await reportService.submit(id);
+      setShowCreate(false);
+      setCreateFiles([]);
+      setCreateForm({ title: "", summary: "", reportingPeriod: { start: "", end: "", label: "" }, metrics: [], notes: "", riskFlags: [] });
+      fetchReports();
+    } catch (err) {
+      console.error("Failed to submit report:", err);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const resetCreateForm = () => {
+    setShowCreate(false);
+    setCreateFiles([]);
+    setCreateForm({ title: "", summary: "", reportingPeriod: { start: "", end: "", label: "" }, metrics: [], notes: "", riskFlags: [] });
+  };
+
   const filteredReports = filter === "all"
     ? reports
     : reports.filter(r => r.status === filter);
@@ -247,11 +394,19 @@ export default function ReportInbox() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Report Inbox</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Review, approve, and acknowledge departmental reports.
-        </p>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Report Inbox</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Review, approve, and acknowledge departmental reports.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3 py-2 rounded-xl transition-all"
+        >
+          <Plus size={14} /> New Report
+        </button>
       </motion.div>
 
       {/* Summary bar */}
@@ -567,6 +722,200 @@ export default function ReportInbox() {
                   )}
                 </div>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Report Modal */}
+      <AnimatePresence>
+        {showCreate && (
+          <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-8 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={resetCreateForm}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 20 }}
+              className="relative w-full max-w-2xl bg-background border border-border rounded-2xl shadow-2xl z-10 overflow-hidden"
+            >
+              <div className="p-5 border-b border-border flex items-start justify-between sticky top-0 bg-background z-10">
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Create New Report</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Submit a report to the Principal for review.</p>
+                </div>
+                <button onClick={resetCreateForm} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground shrink-0 ml-3">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
+                {/* Title */}
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                    Report Title <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text" value={createForm.title}
+                    onChange={e => setCreateForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g. School Performance Summary"
+                    className="w-full bg-black/40 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-blue-500/50"
+                  />
+                </div>
+
+                {/* Reporting Period */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Period Start</label>
+                    <input type="date" value={createForm.reportingPeriod.start}
+                      onChange={e => setCreateForm(prev => ({ ...prev, reportingPeriod: { ...prev.reportingPeriod, start: e.target.value } }))}
+                      className="w-full bg-black/40 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-blue-500/50" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Period End</label>
+                    <input type="date" value={createForm.reportingPeriod.end}
+                      onChange={e => setCreateForm(prev => ({ ...prev, reportingPeriod: { ...prev.reportingPeriod, end: e.target.value } }))}
+                      className="w-full bg-black/40 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-blue-500/50" />
+                  </div>
+                </div>
+
+                {/* Executive Summary + AI */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Executive Summary</label>
+                    <button onClick={() => handleAIParaphrase("summary")} disabled={!createForm.summary.trim() || aiLoading === "summary"}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-400 hover:text-purple-300 disabled:opacity-40 transition-colors"
+                    >
+                      {aiLoading === "summary" ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      {aiLoading === "summary" ? "Polishing..." : "Polish with AI"}
+                    </button>
+                  </div>
+                  <textarea value={createForm.summary} onChange={e => setCreateForm(prev => ({ ...prev, summary: e.target.value }))}
+                    placeholder="Brief overview..." rows={3}
+                    className="w-full bg-black/40 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-blue-500/50 resize-none" />
+                </div>
+
+                {/* Metrics */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Performance Metrics</label>
+                    <button onClick={addMetric} className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
+                      <Plus size={12} /> Add Metric
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {createForm.metrics.map((metric, idx) => (
+                      <div key={idx} className="flex items-start gap-2 bg-accent/30 rounded-xl p-3 border border-border">
+                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <input type="text" value={metric.label} onChange={e => updateMetric(idx, "label", e.target.value)} placeholder="Label" className="bg-black/40 border border-border rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-blue-500/50" />
+                          <input type="text" value={metric.value} onChange={e => updateMetric(idx, "value", e.target.value)} placeholder="Value" className="bg-black/40 border border-border rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-blue-500/50" />
+                          <input type="text" value={metric.unit} onChange={e => updateMetric(idx, "unit", e.target.value)} placeholder="Unit" className="bg-black/40 border border-border rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-blue-500/50" />
+                          <select value={metric.trend} onChange={e => updateMetric(idx, "trend", e.target.value)} className="bg-black/40 border border-border rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-blue-500/50">
+                            <option value="stable">Stable →</option>
+                            <option value="up">Up ↑</option>
+                            <option value="down">Down ↓</option>
+                          </select>
+                        </div>
+                        <button onClick={() => removeMetric(idx)} className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400 shrink-0"><Trash2 size={14} /></button>
+                      </div>
+                    ))}
+                    {createForm.metrics.length === 0 && <p className="text-xs text-muted-foreground">Click "Add Metric" to include performance indicators.</p>}
+                  </div>
+                </div>
+
+                {/* Risk Flags */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Risk Flags</label>
+                    <button onClick={addRiskFlag} className="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1">
+                      <Plus size={12} /> Add Risk Flag
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {createForm.riskFlags.map((flag, idx) => (
+                      <div key={idx} className="flex items-start gap-2 bg-accent/30 rounded-xl p-3 border border-border">
+                        <select value={flag.severity} onChange={e => updateRiskFlag(idx, "severity", e.target.value)}
+                          className="bg-black/40 border border-border rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-blue-500/50 shrink-0">
+                          <option value="info">Info</option><option value="warning">Warning</option><option value="critical">Critical</option>
+                        </select>
+                        <input type="text" value={flag.message} onChange={e => updateRiskFlag(idx, "message", e.target.value)}
+                          placeholder="Describe the risk..." className="flex-1 bg-black/40 border border-border rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-blue-500/50" />
+                        <button onClick={() => removeRiskFlag(idx)} className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400 shrink-0"><Trash2 size={14} /></button>
+                      </div>
+                    ))}
+                    {createForm.riskFlags.length === 0 && <p className="text-xs text-muted-foreground">Click "Add Risk Flag" to highlight concerns.</p>}
+                  </div>
+                </div>
+
+                {/* File Attachments */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">File Attachments</label>
+                    <label className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer">
+                      <Upload size={12} /> Upload Files
+                      <input type="file" multiple className="hidden" onChange={handleFileSelect} />
+                    </label>
+                  </div>
+                  <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-xl p-4 text-center transition-all ${dragOver ? "border-blue-400 bg-blue-500/5" : "border-border bg-accent/20"}`}>
+                    <Upload size={20} className="mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">Drag & drop files here, or{" "}
+                      <label className="text-blue-400 hover:text-blue-300 cursor-pointer underline">browse<input type="file" multiple className="hidden" onChange={handleFileSelect} /></label>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-1">PDF, DOC, DOCX, images (max 10MB each)</p>
+                  </div>
+                  {createFiles.length > 0 && (
+                    <div className="mt-2 space-y-1.5">
+                      {createFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-accent/30 rounded-lg px-3 py-2 border border-border">
+                          <File size={14} className="text-muted-foreground shrink-0" />
+                          <span className="flex-1 text-xs text-foreground truncate">{file.name}</span>
+                          <span className="text-[10px] text-muted-foreground shrink-0">{formatFileSize(file.size)}</span>
+                          <button onClick={() => removeFile(idx)} className="p-0.5 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400"><X size={12} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes + AI */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
+                    <button onClick={() => handleAIParaphrase("notes")} disabled={!createForm.notes.trim() || aiLoading === "notes"}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-400 hover:text-purple-300 disabled:opacity-40 transition-colors"
+                    >
+                      {aiLoading === "notes" ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      {aiLoading === "notes" ? "Polishing..." : "Polish with AI"}
+                    </button>
+                  </div>
+                  <textarea value={createForm.notes} onChange={e => setCreateForm(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Additional context..." rows={3}
+                    className="w-full bg-black/40 border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-blue-500/50 resize-none" />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="p-5 border-t border-border flex items-center justify-end gap-2">
+                <button onClick={resetCreateForm} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-accent hover:bg-accent/80 text-foreground border border-border transition-all">
+                  <X size={14} /> Cancel
+                </button>
+                <button onClick={handleCreateDraft} disabled={!createForm.title.trim() || createLoading}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-accent hover:bg-accent/80 text-foreground border border-border transition-all disabled:opacity-50">
+                  {createLoading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                  Save as Draft
+                </button>
+                <button onClick={handleCreateSubmit} disabled={!createForm.title.trim() || createLoading}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-all disabled:opacity-50">
+                  {createLoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  Submit for Review
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
