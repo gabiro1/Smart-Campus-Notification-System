@@ -15,6 +15,7 @@ import {
   Activity,
   Shield,
   UserCheck,
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -39,6 +40,7 @@ const navSections = [
   {
     label: "Communication Governance",
     items: [
+      { path: "/dean/report-inbox", label: "Report Inbox", icon: FileText },
       { path: "/dean/roles", label: "Staff Oversight", icon: UserCheck },
     ],
   },

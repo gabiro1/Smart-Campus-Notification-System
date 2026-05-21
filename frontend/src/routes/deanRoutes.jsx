@@ -6,6 +6,7 @@ import DeanApprovals from "../pages/dashboards/dean/pages/HoDApprovals";
 import DeanBroadcast from "../pages/dashboards/dean/pages/SchoolBroadcast";
 import DeanAnalytics from "../pages/dashboards/dean/pages/Analytics";
 import DeanRoles from "../pages/dashboards/dean/pages/RoleManagement";
+import DeanReportInbox from "../pages/dashboards/dean/pages/ReportInbox";
 import DeanAnnouncements from "../pages/dashboards/dean/pages/AllAnnouncements";
 import DeanReports from "../pages/dashboards/dean/pages/Reports";
 import DeanSettings from "../pages/dashboards/dean/pages/SchoolSettings";
@@ -28,6 +29,15 @@ export const deanRoutes = [
     element={
       <ProtectedRoute allowedRoles={["dean"]}>
         <DeanApprovals />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="report-inbox"
+    path="report-inbox"
+    element={
+      <ProtectedRoute allowedRoles={["dean"]}>
+        <DeanReportInbox />
       </ProtectedRoute>
     }
   />,

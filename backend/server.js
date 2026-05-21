@@ -30,6 +30,7 @@ import courseRoutes from './modules/course/routes/courseRoutes.js'; // For cours
 import studentRoutes from './modules/student/routes/studentRoutes.js';
 import copilotRoutes from './modules/copilot/copilot.routes.js'; // Copilot RAG Assistant
 import governanceRoutes from './modules/governance/routes/governance.routes.js'; // Governance Engine
+import reportRoutes from './modules/governance/routes/reportRoutes.js'; // Report Lifecycle
 import aiRoutes from './modules/ai/routes/aiRoutes.js'; // AI Announcement Suggester
 import { createServer } from 'http';
 import { initSocket } from './utils/socketServer.js';
@@ -174,6 +175,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/copilot', copilotRoutes);
 app.use('/api/ai', aiRoutes); // AI Announcement Suggester
 app.use('/api/governance/announcements', governanceRoutes); // Governance Engine
+app.use('/api/governance/reports', reportRoutes); // Report Lifecycle
 app.use('/api/admin/audit-logs', auditRoutes);
 app.use('/api/support', supportRoutes); // Support Tickets
 app.use('/api/sms', smsRoutes); // SMS Module
