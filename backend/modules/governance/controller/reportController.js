@@ -1,5 +1,7 @@
 import Report from '../model/Report.js';
 import AuditLog from '../../audit/models/AuditLog.js';
+import fs from 'fs/promises';
+import path from 'path';
 
 const addLifecycleEntry = (report, action, user, comments = '', previousStatus = null, newStatus = null) => {
   report.lifecycle.push({
@@ -33,33 +35,68 @@ const logAudit = async (user, action, report, description, extra = {}) => {
 // ──────────────────────────────────────────
 // CREATE (draft)
 // ──────────────────────────────────────────
+const parseJSONField = (val) => {
+  if (typeof val === 'string') {
+    try { return JSON.parse(val); } catch { return val; }
+  }
+  return val;
+};
+
+const handleFileUploads = async (files) => {
+  const attachments = [];
+  if (files && files.length > 0) {
+    const uploadDir = path.join(process.cwd(), "uploads", "reports");
+    try { await fs.access(uploadDir); } catch { await fs.mkdir(uploadDir, { recursive: true }); }
+
+    for (const file of files) {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname);
+      const filename = `report-${uniqueSuffix}${ext}`;
+      const filePath = path.join(uploadDir, filename);
+      await fs.writeFile(filePath, file.buffer);
+      attachments.push({
+        name: file.originalname,
+        url: `/uploads/reports/${filename}`,
+        uploadedAt: new Date(),
+      });
+    }
+  }
+  return attachments;
+};
+
 export const createReport = async (req, res) => {
   try {
-    const { title, summary, reportingPeriod, metrics, notes, departmentId, departmentName } = req.body;
+    const body = req.body;
+    const reportingPeriod = parseJSONField(body.reportingPeriod);
+    const metrics = parseJSONField(body.metrics);
+    const riskFlags = parseJSONField(body.riskFlags);
 
-    if (!title || !reportingPeriod?.start || !reportingPeriod?.end) {
+    if (!body.title || !reportingPeriod?.start || !reportingPeriod?.end) {
       return res.status(400).json({ success: false, message: 'Title and reporting period are required.' });
     }
 
+    const attachments = await handleFileUploads(req.files);
+
     const report = await Report.create({
-      title,
-      summary: summary || '',
+      title: body.title,
+      summary: body.summary || '',
       reportingPeriod: {
         start: new Date(reportingPeriod.start),
         end: new Date(reportingPeriod.end),
         label: reportingPeriod.label || '',
       },
       metrics: metrics || [],
-      notes: notes || '',
+      notes: body.notes || '',
+      attachments,
       status: 'draft',
       authorId: req.user._id,
       authorRole: req.user.role,
       authorName: req.user.name || req.user.email,
-      departmentId: departmentId || req.user.department,
-      departmentName: departmentName || '',
+      departmentId: body.departmentId || req.user.department,
+      departmentName: body.departmentName || '',
       schoolId: req.user.school || null,
       lifecycle: [],
-      riskFlags: [],
+      riskFlags: riskFlags || [],
     });
 
     addLifecycleEntry(report, 'created', req.user, 'Report created in draft state');
@@ -205,16 +242,26 @@ export const updateReport = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Can only update draft or revision-requested reports.' });
     }
 
-    const { title, summary, reportingPeriod, metrics, notes } = req.body;
-    if (title) report.title = title;
-    if (summary !== undefined) report.summary = summary;
+    const body = req.body;
+    if (body.title) report.title = body.title;
+    if (body.summary !== undefined) report.summary = body.summary;
+    const reportingPeriod = parseJSONField(body.reportingPeriod);
     if (reportingPeriod) {
       if (reportingPeriod.start) report.reportingPeriod.start = reportingPeriod.start;
       if (reportingPeriod.end) report.reportingPeriod.end = reportingPeriod.end;
       if (reportingPeriod.label) report.reportingPeriod.label = reportingPeriod.label;
     }
+    const metrics = parseJSONField(body.metrics);
     if (metrics) report.metrics = metrics;
-    if (notes !== undefined) report.notes = notes;
+    if (body.notes !== undefined) report.notes = body.notes;
+
+    const riskFlags = parseJSONField(body.riskFlags);
+    if (riskFlags) report.riskFlags = riskFlags;
+
+    const newAttachments = await handleFileUploads(req.files);
+    if (newAttachments.length > 0) {
+      report.attachments = [...(report.attachments || []), ...newAttachments];
+    }
 
     addLifecycleEntry(report, 'note_added', req.user, 'Report updated');
     await report.save();
@@ -409,6 +456,35 @@ export const addNote = async (req, res) => {
 // ──────────────────────────────────────────
 // GET ANALYTICS DATA (approved + acknowledged only)
 // ──────────────────────────────────────────
+// ──────────────────────────────────────────
+// UPLOAD ATTACHMENTS (to any editable report)
+// ──────────────────────────────────────────
+export const uploadAttachment = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ success: false, message: 'Report not found.' });
+    if (report.authorId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Only the author can add attachments.' });
+    }
+    if (report.status !== 'draft' && report.status !== 'revision_requested') {
+      return res.status(400).json({ success: false, message: 'Can only add attachments to draft or revision-requested reports.' });
+    }
+
+    const newAttachments = await handleFileUploads(req.files);
+    if (newAttachments.length === 0) {
+      return res.status(400).json({ success: false, message: 'No files provided.' });
+    }
+
+    report.attachments = [...(report.attachments || []), ...newAttachments];
+    addLifecycleEntry(report, 'note_added', req.user, `${newAttachments.length} attachment(s) added`);
+    await report.save();
+
+    res.json({ success: true, message: 'Attachments uploaded.', data: report });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const getReportAnalytics = async (req, res) => {
   try {
     const acknowledged = await Report.find({ status: 'acknowledged' }).lean();

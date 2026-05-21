@@ -8,6 +8,7 @@ const reportService = {
   submit: (id) => apiClient.put(`${BASE}/${id}/submit`).then(r => r.data),
   getMine: () => apiClient.get(`${BASE}/mine`).then(r => r.data),
   update: (id, data) => apiClient.put(`${BASE}/${id}`, data).then(r => r.data),
+  uploadAttachment: (id, formData) => apiClient.post(`${BASE}/${id}/attachments`, formData).then(r => r.data),
 
   // ── Dean Review ──
   getPendingReview: () => apiClient.get(`${BASE}/pending-review`).then(r => r.data),

@@ -38,7 +38,7 @@ const navSections = [
     ],
   },
   {
-    label: "Communication Governance",
+    label: "Communication",
     items: [
       { path: "/dean/report-inbox", label: "Report Inbox", icon: FileText },
       { path: "/dean/roles", label: "Staff Oversight", icon: UserCheck },

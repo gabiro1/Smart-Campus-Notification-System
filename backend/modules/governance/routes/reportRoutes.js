@@ -14,17 +14,20 @@ import {
   acknowledgeReport,
   escalateReport,
   addNote,
+  uploadAttachment,
   getReportAnalytics,
 } from '../controller/reportController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
+import upload from '../../../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
 // ── AUTHORING (HoD/lecturer) ──
-router.post('/', protect, authorize('lecturer', 'hod', 'dean', 'principal', 'admin'), createReport);
+router.post('/', protect, authorize('lecturer', 'hod', 'dean', 'principal', 'admin'), upload.array('attachments', 5), createReport);
 router.put('/:id/submit', protect, authorize('hod', 'lecturer', 'dean', 'principal', 'admin'), submitReport);
 router.get('/mine', protect, authorize('lecturer', 'hod', 'dean', 'principal', 'admin'), getMyReports);
-router.put('/:id', protect, authorize('hod', 'lecturer', 'dean'), updateReport);
+router.put('/:id', protect, authorize('hod', 'lecturer', 'dean'), upload.array('attachments', 5), updateReport);
+router.post('/:id/attachments', protect, authorize('hod', 'lecturer', 'dean'), upload.array('attachments', 5), uploadAttachment);
 
 // ── REVIEW (Dean/Principal) ──
 router.get('/pending-review', protect, authorize('dean', 'principal', 'admin'), getPendingReview);

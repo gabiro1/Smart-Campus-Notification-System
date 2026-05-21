@@ -23,11 +23,17 @@ import {
   TrendingDown,
   Minus,
   Eye,
+  Sparkles,
+  Upload,
+  Paperclip,
+  File,
+  Download,
 } from "lucide-react";
 import { GlassCard } from "@/components/shared";
 import EmptyState from "@/components/shared/feedback/EmptyState";
 import LoadingSkeleton from "@/components/shared/feedback/LoadingSkeleton";
 import reportService from "../../../../services/reportService";
+import copilotService from "../../../../services/copilotService";
 
 const STATUS_CONFIG = {
   draft: { label: "Draft", color: "text-muted-foreground", bg: "bg-accent", border: "border-border" },
@@ -179,6 +185,10 @@ export default function ReportManagement() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  const [aiLoading, setAiLoading] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [files, setFiles] = useState([]);
+
   const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
@@ -215,6 +225,7 @@ export default function ReportManagement() {
   const openCreateForm = () => {
     setEditingId(null);
     setForm({ ...emptyReport, reportingPeriod: { start: "", end: "", label: "" } });
+    setFiles([]);
     setShowForm(true);
   };
 
@@ -232,6 +243,7 @@ export default function ReportManagement() {
       notes: report.notes || "",
       riskFlags: report.riskFlags?.length > 0 ? report.riskFlags.map(r => ({ severity: r.severity || "info", message: r.message || "" })) : [],
     });
+    setFiles([]);
     setShowForm(true);
   };
 
@@ -273,30 +285,48 @@ export default function ReportManagement() {
     setForm(prev => ({ ...prev, riskFlags: prev.riskFlags.filter((_, i) => i !== idx) }));
   };
 
+  const buildPayload = (asFormData) => {
+    const data = {
+      title: form.title,
+      summary: form.summary,
+      reportingPeriod: JSON.stringify({
+        start: form.reportingPeriod.start || new Date().toISOString(),
+        end: form.reportingPeriod.end || new Date().toISOString(),
+        label: form.reportingPeriod.label || undefined,
+      }),
+      metrics: JSON.stringify(form.metrics.filter(m => m.label.trim()).map(m => ({
+        label: m.label,
+        value: isNaN(Number(m.value)) ? m.value : Number(m.value),
+        unit: m.unit,
+        trend: m.trend === "stable" ? null : m.trend,
+      }))),
+      notes: form.notes,
+      riskFlags: JSON.stringify(form.riskFlags.filter(r => r.message.trim()).map(r => ({
+        severity: r.severity,
+        message: r.message,
+      }))),
+    };
+
+    if (asFormData) {
+      const fd = new FormData();
+      Object.entries(data).forEach(([k, v]) => fd.append(k, v));
+      files.forEach(file => fd.append('attachments', file));
+      return fd;
+    }
+    return {
+      ...data,
+      reportingPeriod: JSON.parse(data.reportingPeriod),
+      metrics: JSON.parse(data.metrics),
+      riskFlags: JSON.parse(data.riskFlags),
+    };
+  };
+
   const handleSaveDraft = async () => {
     if (!form.title.trim()) return;
     setSubmitting(true);
     try {
-      const payload = {
-        title: form.title,
-        summary: form.summary,
-        reportingPeriod: {
-          start: form.reportingPeriod.start || new Date().toISOString(),
-          end: form.reportingPeriod.end || new Date().toISOString(),
-          label: form.reportingPeriod.label || undefined,
-        },
-        metrics: form.metrics.filter(m => m.label.trim()).map(m => ({
-          label: m.label,
-          value: isNaN(Number(m.value)) ? m.value : Number(m.value),
-          unit: m.unit,
-          trend: m.trend === "stable" ? null : m.trend,
-        })),
-        notes: form.notes,
-        riskFlags: form.riskFlags.filter(r => r.message.trim()).map(r => ({
-          severity: r.severity,
-          message: r.message,
-        })),
-      };
+      const hasFiles = files.length > 0;
+      const payload = buildPayload(hasFiles);
 
       if (editingId) {
         await reportService.update(editingId, payload);
@@ -304,6 +334,7 @@ export default function ReportManagement() {
         await reportService.create(payload);
       }
 
+      setFiles([]);
       setShowForm(false);
       fetchReports();
     } catch (err) {
@@ -317,55 +348,28 @@ export default function ReportManagement() {
     if (!form.title.trim()) return;
     setSubmitting(true);
     try {
+      const hasFiles = files.length > 0;
       let id = editingId;
+
       if (!id) {
-        const payload = {
-          title: form.title,
-          summary: form.summary,
-          reportingPeriod: {
-            start: form.reportingPeriod.start || new Date().toISOString(),
-            end: form.reportingPeriod.end || new Date().toISOString(),
-            label: form.reportingPeriod.label || undefined,
-          },
-          metrics: form.metrics.filter(m => m.label.trim()).map(m => ({
-            label: m.label,
-            value: isNaN(Number(m.value)) ? m.value : Number(m.value),
-            unit: m.unit,
-            trend: m.trend === "stable" ? null : m.trend,
-          })),
-          notes: form.notes,
-          riskFlags: form.riskFlags.filter(r => r.message.trim()).map(r => ({
-            severity: r.severity,
-            message: r.message,
-          })),
-        };
+        const payload = buildPayload(hasFiles);
         const res = await reportService.create(payload);
         id = res.data?._id || res.report?._id;
       } else {
-        await reportService.update(id, {
-          title: form.title,
-          summary: form.summary,
-          reportingPeriod: {
-            start: form.reportingPeriod.start || new Date().toISOString(),
-            end: form.reportingPeriod.end || new Date().toISOString(),
-            label: form.reportingPeriod.label || undefined,
-          },
-          metrics: form.metrics.filter(m => m.label.trim()).map(m => ({
-            label: m.label,
-            value: isNaN(Number(m.value)) ? m.value : Number(m.value),
-            unit: m.unit,
-            trend: m.trend === "stable" ? null : m.trend,
-          })),
-          notes: form.notes,
-          riskFlags: form.riskFlags.filter(r => r.message.trim()).map(r => ({
-            severity: r.severity,
-            message: r.message,
-          })),
-        });
+        const payload = buildPayload(hasFiles);
+        await reportService.update(id, payload);
       }
+
       if (id) {
+        if (hasFiles && editingId) {
+          const fd = new FormData();
+          files.forEach(file => fd.append('attachments', file));
+          await reportService.uploadAttachment(id, fd).catch(() => {});
+        }
         await reportService.submit(id);
       }
+
+      setFiles([]);
       setShowForm(false);
       fetchReports();
     } catch (err) {
@@ -385,6 +389,45 @@ export default function ReportManagement() {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleAIParaphrase = async (field) => {
+    const text = form[field];
+    if (!text?.trim()) return;
+    setAiLoading(field);
+    try {
+      const res = await copilotService.paraphrase(text, "professional");
+      if (res?.paraphrased) {
+        setForm(prev => ({ ...prev, [field]: res.paraphrased }));
+      }
+    } catch (err) {
+      console.error("AI paraphrase failed:", err);
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const selected = Array.from(e.target.files || []);
+    setFiles(prev => [...prev, ...selected]);
+    e.target.value = "";
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const dropped = Array.from(e.dataTransfer.files || []);
+    setFiles(prev => [...prev, ...dropped]);
+  };
+
+  const removeFile = (idx) => {
+    setFiles(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const filteredReports = filter === "all"
@@ -629,9 +672,19 @@ export default function ReportManagement() {
 
                 {/* Executive Summary */}
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    Executive Summary
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Executive Summary
+                    </label>
+                    <button
+                      onClick={() => handleAIParaphrase("summary")}
+                      disabled={!form.summary.trim() || aiLoading === "summary"}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-400 hover:text-purple-300 disabled:opacity-40 transition-colors"
+                    >
+                      {aiLoading === "summary" ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      {aiLoading === "summary" ? "Polishing..." : "Polish with AI"}
+                    </button>
+                  </div>
                   <textarea
                     value={form.summary}
                     onChange={e => setForm(prev => ({ ...prev, summary: e.target.value }))}
@@ -749,11 +802,69 @@ export default function ReportManagement() {
                   </div>
                 </div>
 
+                {/* File Attachments */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      File Attachments
+                    </label>
+                    <label className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer">
+                      <Upload size={12} /> Upload Files
+                      <input type="file" multiple className="hidden" onChange={handleFileSelect} />
+                    </label>
+                  </div>
+
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-xl p-4 text-center transition-all ${
+                      dragOver ? "border-blue-400 bg-blue-500/5" : "border-border bg-accent/20"
+                    }`}
+                  >
+                    <Upload size={20} className="mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-xs text-muted-foreground">
+                      Drag & drop files here, or{" "}
+                      <label className="text-blue-400 hover:text-blue-300 cursor-pointer underline">
+                        browse
+                        <input type="file" multiple className="hidden" onChange={handleFileSelect} />
+                      </label>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-1">PDF, DOC, DOCX, PPT, XLS, images (max 10MB each)</p>
+                  </div>
+
+                  {/* File list */}
+                  {files.length > 0 && (
+                    <div className="mt-2 space-y-1.5">
+                      {files.map((file, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-accent/30 rounded-lg px-3 py-2 border border-border">
+                          <File size={14} className="text-muted-foreground shrink-0" />
+                          <span className="flex-1 text-xs text-foreground truncate">{file.name}</span>
+                          <span className="text-[10px] text-muted-foreground shrink-0">{formatFileSize(file.size)}</span>
+                          <button onClick={() => removeFile(idx)} className="p-0.5 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-400">
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Department Notes */}
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    Department Notes
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Department Notes
+                    </label>
+                    <button
+                      onClick={() => handleAIParaphrase("notes")}
+                      disabled={!form.notes.trim() || aiLoading === "notes"}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-400 hover:text-purple-300 disabled:opacity-40 transition-colors"
+                    >
+                      {aiLoading === "notes" ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      {aiLoading === "notes" ? "Polishing..." : "Polish with AI"}
+                    </button>
+                  </div>
                   <textarea
                     value={form.notes}
                     onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
@@ -850,6 +961,28 @@ export default function ReportManagement() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {selectedReport.metrics.map((m, i) => (
                           <MetricRow key={i} {...m} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Attachments */}
+                  {selectedReport.attachments && selectedReport.attachments.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Attachments</p>
+                      <div className="space-y-1.5">
+                        {selectedReport.attachments.map((att, i) => (
+                          <a
+                            key={i}
+                            href={att.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 p-2.5 rounded-xl bg-accent/30 border border-border hover:bg-accent/50 transition-all group"
+                          >
+                            <Paperclip size={14} className="text-muted-foreground shrink-0" />
+                            <span className="flex-1 text-sm text-foreground truncate">{att.name}</span>
+                            <Download size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          </a>
                         ))}
                       </div>
                     </div>
