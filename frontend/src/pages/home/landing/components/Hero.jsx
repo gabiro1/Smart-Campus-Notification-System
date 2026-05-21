@@ -35,8 +35,8 @@ export default function Hero({ user }) {
         <h1
           className={`${styles.heading} text-6xl md:text-7xl font-semibold text-foreground font-black tracking-tight mb-6 leading-none`}
         >
-          Smart Alerts. <br />
-          <span className="text-muted-foreground">Zero Noise.</span>
+          AI Event Alerts. <br />
+          <span className="text-muted-foreground">Curated for You.</span>
         </h1>
 
         <p className="text-muted-foreground max-w-lg mx-auto text-base mb-10 leading-relaxed">

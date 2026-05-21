@@ -33,7 +33,7 @@ const LecturerManagement = () => {
 
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -99,7 +99,7 @@ const LecturerManagement = () => {
       // Calling the history endpoint we discussed
       const res = await messageService.getSentHistory(1);
       setHistory(res.data || []);
-    } catch (err) {
+    } catch {
       toast.error("Could not retrieve dispatch logs.");
     } finally {
       setHistoryLoading(false);
@@ -150,7 +150,7 @@ const LecturerManagement = () => {
       });
       if (detailsPanel.isOpen)
         setDetailsPanel({ isOpen: false, lecturer: null });
-    } catch (err) {
+    } catch {
       toast.error("Revoke failed.");
     } finally {
       setProcessingAction(false);
@@ -173,7 +173,7 @@ const LecturerManagement = () => {
       toast.success("Omnichannel alert dispatched!");
       setSmsModal({ isOpen: false, lecturer: null, message: "" });
       if (activeTab === "history") fetchHistory(); // Refresh history if viewing it
-    } catch (err) {
+    } catch {
       toast.error("Dispatch Error: Target unreachable.");
     } finally {
       setProcessingAction(false);
@@ -203,12 +203,9 @@ const LecturerManagement = () => {
   }, [searchQuery]);
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground p-4 md:p-8 font-sans relative overflow-hidden">
+    <div className="space-y-6 p-4 sm:p-6">
 
-      <Toaster position="top-right" />
-
-      <div className="relative z-10 max-w-7xl mx-auto">
-        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tighter text-foreground mb-2">
               Staff Command
@@ -436,7 +433,6 @@ const LecturerManagement = () => {
             )}
           </div>
         )}
-      </div>
 
       {/* --- NOTIFY MODAL (OMNICHANNEL) --- */}
       {smsModal.isOpen && (

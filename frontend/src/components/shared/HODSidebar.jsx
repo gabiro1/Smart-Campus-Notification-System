@@ -12,6 +12,10 @@ import {
   Bell,
   Scale,
   LogOut,
+  Gauge,
+  Activity,
+  ShieldAlert,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -19,7 +23,7 @@ import messageService from "../../services/messageService";
 import notificationService from "../../services/notificationService";
 import governanceService from "../../services/governanceService";
 
-export default function HODSidebar(props) {
+export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
   const navigate = useNavigate();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -31,11 +35,12 @@ export default function HODSidebar(props) {
         const [msgData, notifData, pendingData] = await Promise.all([
           messageService.getUnreadCount().catch(() => ({ unreadCount: 0 })),
           notificationService.getUnreadCount().catch(() => ({ unreadCount: 0 })),
-          governanceService.getPending().catch(() => ({ count: 0 })),
+          governanceService.getPending().catch(() => ({ count: 0, data: [] })),
         ]);
         setUnreadMessages(msgData?.unreadCount || 0);
         setUnreadNotifications(notifData?.unreadCount || 0);
-        setPendingCount(pendingData?.count || 0);
+        const pendingItems = Array.isArray(pendingData) ? pendingData : pendingData?.data || [];
+        setPendingCount(pendingItems.length || 0);
       } catch (error) {
         console.error('Failed to fetch counts:', error);
       }
@@ -50,23 +55,41 @@ export default function HODSidebar(props) {
     catch { return {}; }
   })();
 
-  const routes = [
-    { path: "/hod/dashboard", name: "Overview", icon: LayoutDashboard },
-    { path: "/hod/governance", name: "Governance", icon: Scale, badge: pendingCount > 0 ? pendingCount : undefined },
-    { path: "/hod/broadcast", name: "Broadcast", icon: Radio },
-    { path: "/hod/announcements", name: "All Announcements", icon: Files },
-    { path: "/hod/lecturers", name: "Lecturer Management", icon: Users },
+  const sections = [
+    {
+      section: "Operations Center",
+      items: [
+        { path: "/hod/dashboard", name: "Command Center", icon: Gauge },
+        { path: "/hod/governance", name: "Approvals", icon: Scale, badge: pendingCount > 0 ? pendingCount : undefined },
+      ],
+    },
+    {
+      section: "Communications",
+      items: [
+        { path: "/hod/broadcast", name: "Broadcast", icon: Radio },
+        { path: "/hod/announcements", name: "Announcements", icon: Files },
+        { path: "/hod/messages", name: "Messages", icon: Mail, badge: unreadMessages > 0 ? unreadMessages : undefined },
+      ],
+    },
+    {
+      section: "Management",
+      items: [
+        { path: "/hod/lecturers", name: "Lecturers", icon: Users },
+        { path: "/hod/reports", name: "Analytics", icon: BarChart3 },
+      ],
+    },
+    {
+      section: "System",
+      items: [
+        { path: "/hod/notifications", name: "Notifications", icon: Bell, badge: unreadNotifications > 0 ? unreadNotifications : undefined },
+        { path: "/hod/settings", name: "Settings", icon: Settings },
+      ],
+    },
   ];
 
-  const menuItems = routes.map(r => ({
-    ...r,
-    label: r.name,
-    badge: r.badge
-  })).concat([
-    { icon: Mail, label: "Messages", path: "/hod/messages", id: "messages", badge: unreadMessages > 0 ? unreadMessages : undefined },
-    { icon: Bell, label: "Notifications", path: "/hod/notifications", id: "notifications", badge: unreadNotifications > 0 ? unreadNotifications : undefined },
-    { icon: BarChart3, label: "Reports", path: "/hod/reports" },
-    { icon: Settings, label: "Settings", path: "/hod/settings" },
+  const menuItems = sections.flatMap(s => [
+    { section: true, label: s.section },
+    ...s.items,
   ]);
 
   const handleLogout = () => {
@@ -80,23 +103,27 @@ export default function HODSidebar(props) {
 
   return (
     <Sidebar
+      collapsed={collapsed}
+      onToggleCollapse={onToggleCollapse}
       {...props}
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-            <Command size={18} />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
+            <Command size={16} />
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-foreground tracking-wide">{deptName}</h2>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">HoD Portal</p>
-          </div>
+          {!collapsed && (
+            <div>
+              <h2 className="text-sm font-bold text-foreground tracking-wide">{deptName}</h2>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Command Center</p>
+            </div>
+          )}
         </div>
       }
       footer={
         <div className="space-y-2">
           <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-accent">
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-sm">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
               {user?.name?.charAt(0) || 'H'}
             </div>
             <div className="flex-1 min-w-0">

@@ -97,7 +97,7 @@ export default function DepartmentSettings() {
     setIsSaving(true);
     try {
       toast.success("Settings saved successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to save settings");
     } finally {
       setIsSaving(false);
@@ -120,8 +120,8 @@ export default function DepartmentSettings() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-10">
-      <header className="mb-8">
+    <div className="space-y-6 p-4 sm:p-6">
+      <header className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           Department Settings
         </h1>
@@ -131,7 +131,6 @@ export default function DepartmentSettings() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Left Side Navigation */}
         <div className="md:col-span-4 space-y-2">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -141,7 +140,7 @@ export default function DepartmentSettings() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-sm ${
                   isActive
-                    ? "bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                    ? "bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent font-medium"
                 }`}
               >
@@ -152,11 +151,10 @@ export default function DepartmentSettings() {
           })}
         </div>
 
-        {/* Right Side Settings Area */}
         <div className="md:col-span-8 space-y-6">
           {activeTab === "workflow" && (
-            <GlassCard className="space-y-6">
-              <div className="border-b border-border pb-4">
+            <GlassCard>
+              <div className="border-b border-border pb-4 mb-6">
                 <h2 className="text-lg font-semibold text-foreground">
                   Approval Workflow
                 </h2>
@@ -165,29 +163,27 @@ export default function DepartmentSettings() {
                 </p>
               </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="pr-4">
-                    <p className="text-foreground font-medium text-sm">
-                      Require HoD Approval
-                    </p>
-                    <p className="text-muted-foreground text-xs mt-1 leading-relaxed">
-                      All lecturer announcements must be approved by the HoD
-                      before being sent to students.
-                    </p>
-                  </div>
-                  <LiquidToggle
-                    enabled={settings.requireApproval}
-                    onChange={(val) => setSettings({ ...settings, requireApproval: val })}
-                  />
+              <div className="flex items-center justify-between">
+                <div className="pr-4">
+                  <p className="text-foreground font-medium text-sm">
+                    Require HoD Approval
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-1 leading-relaxed">
+                    All lecturer announcements must be approved by the HoD
+                    before being sent to students.
+                  </p>
                 </div>
+                <LiquidToggle
+                  enabled={settings.requireApproval}
+                  onChange={(val) => setSettings({ ...settings, requireApproval: val })}
+                />
               </div>
             </GlassCard>
           )}
 
           {activeTab === "profile" && (
-            <GlassCard className="space-y-6">
-              <div className="border-b border-border pb-4">
+            <GlassCard>
+              <div className="border-b border-border pb-4 mb-6">
                 <h2 className="text-lg font-semibold text-foreground">
                   Your Profile
                 </h2>
@@ -196,8 +192,8 @@ export default function DepartmentSettings() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-6">
-                <div className="relative group">
+              <div className="flex items-center gap-6 mb-6">
+                <div className="relative group shrink-0">
                   <div className="w-24 h-24 rounded-2xl bg-accent border border-border overflow-hidden flex items-center justify-center">
                     {profile.profileUrl ? (
                       <img 
@@ -230,9 +226,9 @@ export default function DepartmentSettings() {
                     className="hidden"
                   />
                 </div>
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">Name</label>
                     <input
                       type="text"
                       value={profile.name}
@@ -241,7 +237,7 @@ export default function DepartmentSettings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Email</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">Email</label>
                     <input
                       type="email"
                       value={profile.email}
@@ -250,7 +246,7 @@ export default function DepartmentSettings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Department</label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">Department</label>
                     <input
                       type="text"
                       value={profile.department}
@@ -261,8 +257,8 @@ export default function DepartmentSettings() {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4">
-                <button className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2">
+              <div className="flex justify-end border-t border-border pt-4">
+                <button className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
                   <Save size={16} /> Save Profile
                 </button>
               </div>
@@ -270,8 +266,8 @@ export default function DepartmentSettings() {
           )}
 
           {activeTab === "policies" && (
-            <GlassCard className="space-y-6">
-              <div className="border-b border-border pb-4">
+            <GlassCard>
+              <div className="border-b border-border pb-4 mb-6">
                 <h2 className="text-lg font-semibold text-foreground">
                   Communication Policies
                 </h2>
@@ -294,11 +290,11 @@ export default function DepartmentSettings() {
             </GlassCard>
           )}
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end">
             <button 
               onClick={handleSaveSettings}
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center gap-2 disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               Save Changes

@@ -291,10 +291,10 @@ function HeroSection({ onAction }) {
           transition={{ delay: 0.3 }}
           className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 leading-[0.9]"
         >
-          Smart Alerts.
+          AI Event Alerts.
           <br />
           <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
-            Zero Noise.
+            Curated for You.
           </span>
         </motion.h1>
 

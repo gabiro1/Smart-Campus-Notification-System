@@ -68,4 +68,7 @@ auditLogSchema.index({ adminId: 1, createdAt: -1 });
 auditLogSchema.index({ action: 1, createdAt: -1 });
 auditLogSchema.index({ targetId: 1, createdAt: -1 });
 
+// Dashboard security analytics: failed logins count
+auditLogSchema.index({ action: 1, status: 1, createdAt: 1 });
+
 export default mongoose.model('AuditLog', auditLogSchema);

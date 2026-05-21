@@ -120,8 +120,8 @@ export default function DepartmentReports() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 sm:mb-8">
+    <div className="space-y-6 p-4 sm:p-6">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             Analytics & Reports
@@ -130,7 +130,7 @@ export default function DepartmentReports() {
             Generate comprehensive reports on department communication.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <button 
             onClick={exportCSV}
             className="bg-accent hover:bg-accent border-border text-foreground px-3 sm:px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"

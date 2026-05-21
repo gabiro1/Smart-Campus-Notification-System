@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -18,10 +19,11 @@ import {
   Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import notificationService from "../../../../services/notificationService";
 
 const coreItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/overview" },
-  { icon: Bell, label: "Notifications", path: "/admin/notifications", badge: 3, badgeType: 'red' },
+  { icon: Bell, label: "Notifications", path: "/admin/notifications", badgeType: 'red' },
   { icon: Radio, label: "Events", path: "/admin/events" },
 ];
 
@@ -47,6 +49,36 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const data = await notificationService.getUnreadCount();
+        setUnreadNotifications(data?.unreadCount || 0);
+      } catch { }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const coreItemsWithBadge = coreItems.map(item =>
+    item.label === "Notifications"
+      ? { ...item, badge: unreadNotifications > 0 ? unreadNotifications : undefined }
+      : item
+  );
+
+  const allItems = [
+    ...coreItemsWithBadge,
+    { divider: true, label: "Management" },
+    ...managementItems,
+    { divider: true, label: "Analytics" },
+    ...analyticsItems,
+    { divider: true, label: "System" },
+    ...systemItems,
+  ];
+
   const user = (() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); }
     catch { return {}; }
@@ -58,17 +90,6 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
     localStorage.removeItem("user");
     navigate("/login");
   };
-
-  // All menu items with dividers
-  const allItems = [
-    ...coreItems,
-    { divider: true, label: "Management" },
-    ...managementItems,
-    { divider: true, label: "Analytics" },
-    ...analyticsItems,
-    { divider: true, label: "System" },
-    ...systemItems,
-  ];
 
   // Mobile: Drawer overlay
   if (isMobile) {
@@ -163,8 +184,8 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
                     <LayoutDashboard size={16} />
                   </div>
                   <div>
-                    <h2 className="text-[13px] font-semibold text-foreground leading-tight">Smart Campus</h2>
-                    <p className="text-[10px] text-muted-foreground">Notification System</p>
+                    <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify</h2>
+                    <p className="text-[10px] text-muted-foreground">Smart Campus Notification</p>
                   </div>
                 </div>
                 <button
@@ -253,8 +274,8 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
           </div>
           {!collapsed && (
             <div>
-              <h2 className="text-[13px] font-semibold text-foreground leading-tight">Smart Campus</h2>
-              <p className="text-[10px] text-muted-foreground">Notification System</p>
+              <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify</h2>
+              <p className="text-[10px] text-muted-foreground">Admin Console</p>
             </div>
           )}
         </div>

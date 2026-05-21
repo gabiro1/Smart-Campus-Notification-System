@@ -22,6 +22,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   if (!allowedRoles.includes(user.role)) {
     const roleRedirects = {
       admin: "/admin/overview",
+      principal: "/principal/dashboard",
       dean: "/dean/dashboard",
       hod: "/hod",
       lecturer: "/lecturer",

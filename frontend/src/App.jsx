@@ -11,7 +11,6 @@ import SkipLink from "./components/shared/layout/SkipLink";
 import InstallPrompt from "./components/InstallPrompt";
 import IOSInstallPrompt from "./components/IOSInstallPrompt";
 import UpdatePrompt from "./components/UpdatePrompt";
-import GlassBottomNavbar from "./components/GlassBottomNavbar";
 
 import { initSWListener } from "./lib/swListener";
 import { processSyncQueue } from "./lib/syncQueue";
@@ -129,11 +128,9 @@ function App() {
       <InstallPrompt />
       <IOSInstallPrompt />
 
-      <div id="main-content" className="min-h-screen pb-20 md:pb-0">
+      <div id="main-content" className="min-h-screen">
         <AppRoutes />
       </div>
-
-      <GlassBottomNavbar />
     </>
   );
 }

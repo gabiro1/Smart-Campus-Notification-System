@@ -267,12 +267,23 @@ export const registerDevice = async (req, res) => {
         if (user.classId) topics.push(`topic_class_${sanitize(user.classId)}`);
 
         // 3. Batch subscribe via Firebase Admin (non-fatal — credential errors won't crash this)
-        let topicsResult = { success: true };
+        let topicsResult = { success: true, attached: [] };
         if (topics.length > 0) {
-            topicsResult = await subscribeToTopics(fcmToken, topics);
+            const results = await Promise.allSettled(
+                topics.map(topic => subscribeToTopic([fcmToken], topic)
+                    .then(() => topic)
+                    .catch(err => { throw { topic, err }; })
+                )
+            );
+            const attached = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+            const failed = results.filter(r => r.status === 'rejected').map(r => r.reason?.topic);
+            topicsResult = {
+                success: failed.length === 0,
+                attached,
+                error: failed.length > 0 ? `Failed topics: ${failed.join(', ')}` : null
+            };
             if (!topicsResult.success) {
-                console.warn(`[DeviceRegistration] Topic subscription failed for user ${user._id}: ${topicsResult.error}`);
-                console.warn(`[DeviceRegistration] FCM token was saved. To fix: regenerate your Firebase service account key at https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk`);
+                console.warn(`[DeviceRegistration] Topic subscription partial failure for user ${user._id}: ${topicsResult.error}`);
             }
         }
 
@@ -280,9 +291,9 @@ export const registerDevice = async (req, res) => {
             success: true,
             message: topicsResult.success
                 ? "Device registered and topics updated."
-                : "Device registered (FCM token saved). Topic subscriptions skipped due to a Firebase credential issue \u2014 push notifications may be delayed until resolved.",
-            topicsAttached: topicsResult.success ? topics : [],
-            warning: topicsResult.success ? undefined : "Firebase credential invalid. Regenerate your service account key."
+                : "Device registered (FCM token saved). Topic subscriptions partially failed \u2014 push notifications may be delayed.",
+            topicsAttached: topicsResult.success ? topics : (topicsResult.attached || []),
+            warning: topicsResult.success ? undefined : "Some topic subscriptions failed."
         });
 
     } catch (error) {

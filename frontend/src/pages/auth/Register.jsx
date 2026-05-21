@@ -1,13 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   User,
   Mail,
   Lock,
   Phone,
-  Landmark,
-  GraduationCap,
-  Target,
   Eye,
   EyeOff,
   ArrowRight,
@@ -42,52 +39,8 @@ export default function Register() {
     password: "",
     confirmPassword: "",
     phoneNumber: "",
-    school: "",
-    department: "",
-    level: "",
     role: "student",
   });
-
-  const [dropdowns, setDropdowns] = useState({
-    schools: [],
-    departments: [],
-    levels: [],
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    const fetchDropdowns = async () => {
-      try {
-        const [schoolsRes, departmentsRes, levelsRes] = await Promise.all([
-          apiClient.get("/dropdowns/schools"),
-          apiClient.get("/dropdowns/departments"),
-          apiClient.get("/dropdowns/levels"),
-        ]);
-        setDropdowns({
-          schools: schoolsRes.data || [],
-          departments: departmentsRes.data || [],
-          levels: levelsRes.data || [],
-          loading: false,
-          error: null,
-        });
-        setFormData((prev) => ({
-          ...prev,
-          school: schoolsRes.data[0]?.name || "",
-          department: departmentsRes.data[0]?.name || "",
-          level: levelsRes.data[0]?.name || "",
-        }));
-      } catch (err) {
-        setDropdowns((prev) => ({
-          ...prev,
-          loading: false,
-          error: "Failed to load dropdowns. Please refresh.",
-        }));
-      }
-    };
-
-    fetchDropdowns();
-  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -103,10 +56,8 @@ export default function Register() {
       errors.push("Password must contain uppercase, lowercase, number, and special character (@$!%*?&)");
     if (formData.password !== formData.confirmPassword)
       errors.push("Passwords do not match");
-    if (!/^(\+?)?(250)?7\d{8}$/.test(formData.phoneNumber))
-      errors.push("Phone number must be valid Rwanda format (07xxxxxxx or +2507xxxxxxx)");
-    if (!formData.school || !formData.department || !formData.level)
-      errors.push("Please select school, department, and level");
+    if (!/^(\+[\d]{7,15})$|^(0[\d]{9,10})$/.test(formData.phoneNumber))
+      errors.push("Enter a valid phone number (e.g., 0788123456 or +250788123456)");
     return errors;
   };
 
@@ -186,8 +137,7 @@ export default function Register() {
               </h1>
 
               <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
-                Create your account and experience the smartest campus notification 
-                system ever built. Zero noise, all signal.
+                Create your account and get AI-curated alerts for what matters.
               </p>
 
               <div className="space-y-4">
@@ -294,7 +244,7 @@ export default function Register() {
                   <InputGroup
                     icon={<Phone size={18} />}
                     name="phoneNumber"
-                    placeholder="Phone (e.g. 078...)"
+                    placeholder="Phone (e.g., 0788123456 or +250788123456)"
                     type="tel"
                     onChange={handleChange}
                     disabled={loading}
@@ -327,61 +277,10 @@ export default function Register() {
                     disabled={loading}
                   />
 
-                  {dropdowns.loading ? (
-                    <div className="text-center text-muted-foreground py-4">
-                      Loading schools & departments...
-                    </div>
-                  ) : dropdowns.error ? (
-                    <div className="text-center text-red-400 py-4">
-                      {dropdowns.error}
-                    </div>
-                  ) : (
-                    <>
-                      <SelectGroup
-                        icon={<Landmark size={18} />}
-                        name="school"
-                        onChange={handleChange}
-                        disabled={loading}
-                      >
-                        {dropdowns.schools.map((s) => (
-                          <option key={s._id} value={s.name}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </SelectGroup>
-
-                      <SelectGroup
-                        icon={<Target size={18} />}
-                        name="department"
-                        onChange={handleChange}
-                        disabled={loading}
-                      >
-                        {dropdowns.departments.map((d) => (
-                          <option key={d._id} value={d.name}>
-                            {d.name}
-                          </option>
-                        ))}
-                      </SelectGroup>
-
-                      <SelectGroup
-                        icon={<GraduationCap size={18} />}
-                        name="level"
-                        onChange={handleChange}
-                        disabled={loading}
-                      >
-                        {dropdowns.levels.map((l, idx) => (
-                          <option key={idx} value={l.name}>
-                            {l.name}
-                          </option>
-                        ))}
-                      </SelectGroup>
-                    </>
-                  )}
-
                   <input type="hidden" name="role" value="student" />
 
                   <button
-                    disabled={loading || dropdowns.loading}
+                    disabled={loading}
                     type="submit"
                     className="w-full bg-blue-500 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:bg-blue-600"
                   >
@@ -472,20 +371,4 @@ function InputGroup({ icon, name, placeholder, type, onChange, disabled }) {
   );
 }
 
-function SelectGroup({ icon, name, children, onChange, disabled }) {
-  return (
-    <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none">
-        {icon}
-      </div>
-      <select
-        name={name}
-        onChange={onChange}
-        disabled={disabled}
-        className="w-full bg-background border border-border p-4 pl-12 rounded-xl text-foreground outline-none focus:border-blue-500 transition-all appearance-none cursor-pointer disabled:opacity-60"
-      >
-        {children}
-      </select>
-    </div>
-  );
-}
+

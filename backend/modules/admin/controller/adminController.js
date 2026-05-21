@@ -103,43 +103,99 @@ export const createUser = async (req, res) => {
     }
 };
 
-// @desc    Get dashboard metrics
+// @desc    Get dashboard metrics with trends and hourly volume
 export const getDashboardMetrics = async (req, res) => {
     try {
-        const totalUsers = await User.countDocuments();
-        const totalEvents = await Event.countDocuments();
-        const totalReminders = await Reminder.countDocuments();
-        const totalNotifications = await NotificationLog.countDocuments();
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
 
-        // Get user breakdown by role
-        const usersByRole = await User.aggregate([
-            { $group: { _id: '$role', count: { $sum: 1 } } }
+        const [
+            totalUsers,
+            totalEvents,
+            totalReminders,
+            totalNotifications,
+            todayNotifications,
+            yesterdayNotifications,
+            todayEvents,
+            yesterdayEvents,
+            todayNewUsers,
+            yesterdayNewUsers,
+            usersByRole,
+            usersBySchool,
+            hourlyVolume,
+            notificationRead
+        ] = await Promise.all([
+            User.countDocuments(),
+            Event.countDocuments(),
+            Reminder.countDocuments(),
+            NotificationLog.countDocuments(),
+            NotificationLog.countDocuments({ createdAt: { $gte: startOfToday } }),
+            NotificationLog.countDocuments({ createdAt: { $gte: startOfYesterday, $lt: startOfToday } }),
+            Event.countDocuments({ createdAt: { $gte: startOfToday } }),
+            Event.countDocuments({ createdAt: { $gte: startOfYesterday, $lt: startOfToday } }),
+            User.countDocuments({ createdAt: { $gte: startOfToday } }),
+            User.countDocuments({ createdAt: { $gte: startOfYesterday, $lt: startOfToday } }),
+            User.aggregate([
+                { $group: { _id: '$role', count: { $sum: 1 } } }
+            ]),
+            User.aggregate([
+                { $lookup: { from: 'schools', localField: 'school', foreignField: '_id', as: 'schoolData' } },
+                { $unwind: { path: '$schoolData', preserveNullAndEmptyArrays: true } },
+                { $group: { _id: '$schoolData.name', count: { $sum: 1 } } }
+            ]),
+            NotificationLog.aggregate([
+                { $match: { createdAt: { $gte: startOfToday } } },
+                { $group: { _id: { $hour: '$createdAt' }, count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]),
+            NotificationLog.countDocuments({ status: 'read' })
         ]);
 
-        // Get user breakdown by school
-        const usersBySchool = await User.aggregate([
-            { $lookup: { from: 'schools', localField: 'school', foreignField: '_id', as: 'schoolData' } },
-            { $unwind: { path: '$schoolData', preserveNullAndEmptyArrays: true } },
-            { $group: { _id: '$schoolData.name', count: { $sum: 1 } } }
-        ]);
+        // Build hourly volume array for all 24 hours
+        const hourlyMap = {};
+        hourlyVolume.forEach(h => { hourlyMap[h._id] = h.count; });
+        const volumeByHour = Array.from({ length: 24 }, (_, i) => ({
+            hour: `${String(i).padStart(2, '0')}:00`,
+            count: hourlyMap[i] || 0
+        }));
 
-        // Get notifications sent vs read
-        const notificationStats = {
-            total: totalNotifications,
-            read: await NotificationLog.countDocuments({ status: 'read' }),
-            unread: await NotificationLog.countDocuments({ status: 'unread' })
-        };
+        // Compute percentage trends
+        const calcTrend = (today, yesterday) =>
+            yesterday > 0 ? Math.round(((today - yesterday) / yesterday) * 100)
+                : today > 0 ? 100 : 0;
+
+        // Find peak hour
+        const peakHour = volumeByHour.reduce((max, h) => h.count > max.count ? h : max, { count: 0 });
 
         res.json({
             metrics: {
                 totalUsers,
                 totalEvents,
                 totalReminders,
-                totalNotifications
+                totalNotifications,
+                todayNotifications,
+                yesterdayNotifications,
+                todayEvents,
+                yesterdayEvents,
+                todayUsers: todayNewUsers,
+                yesterdayUsers: yesterdayNewUsers,
+                readRate: totalNotifications > 0 ? Math.round((notificationRead / totalNotifications) * 100) : 0
             },
+            trends: {
+                messages: calcTrend(todayNotifications, yesterdayNotifications),
+                events: calcTrend(todayEvents, yesterdayEvents),
+                users: calcTrend(todayNewUsers, yesterdayNewUsers)
+            },
+            hourlyVolume: volumeByHour,
+            peakHour: peakHour.count > 0 ? peakHour.hour : null,
             usersByRole,
             usersBySchool,
-            notificationStats
+            notificationStats: {
+                total: totalNotifications,
+                read: notificationRead,
+                unread: totalNotifications - notificationRead
+            }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -333,13 +389,9 @@ export const deleteUser = async (req, res) => {
 export const promoteUser = async (req, res) => {
     try {
         const { role } = req.body;
-        
-        // ---------------------------------------------------------
-        // THE FIX: Added 'dean' and 'principal' to the allowed array
-        // ---------------------------------------------------------
-        const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president', 'dean', 'principal'];
 
-        if (!role || !allowedRoles.includes(role)) {
+        const ALLOWED_PROMOTION_ROLES = ['student', 'lecturer', 'hod', 'guild_president', 'dean', 'principal'];
+        if (!role || !ALLOWED_PROMOTION_ROLES.includes(role)) {
             return res.status(400).json({ message: "Invalid role" });
         }
 
@@ -348,14 +400,44 @@ export const promoteUser = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        const ROLE_HIERARCHY = { student: 0, class_rep: 1, lecturer: 2, guild_president: 3, hod: 4, dean: 5, principal: 6, admin: 7 };
+        const promoterLevel = ROLE_HIERARCHY[req.user.role];
+        const targetLevel = ROLE_HIERARCHY[role];
+        if (targetLevel >= promoterLevel) {
+            return res.status(403).json({ message: "Cannot promote to equal or higher rank" });
+        }
+
         const oldRole = user.role;
         user.role = role;
         await user.save();
+        await logAuditAction(req.user._id, 'PROMOTE_USER', user._id, 'USER', `Role changed from ${oldRole} to ${role}`, { before: oldRole, after: role });
 
-        res.json({
-            message: "User role updated successfully",
-            user
-        });
+        res.json({ message: "User role updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Reset user password (Admin only)
+export const resetUserPassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        const user = await User.findById(req.params.userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        await User.findByIdAndUpdate(req.params.userId, { password: hashedPassword });
+
+        await logAuditAction(req.user._id, 'RESET_PASSWORD', user._id, 'USER', `Password reset for ${user.name}`);
+
+        res.json({ message: "Password reset successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -571,7 +653,7 @@ export const getEngagementByDepartment = async (req, res) => {
             { $group: {
                 _id: '$department',
                 totalUsers: { $sum: 1 },
-                avgInterests: { $avg: { $size: '$interests' } }
+                avgInterests: { $avg: { $size: { $ifNull: ['$interests', []] } } }
             }},
             { $sort: { totalUsers: -1 } }
         ]);

@@ -41,6 +41,7 @@ import searchRoutes from './modules/search/routes/searchRoutes.js'; // Smart sea
 import supportRoutes from './modules/support/routes/supportRoutes.js'; // Support Tickets
 import smsRoutes from './modules/sms/routes/messageRoutes.js'; // SMS Module
 import dropdownsRoutes from './modules/dropdowns/routes/dropdownsRoutes.js'; // Public dropdowns for registration
+import principalRoutes from './modules/principal/routes/principalRoutes.js'; // Principal executive dashboard
 
 // Communication Module Routes
 import contactRoutes from './modules/communication/routes/contactRoutes.js';
@@ -87,42 +88,30 @@ app.use(cors({
   optionsSuccessStatus: 200 // For legacy browser support
 }));
 
-// Global rate limiter: 100 requests per 15 minutes per IP for general API
+// Global rate limiter: 1000 requests per 15 minutes per IP for general API
 const generalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 1000, // Limit each IP to 1000 requests per windowMs
   standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again after 15 minutes.'
   },
-  skip: (req) => {
-    // Completely disable rate limiting in development to avoid getting locked out
-    if (process.env.NODE_ENV !== 'production') return true;
-    
-    // Skip rate limiting for trusted internal services if needed
-    // return req.ip === '10.0.0.1' || req.ip === '127.0.0.1';
-    return false; // Apply to all external requests in production
-  }
+  skip: () => process.env.SKIP_RATE_LIMIT === 'true' || process.env.NODE_ENV === 'test',
 });
 
 // Strict rate limiter for authentication endpoints: 5 attempts per 15 minutes
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, 
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
     message: 'Too many authentication attempts. Please try again after 15 minutes.'
   },
-  skipSuccessfulRequests: true,
-  skip: (req) => {
-    // Completely disable rate limiting in development
-    if (process.env.NODE_ENV !== 'production') return true;
-    return false;
-  },
+  skip: () => process.env.SKIP_RATE_LIMIT === 'true' || process.env.NODE_ENV === 'test',
   // 💡 ADD THIS: Helps you debug in the network tab
   handler: (req, res, next, options) => {
     console.warn(`Rate limit exceeded for IP: ${req.ip}`);
@@ -190,6 +179,7 @@ app.use('/api/support', supportRoutes); // Support Tickets
 app.use('/api/sms', smsRoutes); // SMS Module
 app.use('/api/dropdowns', dropdownsRoutes); // Public dropdowns for registration
 app.use('/api/settings', settingsRoutes); // System settings
+app.use('/api/principal', principalRoutes); // Principal executive analytics
 
 // Communication Module Routes
 app.use('/api/communication/contacts', contactRoutes);

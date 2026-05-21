@@ -113,4 +113,16 @@ NotificationLogSchema.index({ studentId: 1, requiresAcknowledgment: 1, acknowled
 // 6. Admin analytics: count acknowledgments per notification
 NotificationLogSchema.index({ referenceId: 1, requiresAcknowledgment: 1, acknowledgedAt: 1 });
 
+// 7. Dashboard hourly aggregation: { createdAt: $gte: today } + $group by hour
+NotificationLogSchema.index({ createdAt: 1 });
+
+// 8. Status aggregation for principal dashboard
+NotificationLogSchema.index({ status: 1, createdAt: 1 });
+
+// 9. Sender analytics for broadcast history
+NotificationLogSchema.index({ senderId: 1, createdAt: -1 });
+
+// 10. Type-based analytics for communication trends
+NotificationLogSchema.index({ type: 1, createdAt: 1 });
+
 export default mongoose.model('NotificationLog', NotificationLogSchema);

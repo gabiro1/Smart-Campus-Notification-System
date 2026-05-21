@@ -100,6 +100,50 @@ const dashboardService = {
       throw error;
     }
   },
+
+  // ======= HOD DASHBOARD INTELLIGENCE API =======
+
+  getHodSummary: async () => {
+    const response = await apiClient.get('/hod/dashboard/summary');
+    return response.data;
+  },
+
+  getHodAlerts: async () => {
+    const response = await apiClient.get('/hod/dashboard/alerts');
+    return response.data;
+  },
+
+  getHodActivityFeed: async (limit = 20) => {
+    const response = await apiClient.get('/hod/dashboard/activity', { params: { limit } });
+    return response.data;
+  },
+
+  getHodAnalytics: async ({ metric = 'announcements', range = '7d', comparison = false } = {}) => {
+    const response = await apiClient.get('/hod/dashboard/analytics', {
+      params: { metric, range, comparison }
+    });
+    return response.data;
+  },
+
+  getHodKpis: async () => {
+    const response = await apiClient.get('/hod/dashboard/kpis');
+    return response.data;
+  },
+
+  batchApproveAnnouncements: async (ids) => {
+    const response = await apiClient.post('/hod/announcements/batch-approve', { ids });
+    return response.data;
+  },
+
+  getInactiveLecturers: async (days = 7) => {
+    const response = await apiClient.get('/hod/lecturers/inactive', { params: { days } });
+    return response.data;
+  },
+
+  getAtRiskStudents: async () => {
+    const response = await apiClient.get('/hod/students/at-risk');
+    return response.data;
+  },
 };
 
 export default dashboardService;

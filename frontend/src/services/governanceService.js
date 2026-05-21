@@ -15,8 +15,8 @@ const governanceService = {
     /** Get published feed (all authenticated users) */
     getFeed: () => apiClient.get(`${BASE}/feed`).then((r) => r.data),
 
-    /** Get pending announcements (HoD / Dean / Principal inbox) */
-    getPending: () => apiClient.get(`${BASE}/pending`).then((r) => r.data),
+    /** Get pending announcements array (HoD / Dean / Principal inbox) */
+    getPending: () => apiClient.get(`${BASE}/pending`).then((r) => r.data?.data || r.data || []),
 
     /** Get the current user's own announcements */
     getMine: () => apiClient.get(`${BASE}/mine`).then((r) => r.data),
@@ -42,14 +42,17 @@ const governanceService = {
     /** Update a governance announcement */
     update: (id, data) => apiClient.put(`${BASE}/${id}`, data).then((r) => r.data),
 
+    /** Get pending announcements (for approval workflow) */
+    getPendingAnnouncements: () => apiClient.get(`${BASE}/pending`).then((r) => r.data),
+
     /** Get pending events (for approval workflow) */
-    getPendingEvents: () => apiClient.get('/events/pending').then((r) => r.data),
+    getPendingEvents: () => apiClient.get('/events/approvals/pending').then((r) => r.data),
 
     /** Approve an event */
-    approveEvent: (id) => apiClient.put(`/events/${id}/approve`).then((r) => r.data),
+    approveEvent: (id) => apiClient.post(`/events/approvals/${id}`, { action: 'approve' }).then((r) => r.data),
 
     /** Reject an event */
-    rejectEvent: (id, reason = '') => apiClient.put(`/events/${id}/reject`, { reason }).then((r) => r.data),
+    rejectEvent: (id, reason = '') => apiClient.post(`/events/approvals/${id}`, { action: 'reject', rejectionReason: reason }).then((r) => r.data),
 };
 
 export default governanceService;

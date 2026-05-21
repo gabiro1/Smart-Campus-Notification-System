@@ -4,7 +4,6 @@ import {
   Send,
   AlertTriangle,
   Radio,
-  Globe,
   Clock,
   ShieldAlert,
   CheckCircle2,
@@ -274,7 +273,7 @@ Output ONLY the message body text.`;
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         {/* Form Area */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-8 space-y-6">
           {/* AI Generator Section */}
           <GlassCard className="bg-gradient-to-br from-purple-500/5 to-blue-500/5">
             <div className="flex items-center gap-3 pb-4 border-b border-border">
@@ -540,59 +539,7 @@ Output ONLY the message body text.`;
         </div>
 
         {/* Guidelines Sidebar */}
-        <div className="lg:col-span-5 space-y-6">
-          <GlassCard>
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Sparkles size={18} className="text-purple-400" /> How It Works
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-purple-400">1</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Enter Your Topic</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Write a brief description of what you want to communicate.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-purple-400">2</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Select Tone</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Choose Professional, Friendly, Urgent, or Formal.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-purple-400">3</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">AI Generates</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Subject line and full message are created automatically.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-emerald-400">4</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Review & Edit</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Make any changes, then submit for approval.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-
+        <div className="lg:col-span-4 space-y-6">
           <GlassCard>
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Broadcast Guidelines
@@ -616,17 +563,6 @@ Output ONLY the message body text.`;
                   Target specific schools or departments for focused communication.
                 </p>
               </div>
-            </div>
-          </GlassCard>
-
-          <GlassCard>
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              Recent Broadcasts
-            </h3>
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-sm">
-                No recent broadcasts
-              </p>
             </div>
           </GlassCard>
         </div>

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
   useEffect(() => {
@@ -24,9 +25,13 @@ export default function DashboardLayout() {
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
         isMobile={isMobile}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
-      <div className="flex-1 flex flex-col lg:ml-72 relative z-10 h-screen overflow-hidden">
+      <div className={`flex-1 flex flex-col relative z-10 h-screen overflow-hidden transition-all duration-300 ${
+        isMobile ? '' : (sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72')
+      }`}>
         <TopBar isMobile={isMobile} setSidebarOpen={setSidebarOpen} />
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">

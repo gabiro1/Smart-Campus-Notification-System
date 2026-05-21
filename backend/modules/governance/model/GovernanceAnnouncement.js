@@ -108,6 +108,9 @@ const governanceAnnouncementSchema = new mongoose.Schema(
   }
 );
 
+governanceAnnouncementSchema.index({ status: 1, createdAt: -1 });
+governanceAnnouncementSchema.index({ status: 1, priority: 1, createdAt: -1 });
+
 const GovernanceAnnouncement = mongoose.model(
   'GovernanceAnnouncement',
   governanceAnnouncementSchema

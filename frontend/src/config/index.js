@@ -13,7 +13,7 @@ export const API_CONFIG = {
 
 // App Configuration
 export const APP_CONFIG = {
-  NAME: import.meta.env.VITE_APP_NAME || 'Smart Campus Notification',
+  NAME: import.meta.env.VITE_APP_NAME || 'UniNotify AI',
   VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
   ENV: import.meta.env.VITE_APP_ENV || 'development',
   DEBUG: import.meta.env.DEV,

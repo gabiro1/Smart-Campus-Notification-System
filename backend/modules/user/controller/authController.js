@@ -1,5 +1,6 @@
 import User from '../model/User.js';
 import Class from '../../class/model/Class.js';
+import Department from '../../department/model/Department.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
@@ -119,12 +120,7 @@ export const register = async (req, res) => {
       name,
       email,
       password,
-      role, 
       phoneNumber,
-      college,
-      school,
-      department,
-      level,
       interests,
       profilePicture 
     } = req.body;
@@ -143,14 +139,11 @@ export const register = async (req, res) => {
     // 3. Hash password securely
     const hashedPassword = await bcrypt.hash(password, 12); 
 
-    // 4. Force strict role assignment (Only allow "student" for public registration)
-    const allowedRoles = ["student"];
-    const assignedRole = allowedRoles.includes(role) ? role : "student";
+    const assignedRole = "student";
 
     // 5. Generate OTP
     const otp = generateOTP();
 
-    // 6. Build user object defensively
     const userData = {
       name,
       email,
@@ -161,18 +154,8 @@ export const register = async (req, res) => {
       profilePicture: profilePicture || "",
       emailVerified: false,
       emailVerificationToken: otp,
-      emailVerificationExpires: Date.now() + 10 * 60 * 1000 // 10 minutes
+      emailVerificationExpires: Date.now() + 10 * 60 * 1000
     };
-
-    // Only assign level if they are actually a student
-    if (assignedRole === "student" && level) {
-      userData.level = level;
-    }
-
-    // Only save hierarchy fields if they are valid ObjectIds
-    if (college && isValidId(college)) userData.college = college;
-    if (school && isValidId(school)) userData.school = school;
-    if (department && isValidId(department)) userData.department = department;
 
     // 7. Create user (but don't activate until OTP verified)
     const user = await User.create(userData);
@@ -583,26 +566,33 @@ export const enrollStudent = async (req, res) => {
       return res.status(409).json({ success: false, message: "Email already registered" });
     }
 
-    // SMART ENROLLMENT: We fetch the class so the student inherits its department and level!
+    // SMART ENROLLMENT: Fetch the class and resolve the full academic hierarchy
     const targetClass = await Class.findById(classId);
     if (!targetClass) {
       return res.status(404).json({ success: false, message: "Class not found" });
     }
 
+    // Resolve school and college from the department chain
+    const department = await Department.findById(targetClass.department).populate({
+      path: 'school',
+      select: 'college'
+    });
+
     const hashedPassword = await bcrypt.hash(password, 12);
     const newStudentID = await generateURStudentID(); 
 
-    // Create the student, inheriting the exact relational data from the Class they are joining
     const student = await User.create({
       name,
       email,
       password: hashedPassword,
       phoneNumber,
       role: "student",
-      studentID: newStudentID, 
+      studentID: newStudentID,
       classId: classId,
-      department: targetClass.department, // INHERITED!
-      level: targetClass.level // INHERITED!
+      department: targetClass.department,
+      level: targetClass.level,
+      school: department?.school?._id,
+      college: department?.school?.college
     });
 
     // Add student to the class array
@@ -946,13 +936,6 @@ export const googleAuth = async (req, res) => {
         }
         await user.save();
       } else {
-        // Create new user from Google data
-        const School = (await import('../../school/model/School.js')).default;
-        const Department = (await import('../../department/model/Department.js')).default;
-        
-        const defaultSchool = await School.findOne({}).select('_id');
-        const defaultDept = await Department.findOne({}).select('_id');
-
         user = await User.create({
           name: name || 'User',
           email,
@@ -960,9 +943,6 @@ export const googleAuth = async (req, res) => {
           provider: 'google',
           profilePicture,
           role: 'student',
-          school: defaultSchool?._id,
-          department: defaultDept?._id,
-          level: 'Year 1',
           password: await bcrypt.hash(Math.random().toString(36).slice(-12), 12),
           emailVerified: true,
         });

@@ -2,16 +2,10 @@ import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 import SystemOverview from "../pages/dashboards/principal/pages/SystemOverview";
-import SystemAnalytics from "../pages/dashboards/principal/pages/SystemAnalytics";
-import AdminPanel from "../pages/dashboards/principal/pages/AdminPanel";
-import AllUsers from "../pages/dashboards/principal/pages/AllUsers";
 import GlobalBroadcast from "../pages/dashboards/principal/pages/GlobalBroadcast";
-import PrincipalReports from "../pages/dashboards/principal/pages/PrincipalReports";
-import PrincipalAudit from "../pages/dashboards/principal/pages/PrincipalAudit";
-import PrincipalBackups from "../pages/dashboards/principal/pages/PrincipalBackups";
 import PrincipalDepartments from "../pages/dashboards/principal/pages/PrincipalDepartments";
 import PrincipalApprovals from "../pages/dashboards/principal/pages/PrincipalApprovals";
-import MessagesTab from "../pages/Message/MessagesTab";
+import ReportsAnalytics from "../pages/dashboards/principal/pages/ReportsAnalytics";
 
 export const principalRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -25,15 +19,6 @@ export const principalRoutes = [
     }
   />,
   <Route
-    key="admin"
-    path="admin"
-    element={
-      <ProtectedRoute allowedRoles={["principal"]}>
-        <AdminPanel />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
     key="departments"
     path="departments"
     element={
@@ -43,11 +28,11 @@ export const principalRoutes = [
     }
   />,
   <Route
-    key="reports"
-    path="reports"
+    key="reports-analytics"
+    path="reports-analytics"
     element={
       <ProtectedRoute allowedRoles={["principal"]}>
-        <PrincipalReports />
+        <ReportsAnalytics />
       </ProtectedRoute>
     }
   />,
@@ -61,56 +46,11 @@ export const principalRoutes = [
     }
   />,
   <Route
-    key="analytics"
-    path="analytics"
-    element={
-      <ProtectedRoute allowedRoles={["principal"]}>
-        <SystemAnalytics />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="audit"
-    path="audit"
-    element={
-      <ProtectedRoute allowedRoles={["principal"]}>
-        <PrincipalAudit />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="users"
-    path="users"
-    element={
-      <ProtectedRoute allowedRoles={["principal"]}>
-        <AllUsers />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="backups"
-    path="backups"
-    element={
-      <ProtectedRoute allowedRoles={["principal"]}>
-        <PrincipalBackups />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
     key="approvals"
     path="approvals"
     element={
       <ProtectedRoute allowedRoles={["principal"]}>
         <PrincipalApprovals />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="messages"
-    path="messages"
-    element={
-      <ProtectedRoute allowedRoles={["principal"]}>
-        <MessagesTab />
       </ProtectedRoute>
     }
   />,

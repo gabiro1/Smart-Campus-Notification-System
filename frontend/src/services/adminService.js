@@ -48,6 +48,12 @@ createUser: async (userData) => {
     return response.data;
   },
 
+  // Reset user password
+  resetUserPassword: async (userId, password) => {
+    const response = await apiClient.post(`/admin/users/${userId}/reset-password`, { password });
+    return response.data;
+  },
+
   // Get analytics
   getAnalytics: async (startDate, endDate) => {
     const response = await apiClient.get('/admin/analytics', {

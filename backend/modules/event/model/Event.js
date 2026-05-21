@@ -73,4 +73,9 @@ EventSchema.index({
   date: 1
 });
 
+// Dashboard approval analytics
+EventSchema.index({ status: 1, createdAt: 1 });
+EventSchema.index({ createdBy: 1, createdAt: -1 });
+EventSchema.index({ targetDept: 1, status: 1 });
+
 export default mongoose.model('Event', EventSchema);

@@ -1,6 +1,8 @@
 import Department from '../model/Department.js';
 import School from '../../school/model/School.js';
 import User from '../../user/model/User.js';
+import Class from '../../class/model/Class.js';
+import Course from '../../course/model/Course.js';
 
 // @desc    Create a new Department
 // @route   POST /api/departments
@@ -125,8 +127,12 @@ export const deleteDepartment = async (req, res) => {
       return res.status(404).json({ message: 'Department not found' });
     }
 
+    const classes = await Class.find({ department: department._id });
+    const classIds = classes.map(c => c._id);
+    await Course.deleteMany({ class: { $in: classIds } });
+    await Class.deleteMany({ department: department._id });
     await department.deleteOne();
-    res.status(200).json({ message: 'Department deleted successfully' });
+    res.status(200).json({ message: 'Department and all associated classes/courses deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }

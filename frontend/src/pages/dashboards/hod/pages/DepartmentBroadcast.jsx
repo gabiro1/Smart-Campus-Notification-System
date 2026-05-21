@@ -101,8 +101,8 @@ export default function DepartmentBroadcast() {
   }, [classes, targetLevel]);
 
   return (
-    <div className="space-y-6 p-4 md:ml-10">
-      <header className="mb-8">
+    <div className="space-y-6 p-4 sm:p-6">
+      <header className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           Department Broadcast
         </h1>

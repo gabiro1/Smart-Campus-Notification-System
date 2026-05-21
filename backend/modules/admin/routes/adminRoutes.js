@@ -8,6 +8,7 @@ import {
     updateUser,
     deleteUser,
     promoteUser,
+    resetUserPassword,
     getAnalytics,
     getBroadcastHistory,
     getEventMonitor,
@@ -69,6 +70,13 @@ router.delete('/users/:userId', authorize('admin', 'principal'), auditLog('user'
  * @access  Private (Admin or Principal only)
  */
 router.post('/users/:userId/promote', authorize('admin', 'principal'), auditLog('user', { customAction: 'PROMOTE_USER' }), promoteUser);
+
+/**
+ * @route   POST /api/admin/users/:userId/reset-password
+ * @desc    Reset user password
+ * @access  Private (Admin or Principal only)
+ */
+router.post('/users/:userId/reset-password', authorize('admin', 'principal'), auditLog('user', { customAction: 'RESET_PASSWORD' }), resetUserPassword);
 
 /**
  * @route   GET /api/admin/analytics

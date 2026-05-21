@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -25,6 +25,14 @@ export default function Navbar() {
   const { isDarkMode, toggleTheme } = useTheme();
   const isLoggedIn = !!user;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const close = () => setProfileOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [profileOpen]);
 
   const isActive = (path) => location.pathname.startsWith(path);
 
@@ -90,6 +98,13 @@ export default function Navbar() {
                       <NavLink to="/admin/users" label="Users" />
                     </>
                   )}
+                  {user.role === "principal" && (
+                    <>
+                      <NavLink to="/principal/dashboard" label="Dashboard" active={isActive("/principal/dashboard")} />
+                      <NavLink to="/principal/broadcast" label="Broadcast" active={isActive("/principal/broadcast")} />
+                      <NavLink to="/principal/approvals" label="Approvals" active={isActive("/principal/approvals")} />
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -144,11 +159,11 @@ export default function Navbar() {
                     <Search size={14} />
                   </motion.button>
 
-                  {user.role === "student" && (
+                  {(user.role === "student" || user.role === "principal") && (
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={() => navigate("/student/bookmarks")}
+                      onClick={() => navigate(user.role === "principal" ? "/principal/approvals" : "/student/bookmarks")}
                       className="w-8 h-8 rounded-full bg-accent/50 hover:bg-accent flex items-center justify-center text-foreground transition-colors"
                     >
                       <Bookmark size={14} />
@@ -158,8 +173,8 @@ export default function Navbar() {
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => navigate("/student/reminders")}
-                    className="w-8 h-8 rounded-full bg-accent/50 hover:bg-accent flex items-center justify-center text-foreground transition-colors relative"
+                    onClick={() => navigate(user.role === "principal" ? "/principal/dashboard" : "/student/reminders")}
+                    className="w-8 h-8 rounded-full bg-accent/50 hover:bg-accent flex items-center justify-center text-foreground relative"
                   >
                     <Bell size={14} />
                     <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full border-2 border-card text-[8px] font-bold text-white flex items-center justify-center">
@@ -168,19 +183,24 @@ export default function Navbar() {
                   </motion.button>
 
                   {/* Profile */}
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative group"
-                  >
-                    <button className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                  <div className="relative">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={(e) => { e.stopPropagation(); setProfileOpen(p => !p); }}
+                      className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg"
+                    >
                       {initials || "U"}
-                    </button>
+                    </motion.button>
 
                     {/* Dropdown */}
+                    {profileOpen && (
                     <motion.div
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 top-10 w-56 py-2 bg-card/95 backdrop-blur-xl rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 top-10 w-56 py-2 bg-card/95 backdrop-blur-xl rounded-2xl shadow-xl z-50"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <div className="px-4 py-3 border-b border-border">
                         <p className="font-bold text-foreground text-sm">{user?.name}</p>
@@ -206,7 +226,8 @@ export default function Navbar() {
                         </button>
                       </div>
                     </motion.div>
-                  </motion.div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -316,6 +337,13 @@ export default function Navbar() {
                       <>
                         <MobileMenuLink to="/admin/overview" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/admin/users" label="Users" onClick={() => setMobileMenuOpen(false)} />
+                      </>
+                    )}
+                    {user.role === "principal" && (
+                      <>
+                        <MobileMenuLink to="/principal/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/principal/broadcast" label="Broadcast" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/principal/approvals" label="Approvals" onClick={() => setMobileMenuOpen(false)} />
                       </>
                     )}
                     <div className="pt-4 border-t space-y-1">

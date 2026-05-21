@@ -28,6 +28,7 @@ import {
   UserPlus,
   UserMinus,
   AlertCircle,
+  KeyRound,
 } from "lucide-react";
 import { GlassCard } from "@/components/shared";
 import adminService from "../../../../services/adminService";
@@ -60,6 +61,10 @@ export default function UserManagement() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [newUserData, setNewUserData] = useState({ name: "", email: "", phoneNumber: "", role: "student", school: "", department: "" });
   const [isCreating, setIsCreating] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetPassword, setResetPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -158,6 +163,29 @@ export default function UserManagement() {
       toast.error("Failed to update user");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPassword || resetPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (resetPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setIsResetting(true);
+    try {
+      await adminService.resetUserPassword(selectedUser._id || selectedUser.id, resetPassword);
+      toast.success("Password reset successfully");
+      setShowResetPassword(false);
+      setResetPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to reset password");
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -572,6 +600,48 @@ export default function UserManagement() {
               </div>
             )}
 
+              {showResetPassword ? (
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <p className="text-sm font-medium text-foreground">Reset Password for {selectedUser.name}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-muted-foreground uppercase">New Password *</label>
+                      <input
+                        type="password"
+                        value={resetPassword}
+                        onChange={(e) => setResetPassword(e.target.value)}
+                        className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
+                        placeholder="Min 6 characters"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground uppercase">Confirm Password *</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
+                        placeholder="Repeat password"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button
+                      onClick={handleResetPassword}
+                      disabled={isResetting || !resetPassword || !confirmPassword}
+                      className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <KeyRound size={16} /> {isResetting ? "Resetting..." : "Reset Password"}
+                    </button>
+                    <button
+                      onClick={() => { setShowResetPassword(false); setResetPassword(""); setConfirmPassword(""); }}
+                      className="flex-1 py-3 bg-accent hover:bg-accent/80 text-foreground rounded-xl font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <button
                   onClick={handleEditToggle}
@@ -580,12 +650,19 @@ export default function UserManagement() {
                   <Pencil size={16} /> Edit User
                 </button>
                 <button
+                  onClick={() => setShowResetPassword(true)}
+                  className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <KeyRound size={16} /> Reset Password
+                </button>
+                <button
                   onClick={() => handleDelete(selectedUser._id || selectedUser.id, selectedUser.name)}
                   className="flex-1 sm:flex-none px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl font-medium transition-colors"
                 >
                   Delete
                 </button>
               </div>
+              )}
             </motion.div>
           </motion.div>
         )}

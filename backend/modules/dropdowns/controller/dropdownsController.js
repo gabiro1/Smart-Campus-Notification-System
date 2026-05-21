@@ -3,7 +3,7 @@ import Department from '../../department/model/Department.js';
 
 export const getDropdownSchools = async (req, res) => {
   try {
-    const schools = await School.find().select('name code');
+    const schools = await School.find().select('_id name code');
     res.status(200).json(schools);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
@@ -12,7 +12,7 @@ export const getDropdownSchools = async (req, res) => {
 
 export const getDropdownDepartments = async (req, res) => {
   try {
-    const departments = await Department.find().select('name code school');
+    const departments = await Department.find().select('_id name code school');
     res.status(200).json(departments);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });

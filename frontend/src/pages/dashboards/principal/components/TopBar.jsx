@@ -30,7 +30,7 @@ export default function TopBar({ isMobile, setSidebarOpen }) {
             </button>
           )}
           <div className="hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 px-3 py-1.5 rounded-full text-xs font-medium">
-            <ShieldCheck size={14} /> System Secured
+            <ShieldCheck size={14} /> {user?.role === 'admin' ? 'Full Access' : 'Principal Access'}
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function TopBar({ isMobile, setSidebarOpen }) {
           <div className="flex items-center gap-3 pl-5 border-l border-border">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-foreground">{user?.name || 'Principal'}</p>
-              <p className="text-xs text-muted-foreground">{user?.college?.name || 'Root Access'}</p>
+              <p className="text-xs text-muted-foreground">{user?.role === 'admin' ? 'Full Access' : 'Principal Administrator'}</p>
             </div>
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-blue-600 p-0.5">
               <div className="w-full h-full bg-card rounded-full flex items-center justify-center text-xs font-bold text-foreground">

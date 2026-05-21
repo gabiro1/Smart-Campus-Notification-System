@@ -3,6 +3,7 @@ import User from "../../user/model/User.js";
 import Department from "../../department/model/Department.js";
 import School from "../../school/model/School.js";
 import College from "../../college/model/College.js";
+import Course from "../../course/model/Course.js";
 
 // ==========================================
 // 1. HOD / ADMINISTRATIVE FUNCTIONS
@@ -321,8 +322,9 @@ export const deleteClass = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
+    await Course.deleteMany({ class: classItem._id });
     await classItem.deleteOne();
-    res.status(200).json({ message: "Class deleted successfully" });
+    res.status(200).json({ message: "Class and all associated courses deleted successfully" });
   } catch (error) {
     console.error("Delete Class Error:", error);
     res.status(500).json({ message: "Failed to delete class." });

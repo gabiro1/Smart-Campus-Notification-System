@@ -26,10 +26,10 @@ export default function PrincipalApprovals() {
       setLoading(true);
       const [eventsRes, announcementsRes] = await Promise.all([
         governanceService.getPendingEvents().catch(() => ({ events: [] })),
-        governanceService.getPendingAnnouncements().catch(() => ({ announcements: [] })),
+        governanceService.getPendingAnnouncements().catch(() => null),
       ]);
       setPendingEvents(eventsRes.events || []);
-      setPendingAnnouncements(announcementsRes.announcements || []);
+      setPendingAnnouncements(announcementsRes?.data || announcementsRes?.announcements || []);
     } catch (error) {
       toast.error("Failed to load approvals");
     } finally {
