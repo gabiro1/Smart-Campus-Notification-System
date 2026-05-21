@@ -16,6 +16,7 @@ import {
   Activity,
   ShieldAlert,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -75,6 +76,7 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       section: "Management",
       items: [
         { path: "/hod/lecturers", name: "Lecturers", icon: Users },
+        { path: "/hod/report-create", name: "Reports", icon: FileText },
         { path: "/hod/reports", name: "Analytics", icon: BarChart3 },
       ],
     },

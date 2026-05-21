@@ -6,6 +6,7 @@ import DepartmentBroadcast from "../pages/dashboards/hod/pages/DepartmentBroadca
 import AllAnnouncements from "../pages/dashboards/hod/pages/AllAnnouncements";
 import LecturerManagement from "../pages/dashboards/hod/pages/LecturerManagement";
 import DepartmentReports from "../pages/dashboards/hod/pages/DepartmentReports";
+import ReportManagement from "../pages/dashboards/hod/pages/ReportManagement";
 import DepartmentSettings from "../pages/dashboards/hod/pages/DepartmentSettings";
 import MessagesTab from "../pages/Message/MessagesTab";
 import GovernancePage from "../pages/dashboards/shared/GovernancePage";
@@ -55,6 +56,15 @@ export const hodRoutes = [
     element={
       <ProtectedRoute allowedRoles={["hod"]}>
         <DepartmentReports />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="report-create"
+    path="report-create"
+    element={
+      <ProtectedRoute allowedRoles={["hod"]}>
+        <ReportManagement />
       </ProtectedRoute>
     }
   />,
