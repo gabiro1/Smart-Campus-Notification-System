@@ -12,6 +12,7 @@ import EmergencyBanner from "../../../../components/common/EmergencyBanner";
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [collapsed, setCollapsed] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
   const { user } = useAuth();
 
@@ -28,6 +29,8 @@ export default function DashboardLayout() {
     .slice(0, 2)
     .toUpperCase() || "DV";
 
+  const sidebarWidth = collapsed ? "ml-16" : "ml-72";
+
   return (
     <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
       {/* Executive Ambient Glows */}
@@ -38,9 +41,11 @@ export default function DashboardLayout() {
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
         isMobile={isMobile}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed(c => !c)}
       />
 
-      <div className="flex-1 flex flex-col lg:ml-72 relative z-10 h-screen overflow-hidden">
+      <div className={`flex-1 flex flex-col ${sidebarWidth} relative z-10 h-screen overflow-hidden transition-all duration-300`}>
         {/* Top Bar */}
         <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-border bg-card/50 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-4">
@@ -53,11 +58,10 @@ export default function DashboardLayout() {
               </button>
             )}
             <h1 className="text-lg font-semibold hidden sm:block">
-              Dean Dashboard
+              Dean Portal
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent hover:bg-accent/80 transition-all duration-200 border border-border"
@@ -70,7 +74,6 @@ export default function DashboardLayout() {
               )}
             </button>
 
-            {/* Notification Bell */}
             <div className="relative">
               <NotificationCenter />
             </div>

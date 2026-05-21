@@ -1,5 +1,4 @@
 import Sidebar from "./Sidebar";
-import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   Globe,
@@ -13,24 +12,40 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  Activity,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const routes = [
-  { path: "/dean/dashboard", label: "School Overview", icon: Globe },
+const navSections = [
   {
-    path: "/dean/approvals",
-    label: "HoD Approvals",
-    icon: CheckSquare,
-    badge: 5,
+    label: "Operations",
+    items: [
+      { path: "/dean/dashboard", label: "Command Center", icon: Activity },
+      { path: "/dean/approvals", label: "HoD Approvals", icon: CheckSquare, badge: 5 },
+      { path: "/dean/broadcast", label: "School Broadcast", icon: Radio },
+      { path: "/dean/analytics", label: "Analytics", icon: BarChart3 },
+    ],
   },
-  { path: "/dean/broadcast", label: "School Broadcast", icon: Radio },
-  { path: "/dean/analytics", label: "Analytics", icon: BarChart3 },
-  { path: "/dean/roles", label: "Role Management", icon: Users },
-  { path: "/dean/announcements", label: "All Announcements", icon: Files },
-  { path: "/dean/reports", label: "Reports", icon: PieChart },
-  { path: "/dean/messages", label: "Messages", icon: MessageSquare },
-  { path: "/dean/settings", label: "Settings", icon: Settings },
+  {
+    label: "Communication",
+    items: [
+      { path: "/dean/announcements", label: "All Announcements", icon: Files },
+      { path: "/dean/messages", label: "Messages", icon: MessageSquare },
+      { path: "/dean/reports", label: "Reports", icon: PieChart },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { path: "/dean/roles", label: "Role Management", icon: Users },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { path: "/dean/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 export default function DeanSidebar(props) {
@@ -42,12 +57,16 @@ export default function DeanSidebar(props) {
     navigate("/login");
   };
 
-  const menuItems = routes.map(item => ({
-    icon: item.icon,
-    label: item.label,
-    path: item.path,
-    badge: item.badge
-  }));
+  const menuItems = navSections.flatMap((section, sIdx) => [
+    { section: true, label: section.label },
+    ...section.items.map(item => ({
+      icon: item.icon,
+      label: item.label,
+      path: item.path,
+      badge: item.badge,
+      badgeType: item.badge ? 'red' : undefined,
+    })),
+  ]);
 
   return (
     <Sidebar
