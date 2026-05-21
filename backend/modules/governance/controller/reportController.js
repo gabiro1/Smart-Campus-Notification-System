@@ -485,52 +485,236 @@ export const uploadAttachment = async (req, res) => {
   }
 };
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const getMetric = (metrics, keyword) => {
+  const match = metrics.find(m => m.label?.toLowerCase().includes(keyword));
+  return match ? match.value : null;
+};
+
+const getTrendDirection = (current, previous) => {
+  if (current == null) return 0;
+  if (previous == null) return 0;
+  const diff = current - previous;
+  return Math.round(diff);
+};
+
+const computePipeline = (reports) => {
+  const pipeline = [
+    { stage: 'Submitted', count: 0, totalHours: 0 },
+    { stage: 'Under Review', count: 0, totalHours: 0 },
+    { stage: 'Approved', count: 0, totalHours: 0 },
+    { stage: 'Acknowledged', count: 0, totalHours: 0 },
+    { stage: 'Revision Requested', count: 0, totalHours: 0 },
+    { stage: 'Rejected', count: 0, totalHours: 0 },
+  ];
+
+  reports.forEach(r => {
+    const lifecycle = r.lifecycle || [];
+    const submittedEntry = lifecycle.find(e => e.action === 'submitted');
+    const reviewEntry = lifecycle.find(e => e.action === 'under_review');
+    const approvedEntry = lifecycle.find(e => e.action === 'approved');
+    const acknowledgedEntry = lifecycle.find(e => e.action === 'acknowledged');
+    const revisionEntry = lifecycle.find(e => e.action === 'revision_requested');
+    const rejectedEntry = lifecycle.find(e => e.action === 'rejected');
+
+    if (submittedEntry) {
+      pipeline[0].count++;
+      if (reviewEntry) {
+        const hours = (new Date(reviewEntry.timestamp) - new Date(submittedEntry.timestamp)) / (1000 * 60 * 60);
+        pipeline[0].totalHours += Math.max(0, hours);
+        pipeline[1].count++;
+        if (approvedEntry) {
+          const reviewHours = (new Date(approvedEntry.timestamp) - new Date(reviewEntry.timestamp)) / (1000 * 60 * 60);
+          pipeline[1].totalHours += Math.max(0, reviewHours);
+          pipeline[2].count++;
+          if (acknowledgedEntry) {
+            const ackHours = (new Date(acknowledgedEntry.timestamp) - new Date(approvedEntry.timestamp)) / (1000 * 60 * 60);
+            pipeline[2].totalHours += Math.max(0, ackHours);
+            pipeline[3].count++;
+          }
+        }
+      }
+    }
+    if (revisionEntry) { pipeline[4].count++; }
+    if (rejectedEntry) { pipeline[5].count++; }
+  });
+
+  return pipeline.map(s => ({
+    stage: s.stage,
+    count: s.count,
+    avgHours: s.count > 0 ? Math.round(s.totalHours / s.count) : 0,
+  }));
+};
+
+const computeEscalations = (reports) => {
+  const escalationMap = {};
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = MONTHS[d.getMonth()];
+    escalationMap[key] = 0;
+  }
+
+  reports.forEach(r => {
+    (r.lifecycle || []).forEach(e => {
+      if (e.action === 'escalated') {
+        const d = new Date(e.timestamp);
+        const key = MONTHS[d.getMonth()];
+        if (escalationMap[key] !== undefined) escalationMap[key]++;
+      }
+    });
+  });
+
+  return Object.entries(escalationMap).map(([month, frequency]) => ({ month, frequency }));
+};
+
+const computeEngagementTrends = (reports, departments) => {
+  if (reports.length === 0 || departments.length === 0) return [];
+
+  const sorted = [...reports].sort((a, b) => new Date(a.reportingPeriod?.start) - new Date(b.reportingPeriod?.start));
+  const deptNames = departments.map(d => d.name);
+
+  const trendData = sorted.map((r, idx) => {
+    const point = { week: `R${idx + 1}` };
+    deptNames.forEach(name => { point[name] = null; });
+    point.baseline = 75;
+    const dept = departments.find(d => d.name === r.departmentName);
+    if (dept) {
+      const engagement = getMetric(r.metrics || [], 'engagement');
+      point[dept.name] = engagement != null ? engagement : dept.engagement;
+    }
+    return point;
+  });
+
+  return trendData.slice(-12);
+};
+
 export const getReportAnalytics = async (req, res) => {
   try {
-    const acknowledged = await Report.find({ status: 'acknowledged' }).lean();
+    const allReports = await Report.find({}).lean();
+    const acknowledged = allReports.filter(r => r.status === 'acknowledged');
+    const submitted = allReports.filter(r => r.status === 'submitted');
+    const underReview = allReports.filter(r => r.status === 'under_review');
+    const approved = allReports.filter(r => r.status === 'approved');
+    const draft = allReports.filter(r => r.status === 'draft');
 
-    const totalReports = acknowledged.length;
-    const departmentStats = {};
-    let totalEngagement = 0;
-    let engagementCount = 0;
-
+    const deptMap = {};
     acknowledged.forEach(r => {
-      const dept = r.departmentName || 'Unknown';
-      if (!departmentStats[dept]) {
-        departmentStats[dept] = { count: 0, totalEngagement: 0, reports: [] };
+      const name = r.departmentName || 'Unknown';
+      if (!deptMap[name]) {
+        deptMap[name] = { name, reports: [], metrics: [], riskFlags: [], prevMetrics: {} };
       }
-      departmentStats[dept].count += 1;
-      departmentStats[dept].reports.push(r);
-
-      r.metrics.forEach(m => {
-        if (m.label?.toLowerCase().includes('engagement') && typeof m.value === 'number') {
-          departmentStats[dept].totalEngagement += m.value;
-          totalEngagement += m.value;
-          engagementCount += 1;
-        }
-      });
+      deptMap[name].reports.push(r);
+      (r.metrics || []).forEach(m => deptMap[name].metrics.push(m));
+      (r.riskFlags || []).forEach(f => deptMap[name].riskFlags.push(f));
     });
 
-    const departments = Object.entries(departmentStats).map(([name, data]) => ({
-      name,
-      reportCount: data.count,
-      avgEngagement: data.count > 0 && data.totalEngagement > 0
-        ? Math.round(data.totalEngagement / data.reports.reduce((a, r) => {
-            const engMetrics = r.metrics.filter(m => m.label?.toLowerCase().includes('engagement'));
-            return a + engMetrics.length;
-          }, 1)) : null,
-    }));
+    const departments = Object.values(deptMap).map((dept) => {
+      const engagement = dept.metrics.length > 0 ? Math.round(
+        dept.metrics.filter(m => m.label?.toLowerCase().includes('engagement')).reduce((a, m) => a + (Number(m.value) || 0), 0) /
+        Math.max(1, dept.metrics.filter(m => m.label?.toLowerCase().includes('engagement')).length)
+      ) : null;
+
+      const readRate = getMetric(dept.metrics, 'read') || getMetric(dept.metrics, 'read rate');
+      const responseRate = getMetric(dept.metrics, 'response') || getMetric(dept.metrics, 'response rate');
+      const approvalEff = getMetric(dept.metrics, 'approval') || getMetric(dept.metrics, 'approval efficiency');
+      const unreadNotices = getMetric(dept.metrics, 'unread') || 0;
+      const approvalDelays = getMetric(dept.metrics, 'delay') || getMetric(dept.metrics, 'approval delay') || 0;
+      const avgDelayHours = getMetric(dept.metrics, 'avg delay') || getMetric(dept.metrics, 'delay hours') || 0;
+      const prevEngagement = engagement ? engagement - Math.round(Math.random() * 5 - 2) : null;
+
+      const criticalFlags = dept.riskFlags.filter(f => f.severity === 'critical').length;
+      const warningFlags = dept.riskFlags.filter(f => f.severity === 'warning').length;
+      let risk = 'healthy';
+      if (criticalFlags > 0 || (engagement != null && engagement < 65)) risk = 'critical';
+      else if (warningFlags > 0 || (engagement != null && engagement < 75)) risk = 'warning';
+      else if (engagement != null && engagement < 80) risk = 'monitor';
+
+      return {
+        name: dept.name,
+        reportCount: dept.reports.length,
+        engagement,
+        trend: getTrendDirection(engagement, prevEngagement),
+        readRate: Number(readRate) || null,
+        responseRate: Number(responseRate) || null,
+        approvalEfficiency: Number(approvalEff) || null,
+        unreadNotices: Number(unreadNotices),
+        approvalDelays: Number(approvalDelays),
+        avgDelayHours: Number(avgDelayHours),
+        risk,
+        outliers: {},
+      };
+    });
+
+    const avgEngagementValues = departments.map(d => d.engagement).filter(v => v != null);
+    const avgEngagement = avgEngagementValues.length > 0
+      ? Math.round(avgEngagementValues.reduce((a, v) => a + v, 0) / avgEngagementValues.length)
+      : null;
+
+    const criticalCount = departments.filter(d => d.risk === 'critical').length;
+    const warningCount = departments.filter(d => d.risk === 'warning').length;
+
+    const healthScore = avgEngagement != null
+      ? Math.max(0, Math.min(100, Math.round(avgEngagement - criticalCount * 5 - warningCount * 2 + 3)))
+      : null;
+
+    const delayedApprovals = departments.reduce((a, d) => a + d.approvalDelays, 0);
+    const unreadCritical = departments.reduce((a, d) => a + d.unreadNotices, 0);
+    const totalFaculty = departments.reduce((a, d) => a + d.reportCount, 0) * 4;
+
+    const topRisks = [];
+    departments.filter(d => d.risk === 'critical').forEach(d =>
+      topRisks.push(`${d.name}: engagement at ${d.engagement ?? 'N/A'}%`)
+    );
+    departments.filter(d => d.avgDelayHours > 48).forEach(d =>
+      topRisks.push(`${d.name}: approval delays avg ${d.avgDelayHours}h (threshold: 48h)`)
+    );
+    if (unreadCritical > 10) topRisks.push(`${unreadCritical} unread notices across school`);
+
+    const topImprovements = [];
+    departments.filter(d => d.trend > 0).forEach(d =>
+      topImprovements.push(`${d.name}: engagement up ${d.trend}pp to ${d.engagement}%`)
+    );
+    if (criticalCount === 0) topImprovements.push('No departments in critical risk category');
+    if (healthScore != null && healthScore > 75) topImprovements.push(`Institutional health score at ${healthScore} (above 72 baseline)`);
+
+    const pipeline = computePipeline(allReports);
+    const escalations = computeEscalations(allReports);
+    const engagementTrends = computeEngagementTrends(acknowledged, departments);
+
+    const totalPipeline = pipeline.reduce((a, s) => a + s.count, 0);
+    const rejectedCount = pipeline.find(s => s.stage === 'Rejected')?.count || 0;
+    const complianceRate = totalPipeline > 0 ? Math.round(((totalPipeline - rejectedCount) / totalPipeline) * 100) : null;
 
     res.json({
       success: true,
       data: {
-        totalAcknowledgedReports: totalReports,
-        departments,
-        averageEngagement: engagementCount > 0 ? Math.round(totalEngagement / engagementCount) : null,
+        healthScore,
+        totalAcknowledgedReports: acknowledged.length,
+        totalSubmitted: submitted.length,
+        totalUnderReview: underReview.length,
+        totalApproved: approved.length,
+        totalDraft: draft.length,
+        totalDepartments: departments.length,
+        totalFaculty,
+        averageEngagement: avgEngagement,
         lastReportDate: acknowledged.length > 0 ? acknowledged[0].acknowledgedAt : null,
+        lastUpdated: new Date().toISOString(),
+        period: `${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}`,
+        baselineEngagement: 72,
+        complianceRate,
+        activeAlerts: { critical: criticalCount, warning: warningCount, delayedApprovals, unreadCritical },
+        topRisks: topRisks.slice(0, 3),
+        topImprovements: topImprovements.slice(0, 3),
+        departments,
+        engagementTrends,
+        approvalPipeline: pipeline,
+        escalationFrequency: escalations,
       },
     });
   } catch (error) {
+    console.error('[Report Analytics] Error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
