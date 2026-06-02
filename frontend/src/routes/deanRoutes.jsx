@@ -1,16 +1,17 @@
 import { Route, Navigate } from "react-router-dom";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "../components/layout/ProtectedRoute";
 
 import DeanOverview from "../pages/dashboards/dean/pages/SchoolOverview";
 import DeanApprovals from "../pages/dashboards/dean/pages/HoDApprovals";
 import DeanBroadcast from "../pages/dashboards/dean/pages/SchoolBroadcast";
-import DeanAnalytics from "../pages/dashboards/dean/pages/Analytics";
+
 import DeanRoles from "../pages/dashboards/dean/pages/RoleManagement";
-import DeanReportInbox from "../pages/dashboards/dean/pages/ReportInbox";
 import DeanAnnouncements from "../pages/dashboards/dean/pages/AllAnnouncements";
-import DeanReports from "../pages/dashboards/dean/pages/Reports";
 import DeanSettings from "../pages/dashboards/dean/pages/SchoolSettings";
-import MessagesTab from "../pages/Message/MessagesTab";
+import MessagesTab from "../features/communication/pages/MessagesTab";
+import CreatorDashboard from "../features/events/pages/CreatorDashboard";
+import EventForm from "../features/events/pages/EventForm";
+import EventDetailsPage from "../features/events/pages/EventDetailsPage";
 
 export const deanRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -33,29 +34,11 @@ export const deanRoutes = [
     }
   />,
   <Route
-    key="report-inbox"
-    path="report-inbox"
-    element={
-      <ProtectedRoute allowedRoles={["dean"]}>
-        <DeanReportInbox />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
     key="broadcast"
     path="broadcast"
     element={
       <ProtectedRoute allowedRoles={["dean"]}>
         <DeanBroadcast />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="analytics"
-    path="analytics"
-    element={
-      <ProtectedRoute allowedRoles={["dean"]}>
-        <DeanAnalytics />
       </ProtectedRoute>
     }
   />,
@@ -78,15 +61,6 @@ export const deanRoutes = [
     }
   />,
   <Route
-    key="reports"
-    path="reports"
-    element={
-      <ProtectedRoute allowedRoles={["dean"]}>
-        <DeanReports />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
     key="settings"
     path="settings"
     element={
@@ -101,6 +75,39 @@ export const deanRoutes = [
     element={
       <ProtectedRoute allowedRoles={["dean"]}>
         <MessagesTab />
+      </ProtectedRoute>
+    }
+  />,
+
+  // ── EVENT APPLICATIONS ──
+  <Route
+    key="dean-events"
+    path="events"
+    element={
+      <ProtectedRoute allowedRoles={["dean"]}>
+        <div className="p-6 max-w-5xl mx-auto">
+          <CreatorDashboard />
+        </div>
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="dean-event-create"
+    path="events/create"
+    element={
+      <ProtectedRoute allowedRoles={["dean"]}>
+        <div className="p-6 max-w-4xl mx-auto">
+          <EventForm />
+        </div>
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="dean-event-details"
+    path="events/:eventId"
+    element={
+      <ProtectedRoute allowedRoles={["dean"]}>
+        <EventDetailsPage />
       </ProtectedRoute>
     }
   />,

@@ -30,19 +30,21 @@ import courseRoutes from './modules/course/routes/courseRoutes.js'; // For cours
 import studentRoutes from './modules/student/routes/studentRoutes.js';
 import copilotRoutes from './modules/copilot/copilot.routes.js'; // Copilot RAG Assistant
 import governanceRoutes from './modules/governance/routes/governance.routes.js'; // Governance Engine
-import reportRoutes from './modules/governance/routes/reportRoutes.js'; // Report Lifecycle
 import aiRoutes from './modules/ai/routes/aiRoutes.js'; // AI Announcement Suggester
 import { createServer } from 'http';
 import { initSocket } from './utils/socketServer.js';
 import './workers/notificationWorker.js'; // 👷 Start the BullMQ Worker
 import './workers/eventReminderWorker.js'; // 👷 Start the Event Reminder Worker
 import auditRoutes from './modules/audit/routes/auditRoutes.js'; // For the new audit logging system
-import analyticsRoutes from './modules/analytics/routes/analyticsRoutes.js'; // Analytics dashboard
 import searchRoutes from './modules/search/routes/searchRoutes.js'; // Smart search with AI
 import supportRoutes from './modules/support/routes/supportRoutes.js'; // Support Tickets
 import smsRoutes from './modules/sms/routes/messageRoutes.js'; // SMS Module
 import dropdownsRoutes from './modules/dropdowns/routes/dropdownsRoutes.js'; // Public dropdowns for registration
 import principalRoutes from './modules/principal/routes/principalRoutes.js'; // Principal executive dashboard
+import hrRoutes from './modules/hr/routes/hrRoutes.js'; // HR module
+import registrarRoutes from './modules/registrar/routes/registrarRoutes.js'; // Registrar module
+import leadershipRoutes from './modules/student-leadership/routes/leadershipRoutes.js'; // Student Leadership Governance
+import roleRoutes from './modules/role/routes/roleRoutes.js'; // Role management
 
 // Communication Module Routes
 import contactRoutes from './modules/communication/routes/contactRoutes.js';
@@ -142,7 +144,16 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // 3. DATABASE CONNECTION
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected: UniNotify Database"))
+    .then(async () => {
+        console.log("MongoDB Connected: UniNotify Database");
+        try {
+            const Role = (await import('./modules/role/model/Role.js')).default;
+            await Role.seedSystemRoles();
+            console.log('System roles seeded successfully');
+        } catch (err) {
+            console.error('Failed to seed system roles:', err.message);
+        }
+    })
     .catch(err => {
         console.error("MongoDB Connection Error:", err.message);
         process.exit(1); // Stop server if DB fails
@@ -165,7 +176,6 @@ app.use('/api/student', studentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/announcements", announcementRoutes);
-app.use("/api/analytics", analyticsRoutes); // Analytics dashboard (read receipts, etc.)
 app.use("/api/search", searchRoutes); // Smart search with AI intent extraction
 app.use("/api/timetable", timetableRoutes);
 app.use('/api/colleges', collegeRoutes);
@@ -175,13 +185,16 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/copilot', copilotRoutes);
 app.use('/api/ai', aiRoutes); // AI Announcement Suggester
 app.use('/api/governance/announcements', governanceRoutes); // Governance Engine
-app.use('/api/governance/reports', reportRoutes); // Report Lifecycle
 app.use('/api/admin/audit-logs', auditRoutes);
 app.use('/api/support', supportRoutes); // Support Tickets
 app.use('/api/sms', smsRoutes); // SMS Module
 app.use('/api/dropdowns', dropdownsRoutes); // Public dropdowns for registration
 app.use('/api/settings', settingsRoutes); // System settings
 app.use('/api/principal', principalRoutes); // Principal executive analytics
+app.use('/api/hr', hrRoutes); // HR module
+app.use('/api/registrar', registrarRoutes); // Registrar module
+app.use('/api/roles', roleRoutes); // Role management
+app.use('/api/leadership', leadershipRoutes); // Student Leadership Governance
 
 // Communication Module Routes
 app.use('/api/communication/contacts', contactRoutes);

@@ -1,5 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { Sun, Moon, Search, Bell, PanelLeftClose, PanelLeftOpen, X, FileText, Calendar, Users, MessageSquare } from "lucide-react";
+import {
+  Sun,
+  Moon,
+  Search,
+  Bell,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
+  Calendar,
+  Users,
+  MessageSquare,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NotificationCenter from "../../../../components/common/NotificationCenter";
 import { useTheme } from "../../../../context/ThemeContext";
@@ -51,11 +62,11 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
       setLoading(true);
       try {
         const [notifs, events, users] = await Promise.all([
-          notificationService.getNotifications(1, 50).catch(() => ({ data: [] })),
+          notificationService.getNotifications({ page: 1, limit: 50 }).catch(() => ({ data: [] })),
           adminService.getEvents(1, 50, { search: searchQuery }).catch(() => ({ data: [] })),
           adminService.getUsers(1, 50, {}, true).catch(() => ({ data: [] })),
         ]);
-        
+
         const getArray = (data) => {
           if (Array.isArray(data)) return data;
           if (Array.isArray(data?.data)) return data.data;
@@ -64,27 +75,29 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
           if (Array.isArray(data?.users)) return data.users;
           return [];
         };
-        
+
         const notifArray = getArray(notifs);
         const eventArray = getArray(events);
         const userArray = getArray(users);
-        
+
         const query = searchQuery.toLowerCase();
-        const filteredNotifs = notifArray.filter(n => 
-          n.title?.toLowerCase().includes(query) ||
-          n.message?.toLowerCase().includes(query) ||
-          n.content?.toLowerCase().includes(query)
-        ).slice(0, 5);
-        
-        const filteredEvents = eventArray.filter(e =>
-          e.title?.toLowerCase().includes(query)
-        ).slice(0, 5);
-        
-        const filteredUsers = userArray.filter(u =>
-          u.name?.toLowerCase().includes(query) ||
-          u.email?.toLowerCase().includes(query)
-        ).slice(0, 5);
-        
+        const filteredNotifs = notifArray
+          .filter(
+            (n) =>
+              n.title?.toLowerCase().includes(query) ||
+              n.message?.toLowerCase().includes(query) ||
+              n.content?.toLowerCase().includes(query)
+          )
+          .slice(0, 5);
+
+        const filteredEvents = eventArray
+          .filter((e) => e.title?.toLowerCase().includes(query))
+          .slice(0, 5);
+
+        const filteredUsers = userArray
+          .filter((u) => u.name?.toLowerCase().includes(query) || u.email?.toLowerCase().includes(query))
+          .slice(0, 5);
+
         setSearchResults({
           notifications: filteredNotifs,
           events: filteredEvents,
@@ -113,11 +126,11 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
     setSearchQuery("");
   };
 
-  const totalResults = searchResults.notifications.length + searchResults.events.length + searchResults.users.length;
+  const totalResults =
+    searchResults.notifications.length + searchResults.events.length + searchResults.users.length;
 
   return (
     <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 lg:px-6 gap-4 shrink-0 relative">
-      {/* Left: Menu button (mobile) + Collapse button (desktop) + Title */}
       <div className="flex items-center gap-2">
         {onCollapseClick && (
           <button
@@ -125,13 +138,16 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
             className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-accent transition-colors"
             title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {collapsed ? <PanelLeftOpen size={18} className="text-foreground" /> : <PanelLeftClose size={18} className="text-foreground" />}
+            {collapsed ? (
+              <PanelLeftOpen size={18} className="text-foreground" />
+            ) : (
+              <PanelLeftClose size={18} className="text-foreground" />
+            )}
           </button>
         )}
         <h1 className="text-[15px] font-medium text-foreground hidden lg:block">{title}</h1>
       </div>
 
-      {/* Center: Search (desktop) */}
       <div className="hidden md:flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-2 text-muted-foreground text-[13px] cursor-text hover:border-blue-500/50 transition-colors flex-1 max-w-sm relative">
         <Search size={14} className="shrink-0 opacity-50" />
         <input
@@ -150,18 +166,21 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
         )}
       </div>
 
-      {/* Search Results Dropdown */}
       {showResults && (
-        <div 
+        <div
           ref={searchResultsRef}
           className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[480px] max-h-96 overflow-y-auto bg-card border border-border rounded-xl shadow-xl z-50"
         >
           {loading ? (
             <div className="p-4 text-center text-muted-foreground text-sm">Searching...</div>
           ) : !searchQuery.trim() ? (
-            <div className="p-4 text-center text-muted-foreground text-sm">Type to search notifications, events, or users</div>
+            <div className="p-4 text-center text-muted-foreground text-sm">
+              Type to search notifications, events, or users
+            </div>
           ) : totalResults === 0 ? (
-            <div className="p-4 text-center text-muted-foreground text-sm">No results found for "{searchQuery}"</div>
+            <div className="p-4 text-center text-muted-foreground text-sm">
+              No results found for "{searchQuery}"
+            </div>
           ) : (
             <div className="py-2">
               {searchResults.notifications.length > 0 && (
@@ -182,7 +201,6 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
                   </div>
                 </button>
               ))}
-              
               {searchResults.events.length > 0 && (
                 <div className="px-3 py-1 mt-2">
                   <span className="text-xs text-muted-foreground font-medium uppercase">Events</span>
@@ -201,7 +219,6 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
                   </div>
                 </button>
               ))}
-              
               {searchResults.users.length > 0 && (
                 <div className="px-3 py-1 mt-2">
                   <span className="text-xs text-muted-foreground font-medium uppercase">Users</span>
@@ -224,8 +241,11 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
           )}
           {searchQuery && totalResults > 0 && (
             <div className="border-t border-border p-2">
-              <button 
-                onClick={() => { navigate("/admin/notifications"); setShowResults(false); }}
+              <button
+                onClick={() => {
+                  navigate("/admin/notifications");
+                  setShowResults(false);
+                }}
                 className="w-full text-center text-xs text-blue-400 hover:text-blue-300 py-1"
               >
                 View all results
@@ -235,9 +255,7 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
         </div>
       )}
 
-      {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
           className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-accent transition-colors"
@@ -250,7 +268,6 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
           )}
         </button>
 
-        {/* Notifications */}
         <div className="relative">
           <NotificationCenter />
         </div>

@@ -1,53 +1,45 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Home, ArrowLeft, SearchX } from "lucide-react";
 
 export default function NotFound() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const role = user?.role;
-    
-    if (role) {
-      const timer = setTimeout(() => {
-        navigate(`/${role}`, { replace: true });
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [navigate]);
-
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const role = user?.role;
-
   return (
-    <div className="h-screen flex flex-col items-center justify-center text-center px-6">
-      <h1 className="text-9xl font-black text-white/5 absolute -z-10">404</h1>
-      <h2 className="text-4xl font-bold text-white mb-4 italic">
-        Signal Lost.
-      </h2>
-      <p className="text-neutral-500 mb-8 max-w-sm">
-        The page you are looking for has been moved or doesn't exist in our AI
-        database.( Ibyo bintu byihorere ntayo wari wakoraa )
-      </p>
-      <div className="flex gap-4">
-        <Link
-          to={role ? `/${role}` : "/login"}
-          className="bg-blue-600 px-10 py-4 rounded-2xl font-bold shadow-lg shadow-blue-600/20"
-        >
-          Return to Dashboard
-        </Link>
-        {!role && (
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center max-w-md"
+      >
+        <div className="flex justify-center mb-6">
+          <div className="p-4 rounded-full bg-muted">
+            <SearchX className="w-16 h-16 text-muted-foreground" />
+          </div>
+        </div>
+
+        <h1 className="text-7xl font-bold text-blue-500 mb-4">404</h1>
+        <h2 className="text-2xl font-semibold mb-2">Page Not Found</h2>
+        <p className="text-muted-foreground mb-8">
+          The page you're looking for doesn't exist or has been moved.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            to="/login"
-            className="bg-white/10 border border-white/20 px-10 py-4 rounded-2xl font-bold hover:bg-white/20 transition-colors"
+            to="/"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors"
           >
-            Login
+            <Home className="w-4 h-4" />
+            Go Home
           </Link>
-        )}
-      </div>
-      <p className="text-neutral-600 text-sm mt-4">
-        Redirecting to your dashboard in 3 seconds...
-      </p>
+          <button
+            onClick={() => window.history.back()}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-border text-foreground font-medium hover:bg-muted transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Go Back
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,12 +1,24 @@
 import User from '../model/User.js';
 import Class from '../../class/model/Class.js';
 import Department from '../../department/model/Department.js';
+import AuditLog from '../../audit/models/AuditLog.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { generateURStudentID } from '../../../middleware/authMiddleware.js';
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MINUTES = 30;
+
+const logAudit = async (adminId, action, targetId, targetType, description, metadata = {}, status = 'SUCCESS') => {
+  try {
+    await AuditLog.create({ adminId, action, targetId, targetType, description, status, metadata });
+  } catch (error) {
+    console.error('Audit log failed:', error);
+  }
+};
 
 // Reuse email transporter from notification module
 const getTransporter = () => {
@@ -181,51 +193,110 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // POPULATE department and classId so the frontend gets usable objects, not just IDs
-    const user = await User.findOne({ email })
+
+    const query = email.includes('@') ? { email: email.toLowerCase().trim() } : { registrationNumber: email.trim().toUpperCase() };
+
+    const user = await User.findOne(query)
       .select('+password')
-      .populate('department', 'name code') 
-      .populate('classId', 'name code level'); 
+      .populate('department', 'name code')
+      .populate('classId', 'name code level');
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      
-      // Base user profile for ALL roles
-      let userData = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        department: user.department, // Now populated! (e.g., { _id: "...", name: "Info Tech" })
-        phoneNumber: user.phoneNumber,
-        profilePicture: user.profilePicture,
-        languagePreference: user.languagePreference // Add language preference
-      };
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
 
-      // Role-specific data injection
-      if (user.role === 'student') {
-        userData.studentID = user.studentID;
-        userData.level = user.level;
-        userData.interests = user.interests;
-        userData.classInfo = user.classId;
-        userData.notificationPreferences = user.notificationPreferences;
-        userData.quietHours = user.quietHours;
-        userData.hasCompletedOnboarding = user.hasCompletedOnboarding;
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minsLeft = Math.ceil((user.lockedUntil - new Date()) / 60000);
+      await logAudit(user._id, 'LOGIN', user._id, 'USER',
+        `Login blocked - account locked (${minsLeft}min remaining)`,
+        {}, 'FAILED'
+      );
+      return res.status(423).json({
+        success: false,
+        message: `Account locked. Try again in ${minsLeft} minute(s).`,
+        lockedUntil: user.lockedUntil
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+
+      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockedUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60 * 1000);
+        user.loginAttempts = 0;
+        await user.save();
+        await logAudit(user._id, 'LOGIN', user._id, 'USER',
+          `Account locked after ${MAX_LOGIN_ATTEMPTS} failed attempts`,
+          { loginAttempts: MAX_LOGIN_ATTEMPTS }, 'FAILED'
+        );
+        return res.status(423).json({
+          success: false,
+          message: `Account locked due to ${MAX_LOGIN_ATTEMPTS} failed attempts. Try again in ${LOCK_DURATION_MINUTES} minutes.`
+        });
       }
 
-      res.status(200).json({
-        success: true,
-        token: jwt.sign(
-          { id: user._id, role: user.role, department: user.department?._id }, 
-          process.env.JWT_SECRET, 
-          { expiresIn: '30d' }
-        ),
-        user: userData 
-      });
+      await user.save();
+      await logAudit(user._id, 'LOGIN', user._id, 'USER',
+        `Failed login attempt (${user.loginAttempts}/${MAX_LOGIN_ATTEMPTS})`,
+        { loginAttempts: user.loginAttempts }, 'FAILED'
+      );
 
-    } else {
-      res.status(401).json({ success: false, message: "Invalid email or password" });
+      const identifier = user.registrationNumber || user.email;
+      return res.status(401).json({
+        success: false,
+        message: `Invalid password for ${identifier}`,
+        attemptsRemaining: MAX_LOGIN_ATTEMPTS - user.loginAttempts
+      });
     }
+
+    user.loginAttempts = 0;
+    user.lockedUntil = null;
+    user.lastActiveAt = new Date();
+    await user.save();
+
+    let userData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department,
+      phoneNumber: user.phoneNumber,
+      profilePicture: user.profilePicture,
+      languagePreference: user.languagePreference,
+      mustChangePassword: user.mustChangePassword,
+    };
+
+    if (user.registrationNumber) {
+      userData.registrationNumber = user.registrationNumber;
+    }
+
+    if (user.role === 'student') {
+      userData.studentID = user.studentID;
+      userData.registrationNumber = user.registrationNumber || user.studentID;
+      userData.level = user.level;
+      userData.interests = user.interests;
+      userData.classInfo = user.classId;
+      userData.notificationPreferences = user.notificationPreferences;
+      userData.quietHours = user.quietHours;
+      userData.hasCompletedOnboarding = user.hasCompletedOnboarding;
+    }
+
+    await logAudit(user._id, 'LOGIN', user._id, 'USER',
+      `Successful login [${user.role}]`, {}
+    );
+
+    res.status(200).json({
+      success: true,
+      token: jwt.sign(
+        { id: user._id, role: user.role, department: user.department?._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      ),
+      user: userData
+    });
+
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ success: false, message: "Server error during login" });
@@ -808,9 +879,23 @@ export const resetPassword = async (req, res) => {
     user.password = hashedPassword;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
+    user.mustChangePassword = false;
     await user.save();
 
-    res.status(200).json({ success: true, message: "Password updated successfully" });
+    const userData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    const jwtToken = jwt.sign(
+      { id: user._id, role: user.role, department: user.department?._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.status(200).json({ success: true, message: "Password updated successfully", token: jwtToken, user: userData });
   } catch (error) {
     console.error("Reset Password Error:", error);
     res.status(500).json({ success: false, message: "Failed to reset password" });
@@ -998,5 +1083,91 @@ export const updateLastActive = async (req, res) => {
     res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to update last active' });
+  }
+};
+
+// @desc    Change password (for first login or voluntary)
+// @route   PUT /api/users/change-password
+// @access  Private
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'currentPassword and newPassword are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    const sameAsOld = await bcrypt.compare(newPassword, user.password);
+    if (sameAsOld) {
+      return res.status(400).json({ success: false, message: 'New password must be different from current password' });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+    user.mustChangePassword = false;
+    user.lastPasswordChangeAt = new Date();
+    user.loginAttempts = 0;
+    user.lockedUntil = null;
+    await user.save();
+
+    await logAudit(user._id, 'UPDATE_USER', user._id, 'USER',
+      'Password changed successfully'
+    );
+
+    const newToken = jwt.sign(
+      { id: user._id, role: user.role, department: user.department },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password changed successfully',
+      token: newToken
+    });
+  } catch (error) {
+    console.error('changePassword Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to change password' });
+  }
+};
+
+// @desc    Unlock a locked account (admin/registrar only)
+// @route   PUT /api/users/unlock/:id
+// @access  Private (admin, registrar)
+export const unlockAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.loginAttempts = 0;
+    user.lockedUntil = null;
+    await user.save();
+
+    await logAudit(req.user._id, 'UPDATE_USER', user._id, 'USER',
+      `Account unlocked by ${req.user.role}`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Account unlocked for ${user.name}`,
+      data: { _id: user._id, name: user.name, email: user.email }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to unlock account' });
   }
 };

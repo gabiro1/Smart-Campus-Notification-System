@@ -137,25 +137,18 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
       <HeroSection onAction={handleAction} />
 
-      {/* --- STATS SECTION --- */}
       <StatsSection />
 
-      {/* --- FEATURES SECTION --- */}
       <FeaturesSection />
 
-      {/* --- HOW IT WORKS --- */}
       <HowItWorksSection />
 
-      {/* --- TESTIMONIALS --- */}
       <TestimonialsSection />
 
-      {/* --- FAQ SECTION --- */}
       <FAQSection />
 
-      {/* --- CTA SECTION --- */}
       <CTASection />
 
       <Footer />
@@ -166,47 +159,17 @@ export default function Landing() {
 function HeroSection({ onAction }) {
   const targetRef = useRef(null);
   const { scrollY } = useScroll();
-
   const y1 = useTransform(scrollY, [0, 500], [0, 150]);
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
-
-  // 👇 NEW: background fade on scroll
-  const bgOpacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   return (
-    <section
-      ref={targetRef}
-      className="relative min-h-screen flex items-center justify-center pt-20 pb-32 px-6 overflow-hidden"
-    >
-      {/* ============================= */}
-      {/* 🟣 GRID BACKGROUND LAYER (NEW) */}
-      {/* ============================= */}
-      <motion.div
-        style={{ opacity: bgOpacity }}
-        className="absolute inset-0 -z-20"
-      >
-        {/* Grid pattern */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-
-        {/* Light mode adjustment overlay */}
-        <div className="absolute inset-0 bg-white/5 dark:bg-black/40" />
-      </motion.div>
-
-      {/* ============================= */}
-      {/* YOUR EXISTING BACKGROUND */}
-      {/* (UNCHANGED) */}
-      {/* ============================= */}
+    <section ref={targetRef} className="relative min-h-screen flex items-center justify-center pt-20 pb-32 px-6 overflow-hidden">
+      {/* Animated Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <motion.div
           style={{ y: y1 }}
-          className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[150px]"
+          className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[150px] absolute"
         />
         <motion.div
           style={{ y: y2 }}
@@ -218,11 +181,6 @@ function HeroSection({ onAction }) {
         />
       </div>
 
-      {/* ============================= */}
-      {/* EVERYTHING BELOW UNCHANGED */}
-      {/* ============================= */}
-
-      {/* Floating Elements */}
       <motion.div
         animate={{
           y: [0, -20, 0],
@@ -265,40 +223,37 @@ function HeroSection({ onAction }) {
         </div>
       </motion.div>
 
-      {/* Main Content */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         className="max-w-5xl mx-auto text-center relative z-10"
       >
-        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 rounded-full mb-8 mt-9 border border-blue-500/30"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-8 border border-primary/20"
         >
-          <span className="text-xs font-bold text-blue-500">
+          <Sparkles className="text-primary" size={16} />
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">
             AI-Powered Campus Communication
           </span>
         </motion.div>
 
-        {/* Heading */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 leading-[0.9]"
         >
-          AI Event Alerts.
+          Smart Alerts.
           <br />
           <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
-            Curated for You.
+            Zero Noise.
           </span>
         </motion.h1>
 
-        {/* Subheading */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -310,7 +265,6 @@ function HeroSection({ onAction }) {
           that learns your preferences.
         </motion.p>
 
-        {/* Feature Pills */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -331,7 +285,6 @@ function HeroSection({ onAction }) {
           ))}
         </motion.div>
 
-        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -340,35 +293,32 @@ function HeroSection({ onAction }) {
         >
           <button
             onClick={() => onAction("/register")}
-            className="group inline-flex items-center justify-center gap-2 bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/25"
+            className="group inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
           >
             Join the Beta
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </button>
-
           <button
             onClick={() => onAction("/how-it-works")}
             className="group inline-flex items-center justify-center gap-2 bg-card border border-border text-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-accent transition-all"
           >
-            <Play size={20} className="text-blue-500" />
+            <Play size={20} className="text-primary" />
             See How It Works
           </button>
         </motion.div>
       </motion.div>
 
-      {/* Scroll Indicator (UNCHANGED) */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
+        style={{ opacity }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2"
       >
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
+          className="flex flex-col items-center gap-2"
         >
-          <motion.div className="w-1.5 h-3 rounded-full bg-blue-500" />
+          <span className="text-xs text-muted-foreground">Scroll to explore</span>
+          <ChevronDown className="text-muted-foreground" size={20} />
         </motion.div>
       </motion.div>
     </section>
@@ -408,7 +358,6 @@ function FeaturesSection() {
   return (
     <section className="py-24 px-6">
       <div className="max-w-6xl mx-auto">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -426,7 +375,6 @@ function FeaturesSection() {
           </p>
         </motion.div>
 
-        {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {FEATURES.map((feature, i) => {
             const colors = colorMap[feature.color];
@@ -497,7 +445,6 @@ function HowItWorksSection() {
         </motion.div>
 
         <div className="relative">
-          {/* Connection Line */}
           <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2" />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -512,7 +459,6 @@ function HowItWorksSection() {
                   transition={{ delay: i * 0.2 }}
                   className="relative"
                 >
-                  {/* Number Badge */}
                   <div className={`absolute -top-4 ${i === 1 ? "lg:left-1/2 lg:-translate-x-1/2" : i === 2 ? "lg:right-0" : "lg:left-0"} z-10`}>
                     <div className={`w-12 h-12 ${colors.bg} border-2 ${colors.border} rounded-2xl flex items-center justify-center`}>
                       <span className={`text-xl font-black ${colors.text}`}>{step.num}</span>
@@ -564,7 +510,6 @@ function TestimonialsSection() {
               transition={{ delay: i * 0.15 }}
               className="bg-card rounded-2xl border border-border p-8 hover:border-primary/30 transition-all"
             >
-              {/* Stars */}
               <div className="flex gap-1 mb-4">
                 {[...Array(t.rating)].map((_, j) => (
                   <Star key={j} className="text-amber-400 fill-amber-400" size={16} />
@@ -658,29 +603,37 @@ function FAQSection() {
 function CTASection() {
   return (
     <section className="py-24 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <GridBackground />
+      </div>
 
       <div className="max-w-5xl mx-auto">
         <div className="relative">
-          {/* Main CTA Card */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative rounded-[30px] border border-border/50 overflow-hidden backdrop-blur-2xl
+            className="relative rounded-[40px] border border-border/50 overflow-hidden backdrop-blur-2xl
               light:bg-white/80 light:border light:border-slate-200/50
               dark:bg-neutral-900/60 dark:border dark:border-white/10"
           >
-          
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-500/10 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-transparent pointer-events-none" />
 
-            {/* Content */}
             <div className="relative z-10 p-10 md:p-16">
-            
-            
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-6 -right-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full blur-sm opacity-40"
+              />
+              <motion.div
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute -bottom-8 -left-8 w-40 h-40 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-sm opacity-30"
+              />
 
               <div className="grid md:grid-cols-2 gap-12 items-center">
-                {/* Left Side - Content */}
                 <div className="space-y-8">
-                  {/* Badge */}
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -697,7 +650,6 @@ function CTASection() {
                     </span>
                   </motion.div>
 
-                  {/* Heading */}
                   <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -711,7 +663,6 @@ function CTASection() {
                     </span>
                   </motion.h2>
 
-                  {/* Description */}
                   <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -723,7 +674,6 @@ function CTASection() {
                     smarter, faster, and more reliable campus notifications.
                   </motion.p>
 
-                  {/* Trust Indicators */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -736,7 +686,6 @@ function CTASection() {
                     <TrustBadge icon={CheckCircle2} text="2-Min Setup" />
                   </motion.div>
 
-                  {/* CTA Buttons */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -746,9 +695,9 @@ function CTASection() {
                   >
                     <Link
                       to="/register"
-                      className="group relative inline-flex items-center justify-center gap-3 bg-blue-500/15  text-white px-4  rounded-2xl font-bold text-lg  transition-all duration-300 hover:scale-[1.02]"
+                      className="group relative inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-blue-600/40 hover:shadow-blue-600/60 transition-all duration-300 hover:scale-[1.02]"
                     >
-                      <span>Started Free</span>
+                      <span>Get Started Free</span>
                       <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                     </Link>
                     <Link
@@ -761,7 +710,6 @@ function CTASection() {
                   </motion.div>
                 </div>
 
-                {/* Right Side - Interactive Preview */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
@@ -769,15 +717,11 @@ function CTASection() {
                   transition={{ delay: 0.3 }}
                   className="relative"
                 >
-                  {/* Phone Mockup */}
                   <div className="relative mx-auto w-72 md:w-80">
-
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-500 rounded-[60px] blur-2xl opacity-20" />
                     
-                    {/* Phone Frame */}
                     <div className="relative bg-neutral-900 rounded-[50px] p-3 border border-neutral-800 shadow-2xl">
-                      {/* Screen */}
                       <div className="bg-neutral-950 rounded-[40px] overflow-hidden">
-                        {/* Status Bar */}
                         <div className="flex justify-between items-center px-6 py-3 text-white/50 text-xs">
                           <span>9:41</span>
                           <div className="flex gap-1">
@@ -787,13 +731,11 @@ function CTASection() {
                           </div>
                         </div>
 
-                        {/* App Header */}
                         <div className="px-5 pt-2 pb-4">
                           <h4 className="text-white font-bold text-lg">Notifications</h4>
                           <p className="text-white/40 text-xs">3 new alerts</p>
                         </div>
 
-                        {/* Notification Cards */}
                         <div className="space-y-3 px-3 pb-4">
                           <NotificationCard
                             color="blue"
@@ -817,7 +759,6 @@ function CTASection() {
                       </div>
                     </div>
 
-                    {/* Floating Stats */}
                     <motion.div
                       animate={{ y: [0, -8, 0] }}
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -853,7 +794,6 @@ function CTASection() {
                 </motion.div>
               </div>
 
-              {/* Bottom Stats Bar */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -871,7 +811,6 @@ function CTASection() {
             </div>
           </motion.div>
 
-          {/* Decorative Elements */}
           <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%]">
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[150px]" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[150px]" />

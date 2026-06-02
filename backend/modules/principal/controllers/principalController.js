@@ -7,6 +7,12 @@ import GovernanceAnnouncement from "../../governance/model/GovernanceAnnouncemen
 import Department from "../../department/model/Department.js";
 import { cacheWrap } from "../../../services/cacheService.js";
 import { evaluateWorkflows, getActionableAlerts } from "../../../services/workflowEngine.js";
+import { emitToRole } from "../../../utils/socketServer.js";
+import RoleAssignment from '../../hr/models/RoleAssignment.js';
+import StaffDraft from '../../hr/models/StaffDraft.js';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const startOfToday = () => {
   const n = new Date();
@@ -351,5 +357,254 @@ export const getApprovalAnalytics = async (req, res) => {
   } catch (error) {
     console.error("getApprovalAnalytics Error:", error);
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ============================================================
+// ROLE ASSIGNMENT APPROVAL (Principal & Admin)
+// ============================================================
+
+export const getPendingRoleAssignments = async (req, res) => {
+  try {
+    const assignments = await RoleAssignment.find({ status: { $in: ['PENDING', 'APPROVED'] } })
+      .populate('staffDraft')
+      .populate('requester', 'name email role')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ success: true, count: assignments.length, data: assignments });
+  } catch (error) {
+    console.error('getPendingRoleAssignments Error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const approveRoleAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const assignment = await RoleAssignment.findById(id).populate('staffDraft');
+
+    if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
+    if (assignment.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: `Assignment already ${assignment.status}` });
+    }
+
+    assignment.status = 'APPROVED';
+    assignment.approvedBy = req.user._id;
+    assignment.approvedAt = new Date();
+    assignment.approvalChain.push({ role: req.user.role, action: 'APPROVED', by: req.user._id, at: new Date() });
+    await assignment.save();
+
+    if (assignment.staffDraft) {
+      assignment.staffDraft.status = 'APPROVED';
+      assignment.staffDraft.reviewedBy = req.user._id;
+      assignment.staffDraft.reviewedAt = new Date();
+      await assignment.staffDraft.save();
+    }
+
+    await AuditLog.create({ adminId: req.user._id, action: 'APPROVE_ROLE_ASSIGNMENT', targetId: assignment._id, targetType: 'ROLE_ASSIGNMENT', description: `Approved role assignment for ${assignment.fullName} as ${assignment.targetRole}`, status: 'SUCCESS' }).catch(() => {});
+
+    emitToRole('hr', 'role-assignment:updated', { assignmentId: assignment._id, status: 'APPROVED' });
+
+    return res.status(200).json({ success: true, message: 'Role assignment approved', data: assignment });
+  } catch (error) {
+    console.error('approveRoleAssignment Error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const rejectRoleAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason?.trim()) {
+      return res.status(400).json({ success: false, message: 'Rejection reason is required' });
+    }
+
+    const assignment = await RoleAssignment.findById(id).populate('staffDraft');
+
+    if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
+    if (assignment.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: `Assignment already ${assignment.status}` });
+    }
+
+    assignment.status = 'REJECTED';
+    assignment.rejectionReason = reason.trim();
+    assignment.approvedBy = req.user._id;
+    assignment.approvedAt = new Date();
+    assignment.approvalChain.push({ role: req.user.role, action: 'REJECTED', by: req.user._id, at: new Date() });
+    await assignment.save();
+
+    if (assignment.staffDraft) {
+      assignment.staffDraft.status = 'REJECTED';
+      assignment.staffDraft.reviewedBy = req.user._id;
+      assignment.staffDraft.reviewedAt = new Date();
+      assignment.staffDraft.rejectionReason = reason.trim();
+      await assignment.staffDraft.save();
+    }
+
+    await AuditLog.create({ adminId: req.user._id, action: 'REJECT_ROLE_ASSIGNMENT', targetId: assignment._id, targetType: 'ROLE_ASSIGNMENT', description: `Rejected role assignment for ${assignment.fullName} as ${assignment.targetRole}: ${reason}`, status: 'SUCCESS' }).catch(() => {});
+
+    emitToRole('hr', 'role-assignment:updated', { assignmentId: assignment._id, status: 'REJECTED' });
+
+    return res.status(200).json({ success: true, message: 'Role assignment rejected', data: assignment });
+  } catch (error) {
+    console.error('rejectRoleAssignment Error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const getEmailTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
+};
+
+const sendAccountSetupEmail = async (email, name, token) => {
+  const setupUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/set-password?token=${token}`;
+  const transporter = getEmailTransporter();
+  await transporter.sendMail({
+    to: email,
+    from: process.env.EMAIL_USER,
+    subject: `Your ${name} Account Has Been Created — Set Your Password`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+          .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #2563eb, #7c3aed); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+          .content { padding: 30px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+          .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UniNotify AI</h1>
+          </div>
+          <div class="content">
+            <h2 style="color: #1f2937; margin-top: 0;">Welcome, ${name}!</h2>
+            <p style="color: #4b5563; line-height: 1.6;">A staff account has been created for you. Click the button below to set your password and get started:</p>
+            <div style="text-align: center;">
+              <a href="${setupUrl}" class="button">Set Your Password</a>
+            </div>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">This link expires in <strong>24 hours</strong>.</p>
+            <p style="color: #9ca3af; font-size: 12px;">If you didn't expect this, please ignore this email.</p>
+          </div>
+          <div class="footer">
+            <p>UniNotify AI - Smart Campus Notification System</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  });
+};
+
+export const activateRoleAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const assignment = await RoleAssignment.findById(id);
+
+    if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
+    if (assignment.status !== 'APPROVED') {
+      return res.status(400).json({ success: false, message: 'Assignment must be approved before activation' });
+    }
+
+    const existingUser = await User.findOne({ email: assignment.email });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'A user with this email already exists' });
+    }
+
+    const tempPassword = crypto.randomBytes(16).toString('hex');
+    const hashedPassword = await bcrypt.hash(tempPassword, 12);
+
+    const token = crypto.randomBytes(32).toString('hex');
+
+    const newUser = await User.create({
+      name: assignment.fullName,
+      email: assignment.email,
+      password: hashedPassword,
+      role: assignment.targetRole,
+      status: 'ACTIVE',
+      createdBy: assignment.requester,
+      approvedBy: assignment.approvedBy,
+      department: assignment.department || undefined,
+      school: assignment.school || undefined,
+      college: assignment.college || undefined,
+      mustChangePassword: true,
+      passwordResetToken: token,
+      passwordResetExpires: Date.now() + 24 * 60 * 60 * 1000,
+    });
+
+    try {
+      await sendAccountSetupEmail(assignment.email, assignment.fullName, token);
+    } catch (emailErr) {
+      console.error('Failed to send account setup email:', emailErr);
+    }
+
+    assignment.status = 'ACTIVATED';
+    assignment.targetUser = newUser._id;
+    assignment.activatedBy = req.user._id;
+    assignment.activatedAt = new Date();
+    assignment.approvalChain.push({ role: req.user.role, action: 'ACTIVATED', by: req.user._id, at: new Date() });
+    await assignment.save();
+
+    const staffDraft = await StaffDraft.findById(assignment.staffDraft);
+    if (staffDraft) {
+      staffDraft.status = 'ACTIVATED';
+      staffDraft.activatedAt = new Date();
+      await staffDraft.save();
+    }
+
+    await AuditLog.create({ adminId: req.user._id, action: 'ACTIVATE_ROLE', targetId: newUser._id, targetType: 'USER', description: `Activated user account for ${assignment.fullName} as ${assignment.targetRole}`, status: 'SUCCESS' }).catch(() => {});
+
+    emitToRole('hr', 'role-assignment:updated', { assignmentId: assignment._id, status: 'ACTIVATED' });
+
+    return res.status(200).json({
+      success: true,
+      message: `User account created and ${assignment.targetRole} role activated. A setup email has been sent.`,
+      data: { user: newUser, assignment }
+    });
+  } catch (error) {
+    console.error('activateRoleAssignment Error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const resendSetupEmail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const assignment = await RoleAssignment.findById(id);
+    if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
+    if (assignment.status !== 'ACTIVATED') {
+      return res.status(400).json({ success: false, message: 'Assignment must be activated first' });
+    }
+    if (!assignment.targetUser) {
+      return res.status(400).json({ success: false, message: 'No user associated with this assignment' });
+    }
+
+    const user = await User.findById(assignment.targetUser);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = token;
+    user.passwordResetExpires = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    await sendAccountSetupEmail(user.email, user.name, token);
+
+    return res.status(200).json({ success: true, message: 'Setup email resent successfully' });
+  } catch (error) {
+    console.error('resendSetupEmail Error:', error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -59,6 +59,26 @@ const authService = {
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to update notification preferences.');
     }
+  },
+
+  // 7. Change password (first login or voluntary)
+  changePassword: async (currentPassword, newPassword) => {
+    try {
+      const response = await apiClient.put('/users/change-password', { currentPassword, newPassword });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to change password.');
+    }
+  },
+
+  // 8. Unlock account (admin/registrar)
+  unlockAccount: async (userId) => {
+    try {
+      const response = await apiClient.put(`/users/unlock/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to unlock account.');
+    }
   }
 };
 

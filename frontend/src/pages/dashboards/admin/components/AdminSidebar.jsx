@@ -1,49 +1,82 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
-  Users,
-  Radio,
-  BarChart3,
-  Settings,
-  Activity,
-  Database,
-  Headset,
-  Scale,
-  LogOut,
-  GraduationCap,
-  Zap,
   Bell,
-  X,
-  User,
+  Radio,
+  Users,
+  Shield,
+  Building2,
   Calendar,
+  Scale,
+  FileText,
+  ScrollText,
+  AlertTriangle,
+  BarChart3,
+  ClipboardList,
+  Zap,
+  Settings,
+  Database,
+  HardDrive,
+  Headset,
+  LogOut,
+  User,
+  X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import notificationService from "../../../../services/notificationService";
 
-const coreItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/admin/overview" },
-  { icon: Bell, label: "Notifications", path: "/admin/notifications", badgeType: 'red' },
-  { icon: Radio, label: "Events", path: "/admin/events" },
+const navSections = [
+  {
+    label: "Core",
+    items: [
+      { icon: LayoutDashboard, label: "Overview", path: "/admin/overview", end: true },
+      { icon: Bell, label: "Notifications", path: "/admin/notifications", badge: true },
+      { icon: Radio, label: "Events", path: "/admin/events" },
+    ],
+  },
+  {
+    label: "Management",
+    items: [
+      { icon: Users, label: "Users", path: "/admin/users" },
+      { icon: Shield, label: "Role Management", path: "/admin/roles" },
+      { icon: Building2, label: "Academic Structure", path: "/admin/academic" },
+      { icon: Calendar, label: "Timetable", path: "/admin/timetable" },
+      { icon: Scale, label: "Governance", path: "/admin/governance" },
+      { icon: FileText, label: "Role Assignments", path: "/admin/role-assignments" },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { icon: User, label: "HR Accounts", path: "/admin/hr-accounts" },
+      { icon: ScrollText, label: "Council Election", path: "/admin/council-election" },
+      { icon: AlertTriangle, label: "Emergency Override", path: "/admin/emergency" },
+    ],
+  },
+  {
+    label: "Analytics",
+    items: [
+      { icon: BarChart3, label: "Reports & Analytics", path: "/admin/analytics" },
+      { icon: ClipboardList, label: "Audit Logs", path: "/admin/audit-logs" },
+      { icon: Zap, label: "SMS Test", path: "/admin/sms-test" },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { icon: Settings, label: "Core Settings", path: "/admin/settings" },
+      { icon: Database, label: "Maintenance", path: "/admin/maintenance" },
+      { icon: HardDrive, label: "Backups", path: "/admin/backups" },
+      { icon: Headset, label: "Support Tickets", path: "/admin/support" },
+    ],
+  },
 ];
 
-const managementItems = [
-  { icon: Users, label: "Users", path: "/admin/users" },
-  { icon: GraduationCap, label: "Academic", path: "/admin/academic" },
-  { icon: Calendar, label: "Timetable", path: "/admin/timetable" },
-  { icon: Scale, label: "Governance", path: "/admin/governance" },
-];
-
-const analyticsItems = [
-  { icon: BarChart3, label: "Reports", path: "/admin/analytics" },
-  { icon: Zap, label: "SMS Test", path: "/admin/sms-test" },
-];
-
-const systemItems = [
-  { icon: Settings, label: "Settings", path: "/admin/settings" },
-  { icon: Database, label: "Maintenance", path: "/admin/maintenance" },
-  { icon: Headset, label: "Help Center", path: "/admin/support" },
-];
+const allItems = navSections.flatMap((section) => [
+  { divider: true, label: section.label },
+  ...section.items,
+]);
 
 export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed }) {
   const location = useLocation();
@@ -56,31 +89,20 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
       try {
         const data = await notificationService.getUnreadCount();
         setUnreadNotifications(data?.unreadCount || 0);
-      } catch { }
+      } catch {}
     };
     fetchUnread();
     const interval = setInterval(fetchUnread, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  const coreItemsWithBadge = coreItems.map(item =>
-    item.label === "Notifications"
-      ? { ...item, badge: unreadNotifications > 0 ? unreadNotifications : undefined }
-      : item
-  );
-
-  const allItems = [
-    ...coreItemsWithBadge,
-    { divider: true, label: "Management" },
-    ...managementItems,
-    { divider: true, label: "Analytics" },
-    ...analyticsItems,
-    { divider: true, label: "System" },
-    ...systemItems,
-  ];
+  const getBadgeCount = (item) => {
+    if (item.badge && unreadNotifications > 0) return unreadNotifications;
+    return undefined;
+  };
 
   const user = (() => {
-    try { return JSON.parse(localStorage.getItem('user') || '{}'); }
+    try { return JSON.parse(localStorage.getItem("user") || "{}"); }
     catch { return {}; }
   })();
 
@@ -91,24 +113,23 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
     navigate("/login");
   };
 
-  // Mobile: Drawer overlay
+  const isActive = (path) =>
+    location.pathname === path || location.pathname.startsWith(path + "/");
+
   if (isMobile) {
     return (
       <>
-        {/* Mobile Icon-Only Sidebar (always visible) */}
         <aside className="fixed left-0 top-0 h-screen z-30 w-16 bg-card border-r border-border flex flex-col">
-          {/* Brand */}
           <div className="h-14 flex items-center justify-center border-b border-border shrink-0">
             <div className="w-9 h-9 rounded-lg bg-blue-500 flex items-center justify-center text-white">
               <LayoutDashboard size={18} />
             </div>
           </div>
 
-          {/* Navigation Icons */}
           <nav className="flex-1 py-2 px-1 space-y-1 overflow-y-auto custom-scrollbar">
             {allItems.map((item, idx) => {
               if (item.divider) return null;
-              const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+              const active = isActive(item.path);
               return (
                 <button
                   key={idx}
@@ -117,17 +138,15 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
                     setIsOpen(false);
                   }}
                   className={`w-full p-2.5 rounded-lg flex items-center justify-center relative transition-all ${
-                    isActive
+                    active
                       ? "bg-blue-500/10 text-blue-500"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
                 >
                   <item.icon size={18} />
-                  {item.badge && (
-                    <span className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 text-[8px] font-bold rounded-full flex items-center justify-center px-0.5 ${
-                      item.badgeType === 'red' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
-                    }`}>
-                      {item.badge > 9 ? '9+' : item.badge}
+                  {getBadgeCount(item) && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 text-[8px] font-bold rounded-full flex items-center justify-center px-0.5 bg-red-500 text-white">
+                      {getBadgeCount(item) > 9 ? "9+" : getBadgeCount(item)}
                     </span>
                   )}
                 </button>
@@ -135,14 +154,13 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
             })}
           </nav>
 
-          {/* Footer */}
           <div className="p-2 border-t border-border shrink-0 space-y-1">
             <button
               onClick={() => navigate("/admin/settings")}
               className="w-full p-2 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-[12px] font-semibold shrink-0">
-                {user?.name?.charAt(0) || 'A'}
+                {user?.name?.charAt(0) || "A"}
               </div>
             </button>
             <button
@@ -154,7 +172,6 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
           </div>
         </aside>
 
-        {/* Mobile Drawer Overlay */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -167,7 +184,6 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
           )}
         </AnimatePresence>
 
-        {/* Mobile Full Menu Drawer */}
         <AnimatePresence>
           {isOpen && (
             <motion.aside
@@ -177,7 +193,6 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed left-0 top-0 h-screen z-50 w-72 bg-card border-r border-border flex flex-col"
             >
-              {/* Header */}
               <div className="h-14 flex items-center justify-between px-4 border-b border-border shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
@@ -196,17 +211,18 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
                 </button>
               </div>
 
-              {/* Navigation */}
               <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1 custom-scrollbar">
                 {allItems.map((item, idx) => {
                   if (item.divider) {
                     return (
                       <div key={`div-${idx}`} className="px-3 pt-4 pb-1">
-                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{item.label}</span>
+                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                          {item.label}
+                        </span>
                       </div>
                     );
                   }
-                  const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+                  const active = isActive(item.path);
                   return (
                     <button
                       key={idx}
@@ -215,18 +231,16 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
                         setIsOpen(false);
                       }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-[13px] ${
-                        isActive
+                        active
                           ? "bg-blue-500/10 text-blue-500 font-medium"
                           : "text-muted-foreground hover:text-foreground hover:bg-accent"
                       }`}
                     >
                       <item.icon size={18} className="shrink-0" />
                       <span className="flex-1 text-left">{item.label}</span>
-                      {item.badge && (
-                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                          item.badgeType === 'red' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
-                        }`}>
-                          {item.badge}
+                      {getBadgeCount(item) && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-red-500 text-white">
+                          {getBadgeCount(item)}
                         </span>
                       )}
                     </button>
@@ -234,17 +248,18 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
                 })}
               </nav>
 
-              {/* Footer */}
               <div className="p-3 border-t border-border shrink-0 space-y-1">
                 <button
-                  onClick={() => navigate(`/admin/users?userId=${user?._id || user?.id}`)}
+                  onClick={() => navigate(`/admin/users?userId=${user?._id || user?.id || ""}`)}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-all"
                 >
                   <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-[12px] font-semibold">
-                    {user?.name?.charAt(0) || 'A'}
+                    {user?.name?.charAt(0) || "A"}
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="text-[12px] font-medium text-foreground">{user?.name || 'Admin'}</p>
+                    <p className="text-[12px] font-medium text-foreground">
+                      {user?.name || "Admin"}
+                    </p>
                     <p className="text-[10px] text-muted-foreground">Administrator</p>
                   </div>
                 </button>
@@ -263,11 +278,17 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
     );
   }
 
-  // Desktop: Full sidebar with labels
   return (
-    <aside className={`fixed left-0 top-0 h-screen z-30 bg-card border-r border-border flex flex-col transition-all duration-300 ${collapsed ? 'w-20' : 'w-56'}`}>
-      {/* Brand */}
-      <div className={`h-14 flex items-center border-b border-border shrink-0 ${collapsed ? 'justify-center px-2' : 'px-4'}`}>
+    <aside
+      className={`fixed left-0 top-0 h-screen z-30 bg-card border-r border-border flex flex-col transition-all duration-300 ${
+        collapsed ? "w-20" : "w-56"
+      }`}
+    >
+      <div
+        className={`h-14 flex items-center border-b border-border shrink-0 ${
+          collapsed ? "justify-center px-2" : "px-4"
+        }`}
+      >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shrink-0">
             <LayoutDashboard size={16} />
@@ -281,36 +302,44 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className={`flex-1 overflow-y-auto py-3 custom-scrollbar ${collapsed ? 'px-1' : 'px-2'}`}>
+      <nav
+        className={`flex-1 overflow-y-auto py-3 custom-scrollbar ${
+          collapsed ? "px-1" : "px-2"
+        }`}
+      >
         {allItems.map((item, idx) => {
           if (item.divider) {
             return (
-              <div key={`div-${idx}`} className={`pt-4 pb-1 ${collapsed ? 'px-1' : 'px-3'}`}>
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{item.label}</span>
+              <div
+                key={`div-${idx}`}
+                className={`pt-4 pb-1 ${collapsed ? "px-1" : "px-3"}`}
+              >
+                {!collapsed && (
+                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    {item.label}
+                  </span>
+                )}
               </div>
             );
           }
-          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+          const active = isActive(item.path);
           return (
             <button
               key={idx}
               onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-3 py-2.5 rounded-lg transition-all text-[13px] mb-0.5 ${
-                collapsed ? 'justify-center px-2' : 'px-3'
+                collapsed ? "justify-center px-2" : "px-3"
               } ${
-                isActive
+                active
                   ? "bg-blue-500/10 text-blue-500 font-medium"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent"
               }`}
             >
               <item.icon size={18} className="shrink-0" />
               {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
-              {!collapsed && item.badge && (
-                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                  item.badgeType === 'red' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
-                }`}>
-                  {item.badge}
+              {!collapsed && getBadgeCount(item) && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-red-500 text-white">
+                  {getBadgeCount(item)}
                 </span>
               )}
             </button>
@@ -318,25 +347,34 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
         })}
       </nav>
 
-      {/* Footer */}
-      <div className={`p-3 border-t border-border shrink-0 space-y-1 ${collapsed ? 'px-1' : ''}`}>
+      <div
+        className={`p-3 border-t border-border shrink-0 space-y-1 ${
+          collapsed ? "px-1" : ""
+        }`}
+      >
         <button
           onClick={() => navigate("/admin/settings")}
-          className={`w-full flex items-center gap-3 py-2 rounded-lg hover:bg-accent transition-all ${collapsed ? 'justify-center px-2' : 'px-3'}`}
+          className={`w-full flex items-center gap-3 py-2 rounded-lg hover:bg-accent transition-all ${
+            collapsed ? "justify-center px-2" : "px-3"
+          }`}
         >
           <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-[12px] font-semibold shrink-0">
-            {user?.name?.charAt(0) || 'A'}
+            {user?.name?.charAt(0) || "A"}
           </div>
           {!collapsed && (
             <div className="flex-1 text-left">
-              <p className="text-[12px] font-medium text-foreground truncate">{user?.name || 'Admin'}</p>
+              <p className="text-[12px] font-medium text-foreground truncate">
+                {user?.name || "Admin"}
+              </p>
               <p className="text-[10px] text-muted-foreground truncate">Administrator</p>
             </div>
           )}
         </button>
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center gap-3 py-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors text-[13px] ${collapsed ? 'justify-center px-2' : 'px-3'}`}
+          className={`w-full flex items-center gap-3 py-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors text-[13px] ${
+            collapsed ? "justify-center px-2" : "px-3"
+          }`}
         >
           <LogOut size={16} className="shrink-0" />
           {!collapsed && <span>Sign Out</span>}

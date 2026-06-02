@@ -6,10 +6,12 @@ export const ROLE_HIERARCHY = {
   class_rep: 1,
   lecturer: 2,
   guild_president: 3,
-  hod: 4,
-  dean: 5,
-  principal: 6,
-  admin: 7,
+  registrar: 4,
+  hod: 5,
+  dean: 6,
+  hr: 7,
+  principal: 8,
+  admin: 9,
 };
 
 export const generateURStudentID = async () => {

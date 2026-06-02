@@ -27,7 +27,7 @@ const router = express.Router();
 router.post(
     '/',
     protect,
-    authorize('lecturer', 'hod', 'dean', 'principal', 'admin'),
+    authorize('lecturer', 'hod', 'dean', 'principal', 'admin', 'hr', 'registrar'),
     createGovernanceAnnouncement
 );
 
@@ -35,7 +35,7 @@ router.post(
 router.get(
     '/mine',
     protect,
-    authorize('lecturer', 'hod', 'dean', 'principal', 'admin'),
+    authorize('lecturer', 'hod', 'dean', 'principal', 'admin', 'hr', 'registrar'),
     getMyGovernanceAnnouncements
 );
 

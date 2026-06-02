@@ -5,6 +5,15 @@ const dashboardService = {
    * @desc Fetches the complete student overview: Stats, Schedule, and Recent Contacts.
    * @returns {Object} { stats: {}, schedule: [], recentMessages: [] }
    */
+  getStudentDashboardStats: async () => {
+    try {
+      const response = await apiClient.get('/student/stats');
+      return response.data;
+    } catch {
+      return { data: null };
+    }
+  },
+
   getStudentSummary: async () => {
     try {
       const response = await apiClient.get('/student/dashboard'); 

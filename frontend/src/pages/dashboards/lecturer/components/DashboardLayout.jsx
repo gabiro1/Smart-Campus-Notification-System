@@ -3,14 +3,14 @@ import LecturerSidebar from "@/components/shared/LecturerSidebar";
 import { useState, useEffect, useRef } from "react";
 import EmergencyBanner from "@/components/common/EmergencyBanner";
 import FloatingCopilot from "@/components/FloatingCopilot";
-import { Sun, Moon, PanelLeftClose, PanelLeftOpen, Menu, Search, X, Megaphone, Calendar, Users, FileText } from "lucide-react";
+import { Sun, Moon, PanelLeftClose, PanelLeftOpen, Menu, Search, X, Megaphone, Calendar } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import NotificationCenter from "@/components/common/NotificationCenter";
 import { useTheme } from "@/context/ThemeContext";
 import eventService from "@/services/eventService";
 import apiClient from "@/services/apiClient";
 
-export default function DashboardLayout() {
+export default function LecturerLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -128,7 +128,6 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-card relative">
-      {/* Sidebar */}
       <LecturerSidebar 
         collapsed={effectiveCollapsed} 
         onToggle={toggleSidebar}
@@ -137,11 +136,9 @@ export default function DashboardLayout() {
         isMobile={isMobile}
       />
 
-      {/* Main Wrapper with sidebar margin */}
       <div className={`min-h-screen flex flex-col transition-all duration-300 ${
           isMobile ? 'ml-14' : (effectiveCollapsed ? 'ml-16' : 'ml-56')
         }`}>
-        {/* Header - matches sidebar height */}
         <div className="sticky top-0 z-10 w-full h-14 bg-background/80 backdrop-blur-xl border-b border-border px-4 md:px-8 flex items-center justify-between gap-4">
           <button
             onClick={toggleSidebar}
@@ -157,7 +154,6 @@ export default function DashboardLayout() {
             )}
           </button>
           
-          {/* Search Box */}
           <div className="flex-1 max-w-xl relative">
             <div className="flex items-center gap-2 bg-background/50 border border-border rounded-xl px-4 py-2.5 text-muted-foreground text-sm hover:border-primary/30 transition-colors relative">
               <Search size={16} className="shrink-0 opacity-50" />
@@ -270,7 +266,6 @@ export default function DashboardLayout() {
           </div>
         </div>
 
-        {/* Main Content */}
         <main className="flex-1 flex flex-col w-full">
           <EmergencyBanner />
           <Outlet />

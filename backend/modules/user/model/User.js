@@ -68,9 +68,57 @@ const userSchema = new mongoose.Schema({
   
   role: {
     type: String,
-    enum: ["student", "lecturer", "hod", "guild_president", "admin", "dean", "principal", "class_rep"],
+    enum: ["student", "lecturer", "hod", "guild_president", "admin", "dean", "principal", "class_rep", "hr", "registrar"],
     default: "student",
     index: true
+  },
+
+  registrationNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    index: true
+  },
+
+  loginAttempts: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+
+  lockedUntil: {
+    type: Date,
+    default: null
+  },
+
+  mustChangePassword: {
+    type: Boolean,
+    default: false
+  },
+
+  lastPasswordChangeAt: {
+    type: Date,
+    default: null
+  },
+
+  status: {
+    type: String,
+    enum: ["DRAFT", "PENDING", "ACTIVE", "SUSPENDED", "REJECTED"],
+    default: "ACTIVE",
+    index: true
+  },
+
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+
+  approvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   studentID: {
     type: String,

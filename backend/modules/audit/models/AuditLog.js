@@ -22,7 +22,18 @@ const auditLogSchema = new mongoose.Schema(
                 'VIEW_ANALYTICS',
                 'EXPORT_DATA',
                 'LOGIN',
-                'LOGOUT'
+                'LOGOUT',
+                'CREATE_STAFF_DRAFT',
+                'SUBMIT_ROLE_ASSIGNMENT',
+                'APPROVE_ROLE_ASSIGNMENT',
+                'REJECT_ROLE_ASSIGNMENT',
+                'ACTIVATE_ROLE',
+                'CREATE_STUDENT_ACCOUNT',
+                'CREATE_HR_ACCOUNT',
+                'EMERGENCY_OVERRIDE',
+                'CREATE_ROLE',
+                'UPDATE_ROLE',
+                'DELETE_ROLE'
             ],
             required: true
         },
@@ -33,7 +44,7 @@ const auditLogSchema = new mongoose.Schema(
         },
         targetType: {
             type: String,
-            enum: ['USER', 'EVENT', 'BROADCAST', 'SYSTEM'],
+            enum: ['USER', 'EVENT', 'BROADCAST', 'SYSTEM', 'ROLE_ASSIGNMENT', 'STAFF_DRAFT', 'ROLE'],
             required: true
         },
         description: {

@@ -1,7 +1,3 @@
-/**
- * @page Features
- * @description Advanced showcase of UniNotify AI features.
- */
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
@@ -20,8 +16,8 @@ import {
   Globe,
   Clock,
 } from "lucide-react";
-import Navbar from "@/layouts/Navbar";
-import Footer from "@/layouts/Footer";
+import Navbar from "../../../layouts/Navbar";
+import Footer from "../../../layouts/Footer";
 
 const CORE_FEATURES = [
   {
@@ -100,9 +96,7 @@ export default function Features() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        {/* Subtle Background */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-500/5 to-transparent" />
         </div>
@@ -131,7 +125,7 @@ export default function Features() {
             className="text-4xl md:text-6xl lg:text-7xl font-black text-foreground mb-6 tracking-tight"
           >
             Built for Campus
-            <span className="block mt-2 bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">Impact.</span>
+            <span className="block mt-2 text-blue-500">Communication</span>
           </motion.h1>
 
           <motion.p
@@ -143,26 +137,9 @@ export default function Features() {
             From AI-powered prioritization to offline SMS fallback, UniNotify AI delivers 
             the most intelligent campus notification system ever built.
           </motion.p>
-
-          {/* Animated Scroll Indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="mt-16 flex justify-center"
-          >
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
-            >
-              <motion.div className="w-1.5 h-3 rounded-full bg-blue-500" />
-            </motion.div>
-          </motion.div>
         </motion.div>
       </section>
 
-      {/* Stats Section */}
       <section className="py-12 px-6 border-y border-border bg-card/50">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -188,7 +165,6 @@ export default function Features() {
         </div>
       </section>
 
-      {/* Features Grid */}
       <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -214,7 +190,6 @@ export default function Features() {
                   whileHover={{ y: -8, transition: { duration: 0.3 } }}
                   className="group relative bg-card rounded-3xl p-8 border border-border transition-all cursor-default"
                 >
-                  {/* Icon */}
                   <motion.div
                     whileHover={{ scale: 1.1, rotate: [0, -10, 10, 0] }}
                     transition={{ duration: 0.5 }}
@@ -223,7 +198,6 @@ export default function Features() {
                     <Icon className={colors.text} size={32} />
                   </motion.div>
 
-                  {/* Content */}
                   <h3 className="text-xl font-bold text-foreground mb-3">
                     {feature.title}
                   </h3>
@@ -231,7 +205,6 @@ export default function Features() {
                     {feature.desc}
                   </p>
 
-                  {/* Hover Bottom Line */}
                   <div className="absolute bottom-0 left-8 right-8 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </motion.div>
               );
@@ -240,11 +213,9 @@ export default function Features() {
         </div>
       </section>
 
-      {/* Why Choose Section */}
       <section className="py-24 px-6 bg-card/50">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left Content */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -281,7 +252,6 @@ export default function Features() {
               </div>
             </motion.div>
 
-            {/* Right - Feature Highlight Card */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -353,7 +323,6 @@ export default function Features() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24 px-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -362,15 +331,13 @@ export default function Features() {
           className="max-w-5xl mx-auto"
         >
           <div className="relative bg-card rounded-[40px] p-10 md:p-16 border border-border overflow-hidden">
-            {/* Subtle Background Pattern */}
-            <div className="absolute inset-0">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl" />
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl" />
             </div>
 
             <div className="relative z-10">
               <div className="grid lg:grid-cols-2 gap-12 items-center">
-                {/* Left Content */}
                 <div>
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -425,7 +392,6 @@ export default function Features() {
                   </motion.div>
                 </div>
 
-                {/* Right - Action */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}

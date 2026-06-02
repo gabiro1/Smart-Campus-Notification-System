@@ -1,10 +1,6 @@
-/**
- * @page HowItWorks
- * @description Advanced animated explanation of UniNotify AI's process.
- */
-import Footer from "@/layouts/Footer";
-import Navbar from "@/layouts/Navbar";
-import { motion, useScroll, AnimatePresence } from "framer-motion";
+import Footer from "../../../layouts/Footer";
+import Navbar from "../../../layouts/Navbar";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef } from "react";
 import { Cpu, Send, ShieldCheck, Zap, ArrowRight, CheckCircle2, Sparkles, Play, Users, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -89,7 +85,7 @@ const colorMap = {
 
 export default function HowItWorks() {
   const targetRef = useRef(null);
-  useScroll({
+  const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end end"],
   });
@@ -98,25 +94,19 @@ export default function HowItWorks() {
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
       <HeroSection />
 
-      {/* --- MAIN CONTENT --- */}
       <main ref={targetRef} className="relative z-10">
-        {/* Timeline Track */}
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border to-transparent hidden lg:block" />
 
-        {/* Steps */}
         <section className="max-w-6xl mx-auto px-6 py-20 space-y-32">
           {STEPS.map((step, i) => (
             <StepCard key={step.id} step={step} index={i} totalSteps={STEPS.length} />
           ))}
         </section>
 
-        {/* --- FEATURES GRID --- */}
         <FeaturesSection />
 
-        {/* --- CTA SECTION --- */}
         <CTASection />
       </main>
 
@@ -128,7 +118,6 @@ export default function HowItWorks() {
 function HeroSection() {
   return (
     <section className="relative pt-32 pb-24 px-6 overflow-hidden">
-      {/* Background Effects */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "1s" }} />
@@ -166,7 +155,6 @@ function HeroSection() {
           AI-powered delivery, experience notifications that adapt to you.
         </motion.p>
 
-        {/* Animated Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -176,7 +164,7 @@ function HeroSection() {
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
+            className="w-6 h-10 rounded-full border-2 border-border flex items-start justify-center p-2"
           >
             <motion.div className="w-1.5 h-3 rounded-full bg-primary" />
           </motion.div>
@@ -186,7 +174,7 @@ function HeroSection() {
   );
 }
 
-function StepCard({ step, index, totalSteps: _totalSteps }) {
+function StepCard({ step, index, totalSteps }) {
   const ref = useRef(null);
   const colors = colorMap[step.color];
   const isEven = index % 2 === 0;
@@ -201,13 +189,11 @@ function StepCard({ step, index, totalSteps: _totalSteps }) {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`relative flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-12 lg:gap-20 items-center`}
     >
-      {/* Timeline Node */}
       <div className="absolute left-1/2 -translate-x-1/2 top-0 w-4 h-4 rounded-full bg-background border-2 border-primary hidden lg:block" style={{ top: "50%" }}>
         <div className="absolute inset-1 rounded-full bg-primary animate-ping opacity-50" />
         <div className="relative inset-0 rounded-full bg-primary" />
       </div>
 
-      {/* Step Number Badge */}
       <motion.div
         initial={{ scale: 0, rotate: -180 }}
         whileInView={{ scale: 1, rotate: 0 }}
@@ -220,19 +206,15 @@ function StepCard({ step, index, totalSteps: _totalSteps }) {
         </div>
       </motion.div>
 
-      {/* Visual Card */}
       <motion.div
         whileHover={{ scale: 1.02, y: -5 }}
         className={`w-full lg:w-[45%] bg-card rounded-3xl border border-border p-8 md:p-10 relative overflow-hidden group`}
       >
-        {/* Gradient Background */}
         <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
         
-        {/* Glow Effect */}
         <div className={`absolute -inset-px rounded-3xl bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500`} />
 
         <div className="relative z-10">
-          {/* Icon */}
           <motion.div
             whileHover={{ rotate: [0, -10, 10, 0] }}
             transition={{ duration: 0.5 }}
@@ -241,7 +223,6 @@ function StepCard({ step, index, totalSteps: _totalSteps }) {
             <Icon className={colors.text} size={36} />
           </motion.div>
 
-          {/* Content */}
           <span className={`text-xs font-bold uppercase tracking-widest ${colors.text} mb-2 block`}>
             {step.subtitle}
           </span>
@@ -252,7 +233,6 @@ function StepCard({ step, index, totalSteps: _totalSteps }) {
             {step.desc}
           </p>
 
-          {/* Feature Tags */}
           <div className="flex flex-wrap gap-2 mt-6">
             {step.details.map((detail, i) => (
               <motion.span
@@ -271,10 +251,8 @@ function StepCard({ step, index, totalSteps: _totalSteps }) {
         </div>
       </motion.div>
 
-      {/* Spacer for alternating layout */}
       <div className="hidden lg:block w-[45%]" />
 
-      {/* Mobile Spacer */}
       <div className="lg:hidden" />
     </motion.div>
   );
@@ -331,7 +309,6 @@ function FeaturesSection() {
 function CTASection() {
   return (
     <section className="py-24 px-6 relative overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-background" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%]">
@@ -349,11 +326,9 @@ function CTASection() {
             bg-white/80 border border-border/50
             dark:bg-neutral-900/60 dark:border-white/10"
         >
-          {/* Gradient overlays */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-500/10 pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-transparent pointer-events-none" />
 
-          {/* Floating orbs */}
           <motion.div
             animate={{ y: [0, -15, 0], x: [0, 5, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -372,9 +347,7 @@ function CTASection() {
 
           <div className="relative z-10 p-8 md:p-12 lg:p-16">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left Content */}
               <div className="space-y-8">
-                {/* Badge */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -391,7 +364,6 @@ function CTASection() {
                   </span>
                 </motion.div>
 
-                {/* Heading */}
                 <motion.h2
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -405,7 +377,6 @@ function CTASection() {
                   </span>
                 </motion.h2>
 
-                {/* Description */}
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -417,7 +388,6 @@ function CTASection() {
                   faster, and more reliable campus notifications. Never miss an important update again.
                 </motion.p>
 
-                {/* Feature Pills */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -430,7 +400,6 @@ function CTASection() {
                   <FeaturePill icon={<Zap size={14} />} text="Instant SMS" />
                 </motion.div>
 
-                {/* CTA Buttons */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -455,7 +424,6 @@ function CTASection() {
                   </Link>
                 </motion.div>
 
-                {/* Trust Badges */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -469,7 +437,6 @@ function CTASection() {
                 </motion.div>
               </div>
 
-              {/* Right - Phone Mockup */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -478,14 +445,10 @@ function CTASection() {
                 className="relative hidden lg:block"
               >
                 <div className="relative mx-auto w-72">
-                  {/* Glow */}
                   <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-500 rounded-[60px] blur-3xl opacity-20" />
 
-                  {/* Phone Frame */}
                   <div className="relative bg-neutral-900 rounded-[50px] p-3 border border-neutral-800 shadow-2xl">
-                    {/* Screen */}
                     <div className="bg-neutral-950 rounded-[40px] overflow-hidden">
-                      {/* Status Bar */}
                       <div className="flex justify-between items-center px-6 py-3 text-white/50 text-xs">
                         <span>9:41</span>
                         <div className="flex gap-1">
@@ -495,20 +458,17 @@ function CTASection() {
                         </div>
                       </div>
 
-                      {/* App Header */}
                       <div className="px-5 pt-2 pb-4">
                         <h4 className="text-white font-bold text-lg">UniNotify AI</h4>
                         <p className="text-white/40 text-xs">3 new alerts</p>
                       </div>
 
-                      {/* Notification Cards */}
                       <div className="space-y-3 px-3 pb-4">
                         <MockNotification color="blue" title="Lab Change" desc="Room 204 → Room 301" time="2m" />
                         <MockNotification color="purple" title="Exam Schedule" desc="CS201 Final - Dec 15" time="1h" />
                         <MockNotification color="emerald" title="Event Reminder" desc="Hackathon Tomorrow" time="3h" />
                       </div>
 
-                      {/* Bottom Nav */}
                       <div className="flex justify-around py-4 border-t border-white/10">
                         <div className="w-6 h-6 bg-blue-500 rounded-lg" />
                         <div className="w-6 h-6 bg-white/20 rounded-lg" />
@@ -518,7 +478,6 @@ function CTASection() {
                     </div>
                   </div>
 
-                  {/* Floating Stats */}
                   <motion.div
                     animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -554,7 +513,6 @@ function CTASection() {
               </motion.div>
             </div>
 
-            {/* Bottom Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}

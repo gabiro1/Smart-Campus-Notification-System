@@ -1,13 +1,8 @@
-import { useState, useEffect } from "react";
-import { NotificationsTab } from "./NotificationsTab";
-
-export default function NotificationsPage() {
-  const [notifFilter, setNotifFilter] = useState("all");
-
+export default function StudentNotificationsPage() {
   return (
-    <NotificationsTab
-      notifFilter={notifFilter}
-      setNotifFilter={setNotifFilter}
-    />
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Notifications</h1>
+      <p className="text-muted-foreground">View your notifications.</p>
+    </div>
   );
 }

@@ -23,16 +23,6 @@ export const createDepartment = async (req, res) => {
       return res.status(400).json({ message: 'Department with this code already exists' });
     }
 
-    // If HoD is being assigned, update their role
-    if (hod) {
-      const hodUser = await User.findById(hod);
-      if (hodUser) {
-        hodUser.role = 'hod';
-        hodUser.department = req.body.id;
-        await hodUser.save();
-      }
-    }
-
     const department = await Department.create({
       name,
       code,
@@ -40,7 +30,26 @@ export const createDepartment = async (req, res) => {
       hod
     });
 
-    res.status(201).json(department);
+    if (hod) {
+      const hodUser = await User.findById(hod);
+      if (hodUser) {
+        hodUser.role = 'hod';
+        hodUser.department = department._id;
+        hodUser.school = school;
+        hodUser.college = parentSchool.college;
+        await hodUser.save();
+      }
+    }
+
+    const populated = await Department.findById(department._id)
+      .populate({
+        path: 'school',
+        select: 'name code',
+        populate: { path: 'college', select: 'name code' }
+      })
+      .populate('hod', 'name email');
+
+    res.status(201).json(populated);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
@@ -91,8 +100,12 @@ export const updateDepartment = async (req, res) => {
       // Set new HoD's role to hod
       const newHoD = await User.findById(hod);
       if (newHoD) {
+        const deptSchool = school || department.school;
+        const schoolDoc = await School.findById(deptSchool).select('college').lean();
         newHoD.role = 'hod';
         newHoD.department = department._id;
+        newHoD.school = deptSchool;
+        newHoD.college = schoolDoc?.college || null;
         await newHoD.save();
       }
     }

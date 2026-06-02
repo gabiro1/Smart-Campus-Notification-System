@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { register, login, googleAuth, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyOTP, resendOTP, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto, updateLastActive } from '../controller/authController.js';
+import { register, login, googleAuth, getProfile, updateProfile, deleteUser, enrollStudent, requestVerification, verifyOTP, resendOTP, forgotPassword, resetPassword, refreshToken, logout, updateNotificationPreferences, completeOnboarding, uploadProfilePhoto, updateLastActive, changePassword, unlockAccount } from '../controller/authController.js';
 import { protect, authorize  } from '../../../middleware/authMiddleware.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
@@ -34,5 +34,8 @@ router.put('/last-active', protect, updateLastActive);
 router.delete('/profile', protect, auditLog('user'), deleteUser);
 
 router.post('/enroll', protect, authorize('hod', 'admin'), auditLog('user', { customAction: 'ENROLL_STUDENT' }), enrollStudent);
+
+router.put('/change-password', protect, changePassword);
+router.put('/unlock/:id', protect, authorize('admin', 'registrar'), unlockAccount);
 
 export default router;

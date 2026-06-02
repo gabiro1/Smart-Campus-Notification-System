@@ -4,9 +4,10 @@ import NotFound from "../../pages/error/NotFound";
 import { useAuth } from "../../context/AuthContext";
 
 // --- AUTH PAGES ---
-import ForgotPassword from "../../pages/auth/ForgotPassword";
-import ResetPassword from "../../pages/auth/ResetPassword";
-import VerifyEmail from "../../pages/auth/VerifyEmail";
+import ForgotPassword from "../../features/auth/pages/ForgotPassword";
+import ResetPassword from "../../features/auth/pages/ResetPassword";
+import VerifyEmail from "../../features/auth/pages/VerifyEmail";
+import ForcePasswordChange from "../../features/auth/pages/ForcePasswordChange";
 
 // --- LAYOUTS ONLY ---
 import AdminLayout from "../../layouts/AdminLayout";
@@ -16,6 +17,8 @@ import LecturerLayout from "../../pages/dashboards/lecturer/components/Dashboard
 import HodLayout from "../../pages/dashboards/hod/components/DashboardLayout";
 import DeanLayout from "../../pages/dashboards/dean/components/DashboardLayout";
 import PrincipalLayout from "../../pages/dashboards/principal/components/DashboardLayout";
+import HrLayout from "../../pages/dashboards/hr/components/HrLayout";
+import RegistrarLayout from "../../pages/dashboards/registrar/components/RegistrarLayout";
 
 // --- MODULAR ROUTE ARRAYS ---
 import { publicRoutes } from "../publicRoutes";
@@ -26,6 +29,8 @@ import { deanRoutes } from "../deanRoutes";
 import { lecturerRoutes } from "../lecturerRoutes";
 import { guildRoutes } from "../guildRoutes";
 import { principalRoutes } from "../principalRoutes";
+import { hrRoutes } from "../hrRoutes";
+import { registrarRoutes } from "../registrarRoutes";
 
 // --- DYNAMIC GLOBAL REDIRECTS ---
 function ProfileRedirect() {
@@ -52,6 +57,7 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/force-password-change" element={<ForcePasswordChange />} />
 
         {/* Protected Role-Based Layouts */}
         <Route path="/student" element={<StudentLayout />}>
@@ -80,6 +86,14 @@ export default function AppRoutes() {
 
         <Route path="/principal" element={<PrincipalLayout />}>
           {principalRoutes}
+        </Route>
+
+        <Route path="/hr" element={<HrLayout />}>
+          {hrRoutes}
+        </Route>
+
+        <Route path="/registrar" element={<RegistrarLayout />}>
+          {registrarRoutes}
         </Route>
 
         {/* 404 Catch-all */}

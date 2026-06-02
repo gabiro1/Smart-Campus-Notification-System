@@ -106,3 +106,28 @@ export const getStudentTimetable = async (req, res) => {
     res.status(500).json({ message: "Error fetching timetable." });
   }
 };
+
+export const getStudentStats = async (req, res) => {
+  try {
+    const student = await User.findById(req.user.id).populate('classId', 'name');
+
+    const unreadNotifications = await mongoose.model('NotificationLog').countDocuments({ recipientId: req.user.id, status: 'unread' });
+    const upcomingEvents = await mongoose.model('Event').countDocuments({ startDate: { $gte: new Date() } });
+    const recentAnnouncements = await mongoose.model('GovernanceAnnouncement').countDocuments({ status: 'published', createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } });
+    const activeReminders = await mongoose.model('Reminder').countDocuments({ studentId: req.user.id, status: 'pending' });
+
+    res.json({
+      success: true,
+      data: {
+        messages: unreadNotifications,
+        attendance: student?.attendanceRate || 0,
+        announcements: recentAnnouncements,
+        deadlines: activeReminders,
+        events: upcomingEvents,
+      }
+    });
+  } catch (error) {
+    console.error("getStudentStats Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

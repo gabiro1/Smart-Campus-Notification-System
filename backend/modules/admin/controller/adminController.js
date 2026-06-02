@@ -1,5 +1,7 @@
 import User from "../../user/model/User.js";
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import Event from '../../event/model/Event.js';
 import NotificationLog from '../../notification/models/NotificationLog.js';
 import Reminder from '../../reminder/model/Reminder.js';
@@ -9,6 +11,7 @@ import College from '../../college/model/College.js';
 import School from '../../school/model/School.js';
 import Department from '../../department/model/Department.js';
 import SystemSettings from '../../settings/model/SystemSettings.js';
+import Role from '../../role/model/Role.js';
 import { chat } from '../../../services/aiProvider.js';
 
 
@@ -78,15 +81,19 @@ export const createUser = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Validate role to prevent bad data
-        const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president', 'dean', 'principal'];
-        const userRole = role && allowedRoles.includes(role) ? role : 'student';
+        // Validate role against the Role collection (supports custom roles too)
+        if (role) {
+            const roleDoc = await Role.findOne({ name: role.toLowerCase(), isActive: true });
+            if (!roleDoc) {
+                return res.status(400).json({ message: `Invalid role "${role}". Role does not exist or is inactive.` });
+            }
+        }
 
         const user = await User.create({
             name,
             email,
             password: hashedPassword,
-            role: userRole,
+            role: role || 'student',
             college,
             school,
             department,
@@ -330,15 +337,26 @@ export const updateUser = async (req, res) => {
         if (email) user.email = email;
         if (phoneNumber) user.phoneNumber = phoneNumber;
         
-        // Allowed admin to change role during full edit
+        // Validate and update role against the Role collection (supports custom roles too)
         if (role) {
-            const allowedRoles = ['student', 'admin', 'hod', 'lecturer', 'guild_president', 'dean', 'principal'];
-            if (allowedRoles.includes(role)) {
-                user.role = role;
+            const roleDoc = await Role.findOne({ name: role.toLowerCase(), isActive: true });
+            if (!roleDoc) {
+                return res.status(400).json({ message: `Invalid role "${role}". Role does not exist or is inactive.` });
             }
+            user.role = role;
+        }
+
+        if (role === 'hod' && !department && !school) {
+          const dept = await Department.findOne({ hod: user._id }).select('school').lean();
+          if (dept) {
+            user.department = dept._id;
+            user.school = dept.school;
+            const schoolDoc = await School.findById(dept.school).select('college').lean();
+            user.college = schoolDoc?.college || null;
+          }
         }
         
-        if (college) user.college = college; // <-- Added
+        if (college) user.college = college;
         if (school) user.school = school;
         if (department) user.department = department;
         if (level) user.level = level;
@@ -409,6 +427,17 @@ export const promoteUser = async (req, res) => {
 
         const oldRole = user.role;
         user.role = role;
+
+        if (role === 'hod') {
+          const dept = await Department.findOne({ hod: user._id }).select('school').lean();
+          if (dept) {
+            user.department = dept._id;
+            user.school = dept.school;
+            const schoolDoc = await School.findById(dept.school).select('college').lean();
+            user.college = schoolDoc?.college || null;
+          }
+        }
+
         await user.save();
         await logAuditAction(req.user._id, 'PROMOTE_USER', user._id, 'USER', `Role changed from ${oldRole} to ${role}`, { before: oldRole, after: role });
 
@@ -1024,6 +1053,292 @@ export const runDiagnostics = async (req, res) => {
     });
   } catch (error) {
     console.error("Run Diagnostics Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// HR ACCOUNT MANAGEMENT (System Admin Only)
+// ==========================================
+
+const getEmailTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
+    },
+  });
+};
+
+const sendAccountSetupEmail = async (email, name, token) => {
+  const setupUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/set-password?token=${token}`;
+  const transporter = getEmailTransporter();
+  await transporter.sendMail({
+    to: email,
+    from: process.env.EMAIL_USER,
+    subject: 'Your HR Account Has Been Created — Set Your Password',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+          .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #2563eb, #7c3aed); padding: 30px; text-align: center; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+          .content { padding: 30px; }
+          .button { display: inline-block; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+          .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>UniNotify AI</h1>
+          </div>
+          <div class="content">
+            <h2 style="color: #1f2937; margin-top: 0;">Welcome, ${name}!</h2>
+            <p style="color: #4b5563; line-height: 1.6;">An HR account has been created for you. Click the button below to set your password and get started:</p>
+            <div style="text-align: center;">
+              <a href="${setupUrl}" class="button">Set Your Password</a>
+            </div>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">This link expires in <strong>24 hours</strong>.</p>
+            <p style="color: #9ca3af; font-size: 12px;">If you didn't expect this, please ignore this email.</p>
+          </div>
+          <div class="footer">
+            <p>UniNotify AI - Smart Campus Notification System</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  });
+};
+
+export const createHRAccount = async (req, res) => {
+  try {
+    const { name, email, phoneNumber } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ success: false, message: 'Name and email are required' });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'User with this email already exists' });
+    }
+
+    const tempPassword = crypto.randomBytes(16).toString('hex');
+    const hashedPassword = await bcrypt.hash(tempPassword, 12);
+
+    const token = crypto.randomBytes(32).toString('hex');
+
+    const hrUser = await User.create({
+      name, email, password: hashedPassword, phoneNumber: phoneNumber || '',
+      role: 'hr', status: 'ACTIVE', createdBy: req.user._id,
+      mustChangePassword: true,
+      passwordResetToken: token,
+      passwordResetExpires: Date.now() + 24 * 60 * 60 * 1000,
+    });
+
+    await sendAccountSetupEmail(email, name, token);
+
+    await logAuditAction(req.user._id, 'CREATE_HR_ACCOUNT', hrUser._id, 'USER',
+      `Created HR account for ${name} (${email}) — setup email sent`);
+
+    const userResponse = hrUser.toObject();
+    delete userResponse.password;
+    delete userResponse.passwordResetToken;
+    delete userResponse.passwordResetExpires;
+
+    res.status(201).json({
+      success: true,
+      message: 'HR account created successfully. A setup email has been sent to the user.',
+      data: userResponse,
+    });
+  } catch (error) {
+    console.error('createHRAccount Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// HR ACCOUNT MANAGEMENT — FULL CRUD
+// ==========================================
+
+export const getHRAccounts = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search } = req.query;
+    const filter = { role: 'hr' };
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [hrUsers, total] = await Promise.all([
+      User.find(filter).select('-password').sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      User.countDocuments(filter),
+    ]);
+    res.json({ success: true, data: hrUsers, pagination: { total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getHRAccount = async (req, res) => {
+  try {
+    const hrUser = await User.findOne({ _id: req.params.id, role: 'hr' }).select('-password');
+    if (!hrUser) return res.status(404).json({ success: false, message: 'HR account not found' });
+    res.json({ success: true, data: hrUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateHRAccount = async (req, res) => {
+  try {
+    const hrUser = await User.findOne({ _id: req.params.id, role: 'hr' });
+    if (!hrUser) return res.status(404).json({ success: false, message: 'HR account not found' });
+
+    const { name, email, phoneNumber, status } = req.body;
+    if (name !== undefined) hrUser.name = name;
+    if (email !== undefined) hrUser.email = email;
+    if (phoneNumber !== undefined) hrUser.phoneNumber = phoneNumber;
+    if (status !== undefined) hrUser.status = status;
+
+    const updated = await hrUser.save();
+    const userResponse = updated.toObject();
+    delete userResponse.password;
+
+    await logAuditAction(req.user._id, 'UPDATE_USER', hrUser._id, 'USER', `Updated HR account: ${updated.name}`);
+    res.json({ success: true, message: 'HR account updated', data: userResponse });
+  } catch (error) {
+    if (error.code === 11000) return res.status(400).json({ success: false, message: 'Email already in use' });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteHRAccount = async (req, res) => {
+  try {
+    const hrUser = await User.findOne({ _id: req.params.id, role: 'hr' });
+    if (!hrUser) return res.status(404).json({ success: false, message: 'HR account not found' });
+
+    await logAuditAction(req.user._id, 'DELETE_USER', hrUser._id, 'USER', `Deleted HR account: ${hrUser.name}`);
+    await User.findByIdAndDelete(hrUser._id);
+    res.json({ success: true, message: 'HR account deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// REGISTRAR ACCOUNT MANAGEMENT (System Admin Only)
+// ==========================================
+
+export const createRegistrarAccount = async (req, res) => {
+  try {
+    const { name, email, password, phoneNumber } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'User with this email already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const regUser = await User.create({
+      name, email, password: hashedPassword, phoneNumber: phoneNumber || '',
+      role: 'registrar', status: 'ACTIVE', createdBy: req.user._id
+    });
+
+    await logAuditAction(req.user._id, 'CREATE_USER', regUser._id, 'USER',
+      `Created Registrar account for ${name} (${email})`);
+
+    const userResponse = regUser.toObject();
+    delete userResponse.password;
+
+    res.status(201).json({ success: true, message: 'Registrar account created successfully', data: userResponse });
+  } catch (error) {
+    console.error('createRegistrarAccount Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// EMERGENCY OVERRIDE (System Admin Only)
+// ==========================================
+
+export const emergencyOverride = async (req, res) => {
+  try {
+    const { action: overrideAction, targetUserId, reason } = req.body;
+
+    if (!overrideAction || !reason?.trim()) {
+      return res.status(400).json({ success: false, message: 'action and reason are required' });
+    }
+
+    const validActions = ['ACTIVATE_USER', 'SUSPEND_USER', 'BYPASS_APPROVAL', 'OVERRIDE_ROLE'];
+    if (!validActions.includes(overrideAction)) {
+      return res.status(400).json({ success: false, message: `Invalid action. Valid: ${validActions.join(', ')}` });
+    }
+
+    let result = {};
+
+    if (targetUserId && ['ACTIVATE_USER', 'SUSPEND_USER'].includes(overrideAction)) {
+      const targetUser = await User.findById(targetUserId);
+      if (!targetUser) return res.status(404).json({ success: false, message: 'Target user not found' });
+
+      if (overrideAction === 'ACTIVATE_USER') {
+        targetUser.status = 'ACTIVE';
+        result.message = `User ${targetUser.name} activated via emergency override`;
+      } else {
+        targetUser.status = 'SUSPENDED';
+        result.message = `User ${targetUser.name} suspended via emergency override`;
+      }
+      await targetUser.save();
+      result.user = targetUser;
+    }
+
+    await logAuditAction(req.user._id, 'EMERGENCY_OVERRIDE', targetUserId || null, 'SYSTEM',
+      `Emergency override: ${overrideAction} - ${reason}`);
+
+    res.status(200).json({
+      success: true,
+      message: result.message || `Emergency override executed: ${overrideAction}`,
+      data: { action: overrideAction, reason, ...result }
+    });
+  } catch (error) {
+    console.error('emergencyOverride Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// ROLE PERMISSIONS CONFIGURATION
+// ==========================================
+
+export const getRolePermissions = async (req, res) => {
+  try {
+    const rolePermissions = {
+      student: { level: 0, canCreate: false, canApprove: false, dashboard: 'read-only' },
+      class_rep: { level: 1, canCreate: false, canApprove: false, dashboard: 'read-only' },
+      lecturer: { level: 2, canCreate: true, canApprove: false, dashboard: 'academic' },
+      guild_president: { level: 3, canCreate: true, canApprove: false, dashboard: 'guild' },
+      registrar: { level: 4, canCreate: true, canApprove: false, dashboard: 'registrar' },
+      hod: { level: 5, canCreate: true, canApprove: true, dashboard: 'hod' },
+      dean: { level: 6, canCreate: true, canApprove: true, dashboard: 'dean' },
+      hr: { level: 7, canCreate: true, canApprove: false, dashboard: 'hr' },
+      principal: { level: 8, canCreate: true, canApprove: true, dashboard: 'principal' },
+      admin: { level: 9, canCreate: true, canApprove: true, dashboard: 'admin', emergencyOverride: true }
+    };
+    res.json({ success: true, data: rolePermissions });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };

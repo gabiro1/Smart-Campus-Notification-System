@@ -19,7 +19,15 @@ import {
     updateSystemSettings,
     getAIInsights,
     getSystemHealth,
-    runDiagnostics
+    runDiagnostics,
+    createHRAccount,
+    getHRAccounts,
+    getHRAccount,
+    updateHRAccount,
+    deleteHRAccount,
+    createRegistrarAccount,
+    emergencyOverride,
+    getRolePermissions
 } from '../controller/adminController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 import { getAcademicHierarchy } from '../controller/adminController.js';
@@ -134,5 +142,20 @@ router.get('/ai-insights', getAIInsights);
 // System health & diagnostics
 router.get('/health', getSystemHealth);
 router.post('/diagnostics', runDiagnostics);
+
+// Role permissions configuration
+router.get('/role-permissions', getRolePermissions);
+
+// --- System Admin Only Routes ---
+// HR accounts CRUD
+router.get('/hr-accounts', authorize('admin'), getHRAccounts);
+router.get('/hr-accounts/:id', authorize('admin'), getHRAccount);
+router.post('/hr-accounts', authorize('admin'), createHRAccount);
+router.put('/hr-accounts/:id', authorize('admin'), updateHRAccount);
+router.delete('/hr-accounts/:id', authorize('admin'), deleteHRAccount);
+// Create Registrar account  
+router.post('/registrar-accounts', authorize('admin'), createRegistrarAccount);
+// Emergency override
+router.post('/emergency-override', authorize('admin'), emergencyOverride);
 
 export default router;

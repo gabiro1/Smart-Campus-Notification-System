@@ -105,6 +105,12 @@ export default function Navbar() {
                       <NavLink to="/principal/approvals" label="Approvals" active={isActive("/principal/approvals")} />
                     </>
                   )}
+                  {user.role === "hr" && (
+                    <>
+                      <NavLink to="/hr/dashboard" label="Dashboard" active={isActive("/hr/dashboard")} />
+                      <NavLink to="/hr/drafts" label="Workflow" active={isActive("/hr/drafts")} />
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -344,6 +350,12 @@ export default function Navbar() {
                         <MobileMenuLink to="/principal/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/principal/broadcast" label="Broadcast" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/principal/approvals" label="Approvals" onClick={() => setMobileMenuOpen(false)} />
+                      </>
+                    )}
+                    {user.role === "hr" && (
+                      <>
+                        <MobileMenuLink to="/hr/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/hr/drafts" label="Workflow" onClick={() => setMobileMenuOpen(false)} />
                       </>
                     )}
                     <div className="pt-4 border-t space-y-1">

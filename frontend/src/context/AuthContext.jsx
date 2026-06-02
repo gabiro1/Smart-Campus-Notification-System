@@ -15,6 +15,8 @@ export const AuthProvider = ({ children }) => {
     name: storedUser.name || decoded.name,
     email: storedUser.email || decoded.email,
     hasCompletedOnboarding: storedUser.hasCompletedOnboarding,
+    mustChangePassword: storedUser.mustChangePassword,
+    registrationNumber: storedUser.registrationNumber,
   }), [])
 
   useEffect(() => {

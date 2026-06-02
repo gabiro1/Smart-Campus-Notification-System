@@ -15,7 +15,6 @@ import {
   Activity,
   Shield,
   UserCheck,
-  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -24,7 +23,7 @@ const navSections = [
     label: "Operations",
     items: [
       { path: "/dean/dashboard", label: "Command Center", icon: Activity },
-      { path: "/dean/approvals", label: "HoD Approvals", icon: CheckSquare, badge: 5 },
+      { path: "/dean/approvals", label: "HoD Approvals", icon: CheckSquare },
       { path: "/dean/broadcast", label: "School Broadcast", icon: Radio },
       { path: "/dean/analytics", label: "Analytics", icon: BarChart3 },
     ],
@@ -33,14 +32,12 @@ const navSections = [
     label: "Communication",
     items: [
       { path: "/dean/announcements", label: "All Announcements", icon: Files },
-      { path: "/dean/messages", label: "Messages", icon: MessageSquare },
       { path: "/dean/reports", label: "Reports", icon: PieChart },
     ],
   },
   {
     label: "Governance",
     items: [
-      { path: "/dean/report-inbox", label: "Report Inbox", icon: FileText },
       { path: "/dean/roles", label: "Staff Oversight", icon: UserCheck },
     ],
   },
@@ -61,14 +58,12 @@ export default function DeanSidebar(props) {
     navigate("/login");
   };
 
-  const menuItems = navSections.flatMap((section, sIdx) => [
+  const menuItems = navSections.flatMap((section) => [
     { section: true, label: section.label },
     ...section.items.map(item => ({
       icon: item.icon,
       label: item.label,
       path: item.path,
-      badge: item.badge,
-      badgeType: item.badge ? 'red' : undefined,
     })),
   ]);
 

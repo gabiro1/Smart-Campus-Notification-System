@@ -80,7 +80,6 @@ export default function PrincipalApprovals() {
         </p>
       </header>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <GlassCard delay={0.1} className="p-4 sm:p-5">
           <div className="flex items-center gap-3">
@@ -119,7 +118,6 @@ export default function PrincipalApprovals() {
         </GlassCard>
       </div>
 
-      {/* Pending Events */}
       <GlassCard padding="p-0">
         <div className="p-4 border-b border-border">
           <h3 className="font-semibold text-foreground">Pending Events</h3>
@@ -170,7 +168,6 @@ export default function PrincipalApprovals() {
         </div>
       </GlassCard>
 
-      {/* Pending Announcements */}
       <GlassCard padding="p-0">
         <div className="p-4 border-b border-border">
           <h3 className="font-semibold text-foreground">Pending Announcements</h3>

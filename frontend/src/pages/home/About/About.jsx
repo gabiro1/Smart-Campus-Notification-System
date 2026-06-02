@@ -105,37 +105,19 @@ export default function About() {
       <Navbar />
 
       <main className="pt-32 pb-20 px-6 max-w-6xl mx-auto space-y-24">
-        {/* --- HERO SECTION --- */}
         <motion.section {...fadeInVariant} className="text-center space-y-6">
           <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest rounded-full">
             Our Story
           </span>
           <h1 className="text-5xl md:text-7xl font-bold text-foreground tracking-tight">
-            About <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">UniNotify AI</span>
+            About <span className="text-primary">UniNotify AI</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
             Bridging the communication gap at the University of Rwanda through
             intelligent notifications and universal accessibility.
           </p>
-
-          {/* Animated Scroll Indicator */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-12 flex justify-center"
-          >
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className="w-6 h-10 rounded-xl border-2 border-border flex items-start justify-center p-2"
-            >
-              <motion.div className="w-1.5 h-3 rounded-full bg-primary" />
-            </motion.div>
-          </motion.div>
         </motion.section>
 
-        {/* --- VISION & MISSION --- */}
         <motion.section
           {...fadeInVariant}
           className="grid md:grid-cols-2 gap-6"
@@ -169,7 +151,6 @@ export default function About() {
           </div>
         </motion.section>
 
-        {/* --- IMPACT STATISTICS --- */}
         <motion.section {...fadeInVariant} className="space-y-10">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-foreground tracking-tight">
@@ -206,7 +187,6 @@ export default function About() {
           </div>
         </motion.section>
 
-        {/* --- TESTIMONIALS SECTION --- */}
         <motion.section {...fadeInVariant} className="space-y-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-foreground tracking-tight">
@@ -251,7 +231,6 @@ export default function About() {
           </div>
         </motion.section>
 
-        {/* --- PROJECT TEAM --- */}
         <motion.section {...fadeInVariant} className="space-y-12">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-foreground tracking-tight">
@@ -287,7 +266,6 @@ export default function About() {
           </div>
         </motion.section>
 
-        {/* --- FAQS --- */}
         <motion.section
           {...fadeInVariant}
           className="space-y-8 max-w-3xl mx-auto"
@@ -311,7 +289,6 @@ export default function About() {
           </div>
         </motion.section>
 
-        {/* --- CONTACT US SECTION --- */}
         <motion.section {...fadeInVariant} className="py-12">
           <div className="bg-card p-10 md:p-16 rounded-3xl border border-border relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />

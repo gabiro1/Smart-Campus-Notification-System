@@ -7,14 +7,17 @@ import {
   Building2,
   Globe,
   BarChart3,
+  Shield,
+  Users,
+  Calendar,
+  PlusCircle,
   GraduationCap,
   LogOut,
-  FileText,
 } from "lucide-react";
 
 const sections = [
   {
-    label: "Dashboard",
+    label: "Overview",
     items: [
       { path: "/principal/dashboard", label: "Executive Dashboard", icon: LayoutDashboard },
     ],
@@ -23,15 +26,28 @@ const sections = [
     label: "Governance",
     items: [
       { path: "/principal/approvals", label: "Approvals", icon: ShieldAlert },
-      { path: "/principal/report-inbox", label: "Report Inbox", icon: FileText },
       { path: "/principal/departments", label: "Departments", icon: Building2 },
       { path: "/principal/reports-analytics", label: "Reports & Analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Management",
+    items: [
+      { path: "/principal/role-assignments", label: "Role Assignments", icon: Shield },
+      { path: "/principal/student-leadership", label: "Student Leadership", icon: Users },
     ],
   },
   {
     label: "Communication",
     items: [
       { path: "/principal/broadcast", label: "Broadcast Center", icon: Globe },
+    ],
+  },
+  {
+    label: "Events",
+    items: [
+      { path: "/principal/my-events", label: "My Events", icon: Calendar },
+      { path: "/principal/events/create", label: "Create Event", icon: PlusCircle },
     ],
   },
 ];

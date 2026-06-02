@@ -39,7 +39,7 @@ export default function GlobalBroadcast() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiTone, setAiTone] = useState("professional");
   const [showAiSection, setShowAiSection] = useState(true);
-  const [generationStep, setGenerationStep] = useState("subject"); // "subject" | "content"
+  const [generationStep, setGenerationStep] = useState("subject");
 
   const isEmergency = priority === "urgent";
 
@@ -70,7 +70,6 @@ export default function GlobalBroadcast() {
       setIsGenerating(true);
       setGenerationStep("subject");
       
-      // Step 1: Polish the subject line
       const subjectResult = await copilotService.paraphrase(briefSubject, aiTone);
       if (!subjectResult.success) {
         throw new Error(subjectResult.message || "Failed to generate subject");
@@ -80,7 +79,6 @@ export default function GlobalBroadcast() {
       setTitle(polishedSubject);
       setGenerationStep("content");
       
-      // Step 2: Generate full message content based on the subject
       const toneMap = {
         professional: "formal, professional academic tone",
         friendly: "warm and approachable but professional tone",
@@ -107,7 +105,6 @@ Output ONLY the message body - no subject line, no formatting, just the polished
         setContent(contentResult.paraphrased);
         toast.success("Message generated successfully!");
       } else {
-        // Subject was generated but content failed
         toast.warning("Subject generated, but content generation failed. Please try again.");
       }
     } catch (error) {
@@ -203,7 +200,6 @@ Output ONLY the message body text.`;
       if (targetRole === "all" || targetRole === "students") targetAudience.push("students");
       if (targetRole === "all" || targetRole === "staff") targetAudience.push("staff");
       
-      // Map frontend values to backend enum values
       const priorityMap = {
         normal: "medium",
         high: "high",
@@ -272,9 +268,7 @@ Output ONLY the message body text.`;
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-        {/* Form Area */}
         <div className="lg:col-span-8 space-y-6">
-          {/* AI Generator Section */}
           <GlassCard className="bg-gradient-to-br from-purple-500/5 to-blue-500/5">
             <div className="flex items-center gap-3 pb-4 border-b border-border">
               <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
@@ -291,7 +285,6 @@ Output ONLY the message body text.`;
             </div>
 
             <div className="space-y-4 mt-4">
-              {/* Tone Selector */}
               <div className="flex items-center gap-3">
                 <span className="text-xs text-muted-foreground font-medium">Tone:</span>
                 <div className="flex gap-2">
@@ -311,7 +304,6 @@ Output ONLY the message body text.`;
                 </div>
               </div>
 
-              {/* Brief Subject Input */}
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
                   Brief Topic or Subject Idea
@@ -346,7 +338,6 @@ Output ONLY the message body text.`;
                 </div>
               </div>
 
-              {/* Quick Actions */}
               {(title || content) && (
                 <div className="flex gap-2">
                   <button
@@ -368,7 +359,6 @@ Output ONLY the message body text.`;
             </div>
           </GlassCard>
 
-          {/* Generated Output Form */}
           <GlassCard className={title || content ? "border-purple-500/30" : ""}>
             <div className="flex items-center gap-3 pb-4 border-b border-border">
               <div className={`p-2 rounded-lg ${title || content ? 'bg-emerald-500/10 text-emerald-400' : 'bg-card text-muted-foreground'}`}>
@@ -538,7 +528,6 @@ Output ONLY the message body text.`;
           </GlassCard>
         </div>
 
-        {/* Guidelines Sidebar */}
         <div className="lg:col-span-4 space-y-6">
           <GlassCard>
             <h3 className="text-lg font-semibold text-foreground mb-4">
@@ -568,7 +557,6 @@ Output ONLY the message body text.`;
         </div>
       </div>
 
-      {/* Confirmation Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div

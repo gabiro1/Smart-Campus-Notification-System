@@ -365,7 +365,65 @@ createUser: async (userData) => {
     return response.data;
   },
 
-};
+  // ==========================================
+  // HR ACCOUNTS CRUD
+  // ==========================================
 
+  getHRAccounts: async (page = 1, limit = 20, search = '') => {
+    const response = await apiClient.get('/admin/hr-accounts', { params: { page, limit, search } });
+    return response.data;
+  },
+
+  getHRAccount: async (id) => {
+    const response = await apiClient.get(`/admin/hr-accounts/${id}`);
+    return response.data;
+  },
+
+  createHRAccount: async (data) => {
+    const response = await apiClient.post('/admin/hr-accounts', data);
+    return response.data;
+  },
+
+  updateHRAccount: async (id, data) => {
+    const response = await apiClient.put(`/admin/hr-accounts/${id}`, data);
+    return response.data;
+  },
+
+  deleteHRAccount: async (id) => {
+    const response = await apiClient.delete(`/admin/hr-accounts/${id}`);
+    return response.data;
+  },
+
+  // ==========================================
+  // ROLE MANAGEMENT
+  // ==========================================
+
+  getRoles: async (page = 1, limit = 50, getAll = false) => {
+    const response = await apiClient.get('/roles', {
+      params: { page, limit, getAll: getAll ? 'true' : 'false' },
+    });
+    return response.data;
+  },
+
+  getRole: async (id) => {
+    const response = await apiClient.get(`/roles/${id}`);
+    return response.data;
+  },
+
+  createRole: async (data) => {
+    const response = await apiClient.post('/roles', data);
+    return response.data;
+  },
+
+  updateRole: async (id, data) => {
+    const response = await apiClient.put(`/roles/${id}`, data);
+    return response.data;
+  },
+
+  deleteRole: async (id) => {
+    const response = await apiClient.delete(`/roles/${id}`);
+    return response.data;
+  },
+};
 
 export default adminService;

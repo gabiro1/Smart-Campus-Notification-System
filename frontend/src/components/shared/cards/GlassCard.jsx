@@ -1,32 +1,5 @@
 import { motion } from "framer-motion";
 
-/**
- * Unified GlassCard component - consolidates 5 variants into one flexible component
- *
- * Features:
- * - Smooth entrance animation with configurable delay
- * - Optional hover effects (lift, scale, shadow)
- * - Top gradient highlight line
- * - Glassmorphism styling with backdrop blur
- * - Responsive padding control
- *
- * @param {Object} props
- * @param {React.ReactNode} props.children - Card content
- * @param {string} props.className - Additional classes
- * @param {number} props.delay - Animation delay in seconds
- * @param {boolean} props.hover - Enable hover lift effect (default: true)
- * @param {string} props.padding - Padding class (default: "p-6")
- * @param {string} props.bgOpacity - Background opacity override (default: "bg-white/[0.02]")
- * @param {string} props.borderOpacity - Border opacity override (default: "border-white/10")
- * @param {number} props.rounded - Border radius (default: "rounded-2xl")
- * @param {string} props.shadow - Shadow class (default: "shadow-lg")
- * @param {number} props.initialY - Initial Y offset for animation (default: 15)
- * @param {number} props.duration - Animation duration in seconds (default: 0.4)
- * @param {number} props.hoverOffset - Y offset on hover in pixels (default: -2)
- * @param {number} props.hoverScale - Scale on hover (default: 1, no scale)
- * @param {boolean} props.showGradient - Show top gradient line (default: true)
- * @param {string} props.gradientOpacity - Gradient line opacity (default: "via-white/10")
- */
 export default function GlassCard({
   children,
   className = "",

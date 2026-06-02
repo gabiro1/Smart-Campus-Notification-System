@@ -1,7 +1,5 @@
 import Sidebar from "./Sidebar";
-import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard,
   Radio,
   Files,
   Users,
@@ -13,43 +11,11 @@ import {
   Scale,
   LogOut,
   Gauge,
-  Activity,
-  ShieldAlert,
-  ChevronRight,
-  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import messageService from "../../services/messageService";
-import notificationService from "../../services/notificationService";
-import governanceService from "../../services/governanceService";
 
 export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
   const navigate = useNavigate();
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const [pendingCount, setPendingCount] = useState(0);
-
-  useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const [msgData, notifData, pendingData] = await Promise.all([
-          messageService.getUnreadCount().catch(() => ({ unreadCount: 0 })),
-          notificationService.getUnreadCount().catch(() => ({ unreadCount: 0 })),
-          governanceService.getPending().catch(() => ({ count: 0, data: [] })),
-        ]);
-        setUnreadMessages(msgData?.unreadCount || 0);
-        setUnreadNotifications(notifData?.unreadCount || 0);
-        const pendingItems = Array.isArray(pendingData) ? pendingData : pendingData?.data || [];
-        setPendingCount(pendingItems.length || 0);
-      } catch (error) {
-        console.error('Failed to fetch counts:', error);
-      }
-    };
-    fetchCounts();
-    const interval = setInterval(fetchCounts, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   const user = (() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); }
@@ -61,7 +27,7 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       section: "Operations Center",
       items: [
         { path: "/hod/dashboard", name: "Command Center", icon: Gauge },
-        { path: "/hod/governance", name: "Approvals", icon: Scale, badge: pendingCount > 0 ? pendingCount : undefined },
+        { path: "/hod/governance", name: "Approvals", icon: Scale },
       ],
     },
     {
@@ -69,21 +35,20 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       items: [
         { path: "/hod/broadcast", name: "Broadcast", icon: Radio },
         { path: "/hod/announcements", name: "Announcements", icon: Files },
-        { path: "/hod/messages", name: "Messages", icon: Mail, badge: unreadMessages > 0 ? unreadMessages : undefined },
+        { path: "/hod/messages", name: "Messages", icon: Mail },
       ],
     },
     {
       section: "Management",
       items: [
         { path: "/hod/lecturers", name: "Lecturers", icon: Users },
-        { path: "/hod/report-create", name: "Reports", icon: FileText },
         { path: "/hod/reports", name: "Analytics", icon: BarChart3 },
       ],
     },
     {
       section: "System",
       items: [
-        { path: "/hod/notifications", name: "Notifications", icon: Bell, badge: unreadNotifications > 0 ? unreadNotifications : undefined },
+        { path: "/hod/notifications", name: "Notifications", icon: Bell },
         { path: "/hod/settings", name: "Settings", icon: Settings },
       ],
     },

@@ -91,7 +91,11 @@ export const userRegistrationSchema = Joi.object({
 });
 
 export const userLoginSchema = Joi.object({
-  email: Joi.string().email().required(),
+  email: Joi.string().trim().min(2).required()
+    .messages({
+      'string.min': 'Email or registration number is required',
+      'any.required': 'Email or registration number is required'
+    }),
   password: Joi.string().required()
 });
 
@@ -138,23 +142,53 @@ export const eventCreationSchema = Joi.object({
       'string.max': 'Title cannot exceed 200 characters.',
       'any.required': 'Title is required.'
     }),
-
   description: Joi.string().trim().min(20).max(5000).required()
     .messages({
       'string.min': 'Description must be at least 20 characters.',
       'string.max': 'Description cannot exceed 5000 characters.',
       'any.required': 'Description is required.'
     }),
+  category: Joi.string().valid(
+    'academic', 'cultural', 'sports', 'social',
+    'workshop', 'seminar', 'meeting', 'ceremony',
+    'competition', 'fundraiser', 'orientation', 'other'
+  ).optional().default('other'),
+  organizerName: Joi.string().trim().min(2).max(100).required()
+    .messages({ 'any.required': 'Organizer name is required.' }),
+  organizerRole: Joi.string().trim().min(2).max(100).required()
+    .messages({ 'any.required': 'Organizer role is required.' }),
+  departmentClub: Joi.string().allow('').optional().default(''),
+  venue: Joi.string().trim().min(3).max(200).required()
+    .messages({ 'any.required': 'Venue is required.' }),
+  startDate: Joi.date().iso().required()
+    .messages({ 'any.required': 'Start date is required.' }),
+  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional()
+    .messages({ 'date.min': 'End date must be after start date.' }),
+  startTime: Joi.string().required()
+    .messages({ 'any.required': 'Start time is required.' }),
+  endTime: Joi.string().optional().allow(''),
+  targetAudience: Joi.array().items(Joi.string().valid(
+    'whole_university', 'specific_college', 'department',
+    'academic_year', 'clubs', 'staff_only', 'invite_only'
+  )).optional().default(['whole_university']),
+  targetColleges: Joi.array().items(Joi.string()).optional(),
+  targetDepartments: Joi.array().items(Joi.string()).optional(),
+  targetAcademicYears: Joi.array().items(Joi.string()).optional(),
+  targetClubs: Joi.array().items(Joi.string()).optional(),
+  expectedAttendance: Joi.number().integer().min(0).optional().default(0),
+  contactInfo: Joi.string().allow('').optional().default(''),
+  externalRegistrationLink: Joi.string().uri().allow('').optional().default(''),
+  livestreamLink: Joi.string().uri().allow('').optional().default(''),
+  budgetRequest: Joi.number().min(0).optional().default(0),
+  attendanceTracking: Joi.boolean().optional().default(false),
+  qrCheckIn: Joi.boolean().optional().default(false),
+  visibilitySettings: Joi.string().valid('public', 'restricted', 'invite_only').optional().default('public'),
+  notesToReviewers: Joi.string().allow('').optional().default(''),
+  posterUrl: Joi.string().uri().allow('').optional().default(''),
 
-  date: Joi.date().iso().required()
-    .messages({
-      'date.format': 'Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM).',
-      'any.required': 'Date is required.'
-    }),
-
+  date: Joi.date().iso().optional(),
   time: Joi.string().empty('').optional().allow(''),
   location: Joi.string().empty('').optional().allow(''),
-  posterUrl: Joi.string().uri().optional().allow(''),
   targetSchool: Joi.string().empty('').default(null).optional().allow(null),
   targetDept: Joi.string().empty('').default(null).optional().allow(null),
   targetLevel: Joi.number().integer().min(0).max(5).empty('').default(0).optional(),
@@ -167,6 +201,35 @@ export const eventCreationSchema = Joi.object({
 export const eventUpdateSchema = Joi.object({
   title: Joi.string().trim().min(1).max(200).optional(),
   description: Joi.string().trim().min(1).max(5000).optional(),
+  category: Joi.string().valid(
+    'academic', 'cultural', 'sports', 'social',
+    'workshop', 'seminar', 'meeting', 'ceremony',
+    'competition', 'fundraiser', 'orientation', 'other'
+  ).optional(),
+  organizerName: Joi.string().trim().min(2).max(100).optional(),
+  organizerRole: Joi.string().trim().min(2).max(100).optional(),
+  departmentClub: Joi.string().allow('').optional(),
+  venue: Joi.string().trim().min(3).max(200).optional(),
+  startDate: Joi.date().iso().optional(),
+  endDate: Joi.date().iso().optional(),
+  startTime: Joi.string().optional(),
+  endTime: Joi.string().optional().allow(''),
+  targetAudience: Joi.array().items(Joi.string()).optional(),
+  targetColleges: Joi.array().items(Joi.string()).optional(),
+  targetDepartments: Joi.array().items(Joi.string()).optional(),
+  targetAcademicYears: Joi.array().items(Joi.string()).optional(),
+  targetClubs: Joi.array().items(Joi.string()).optional(),
+  expectedAttendance: Joi.number().integer().min(0).optional(),
+  contactInfo: Joi.string().allow('').optional(),
+  externalRegistrationLink: Joi.string().uri().allow('').optional(),
+  livestreamLink: Joi.string().uri().allow('').optional(),
+  budgetRequest: Joi.number().min(0).optional(),
+  attendanceTracking: Joi.boolean().optional(),
+  qrCheckIn: Joi.boolean().optional(),
+  visibilitySettings: Joi.string().valid('public', 'restricted', 'invite_only').optional(),
+  notesToReviewers: Joi.string().allow('').optional(),
+  posterUrl: Joi.string().uri().allow('').optional(),
+
   date: Joi.date().iso().optional(),
   time: Joi.string().optional().allow(''),
   location: Joi.string().optional().allow(''),
@@ -247,7 +310,7 @@ export const adminUserCreationSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).optional(),
   phoneNumber: Joi.string().optional().allow(''),
-  role: Joi.string().valid('student', 'lecturer', 'hod', 'dean', 'admin', 'guild_president', 'principal', 'class_rep').required(),
+  role: Joi.string().required(),
   college: Joi.string().optional().allow(''),
   school: Joi.string().optional().allow(''),
   department: Joi.string().optional().allow(''),
@@ -265,7 +328,7 @@ export const adminUserUpdateSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).optional(),
   email: Joi.string().email().optional(),
   phoneNumber: Joi.string().optional().allow(''),
-  role: Joi.string().valid('student', 'lecturer', 'hod', 'dean', 'admin', 'guild_president', 'principal', 'class_rep').optional(),
+  role: Joi.string().optional(),
   college: Joi.string().optional().allow(''),
   school: Joi.string().optional().allow(''),
   department: Joi.string().optional().allow(''),

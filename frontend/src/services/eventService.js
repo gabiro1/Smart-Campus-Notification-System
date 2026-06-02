@@ -1,125 +1,257 @@
 import apiClient from './apiClient';
 
 const eventService = {
-  // --- READ METHODS ---
+  // ── DRAFT WORKFLOW ─────────────────────────────────────────
+  createDraft: async (data) => {
+    const res = await apiClient.post('/events/draft', data);
+    return res.data;
+  },
 
-  // Aligned with Dashboard: Get AI-ranked feed
+  updateDraft: async (id, data) => {
+    const res = await apiClient.put(`/events/draft/${id}`, data);
+    return res.data;
+  },
+
+  submitForReview: async (id) => {
+    const res = await apiClient.post(`/events/draft/${id}/submit`);
+    return res.data;
+  },
+
+  // ── DIRECT PUBLISH (Guild Council / Principal / Admin) ────
+  createAndPublish: async (data) => {
+    const res = await apiClient.post('/events/publish', data);
+    return res.data;
+  },
+
+  // ── REVIEW WORKFLOW ────────────────────────────────────────
+  getReviewQueue: async (params = {}) => {
+    const res = await apiClient.get('/events/review/queue', { params });
+    return res.data;
+  },
+
+  getReviewQueueByStatus: async () => {
+    const res = await apiClient.get('/events/review/queue/status');
+    return res.data;
+  },
+
+  approveEvent: async (id, comment = '') => {
+    const res = await apiClient.post(`/events/${id}/approve`, { comment });
+    return res.data;
+  },
+
+  rejectEvent: async (id, reason) => {
+    const res = await apiClient.post(`/events/${id}/reject`, { reason });
+    return res.data;
+  },
+
+  requestRevision: async (id, comment) => {
+    const res = await apiClient.post(`/events/${id}/request-revision`, { comment });
+    return res.data;
+  },
+
+  publishApprovedEvent: async (id, comment = '') => {
+    const res = await apiClient.post(`/events/${id}/publish`, { comment });
+    return res.data;
+  },
+
+  scheduleEvent: async (id, scheduledDate) => {
+    const res = await apiClient.post(`/events/${id}/schedule`, { scheduledDate });
+    return res.data;
+  },
+
+  escalateEvent: async (id, comment = '') => {
+    const res = await apiClient.post(`/events/${id}/escalate`, { comment });
+    return res.data;
+  },
+
+  overrideDecision: async (id, newStatus, reason = '') => {
+    const res = await apiClient.post(`/events/${id}/override`, { newStatus, reason });
+    return res.data;
+  },
+
+  // ── DASHBOARD ──────────────────────────────────────────────
+  getDashboardAnalytics: async () => {
+    const res = await apiClient.get('/events/dashboard/analytics');
+    return res.data;
+  },
+
+  getMyEvents: async (params = {}) => {
+    const res = await apiClient.get('/events/dashboard/my-events', { params });
+    return res.data;
+  },
+
+  // ── AUDIT ──────────────────────────────────────────────────
+  getEventAudit: async (id) => {
+    const res = await apiClient.get(`/events/${id}/audit`);
+    return res.data;
+  },
+
+  // ── DISCOVERY ──────────────────────────────────────────────
   getFeed: async (page = 1, limit = 10) => {
     try {
-      const response = await apiClient.get('/events/feed', {
-        params: { page, limit },
-      });
-      
-      // Handle both formats: { success, events, total } or direct array
+      const res = await apiClient.get('/events/feed', { params: { page, limit } });
       let events = [];
-      if (response.data) {
-        if (Array.isArray(response.data)) {
-          events = response.data;
-        } else if (response.data.events) {
-          events = response.data.events;
-        } else if (response.data.data) {
-          events = response.data.data;
-        }
+      if (res.data) {
+        if (Array.isArray(res.data)) events = res.data;
+        else if (res.data.events) events = res.data.events;
+        else if (res.data.data) events = res.data.data;
       }
-      
-      console.log('[eventService] Fetched events:', events.length);
       return events;
     } catch (err) {
-      console.error("Feed error:", err);
-      throw new Error(err.response?.data?.message || "Couldn't load your feed.");
+      throw new Error(err.response?.data?.message || 'Could not load feed');
     }
   },
 
-  // Search through campus events
+  getEvents: async (params = {}) => {
+    const res = await apiClient.get('/events', { params });
+    return res.data;
+  },
+
   searchEvents: async (query) => {
-    try {
-      const response = await apiClient.get('/events/search', { params: { q: query } });
-      return response.data;
-    } catch {
-      throw new Error("Search failed.");
-    }
+    const res = await apiClient.get('/events/search', { params: { q: query } });
+    return res.data;
   },
 
-  // --- BOOKMARK METHODS ---
-  
+  getEventDetails: async (id) => {
+    const res = await apiClient.get(`/events/${id}`);
+    return res.data;
+  },
+
+  getEventStats: async (id, includeAttendees = false) => {
+    const res = await apiClient.get(`/events/${id}/stats?attended=${includeAttendees}`);
+    return res.data;
+  },
+
+  // ── ACTIONS ────────────────────────────────────────────────
+  cancelEvent: async (id, reason = '') => {
+    const res = await apiClient.post(`/events/${id}/cancel`, { reason });
+    return res.data;
+  },
+
+  deleteEvent: async (id) => {
+    const res = await apiClient.delete(`/events/${id}`);
+    return res.data;
+  },
+
+  // ── BOOKMARKS ──────────────────────────────────────────────
   getBookmarks: async (page = 1, limit = 20) => {
-    try {
-      const response = await apiClient.get('/events/bookmarks', {
-        params: { page, limit }
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to fetch bookmarks.");
-    }
+    const res = await apiClient.get('/events/bookmarks', { params: { page, limit } });
+    return res.data;
   },
 
   toggleBookmark: async (eventId) => {
-    try {
-      const response = await apiClient.post(`/events/${eventId}/bookmark`);
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to toggle bookmark.");
-    }
+    const res = await apiClient.post(`/events/${eventId}/bookmark`);
+    return res.data;
   },
 
-  // --- ACTION METHODS ---
-
-  // Express Interest (Machine Learning AI Weight Adjustment)
-
-  // Submit AI Training Data (Rating)
+  // ── RATING / INTEREST ─────────────────────────────────────
   rateEvent: async (eventId, rating) => {
-    try {
-      const response = await apiClient.post(`/events/${eventId}/rate`, { rating });
-      return response.data;
-    } catch {
-      throw new Error("Failed to submit rating.");
-    }
+    const res = await apiClient.post(`/events/${eventId}/rate`, { rating });
+    return res.data;
   },
 
-  // --- STAFF/ADMIN METHODS ---
+  expressInterest: async (eventId) => {
+    const res = await apiClient.post(`/events/${eventId}/interest`);
+    return res.data;
+  },
 
-  // The AI "Magic" feature: Extracting data from an image
+  // ── FLYER PARSING ──────────────────────────────────────────
   parseFlyer: async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append('flyer', file);
-      
-      const response = await apiClient.post('/events/parse-flyer', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return response.data; // Should return { title, date, location, etc }
-    } catch {
-      throw new Error("AI failed to read the flyer. Please enter details manually.");
-    }
+    const formData = new FormData();
+    formData.append('flyer', file);
+    const res = await apiClient.post('/events/parse-flyer', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
   },
 
-  createEvent: async (eventData) => {
-    try {
-      const response = await apiClient.post('/events/create', eventData);
-      return response.data;
-    } catch {
-      throw new Error("Failed to create event.");
-    }
+  // ── UPLOADS ────────────────────────────────────────────────
+  uploadPoster: async (file, eventId = null) => {
+    const formData = new FormData();
+    formData.append('poster', file);
+    const url = eventId ? `/events/upload/poster/${eventId}` : '/events/upload/poster';
+    const res = await apiClient.post(url, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
   },
 
-  // Get event statistics including RSVP and attendance counts
-  getStats: async (eventId, includeAttendees = false) => {
-    try {
-      const response = await apiClient.get(`/events/${eventId}/stats?attended=${includeAttendees}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to fetch event stats.");
-    }
+  uploadAttachment: async (file, eventId) => {
+    const formData = new FormData();
+    formData.append('attachment', file);
+    const res = await apiClient.post(`/events/upload/attachment/${eventId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
   },
 
-  // Scan attendance via QR (for lecturers/admins)
+  getAttachments: async (eventId) => {
+    const res = await apiClient.get(`/events/${eventId}/attachments`);
+    return res.data;
+  },
+
+  deleteAttachment: async (attachmentId) => {
+    const res = await apiClient.delete(`/events/attachments/${attachmentId}`);
+    return res.data;
+  },
+
+  // ── ATTENDANCE ─────────────────────────────────────────────
   scanAttendance: async (eventId, studentId) => {
-    try {
-      const response = await apiClient.post(`/events/${eventId}/scan-attendance`, { studentId });
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to record attendance.");
-    }
+    const res = await apiClient.post(`/events/${eventId}/scan-attendance`, { studentId });
+    return res.data;
+  },
+
+  studentCheckIn: async (eventId, studentIdentifier) => {
+    const res = await apiClient.post(`/events/${eventId}/check-in`, { studentIdentifier });
+    return res.data;
+  },
+
+  // ── RSVP ───────────────────────────────────────────────────
+  rsvp: async (eventId, status) => {
+    const res = await apiClient.post('/events/rsvp', { eventId, status });
+    return res.data;
+  },
+
+  updateRSVP: async (eventId, status) => {
+    const res = await apiClient.put('/events/rsvp', { eventId, status });
+    return res.data;
+  },
+
+  deleteRSVP: async (eventId) => {
+    const res = await apiClient.delete('/events/rsvp', { data: { eventId } });
+    return res.data;
+  },
+
+  getUserRSVP: async (eventId) => {
+    const res = await apiClient.get(`/events/rsvp/${eventId}`);
+    return res.data;
+  },
+
+  getAttendees: async (eventId) => {
+    const res = await apiClient.get(`/events/rsvp/${eventId}/attendees`);
+    return res.data;
+  },
+
+  // ── CALENDAR ───────────────────────────────────────────────
+  exportCalendar: async (eventId) => {
+    const res = await apiClient.get(`/events/${eventId}/calendar`, { responseType: 'blob' });
+    return res.data;
+  },
+
+  // ── BACKWARD COMPATIBLE ALIASES ────────────────────────────
+  createEvent: async (data) => {
+    const res = await apiClient.post('/events/draft', data);
+    return res.data;
+  },
+
+  updateEvent: async (id, data) => {
+    const res = await apiClient.put(`/events/draft/${id}`, data);
+    return res.data;
+  },
+
+  markInterested: async (eventId) => {
+    const res = await apiClient.post(`/events/${eventId}/interest`);
+    return res.data;
   }
 };
 

@@ -1,309 +1,98 @@
-import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Calendar,
-  MessageSquare,
-  Clock,
-  Settings,
   Bell,
-  Bookmark,
-  LogOut,
-  X,
-  Megaphone,
+  MessageSquare,
   BookOpen,
-  GraduationCap,
-  User,
   Users,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useAuth } from "../../../../context/AuthContext";
 
-const mainItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard" },
-  { icon: Megaphone, label: "Announcements", path: "/student/announcements" },
-  { icon: Calendar, label: "Events", path: "/student/events" },
-  { icon: MessageSquare, label: "Inbox", path: "/student/communication/inbox" },
+const navItems = [
+  { label: "Dashboard", path: "/student", icon: LayoutDashboard, end: true },
+  { label: "Events", path: "/student/events", icon: Calendar },
+  { label: "Notifications", path: "/student/notifications", icon: Bell },
+  { label: "Messages", path: "/student/messages", icon: MessageSquare },
+  { label: "Academic", path: "/student/academic", icon: BookOpen },
+  { label: "Clubs", path: "/student/clubs", icon: Users },
 ];
 
-const contactSubItem = { icon: Users, label: "Contacts", path: "/student/communication/contacts" };
-
-const academicItems = [
-  { icon: GraduationCap, label: "Timetable", path: "/student/timetable" },
-  { icon: Bell, label: "Notifications", path: "/student/notifications" },
-];
-
-const personalItems = [
-  { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
-  { icon: Clock, label: "Reminders", path: "/student/reminders" },
-];
-
-const systemItems = [
-  { icon: Settings, label: "Settings", path: "/student/settings" },
-];
-
-export default function StudentSidebar({ collapsed: collapsedProp = false, onToggle, isOpen, setIsOpen, isMobile }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { logout, user } = useAuth();
-  const [isTablet, setIsTablet] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const isCollapsed = collapsedProp || isTablet;
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+export default function StudentNav({ collapsed, onToggle, isOpen, setIsOpen, isMobile }) {
+  const sidebarVariants = {
+    open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
+    closed: { x: "-100%", transition: { type: "spring", stiffness: 300, damping: 30 } },
   };
 
-  const renderNavItem = (item, isCollapsed) => {
-    const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-    
-    return (
-      <button
-        onClick={() => {
-          navigate(item.path);
-          setIsOpen?.(false);
-        }}
-        className={`w-full flex items-center gap-2.5 py-2 px-2.5 rounded-lg transition-all text-[13px] group ${
-          isActive
-            ? "bg-primary/15 text-foreground font-medium"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent"
-        }`}
-      >
-        <item.icon size={16} className={`shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`} />
-        {!isCollapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
-      </button>
-    );
-  };
-
-  const renderContactsSubItem = (isCollapsed) => {
-    const isActive = location.pathname === "/student/communication/contacts";
-    if (isCollapsed) return null;
-    return (
-      <button
-        onClick={() => {
-          navigate("/student/communication/contacts");
-          setIsOpen?.(false);
-        }}
-        className={`w-full flex items-center gap-2.5 py-1.5 pl-9 pr-2.5 rounded-lg transition-all text-[12px] group ${
-          isActive
-            ? "text-foreground font-medium"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent"
-        }`}
-      >
-        <Users size={14} className="shrink-0" />
-        <span className="flex-1 text-left truncate">Contacts</span>
-      </button>
-    );
-  };
-
-  const renderNavGroup = (title, items, isCollapsed) => (
-    <div className="space-y-0.5">
-      {!isCollapsed && (
-        <div className="px-2.5 pt-3 pb-1.5">
-          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{title}</span>
-        </div>
-      )}
-      {items.map((item, idx) => (
-        <div key={item.path || idx}>
-          {renderNavItem(item, isCollapsed)}
-          {item.label === "Inbox" && renderContactsSubItem(isCollapsed)}
-        </div>
-      ))}
-    </div>
-  );
-
-  if (isMobile) {
-    return (
-      <>
-        <aside className="fixed left-0 top-0 h-screen z-40 w-14 bg-card border-r border-border flex flex-col">
-          <div className="h-12 flex items-center justify-center border-b border-border shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-              <LayoutDashboard size={16} />
-            </div>
-          </div>
-
-          <nav className="flex-1 py-2 px-1.5 space-y-0.5 overflow-y-auto custom-scrollbar">
-            {[...mainItems, contactSubItem, ...academicItems, ...personalItems].map((item, idx) => {
-              const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-              return (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    navigate(item.path);
-                    setIsOpen?.(false);
-                  }}
-                  className={`w-full p-2 rounded-lg flex items-center justify-center relative transition-all ${
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  }`}
-                >
-                  <item.icon size={16} />
-                </button>
-              );
-            })}
-          </nav>
-
-          <div className="p-1.5 border-t border-border shrink-0 space-y-0.5">
-            <button
-              onClick={() => navigate("/student/settings")}
-              className="w-full p-2 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            >
-              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[11px] font-semibold">
-                {user?.name?.charAt(0) || 'S'}
-              </div>
-            </button>
-            <button
-              onClick={handleLogout}
-              className="w-full p-2 rounded-lg flex items-center justify-center text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </aside>
-
+  return (
+    <>
+      {isMobile && (
         <AnimatePresence>
           {isOpen && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-              onClick={() => setIsOpen?.(false)}
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setIsOpen(false)}
             />
           )}
         </AnimatePresence>
+      )}
 
-        <AnimatePresence>
-          {isOpen && (
-            <motion.aside
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed left-0 top-0 h-screen z-50 w-64 bg-card border-r border-border flex flex-col"
+      <motion.aside
+        initial={false}
+        animate={
+          isMobile
+            ? isOpen
+              ? "open"
+              : "closed"
+            : { width: collapsed ? 64 : 224 }
+        }
+        variants={isMobile ? sidebarVariants : undefined}
+        className={`fixed left-0 top-0 h-full bg-card border-r border-border z-50 flex flex-col overflow-hidden ${
+          isMobile ? "w-56" : ""
+        }`}
+      >
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
+          {(!collapsed || isMobile) && (
+            <span className="font-bold text-lg text-foreground">Student</span>
+          )}
+          {isMobile ? (
+            <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-muted rounded-md">
+              <X className="w-5 h-5" />
+            </button>
+          ) : (
+            <button onClick={onToggle} className="p-1 hover:bg-muted rounded-md">
+              {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+            </button>
+          )}
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-4 space-y-1 px-2">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.end}
+              onClick={() => isMobile && setIsOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-blue-500/10 text-blue-500"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`
+              }
             >
-              <div className="h-12 flex items-center justify-between px-4 border-b border-border shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-                    <LayoutDashboard size={16} />
-                  </div>
-                  <div>
-                    <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify AI</h2>
-                    <p className="text-[10px] text-muted-foreground">Student Portal</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsOpen?.(false)}
-                  className="p-1.5 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-3 custom-scrollbar">
-                {renderNavGroup("Main", mainItems, false)}
-                {renderNavGroup("Academic", academicItems, false)}
-                {renderNavGroup("Personal", personalItems, false)}
-                {renderNavGroup("System", systemItems, false)}
-              </nav>
-
-              <div className="p-3 border-t border-border shrink-0">
-                <button
-                  onClick={() => navigate("/student/settings")}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-all"
-                >
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[12px] font-semibold">
-                    {user?.name?.charAt(0) || 'S'}
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="text-[12px] font-medium text-foreground">{user?.name || 'Student'}</p>
-                    <p className="text-[10px] text-muted-foreground">Student</p>
-                  </div>
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors text-[13px] mt-1"
-                >
-                  <LogOut size={14} />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
-      </>
-    );
-  }
-
-  return (
-    <aside className={`fixed left-0 top-0 h-screen z-40 bg-card border-r border-border flex flex-col transition-all duration-200 ${isCollapsed ? 'w-16' : 'w-56'}`}>
-      <div className={`h-14 flex items-center border-b border-border shrink-0 ${isCollapsed ? 'justify-center px-1' : 'px-4'}`}>
-        <button onClick={onToggle} className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shrink-0">
-            <LayoutDashboard size={14} />
-          </div>
-          {!isCollapsed && (
-            <div>
-              <h2 className="text-[12px] font-semibold text-foreground leading-tight">UniNotify AI</h2>
-              <p className="text-[9px] text-muted-foreground">Student Portal</p>
-            </div>
-          )}
-        </button>
-      </div>
-
-      <nav className={`flex-1 overflow-y-auto py-2 custom-scrollbar ${isCollapsed ? 'px-1' : 'px-2'}`}>
-        {renderNavGroup("Main", mainItems, isCollapsed)}
-        {renderNavGroup("Academic", academicItems, isCollapsed)}
-        {renderNavGroup("Personal", personalItems, isCollapsed)}
-        {renderNavGroup("System", systemItems, isCollapsed)}
-      </nav>
-
-      <div className={`p-2 border-t border-border shrink-0 ${isCollapsed ? 'px-1' : ''}`}>
-        <button
-          onClick={() => navigate("/student/settings")}
-          className={`w-full flex items-center gap-2 py-1.5 rounded-lg hover:bg-accent transition-all ${isCollapsed ? 'justify-center px-1' : 'px-2'}`}
-        >
-          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[11px] font-semibold shrink-0">
-            {user?.name?.charAt(0) || 'S'}
-          </div>
-          {!isCollapsed && (
-            <div className="flex-1 text-left overflow-hidden">
-              <p className="text-[11px] font-medium text-foreground truncate">{user?.name || 'User'}</p>
-              <p className="text-[9px] text-muted-foreground truncate">Student</p>
-            </div>
-          )}
-        </button>
-        
-        {!isCollapsed && (
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 py-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors text-[12px] px-2 mt-0.5"
-          >
-            <LogOut size={14} className="shrink-0" />
-            <span>Sign Out</span>
-          </button>
-        )}
-        {isCollapsed && (
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center py-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
-            title="Sign Out"
-          >
-            <LogOut size={14} />
-          </button>
-        )}
-      </div>
-    </aside>
+              <item.icon className="w-5 h-5 shrink-0" />
+              {(!collapsed || isMobile) && <span>{item.label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+      </motion.aside>
+    </>
   );
 }

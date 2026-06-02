@@ -1,5 +1,5 @@
 import { Route, Navigate } from "react-router-dom";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "../components/layout/ProtectedRoute";
 
 // --- STUDENT IMPORTS ---
 import Dashboard from "../pages/dashboards/student/pages/Dashboard/Dashboard";
@@ -8,17 +8,20 @@ import NotificationsPage from "../pages/dashboards/student/pages/Notifications/N
 import EventsPage from "../pages/dashboards/student/Events/EventsPage";
 import BookmarksPage from "../pages/dashboards/student/Events/BookmarksPage";
 import EventDetails from "../pages/dashboards/student/Events/EventDetails";
+import PublishedFeed from "../features/events/pages/PublishedFeed";
+import EventDetailsPage from "../features/events/pages/EventDetailsPage";
+import CreatorDashboard from "../features/events/pages/CreatorDashboard";
 import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
 import TimeTable from "../pages/dashboards/student/component/TimeTable";
-import MessagesTab from "../pages/Message/MessagesTab";
+import MessagesTab from "../features/communication/pages/MessagesTab";
 import Settings from "../pages/dashboards/student/pages/settings/Settings";
 
 // Communication Hub Imports
-import CommunicationHub from "../pages/communication/CommunicationHub";
-import InboxView from "../pages/communication/InboxView";
-import ThreadView from "../pages/communication/ThreadView";
-import ContactsPage from "../pages/communication/ContactsPage";
-import OfficeDirectory from "../pages/communication/OfficeDirectory";
+import CommunicationHub from "../features/communication/pages/CommunicationHub";
+import InboxView from "../features/communication/pages/InboxView";
+import ThreadView from "../features/communication/pages/ThreadView";
+import ContactsPage from "../features/communication/pages/ContactsPage";
+import OfficeDirectory from "../features/communication/pages/OfficeDirectory";
 
 export const studentRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -63,7 +66,18 @@ export const studentRoutes = [
     path="events/:eventId"
     element={
       <ProtectedRoute allowedRoles={["student", "class_rep"]}>
-        <EventDetails />
+        <EventDetailsPage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="event-create"
+    path="events/create"
+    element={
+      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+        <div className="p-6 max-w-4xl mx-auto">
+          <CreatorDashboard />
+        </div>
       </ProtectedRoute>
     }
   />,

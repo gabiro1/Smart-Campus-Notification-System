@@ -9,7 +9,7 @@ import NotificationCenter from "../../../../components/common/NotificationCenter
 import FloatingCopilot from "../../../../components/FloatingCopilot";
 import EmergencyBanner from "../../../../components/common/EmergencyBanner";
 
-export default function DashboardLayout() {
+export default function DeanLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [collapsed, setCollapsed] = useState(false);
@@ -33,7 +33,6 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
-      {/* Executive Ambient Glows */}
       <div className="fixed top-[-10%] left-[20%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none" />
       <div className="fixed bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/5 rounded-full blur-[150px] pointer-events-none" />
 
@@ -46,7 +45,6 @@ export default function DashboardLayout() {
       />
 
       <div className={`flex-1 flex flex-col ${sidebarWidth} relative z-10 h-screen overflow-hidden transition-all duration-300`}>
-        {/* Top Bar */}
         <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-border bg-card/50 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-4">
             {isMobile && (
@@ -96,7 +94,6 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        {/* Emergency Banner */}
         <EmergencyBanner />
 
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
@@ -113,7 +110,6 @@ export default function DashboardLayout() {
           </AnimatePresence>
         </main>
 
-        {/* Floating Copilot AI */}
         <FloatingCopilot />
       </div>
     </div>

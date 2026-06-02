@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import HODSidebar from "@/components/shared/HODSidebar";
 
-
-export default function DashboardLayout() {
+export default function HodLayout() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -23,7 +22,6 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Mobile Menu Toggle - Only visible on mobile */}
       {isMobile && (
         <button
           onClick={() => setIsOpen(true)}
@@ -37,16 +35,12 @@ export default function DashboardLayout() {
         </button>
       )}
 
-      {/* Main Content Wrapper - Shifted by Sidebar width */}
       <div className={`flex-1 min-h-screen relative z-10 flex flex-col transition-all duration-300 ${collapsed ? 'ml-20' : 'ml-20 md:ml-64'}`}>
-        {/* Main Content Area */}
         <main className="flex-1 flex flex-col w-full h-full relative pt-2">
-          {/* Page Content */}
           <Outlet />
         </main>
       </div>
 
-      {/* Persistent Navigation - Pass mobile state */}
       <HODSidebar
         isOpen={isOpen}
         setIsOpen={setIsOpen}
