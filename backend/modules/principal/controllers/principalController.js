@@ -465,7 +465,7 @@ const getEmailTransporter = () => {
 };
 
 const sendAccountSetupEmail = async (email, name, token) => {
-  const setupUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/set-password?token=${token}`;
+  const setupUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/set-password?token=${token}`;
   const transporter = getEmailTransporter();
   await transporter.sendMail({
     to: email,

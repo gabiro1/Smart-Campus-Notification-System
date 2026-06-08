@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { VitePWA } from 'vite-plugin-pwa' // ✅ ADDED
+import { VitePWA } from 'vite-plugin-pwa'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -13,17 +13,20 @@ export default defineConfig({
     react(),
     tailwindcss(),
 
-    // ✅ PWA CONFIG (ADDED — DOES NOT BREAK EXISTING SETUP)
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
-      includeAssets: [
-        'icons/icon-192x192.png',
-        'icons/icon-512x512.png'
-      ],
+      devOptions: {
+        enabled: true,
+        type: 'module'
+      },
+      includeAssets: ['icons/icon-192x192.png', 'icons/icon-512x512.png'],
       manifest: {
         id: '/',
-        name: 'Smart Campus Notification System',
-        short_name: 'SmartCampus',
+        name: 'UniNotify AI',
+        short_name: 'UniNotify AI',
         description: 'AI-Based Event Alert and Reminder System',
         theme_color: '#000000',
         background_color: '#000000',
@@ -31,46 +34,24 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         orientation: 'portrait',
+        categories: ['education', 'productivity'],
         icons: [
           {
             src: '/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any maskable'
           },
           {
             src: '/icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any maskable'
           }
         ]
       },
-      workbox: {
-        maximumFileSizeToCacheInBytes: 5000000,
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === 'document',
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'pages'
-            }
-          },
-          {
-            urlPattern: ({ request }) => request.destination === 'image',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images'
-            }
-          },
-          {
-            urlPattern: /\/api\//,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache'
-            }
-          }
-        ]
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 5000000
       }
     })
   ],
@@ -84,7 +65,7 @@ export default defineConfig({
   base: '/',
 
   optimizeDeps: {
-    include: ['firebase/app', 'firebase/auth']
+    include: ['firebase/app', 'firebase/auth', 'firebase/messaging']
   },
 
   build: {

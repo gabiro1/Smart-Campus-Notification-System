@@ -1,8 +1,10 @@
+import CreatorDashboard from "../../../../features/events/pages/CreatorDashboard";
+
 export default function DepartmentBroadcast() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Department Broadcast</h1>
-      <p className="text-muted-foreground">Send broadcast messages to your department.</p>
+    <div className="p-6 max-w-5xl mx-auto">
+      <h1 className="text-2xl font-bold text-foreground tracking-tight mb-6">Department Broadcast</h1>
+      <CreatorDashboard />
     </div>
   );
 }

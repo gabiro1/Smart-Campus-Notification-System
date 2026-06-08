@@ -14,6 +14,7 @@ import SupportPage from "../pages/dashboards/shared/SupportPage";
 import CreatorDashboard from "../features/events/pages/CreatorDashboard";
 import EventForm from "../features/events/pages/EventForm";
 import EventDetailsPage from "../features/events/pages/EventDetailsPage";
+import LecturerTimetable from "../pages/dashboards/lecturer/pages/LecturerTimetable";
 
 export const lecturerRoutes = [
   <Route key="index" index element={<Navigate to="console" replace />} />,
@@ -77,6 +78,15 @@ export const lecturerRoutes = [
     element={
       <ProtectedRoute allowedRoles={["lecturer"]}>
         <LecturerClasses />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="timetable"
+    path="timetable"
+    element={
+      <ProtectedRoute allowedRoles={["lecturer"]}>
+        <LecturerTimetable />
       </ProtectedRoute>
     }
   />,

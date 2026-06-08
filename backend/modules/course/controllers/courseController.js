@@ -5,7 +5,9 @@ import User from '../../user/model/User.js';
 // @desc    Create a new Course
 export const createCourse = async (req, res) => {
   try {
-    const { name, code, class: classId, lecturer } = req.body;
+    const { name, code, class: classId, lecturer, semester } = req.body;
+
+    if (!classId) return res.status(400).json({ message: "Class is required" });
 
     // Validate class exists
     const classExists = await Class.findById(classId);
@@ -25,7 +27,8 @@ export const createCourse = async (req, res) => {
       name,
       code,
       class: classId,
-      lecturer
+      lecturer,
+      semester
     });
 
     const populatedCourse = await Course.findById(course._id)
@@ -59,7 +62,7 @@ export const getAllCourses = async (req, res) => {
 // @desc    Update Course
 export const updateCourse = async (req, res) => {
   try {
-    const { name, code, class: classId, lecturer } = req.body;
+    const { name, code, class: classId, lecturer, semester } = req.body;
     const { id } = req.params;
 
     const course = await Course.findById(id);
@@ -94,6 +97,7 @@ export const updateCourse = async (req, res) => {
 
     if (name) course.name = name;
     if (code) course.code = code;
+    if (semester) course.semester = semester;
 
     await course.save();
 

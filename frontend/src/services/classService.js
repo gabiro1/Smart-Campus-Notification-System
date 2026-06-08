@@ -33,6 +33,30 @@ const classService = {
   createClass: async (classData) => {
     const response = await apiClient.post('/classes', classData);
     return response.data;
+  },
+
+  // 5. HOD: Get all lecturers in HOD's department
+  getLecturers: async () => {
+    const response = await apiClient.get('/classes/lecturers');
+    return response.data;
+  },
+
+  // 6. HOD: Assign a class to a lecturer
+  assignClassToLecturer: async (lecturerId, classId) => {
+    const response = await apiClient.post(`/classes/assign/${lecturerId}`, { classId });
+    return response.data;
+  },
+
+  // 7. HOD: Remove a class from a lecturer
+  removeClassFromLecturer: async (lecturerId, classId) => {
+    const response = await apiClient.delete(`/classes/remove/${lecturerId}/${classId}`);
+    return response.data;
+  },
+
+  // 8. HOD: Update lecturer info
+  updateLecturerInfo: async (lecturerId, data) => {
+    const response = await apiClient.put(`/classes/lecturer/${lecturerId}`, data);
+    return response.data;
   }
 };
 

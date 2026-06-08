@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { X, Bell, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import Logo from "../ui/Logo";
 
 /**
  * Unified Sidebar component with clean admin-style design
@@ -27,9 +28,7 @@ export default function Sidebar({
       <div className={`h-14 flex items-center ${navCollapsed ? 'justify-center px-2' : 'px-4'} border-b border-border shrink-0`}>
         {brand || (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
-              <Bell size={16} />
-            </div>
+            <Logo />
             {!navCollapsed && (
               <div>
                 <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify AI</h2>

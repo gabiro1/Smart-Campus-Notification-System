@@ -15,6 +15,7 @@ import {
   Command,
   MessageCircle,
   X,
+  Clock,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
@@ -28,6 +29,7 @@ const mainItems = [
 ];
 
 const academicItems = [
+  { icon: Clock, label: "Timetable", path: "/lecturer/timetable" },
   { icon: BarChart3, label: "Analytics", path: "/lecturer/analytics" },
   { icon: Scale, label: "Governance", path: "/lecturer/governance" },
 ];

@@ -36,12 +36,6 @@ const classSchema = new mongoose.Schema({
     type: String,
     required: true, // e.g., "2025-2026"
   },
-  semester: {
-    type: String,
-    required: true,
-    enum: ['Semester 1', 'Semester 2'],
-    default: 'Semester 1'
-  },
   isActive: {
     type: Boolean,
     default: true

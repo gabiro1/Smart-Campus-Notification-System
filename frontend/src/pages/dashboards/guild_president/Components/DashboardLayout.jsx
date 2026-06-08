@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Menu, Sun, Moon, Bell } from "lucide-react";
-import Sidebar from "@/components/shared/GuildSidebar";
+import Sidebar from "../../../../components/layout/GuildSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../../../context/ThemeContext";
 import { useAuth } from "../../../../context/AuthContext";

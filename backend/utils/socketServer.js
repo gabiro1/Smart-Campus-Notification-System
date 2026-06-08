@@ -46,7 +46,7 @@ const authMiddleware = async (socket, next) => {
   }
 };
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173").split(",").map(s => s.trim());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000").split(",").map(s => s.trim());
 
 export const initSocket = (server) => {
   io = new Server(server, {

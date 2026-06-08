@@ -17,6 +17,7 @@ import {
   CalendarCheck,
   PlusCircle,
 } from "lucide-react";
+import Logo from "../ui/Logo";
 
 const guildItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/guild/overview" },
@@ -46,19 +47,22 @@ export default function GuildSidebar(props) {
       menuItems={guildItems}
       width="w-72"
       brand={
-        <button className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-accent transition-all group">
-          <div className="w-9 h-9 flex-shrink-0 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center font-bold border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-            {user?.name?.charAt(0) || 'G'}
-          </div>
-          <div className="hidden md:flex flex-col items-start ml-3">
-            <span className="text-sm font-bold text-foreground tracking-tight">Guild Portal</span>
-            <span className="text-[10px] text-blue-500/80 font-medium">President Dashboard</span>
-          </div>
-          <div className="hidden md:flex flex-col gap-1 text-muted-foreground group-hover:text-foreground ml-auto">
-            <ChevronUp size={12} className="-mb-1" />
-            <ChevronDown size={12} />
-          </div>
-        </button>
+        <div className="space-y-2">
+          <Logo />
+          <button className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-accent transition-all group">
+            <div className="w-9 h-9 flex-shrink-0 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center font-bold border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+              {user?.name?.charAt(0) || 'G'}
+            </div>
+            <div className="hidden md:flex flex-col items-start ml-3">
+              <span className="text-sm font-bold text-foreground tracking-tight">Guild Portal</span>
+              <span className="text-[10px] text-blue-500/80 font-medium">President Dashboard</span>
+            </div>
+            <div className="hidden md:flex flex-col gap-1 text-muted-foreground group-hover:text-foreground ml-auto">
+              <ChevronUp size={12} className="-mb-1" />
+              <ChevronDown size={12} />
+            </div>
+          </button>
+        </div>
       }
       footer={
         <div className="space-y-2">

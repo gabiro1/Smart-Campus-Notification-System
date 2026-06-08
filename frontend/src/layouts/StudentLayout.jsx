@@ -1,66 +1,58 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import StudentNav from "../pages/dashboards/student/component/StudentNav";
-import FloatingCopilot from "../components/FloatingCopilot";
-import StudentHeader from "../pages/dashboards/student/component/StudentHeader"; 
+import StudentHeader from "../pages/dashboards/student/component/StudentHeader";
 import OnboardingWizard from "../components/onboarding/OnboardingWizard";
 import { useAuth } from "../context/AuthContext";
-import EmergencyBanner from "../components/common/EmergencyBanner";
 
 export default function StudentLayout() {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      const tablet = window.innerWidth >= 768 && window.innerWidth < 1024;
-      setIsMobile(mobile);
-      setIsTablet(tablet);
-      setSidebarCollapsed(mobile || tablet);
+    const check = () => {
+      setIsMobile(window.innerWidth < 768);
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
 
   const toggleSidebar = () => {
     if (isMobile) {
-      setSidebarOpen(!sidebarOpen);
+      setSidebarOpen((prev) => !prev);
     } else {
-      setSidebarCollapsed(!sidebarCollapsed);
+      setSidebarCollapsed((prev) => !prev);
     }
   };
 
-  const effectiveCollapsed = sidebarCollapsed || isTablet;
+  const sidebarWidth = isMobile ? 0 : sidebarCollapsed ? 64 : 240;
 
   return (
-    <div className="min-h-screen bg-card relative">
-      <StudentNav 
-        collapsed={effectiveCollapsed} 
-        onToggle={toggleSidebar} 
+    <div className="min-h-screen bg-neutral-950 text-neutral-200">
+      <StudentNav
+        collapsed={sidebarCollapsed}
+        onToggle={toggleSidebar}
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
         isMobile={isMobile}
       />
 
-      <div 
-        className={`flex-1 min-h-screen relative z-10 flex flex-col transition-all duration-300 ${
-          isMobile ? 'ml-14' : (effectiveCollapsed ? 'ml-16' : 'ml-56')
-        }`}
+      <div
+        style={{ marginLeft: sidebarWidth }}
+        className="flex flex-col min-h-screen transition-all duration-200 ease-in-out"
       >
-        <StudentHeader onToggleSidebar={toggleSidebar} collapsed={effectiveCollapsed} />
-        <EmergencyBanner />
-        <main className="flex-1 flex flex-col w-full h-full relative pt-2">
+        <StudentHeader onToggleSidebar={toggleSidebar} />
+        <main className="flex-1">
           <Outlet />
         </main>
-        <FloatingCopilot />
       </div>
 
-      {user?.role === 'student' && !user?.hasCompletedOnboarding && <OnboardingWizard />}
+      {user?.role === "student" && !user?.hasCompletedOnboarding && (
+        <OnboardingWizard />
+      )}
     </div>
   );
 }

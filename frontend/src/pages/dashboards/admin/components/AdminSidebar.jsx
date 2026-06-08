@@ -24,6 +24,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import Logo from "../../../../components/ui/Logo";
 import notificationService from "../../../../services/notificationService";
 
 const navSections = [
@@ -194,21 +195,19 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
               className="fixed left-0 top-0 h-screen z-50 w-72 bg-card border-r border-border flex flex-col"
             >
               <div className="h-14 flex items-center justify-between px-4 border-b border-border shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
-                    <LayoutDashboard size={16} />
-                  </div>
-                  <div>
-                    <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify</h2>
-                    <p className="text-[10px] text-muted-foreground">Smart Campus Notification</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <X size={18} />
-                </button>
+          <div className="flex items-center gap-2.5">
+            <Logo />
+            <div>
+              <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify</h2>
+              <p className="text-[10px] text-muted-foreground">Admin Console</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-2 rounded-lg hover:bg-accent transition-colors"
+          >
+            <X size={18} />
+          </button>
               </div>
 
               <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1 custom-scrollbar">
@@ -290,9 +289,7 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shrink-0">
-            <LayoutDashboard size={16} />
-          </div>
+          <Logo />
           {!collapsed && (
             <div>
               <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify</h2>

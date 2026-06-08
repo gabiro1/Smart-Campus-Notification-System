@@ -10,7 +10,6 @@ import { useRealTimeNotifications } from "./hooks/useRealTimeNotifications";
 import SkipLink from "./components/shared/layout/SkipLink";
 import InstallPrompt from "./components/InstallPrompt";
 import IOSInstallPrompt from "./components/IOSInstallPrompt";
-import UpdatePrompt from "./components/UpdatePrompt";
 
 import { initSWListener } from "./lib/swListener";
 import { processSyncQueue } from "./lib/syncQueue";
@@ -27,40 +26,7 @@ function App() {
   }, []);
 
   // ===============================
-  // 2. Global PWA Install Event Handler
-  // ===============================
-  useEffect(() => {
-    const handler = (e) => {
-      // Stop automatic browser mini-infobar install
-      e.preventDefault();
-
-      // Store event globally
-      window.deferredPrompt = e;
-
-      // Notify UI that install is available
-      window.dispatchEvent(new Event("pwa-install-ready"));
-    };
-
-    window.addEventListener("beforeinstallprompt", handler);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-    };
-  }, []);
-
-  // ===============================
-  // 3. Optional Service Worker Registration (safety net)
-  // ===============================
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch((err) => {
-        console.error("SW registration failed:", err);
-      });
-    }
-  }, []);
-
-  // ===============================
-  // 4. Activity heartbeat - track last active
+  // 2. Activity heartbeat - track last active
   // ===============================
   const lastBeatRef = useRef(0);
   const location = useLocation();
@@ -124,7 +90,6 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
 
       <SkipLink />
-      <UpdatePrompt />
       <InstallPrompt />
       <IOSInstallPrompt />
 

@@ -424,6 +424,20 @@ createUser: async (userData) => {
     const response = await apiClient.delete(`/roles/${id}`);
     return response.data;
   },
+
+  // ==========================================
+  // CSV BULK UPLOAD
+  // ==========================================
+
+  bulkUpload: async (endpoint, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post(`/admin/bulk/${endpoint}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    });
+    return response.data;
+  },
 };
 
 export default adminService;

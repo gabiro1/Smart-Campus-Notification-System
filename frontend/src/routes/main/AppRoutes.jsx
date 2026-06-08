@@ -11,7 +11,7 @@ import ForcePasswordChange from "../../features/auth/pages/ForcePasswordChange";
 
 // --- LAYOUTS ONLY ---
 import AdminLayout from "../../layouts/AdminLayout";
-import StudentLayout from "../../layouts/StudentLayout";
+import StudentLayout from "../../pages/dashboards/student/components/StudentDashboardLayout";
 import GuildLayout from "../../pages/dashboards/guild_president/components/DashboardLayout";
 import LecturerLayout from "../../pages/dashboards/lecturer/components/DashboardLayout";
 import HodLayout from "../../pages/dashboards/hod/components/DashboardLayout";

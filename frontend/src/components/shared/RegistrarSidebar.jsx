@@ -5,6 +5,7 @@ import {
   LayoutDashboard, UserPlus, Users, BarChart3, Calendar,
   LogOut, GraduationCap,
 } from "lucide-react";
+import Logo from "../ui/Logo";
 
 const sections = [
   {
@@ -55,9 +56,7 @@ export default function RegistrarSidebar({ collapsed, onToggleCollapse, ...props
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
-            <GraduationCap size={18} />
-          </div>
+          <Logo />
           {!collapsed && (
             <div>
               <h2 className="text-sm font-bold text-foreground tracking-wide">UniNotify</h2>

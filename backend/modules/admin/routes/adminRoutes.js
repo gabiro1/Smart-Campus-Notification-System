@@ -27,12 +27,21 @@ import {
     deleteHRAccount,
     createRegistrarAccount,
     emergencyOverride,
-    getRolePermissions
+    getRolePermissions,
+    bulkUploadColleges,
+    bulkUploadSchools,
+    bulkUploadDepartments,
+    bulkUploadClasses,
+    bulkUploadCourses,
+    bulkUploadStudents,
+    bulkUploadLecturers,
+    bulkUploadUsers
 } from '../controller/adminController.js';
 import { protect, authorize } from '../../../middleware/authMiddleware.js';
 import { getAcademicHierarchy } from '../controller/adminController.js';
 import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
+import upload from '../../../middleware/uploadMiddleware.js';
 
 // All admin routes require authentication and admin, principal, or hod role
 router.use(protect, authorize('admin', 'principal', 'hod'));
@@ -157,5 +166,17 @@ router.delete('/hr-accounts/:id', authorize('admin'), deleteHRAccount);
 router.post('/registrar-accounts', authorize('admin'), createRegistrarAccount);
 // Emergency override
 router.post('/emergency-override', authorize('admin'), emergencyOverride);
+
+// ==========================================
+// CSV BULK UPLOAD ROUTES (Admin only)
+// ==========================================
+router.post('/bulk/colleges', authorize('admin'), upload.single('file'), bulkUploadColleges);
+router.post('/bulk/schools', authorize('admin'), upload.single('file'), bulkUploadSchools);
+router.post('/bulk/departments', authorize('admin'), upload.single('file'), bulkUploadDepartments);
+router.post('/bulk/classes', authorize('admin'), upload.single('file'), bulkUploadClasses);
+router.post('/bulk/courses', authorize('admin'), upload.single('file'), bulkUploadCourses);
+router.post('/bulk/students', authorize('admin'), upload.single('file'), bulkUploadStudents);
+router.post('/bulk/lecturers', authorize('admin'), upload.single('file'), bulkUploadLecturers);
+router.post('/bulk/users', authorize('admin'), upload.single('file'), bulkUploadUsers);
 
 export default router;

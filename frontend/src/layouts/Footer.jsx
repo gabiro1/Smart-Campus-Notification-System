@@ -2,6 +2,7 @@ import { Github, Twitter, Linkedin, Mail, MapPin, Smartphone } from "lucide-reac
 import { Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
+import Logo from "../components/ui/Logo";
 
 export default function Footer() {
   const [appUrl, setAppUrl] = useState("");
@@ -34,9 +35,12 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="lg:col-span-1 space-y-6">
-            <Link to="/" className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">UniNotify</span>
-              <span className="text-xl font-bold text-blue-500">AI</span>
+            <Link to="/">
+              <img
+                src="/logo/Uninotify.png"
+                alt="UniNotify AI"
+                className="h-9 w-auto object-contain dark:brightness-0 dark:invert"
+              />
             </Link>
 
             <p className="text-muted-foreground text-sm leading-relaxed">

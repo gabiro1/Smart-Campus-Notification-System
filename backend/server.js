@@ -79,10 +79,9 @@ app.use(helmet({
 }));
 
 // CORS: Must come after Helmet but before rate limiting
-// Configure to allow your React frontend (localhost:5173) and mobile app
+// Configure to allow your React frontend (localhost:3000) and mobile app
 app.use(cors({
   origin: [
-    'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:8000',
     'https://smart-campus-notification-system.vercel.app'

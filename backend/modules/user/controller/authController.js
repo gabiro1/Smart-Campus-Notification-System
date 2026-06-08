@@ -32,7 +32,7 @@ const getTransporter = () => {
 };
 
 const sendVerificationEmail = async (email, token) => {
-  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${token}`;
+  const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
   const transporter = getTransporter();
   await transporter.sendMail({
     to: email,
@@ -76,7 +76,7 @@ const sendVerificationEmail = async (email, token) => {
 };
 
 const sendPasswordResetEmail = async (email, token) => {
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
   const transporter = getTransporter();
   await transporter.sendMail({
     to: email,
@@ -194,7 +194,18 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const query = email.includes('@') ? { email: email.toLowerCase().trim() } : { registrationNumber: email.trim().toUpperCase() };
+    let query;
+    if (!email.includes('@')) {
+      const identifier = email.trim().toUpperCase();
+      query = {
+        $or: [
+          { registrationNumber: identifier },
+          { studentID: identifier }
+        ]
+      };
+    } else {
+      query = { email: email.toLowerCase().trim() };
+    }
 
     const user = await User.findOne(query)
       .select('+password')

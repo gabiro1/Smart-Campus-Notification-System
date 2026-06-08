@@ -13,6 +13,7 @@ import CpApprovals from "../pages/dashboards/hod/pages/CpApprovals";
 import CreatorDashboard from "../features/events/pages/CreatorDashboard";
 import EventForm from "../features/events/pages/EventForm";
 import EventDetailsPage from "../features/events/pages/EventDetailsPage";
+import HodTimetable from "../pages/dashboards/hod/pages/HodTimetable";
 
 export const hodRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -49,6 +50,15 @@ export const hodRoutes = [
     element={
       <ProtectedRoute allowedRoles={["hod"]}>
         <LecturerManagement />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="timetable"
+    path="timetable"
+    element={
+      <ProtectedRoute allowedRoles={["hod"]}>
+        <HodTimetable />
       </ProtectedRoute>
     }
   />,

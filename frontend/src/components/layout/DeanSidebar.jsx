@@ -13,6 +13,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Logo from "../ui/Logo";
 
 const navSections = [
   {
@@ -71,9 +72,7 @@ export default function DeanSidebar(props) {
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-500">
-            <GraduationCap size={18} />
-          </div>
+          <Logo />
           <div>
             <h2 className="text-sm font-bold text-foreground tracking-wide">UniCore OS</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Dean Portal</p>

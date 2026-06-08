@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X, Send, Trash2, Bot, User } from "lucide-react";
+import Logo from "./ui/Logo";
 import apiClient from "../services/apiClient";
 
 export default function FloatingCopilot() {
@@ -112,8 +113,8 @@ export default function FloatingCopilot() {
             <div className="flex items-center justify-between px-4 py-4 border-b border-white/10 bg-white/[0.02]">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                    <Sparkles size={16} className="text-emerald-400" />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                    <Logo size="sm" />
                   </div>
                   <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-border"></div>
                 </div>

@@ -2,7 +2,7 @@ import User from '../../user/model/User.js';
 import Class from '../../class/model/Class.js';
 import Department from '../../department/model/Department.js';
 import AuditLog from '../../audit/models/AuditLog.js';
-import Counter, { getNextSequence } from '../../../../models/Counter.js';
+import Counter, { getNextSequence } from '../../../models/Counter.js';
 import bcrypt from 'bcryptjs';
 import { generateURStudentID } from '../../../middleware/authMiddleware.js';
 

@@ -40,7 +40,7 @@ export default function RegistrarTopbar({ title = "Dashboard", onMenuClick, onCo
         >
           <PanelLeftOpen size={18} className="text-foreground" />
         </button>
-        <h1 className="text-[15px] font-medium text-foreground hidden lg:block">{title}</h1>
+        <h1 className="text-[15px] font-medium text-foreground hidden lg:block cursor-pointer hover:text-emerald-400 transition-colors" onClick={() => navigate("/registrar/dashboard")}>{title}</h1>
       </div>
 
       <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-2 text-muted-foreground text-[13px] cursor-text hover:border-emerald-500/50 transition-colors flex-1 max-w-sm relative">

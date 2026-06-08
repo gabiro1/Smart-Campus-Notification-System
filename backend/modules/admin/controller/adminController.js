@@ -2,6 +2,7 @@ import User from "../../user/model/User.js";
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { parse } from 'csv-parse/sync';
 import Event from '../../event/model/Event.js';
 import NotificationLog from '../../notification/models/NotificationLog.js';
 import Reminder from '../../reminder/model/Reminder.js';
@@ -10,6 +11,8 @@ import Announcement from '../../announcement/model/Announcement.js';
 import College from '../../college/model/College.js';
 import School from '../../school/model/School.js';
 import Department from '../../department/model/Department.js';
+import Class from '../../class/model/Class.js';
+import Course from '../../course/model/Course.js';
 import SystemSettings from '../../settings/model/SystemSettings.js';
 import Role from '../../role/model/Role.js';
 import { chat } from '../../../services/aiProvider.js';
@@ -1072,7 +1075,7 @@ const getEmailTransporter = () => {
 };
 
 const sendAccountSetupEmail = async (email, name, token) => {
-  const setupUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/set-password?token=${token}`;
+  const setupUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/set-password?token=${token}`;
   const transporter = getEmailTransporter();
   await transporter.sendMail({
     to: email,
@@ -1338,6 +1341,560 @@ export const getRolePermissions = async (req, res) => {
       admin: { level: 9, canCreate: true, canApprove: true, dashboard: 'admin', emergencyOverride: true }
     };
     res.json({ success: true, data: rolePermissions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================================
+// CSV BULK UPLOAD
+// ==========================================
+
+const parseCSVBuffer = (buffer) => {
+  const raw = parse(buffer, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true,
+    relax_column_count: true,
+  });
+  return raw;
+};
+
+const lowerKeys = (obj) => {
+  const result = {};
+  for (const key of Object.keys(obj)) {
+    result[key.toLowerCase().replace(/[^a-z0-9]/g, '')] = obj[key];
+  }
+  return result;
+};
+
+/**
+ * @desc    Bulk upload Colleges from CSV
+ * @route   POST /api/admin/bulk/colleges
+ */
+export const bulkUploadColleges = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.collegename;
+        const code = (row.code || row.collegecode || '').toUpperCase();
+        const principalEmail = row.principalemail || row.principal || '';
+
+        if (!name || !code) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name or code' });
+          results.skipped++; continue;
+        }
+
+        const exists = await College.findOne({ code });
+        if (exists) { results.skipped++; continue; }
+
+        let principalId = null;
+        if (principalEmail) {
+          const principalUser = await User.findOne({ email: principalEmail.toLowerCase().trim() });
+          if (principalUser) {
+            principalUser.role = 'principal';
+            principalUser.college = null;
+            await principalUser.save();
+            principalId = principalUser._id;
+          }
+        }
+
+        await College.create({ name, code, principal: principalId });
+        results.created++;
+      } catch (err) {
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'COLLEGE', `Bulk uploaded ${results.created} colleges (${results.skipped} skipped)`);
+    res.status(200).json({ success: true, message: `Created ${results.created} colleges`, ...results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Bulk upload Schools from CSV
+ * @route   POST /api/admin/bulk/schools
+ */
+export const bulkUploadSchools = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.schoolname;
+        const code = (row.code || row.schoolcode || '').toUpperCase();
+        const collegeCode = (row.collegecode || row.college || '').toUpperCase();
+        const deanEmail = row.deanemail || row.dean || '';
+
+        if (!name || !code || !collegeCode) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name, code, or collegeCode' });
+          results.skipped++; continue;
+        }
+
+        const college = await College.findOne({ code: collegeCode });
+        if (!college) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: `College "${collegeCode}" not found` });
+          results.skipped++; continue;
+        }
+
+        const exists = await School.findOne({ code });
+        if (exists) { results.skipped++; continue; }
+
+        let deanId = null;
+        if (deanEmail) {
+          const deanUser = await User.findOne({ email: deanEmail.toLowerCase().trim() });
+          if (deanUser) {
+            deanUser.role = 'dean';
+            deanUser.school = null;
+            await deanUser.save();
+            deanId = deanUser._id;
+          }
+        }
+
+        await School.create({ name, code, college: college._id, dean: deanId });
+        results.created++;
+      } catch (err) {
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'SCHOOL', `Bulk uploaded ${results.created} schools`);
+    res.status(200).json({ success: true, message: `Created ${results.created} schools`, ...results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Bulk upload Departments from CSV
+ * @route   POST /api/admin/bulk/departments
+ */
+export const bulkUploadDepartments = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.departmentname;
+        const code = (row.code || row.departmentcode || '').toUpperCase();
+        const schoolCode = (row.schoolcode || row.school || '').toUpperCase();
+        const hodEmail = row.hodemail || row.hod || '';
+
+        if (!name || !code || !schoolCode) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name, code, or schoolCode' });
+          results.skipped++; continue;
+        }
+
+        const school = await School.findOne({ code: schoolCode }).populate('college', '_id');
+        if (!school) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: `School "${schoolCode}" not found` });
+          results.skipped++; continue;
+        }
+
+        const exists = await Department.findOne({ code });
+        if (exists) { results.skipped++; continue; }
+
+        let hodId = null;
+        if (hodEmail) {
+          const hodUser = await User.findOne({ email: hodEmail.toLowerCase().trim() });
+          if (hodUser) {
+            hodUser.role = 'hod';
+            hodUser.department = null;
+            hodUser.school = school._id;
+            hodUser.college = school.college?._id || null;
+            await hodUser.save();
+            hodId = hodUser._id;
+          }
+        }
+
+        await Department.create({ name, code, school: school._id, hod: hodId });
+        results.created++;
+      } catch (err) {
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'DEPARTMENT', `Bulk uploaded ${results.created} departments`);
+    res.status(200).json({ success: true, message: `Created ${results.created} departments`, ...results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Bulk upload Classes from CSV
+ * @route   POST /api/admin/bulk/classes
+ */
+export const bulkUploadClasses = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.classname;
+        const code = (row.code || row.classcode || '').toUpperCase();
+        const deptCode = (row.departmentcode || row.department || '').toUpperCase();
+        const level = row.level || row.year || '1';
+        const academicYear = row.academicyear || row.acyear || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+
+        if (!name || !code || !deptCode) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name, code, or departmentCode' });
+          results.skipped++; continue;
+        }
+
+        const dept = await Department.findOne({ code: deptCode });
+        if (!dept) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: `Department "${deptCode}" not found` });
+          results.skipped++; continue;
+        }
+
+        const exists = await Class.findOne({ code, academicYear });
+        if (exists) { results.skipped++; continue; }
+
+        await Class.create({
+          name, code, department: dept._id,
+          level: parseInt(level) || 1,
+          academicYear: academicYear || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`
+        });
+        results.created++;
+      } catch (err) {
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'CLASS', `Bulk uploaded ${results.created} classes`);
+    res.status(200).json({ success: true, message: `Created ${results.created} classes`, ...results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Bulk upload Courses from CSV
+ * @route   POST /api/admin/bulk/courses
+ */
+export const bulkUploadCourses = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.coursename;
+        const code = (row.code || row.coursecode || '').toUpperCase();
+        const classCode = (row.classcode || row.class || '').toUpperCase();
+        const lecturerEmail = row.lectureremail || row.lecturer || '';
+        const semester = row.semester || 'Semester 1';
+
+        if (!name || !code || !classCode) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name, code, or classCode' });
+          results.skipped++; continue;
+        }
+
+        const cls = await Class.findOne({ code: classCode });
+        if (!cls) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: `Class "${classCode}" not found` });
+          results.skipped++; continue;
+        }
+
+        const exists = await Course.findOne({ code, class: cls._id });
+        if (exists) { results.skipped++; continue; }
+
+        let lecturerId = null;
+        if (lecturerEmail) {
+          const lecturerUser = await User.findOne({ email: lecturerEmail.toLowerCase().trim() });
+          if (lecturerUser) {
+            if (lecturerUser.role !== 'lecturer') {
+              lecturerUser.role = 'lecturer';
+              await lecturerUser.save();
+            }
+            lecturerId = lecturerUser._id;
+          }
+        }
+
+        await Course.create({ name, code, class: cls._id, lecturer: lecturerId, semester });
+        results.created++;
+      } catch (err) {
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'COURSE', `Bulk uploaded ${results.created} courses`);
+    res.status(200).json({ success: true, message: `Created ${results.created} courses`, ...results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Bulk upload Students from CSV
+ * @route   POST /api/admin/bulk/students
+ */
+export const bulkUploadStudents = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.studentname || row.fullname;
+        const email = (row.email || row.studentemail || '').toLowerCase().trim();
+        const password = row.password || 'Student@123';
+        const phoneNumber = row.phonenumber || row.phone || '';
+        const classCode = (row.classcode || row.class || '').toUpperCase();
+        const level = row.level || row.year || '';
+
+        if (!name || !email) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name or email' });
+          results.skipped++; continue;
+        }
+
+        const existing = await User.findOne({ email });
+        if (existing) { results.skipped++; continue; }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        let resolvedDept = null;
+        let resolvedSchool = null;
+        let resolvedCollege = null;
+        let resolvedLevel = level;
+        let resolvedClassId = null;
+
+        if (classCode) {
+          const cls = await Class.findOne({ code: classCode }).populate({
+            path: 'department',
+            select: 'school',
+            populate: { path: 'school', select: 'college' }
+          });
+          if (cls) {
+            resolvedClassId = cls._id;
+            resolvedDept = cls.department?._id || null;
+            resolvedSchool = cls.department?.school?._id || null;
+            resolvedCollege = cls.department?.school?.college || null;
+            resolvedLevel = resolvedLevel || cls.level;
+          }
+        }
+
+        if (!resolvedLevel) resolvedLevel = '1';
+
+        const student = await User.create({
+          name, email, password: hashedPassword,
+          phoneNumber,
+          role: 'student',
+          status: 'ACTIVE',
+          mustChangePassword: true,
+          createdBy: req.user._id,
+          classId: resolvedClassId,
+          department: resolvedDept,
+          school: resolvedSchool,
+          college: resolvedCollege,
+          level: resolvedLevel
+        });
+
+        if (resolvedClassId) {
+          await Class.findByIdAndUpdate(resolvedClassId, { $addToSet: { students: student._id } });
+        }
+
+        results.created++;
+      } catch (err) {
+        if (err.code === 11000) { results.skipped++; continue; }
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'STUDENT', `Bulk uploaded ${results.created} students`);
+    res.status(200).json({ success: true, message: `Created ${results.created} students`, ...results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Bulk upload Lecturers from CSV
+ * @route   POST /api/admin/bulk/lecturers
+ */
+export const bulkUploadLecturers = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.lecturername || row.fullname;
+        const email = (row.email || row.lectureremail || '').toLowerCase().trim();
+        const password = row.password || 'Lecturer@123';
+        const phoneNumber = row.phonenumber || row.phone || '';
+        const departmentCode = (row.departmentcode || row.department || '').toUpperCase();
+
+        if (!name || !email) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name or email' });
+          results.skipped++; continue;
+        }
+
+        const existing = await User.findOne({ email });
+        if (existing) { results.skipped++; continue; }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        let deptId = null;
+        let schoolId = null;
+        let collegeId = null;
+
+        if (departmentCode) {
+          const dept = await Department.findOne({ code: departmentCode }).populate({
+            path: 'school',
+            select: 'college'
+          });
+          if (dept) {
+            deptId = dept._id;
+            schoolId = dept.school?._id || null;
+            collegeId = dept.school?.college || null;
+          }
+        }
+
+        await User.create({
+          name, email, password: hashedPassword,
+          phoneNumber,
+          role: 'lecturer',
+          status: 'ACTIVE',
+          createdBy: req.user._id,
+          department: deptId,
+          school: schoolId,
+          college: collegeId
+        });
+
+        results.created++;
+      } catch (err) {
+        if (err.code === 11000) { results.skipped++; continue; }
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'LECTURER', `Bulk uploaded ${results.created} lecturers`);
+    res.status(200).json({ success: true, message: `Created ${results.created} lecturers`, ...results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc    Bulk upload Users from CSV
+ * @route   POST /api/admin/bulk/users
+ */
+export const bulkUploadUsers = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'CSV file is required' });
+    const rows = parseCSVBuffer(req.file.buffer);
+    if (rows.length === 0) return res.status(400).json({ success: false, message: 'CSV file is empty' });
+
+    const results = { total: rows.length, created: 0, skipped: 0, errors: [] };
+
+    for (const raw of rows) {
+      const row = lowerKeys(raw);
+      try {
+        const name = row.name || row.fullname;
+        const email = (row.email || '').toLowerCase().trim();
+        const password = row.password || 'User@123';
+        const phoneNumber = row.phonenumber || row.phone || '';
+        const role = (row.role || 'student').toLowerCase();
+        const departmentCode = (row.departmentcode || row.department || '').toUpperCase();
+
+        if (!name || !email) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: 'Missing name or email' });
+          results.skipped++; continue;
+        }
+
+        const validRoles = ['student', 'lecturer', 'hod', 'dean', 'principal', 'admin', 'registrar', 'hr'];
+        if (!validRoles.includes(role)) {
+          results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: `Invalid role "${role}"` });
+          results.skipped++; continue;
+        }
+
+        const existing = await User.findOne({ email });
+        if (existing) { results.skipped++; continue; }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        let deptId = null;
+        let schoolId = null;
+        let collegeId = null;
+
+        if (departmentCode) {
+          const dept = await Department.findOne({ code: departmentCode }).populate({
+            path: 'school',
+            select: 'college'
+          });
+          if (dept) {
+            deptId = dept._id;
+            schoolId = dept.school?._id || null;
+            collegeId = dept.school?.college || null;
+          }
+        }
+
+        await User.create({
+          name, email, password: hashedPassword,
+          phoneNumber,
+          role,
+          status: 'ACTIVE',
+          createdBy: req.user._id,
+          department: deptId,
+          school: schoolId,
+          college: collegeId
+        });
+
+        results.created++;
+      } catch (err) {
+        if (err.code === 11000) { results.skipped++; continue; }
+        results.errors.push({ row: results.created + results.skipped + results.errors.length + 1, reason: err.message });
+        results.skipped++;
+      }
+    }
+
+    await logAuditAction(req.user._id, 'BULK_UPLOAD', null, 'USER', `Bulk uploaded ${results.created} users`);
+    res.status(200).json({ success: true, message: `Created ${results.created} users`, ...results });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -12,9 +12,9 @@ import {
   Moon,
   Menu,
   X,
-  Sparkles,
 } from "lucide-react";
 
+import Logo from "../components/ui/Logo";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 
@@ -55,17 +55,13 @@ export default function Navbar() {
         <div className="bg-card/80 backdrop-blur-2xl rounded-full px-6 py-2.5 shadow-xl shadow-black/5">
           <div className="flex items-center justify-between gap-4">
             {/* Brand */}
-            <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <Link to="/" className="flex items-center shrink-0">
               <motion.div
-                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg"
               >
-                <Sparkles className="text-white" size={14} />
+                <Logo showText />
               </motion.div>
-              <span className="text-base font-bold text-foreground tracking-tight">
-                Uni<span className="text-blue-500">Notify</span>
-              </span>
             </Link>
 
             {/* Navigation Links */}
@@ -109,6 +105,13 @@ export default function Navbar() {
                     <>
                       <NavLink to="/hr/dashboard" label="Dashboard" active={isActive("/hr/dashboard")} />
                       <NavLink to="/hr/drafts" label="Workflow" active={isActive("/hr/drafts")} />
+                    </>
+                  )}
+                  {user.role === "registrar" && (
+                    <>
+                      <NavLink to="/registrar/dashboard" label="Dashboard" active={isActive("/registrar/dashboard")} />
+                      <NavLink to="/registrar/classes" label="Classes" active={isActive("/registrar/classes")} />
+                      <NavLink to="/registrar/courses" label="Courses" active={isActive("/registrar/courses")} />
                     </>
                   )}
                 </>
@@ -250,13 +253,8 @@ export default function Navbar() {
       >
         <div className="flex items-center justify-between px-4 py-3">
           {/* Brand */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-              <Sparkles className="text-white" size={14} />
-            </div>
-            <span className="text-base font-bold text-foreground">
-              Uni<span className="text-blue-500">Notify</span>
-            </span>
+          <Link to="/" className="flex items-center">
+            <Logo showText />
           </Link>
 
           {/* Right Controls */}
@@ -356,6 +354,13 @@ export default function Navbar() {
                       <>
                         <MobileMenuLink to="/hr/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/hr/drafts" label="Workflow" onClick={() => setMobileMenuOpen(false)} />
+                      </>
+                    )}
+                    {user.role === "registrar" && (
+                      <>
+                        <MobileMenuLink to="/registrar/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/registrar/classes" label="Classes" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/registrar/courses" label="Courses" onClick={() => setMobileMenuOpen(false)} />
                       </>
                     )}
                     <div className="pt-4 border-t space-y-1">

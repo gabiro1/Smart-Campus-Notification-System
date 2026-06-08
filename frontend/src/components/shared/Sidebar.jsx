@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { X, Bell, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import Logo from "../ui/Logo";
 
 export default function Sidebar({
   isOpen: _isOpen,
@@ -17,19 +18,43 @@ export default function Sidebar({
 
   const sidebarContent = (
     <div className={`flex flex-col h-full ${bgClass} border-r border-border ${navCollapsed ? 'w-16' : width}`}>
-      <div className={`h-14 flex items-center ${navCollapsed ? 'justify-center px-2' : 'px-4'} border-b border-border shrink-0`}>
-        {brand || (
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">
-              <Bell size={16} />
-            </div>
-            {!navCollapsed && (
-              <div>
-                <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify AI</h2>
-                <p className="text-[10px] text-muted-foreground">Smart Campus Notification</p>
-              </div>
+      <div className={`h-14 flex items-center ${navCollapsed ? 'justify-center px-2' : 'px-4'} border-b border-border shrink-0 gap-2`}>
+        {navCollapsed ? (
+          <>
+            {brand && <div className="flex-1 flex justify-center">{brand}</div>}
+            {!isMobile && (
+              <button
+                onClick={onToggleCollapse}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+                title="Expand sidebar"
+              >
+                <ChevronRight size={16} />
+              </button>
             )}
-          </div>
+          </>
+        ) : (
+          <>
+            <div className="flex-1 min-w-0">
+              {brand || (
+                <div className="flex items-center gap-2.5">
+                  <Logo />
+                  <div>
+                    <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify AI</h2>
+                    <p className="text-[10px] text-muted-foreground">Smart Campus Notification</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {!isMobile && (
+              <button
+                onClick={onToggleCollapse}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all shrink-0"
+                title="Collapse sidebar"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -83,16 +108,6 @@ export default function Sidebar({
         <div className={`border-t border-border shrink-0 ${navCollapsed ? 'p-2' : 'p-3'}`}>
           {footer}
         </div>
-      )}
-
-      {!isMobile && (
-        <button
-          onClick={onToggleCollapse}
-          className="flex items-center justify-center h-9 border-t border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
       )}
     </div>
   );

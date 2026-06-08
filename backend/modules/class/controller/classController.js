@@ -15,7 +15,9 @@ import Course from "../../course/model/Course.js";
  */
 export const createClass = async (req, res) => {
   try {
-    const { name, code, department, lecturers, level, academicYear, semester } = req.body;
+    const { name, code, department, lecturers, level, academicYear } = req.body;
+
+    if (!department) return res.status(400).json({ message: "Department is required" });
 
     // Validate department exists
     const dept = await Department.findById(department);
@@ -26,13 +28,17 @@ export const createClass = async (req, res) => {
     if (classExists) return res.status(400).json({ message: "Class code already exists for this academic year." });
 
     const newClass = await Class.create({
-      name, code, department, lecturers, level, academicYear, semester
+      name, code, department, lecturers, level, academicYear
     });
 
     res.status(201).json(newClass);
   } catch (error) {
     console.error("Create Class Error:", error);
-    res.status(500).json({ message: "Server Error: Failed to create class." });
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ message: messages.join(', ') });
+    }
+    res.status(500).json({ message: error.message || "Server Error: Failed to create class." });
   }
 };
 
@@ -294,14 +300,13 @@ export const updateClass = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    const { name, code, department, lecturers, level, academicYear, semester } = req.body;
+    const { name, code, department, lecturers, level, academicYear } = req.body;
     if (name) classItem.name = name;
     if (code) classItem.code = code;
     if (department) classItem.department = department;
     if (lecturers) classItem.lecturers = lecturers;
     if (level) classItem.level = level;
     if (academicYear) classItem.academicYear = academicYear;
-    if (semester) classItem.semester = semester;
 
     await classItem.save();
     res.status(200).json(classItem);

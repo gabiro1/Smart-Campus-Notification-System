@@ -7,9 +7,21 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     if (isInstalled) return
-    const handle = (e) => { e.preventDefault(); setPrompt(e); setShow(true) }
-    window.addEventListener('beforeinstallprompt', handle)
-    return () => window.removeEventListener('beforeinstallprompt', handle)
+    // Check if event was already captured by the early script in index.html
+    if (window.deferredPrompt) {
+      setPrompt(window.deferredPrompt)
+      setShow(true)
+      return
+    }
+    // Fallback: listen for the custom event dispatched by the index.html script
+    const handle = () => {
+      if (window.deferredPrompt) {
+        setPrompt(window.deferredPrompt)
+        setShow(true)
+      }
+    }
+    window.addEventListener('pwa-install-ready', handle)
+    return () => window.removeEventListener('pwa-install-ready', handle)
   }, [isInstalled])
 
   const install = async () => {

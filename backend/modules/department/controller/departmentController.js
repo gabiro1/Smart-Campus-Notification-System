@@ -11,6 +11,8 @@ export const createDepartment = async (req, res) => {
   try {
     const { name, code, school, hod } = req.body;
 
+    if (!school) return res.status(400).json({ message: "School is required" });
+
     // 1. Check if the parent School exists
     const parentSchool = await School.findById(school);
     if (!parentSchool) {

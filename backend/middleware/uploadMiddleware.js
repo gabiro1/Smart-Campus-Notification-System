@@ -12,8 +12,8 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, 
   },
   fileFilter: (req, file, cb) => {
-    // 3. Security: Only allow these specific academic file types
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|ppt|pptx|mp4|mp3|wav/;
+    // 3. Security: Only allow these specific academic file types (including CSV/XLSX for bulk import)
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|ppt|pptx|mp4|mp3|wav|csv|xlsx|xls/;
     
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);

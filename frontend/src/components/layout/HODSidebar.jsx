@@ -18,7 +18,9 @@ import {
   FileText,
   UserCheck,
   Calendar,
+  Clock,
 } from "lucide-react";
+import Logo from "../ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import messageService from "../../services/messageService";
@@ -82,6 +84,7 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       section: "Management",
       items: [
         { path: "/hod/lecturers", name: "Lecturers", icon: Users },
+        { path: "/hod/timetable", name: "Timetable", icon: Clock },
         { path: "/hod/cp-approvals", name: "CP Approvals", icon: UserCheck, badge: cpPendingCount > 0 ? cpPendingCount : undefined },
       ],
     },
@@ -116,9 +119,7 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
-            <Command size={16} />
-          </div>
+          <Logo />
           {!collapsed && (
             <div>
               <h2 className="text-sm font-bold text-foreground tracking-wide">{deptName}</h2>

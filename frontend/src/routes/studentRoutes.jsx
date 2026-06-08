@@ -7,8 +7,6 @@ import AnnouncementsPage from "../pages/dashboards/student/pages/announcement/An
 import NotificationsPage from "../pages/dashboards/student/pages/Notifications/NotificationsPage";
 import EventsPage from "../pages/dashboards/student/Events/EventsPage";
 import BookmarksPage from "../pages/dashboards/student/Events/BookmarksPage";
-import EventDetails from "../pages/dashboards/student/Events/EventDetails";
-import PublishedFeed from "../features/events/pages/PublishedFeed";
 import EventDetailsPage from "../features/events/pages/EventDetailsPage";
 import CreatorDashboard from "../features/events/pages/CreatorDashboard";
 import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";

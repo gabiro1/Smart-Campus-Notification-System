@@ -3,8 +3,6 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- ================= PWA CORE ================= -->
-    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#000000" />
 
     <!-- ================= VIEWPORT ================= -->
@@ -36,6 +34,15 @@
       rel="stylesheet"
     />
 
+    <!-- ================= EARLY PWA INSTALL CAPTURE (before React mounts) ================= -->
+    <script>
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.deferredPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-install-ready'));
+      });
+    </script>
+
     <!-- ================= GLOBAL STYLES ================= -->
     <style>
       body {
@@ -57,39 +64,5 @@
 
     <!-- ================= MAIN APP ================= -->
     <script type="module" src="/src/main.jsx"></script>
-
-    <!-- ================= SERVICE WORKER (HARDENED) ================= -->
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", async () => {
-          try {
-            const registration = await navigator.serviceWorker.register("/sw.js", {
-              scope: "/"
-            });
-
-            console.log("✅ Service Worker registered:", registration.scope);
-
-            // Detect updates (important for production)
-            registration.onupdatefound = () => {
-              const newWorker = registration.installing;
-
-              if (newWorker) {
-                newWorker.onstatechange = () => {
-                  if (newWorker.state === "installed") {
-                    if (navigator.serviceWorker.controller) {
-                      console.log("🔄 New version available");
-                    } else {
-                      console.log("📦 App cached for offline use");
-                    }
-                  }
-                };
-              }
-            };
-          } catch (err) {
-            console.error("❌ Service Worker registration failed:", err);
-          }
-        });
-      }
-    </script>
   </body>
 </html>

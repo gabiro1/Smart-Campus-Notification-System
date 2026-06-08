@@ -21,6 +21,12 @@ const courseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     required: true 
+  },
+  semester: {
+    type: String,
+    required: true,
+    enum: ['Semester 1', 'Semester 2'],
+    default: 'Semester 1'
   }
 }, { timestamps: true });
 

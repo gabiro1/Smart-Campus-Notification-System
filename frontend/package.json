@@ -4,10 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "generate:sw": "node scripts/generate-firebase-sw.mjs",
-    "predev": "npm run generate:sw",
     "dev": "vite",
-    "prebuild": "npm run generate:sw",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",

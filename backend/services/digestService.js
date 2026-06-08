@@ -105,7 +105,7 @@ export const generateAndSendDigest = async (user, { period = 'weekly' } = {}) =>
             </div>
             <p>You have <strong>${notifications.length}</strong> unread notification(s).</p>
             <p style="color: #64748b; font-size: 12px;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/student/notifications" style="color: #1e40af;">View all notifications</a>
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/student/notifications" style="color: #1e40af;">View all notifications</a>
             </p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
             <p style="color: #94a3b8; font-size: 11px;">

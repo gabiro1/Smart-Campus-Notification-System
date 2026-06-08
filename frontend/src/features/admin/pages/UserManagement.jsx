@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -30,9 +30,11 @@ import {
   UserMinus,
   AlertCircle,
   KeyRound,
+  Upload,
 } from "lucide-react";
 import GlassCard from "@/components/cards/GlassCard";
 import adminService from "../../../services/adminService";
+import BulkUploadModal from "../../../shared/BulkUploadModal";
 import toast from "react-hot-toast";
 
 const ROLE_COLORS = [
@@ -73,6 +75,26 @@ export default function UserManagement() {
   const [isResetting, setIsResetting] = useState(false);
 
   const [allRoles, setAllRoles] = useState([]);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+
+  const containerRef = useRef(null);
+  const [sidebarOffset, setSidebarOffset] = useState(0);
+
+  useEffect(() => {
+    const updateOffset = () => {
+      if (containerRef.current) {
+        setSidebarOffset(containerRef.current.getBoundingClientRect().left);
+      }
+    };
+    updateOffset();
+    const observer = new ResizeObserver(updateOffset);
+    if (containerRef.current) observer.observe(containerRef.current);
+    window.addEventListener("resize", updateOffset);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateOffset);
+    };
+  }, []);
 
   const getRoleInfo = useCallback((roleName) => {
     const idx = allRoles.findIndex(r => r.name === roleName);
@@ -222,7 +244,7 @@ export default function UserManagement() {
   }, [users, allRoles]);
 
   return (
-    <div className="p-4 lg:p-6 w-full text-foreground">
+    <div ref={containerRef} className="p-4 lg:p-6 w-full text-foreground">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -238,14 +260,25 @@ export default function UserManagement() {
               <p className="text-sm text-muted-foreground">Manage users, roles, and permissions</p>
             </div>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowNewUserModal(true)}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors"
-          >
-            <Plus size={18} /> <span className="hidden sm:inline">Add User</span>
-          </motion.button>
+          <div className="flex gap-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowBulkUpload(true)}
+              className="group relative px-5 py-3 rounded-xl font-medium flex items-center gap-2.5 transition-all duration-300 overflow-hidden border border-blue-500/20 hover:border-blue-500/40 bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 text-blue-300 hover:text-blue-200 shadow-[0_0_12px_rgba(59,130,246,0.08)] hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]"
+            >
+              <Upload size={16} className="transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5" />
+              <span className="hidden sm:inline">Import CSV</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowNewUserModal(true)}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors"
+            >
+              <Plus size={18} /> <span className="hidden sm:inline">Add User</span>
+            </motion.button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -479,18 +512,19 @@ export default function UserManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4"
+            style={{ left: sidebarOffset, width: `calc(100% - ${sidebarOffset}px)` }}
+            className="fixed top-0 right-0 bottom-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4"
             onClick={() => setShowModal(false)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg p-4 sm:p-6 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto"
+              className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg p-4 sm:p-6 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-xl font-bold text-foreground">User Details</h2>
+                <h2 className="text-base sm:text-xl font-bold text-foreground">User Details</h2>
                 <button 
                   onClick={() => setShowModal(false)} 
                   className="p-2.5 rounded-xl bg-accent hover:bg-accent/80 border border-border hover:border-blue-500/30 transition-all group"
@@ -710,24 +744,33 @@ export default function UserManagement() {
         )}
       </AnimatePresence>
 
+      <BulkUploadModal
+        isOpen={showBulkUpload}
+        onClose={() => { setShowBulkUpload(false); }}
+        entity="users"
+        onComplete={() => fetchUsers()}
+        sidebarOffset={sidebarOffset}
+      />
+
       <AnimatePresence>
         {showNewUserModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4"
+            style={{ left: sidebarOffset, width: `calc(100% - ${sidebarOffset}px)` }}
+            className="fixed top-0 right-0 bottom-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4"
             onClick={() => setShowNewUserModal(false)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg p-4 sm:p-6 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto"
+              className="bg-card border border-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg p-4 sm:p-6 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-xl font-bold text-foreground">Create New User</h2>
+                <h2 className="text-base sm:text-xl font-bold text-foreground">Create New User</h2>
                 <button 
                   onClick={() => setShowNewUserModal(false)} 
                   className="p-2.5 rounded-xl bg-accent hover:bg-accent/80 border border-border hover:border-blue-500/30 transition-all group"

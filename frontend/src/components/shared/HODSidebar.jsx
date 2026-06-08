@@ -13,6 +13,7 @@ import {
   Gauge,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Logo from "../ui/Logo";
 
 export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
   const navigate = useNavigate();
@@ -76,9 +77,7 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
-            <Command size={16} />
-          </div>
+          <Logo />
           {!collapsed && (
             <div>
               <h2 className="text-sm font-bold text-foreground tracking-wide">{deptName}</h2>

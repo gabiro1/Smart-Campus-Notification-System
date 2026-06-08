@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
-import HODSidebar from "@/components/shared/HODSidebar";
+import HODSidebar from "../../../../components/layout/HODSidebar";
 
 export default function HodLayout() {
   const [isOpen, setIsOpen] = useState(false);

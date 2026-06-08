@@ -9,6 +9,8 @@ export const createSchool = async (req, res) => {
   try {
     const { name, code, college, dean } = req.body;
 
+    if (!college) return res.status(400).json({ message: "College is required" });
+
     // 1. Check if the parent College exists
     const parentCollege = await College.findById(college);
     if (!parentCollege) {
