@@ -13,8 +13,8 @@ export default function IOSInstallPrompt() {
   if (!show || dismissed) return null
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] animate-in fade-in slide-in-from-top-2 duration-300">
-      <div className="backdrop-blur-2xl bg-gray-900/80 border border-white/20 rounded-2xl p-4 shadow-2xl w-72">
+    <div className="fixed top-4 right-4 left-4 sm:left-auto z-[9999] animate-in fade-in slide-in-from-top-2 duration-300">
+      <div className="backdrop-blur-xl bg-zinc-800/80 border border-white/15 rounded-2xl p-4 shadow-2xl sm:w-72 w-full max-w-sm mx-auto sm:mx-0">
         <button
           onClick={() => setDismissed(true)}
           className="absolute top-2 right-2 text-white/50 hover:text-white/90 text-lg leading-none"
