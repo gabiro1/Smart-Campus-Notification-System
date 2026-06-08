@@ -44,7 +44,7 @@ export default function DeanLayout() {
         onToggleCollapse={() => setCollapsed(c => !c)}
       />
 
-      <div className={`flex-1 flex flex-col ${sidebarWidth} relative z-10 h-screen overflow-hidden transition-all duration-300`}>
+      <div className={`flex-1 flex flex-col ${isMobile ? 'ml-0' : sidebarWidth} relative z-10 h-screen overflow-hidden transition-all duration-300`}>
         <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-border bg-card/50 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-4">
             {isMobile && (

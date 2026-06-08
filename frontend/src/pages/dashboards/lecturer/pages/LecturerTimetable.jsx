@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar, Clock, MapPin, BookOpen, RefreshCw,
-  AlertCircle, Users, Loader2
+  AlertCircle, Users, Loader2, ChevronLeft, ChevronRight
 } from "lucide-react";
 import GlassCard from "../../../../components/cards/GlassCard";
 import StatCard from "../../../../components/cards/StatCard";
@@ -32,6 +32,7 @@ export default function LecturerTimetable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [user, setUser] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(0);
 
   useEffect(() => {
     try {
@@ -138,7 +139,7 @@ export default function LecturerTimetable() {
             <span className="text-xs text-muted-foreground">{entries.length} sessions</span>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto">
             <div
               className="grid min-w-[720px]"
               style={{
@@ -200,6 +201,53 @@ export default function LecturerTimetable() {
                     </div>
                   );
                 })
+              )}
+            </div>
+          </div>
+
+          <div className="block lg:hidden">
+            <div className="flex gap-1 p-3 border-b border-border">
+              {DAYS.map((day, di) => (
+                <button
+                  key={day}
+                  onClick={() => setSelectedDay(di)}
+                  className={`flex-1 py-2 px-1 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
+                    selectedDay === di
+                      ? `${DAY_COLORS[di].bg} ${DAY_COLORS[di].text} ${DAY_COLORS[di].border} border`
+                      : "text-muted-foreground hover:bg-accent/50"
+                  }`}
+                >
+                  {day.slice(0, 3)}
+                </button>
+              ))}
+            </div>
+            <div className="p-3 space-y-3 max-h-[600px] overflow-y-auto">
+              {dayEntries[DAYS[selectedDay]].length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground py-8">No classes on this day</p>
+              ) : (
+                dayEntries[DAYS[selectedDay]].map((entry) => (
+                  <div
+                    key={entry._id}
+                    className={`rounded-xl border ${DAY_COLORS[selectedDay].border} ${DAY_COLORS[selectedDay].bg} p-4`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Clock size={12} className={DAY_COLORS[selectedDay].text} />
+                      <span className={`text-xs font-semibold ${DAY_COLORS[selectedDay].text}`}>
+                        {entry.startTime} - {entry.endTime}
+                      </span>
+                    </div>
+                    {entry.topic && (
+                      <p className="text-sm font-semibold text-foreground mb-1">{entry.topic}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">{entry.classId?.name || entry.classId}</p>
+                    {entry.venue && (
+                      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                        <MapPin size={10} />
+                        <span>{entry.venue}</span>
+                      </div>
+                    )}
+                  </div>
+                ))
               )}
             </div>
           </div>

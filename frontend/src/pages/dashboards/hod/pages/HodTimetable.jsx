@@ -35,6 +35,7 @@ export default function HodTimetable() {
   const [selectedClass, setSelectedClass] = useState("");
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [formData, setFormData] = useState({
@@ -317,7 +318,82 @@ export default function HodTimetable() {
                 )}
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="block lg:hidden">
+                <div className="flex gap-1 overflow-x-auto pb-2 px-2 pt-2 scrollbar-hide">
+                  {DAYS.map((day, di) => (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDay(di)}
+                      className={`shrink-0 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                        selectedDay === di
+                          ? `${DAY_COLORS[di].bg} ${DAY_COLORS[di].text} border ${DAY_COLORS[di].border}`
+                          : "text-muted-foreground bg-accent/30 border border-transparent"
+                      }`}
+                    >
+                      {day.slice(0, 3)}
+                    </button>
+                  ))}
+                </div>
+                <div className="px-2 pb-2 space-y-2">
+                  {dayEntries[DAYS[selectedDay]].length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No entries for {DAYS[selectedDay]}
+                    </div>
+                  ) : (
+                    dayEntries[DAYS[selectedDay]].map((entry) => {
+                      const di = selectedDay;
+                      return (
+                        <div
+                          key={entry._id}
+                          className={`rounded-xl border ${DAY_COLORS[di].border} ${DAY_COLORS[di].bg} p-3 space-y-1.5`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Clock size={12} className={DAY_COLORS[di].text} />
+                                <span className={`text-xs font-semibold ${DAY_COLORS[di].text}`}>
+                                  {entry.startTime} – {entry.endTime}
+                                </span>
+                              </div>
+                              {entry.topic && (
+                                <p className="text-sm font-semibold text-foreground leading-snug">{entry.topic}</p>
+                              )}
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                                <User size={10} />
+                                <span>{entry.lecturerId?.name || getLecturerName(entry.lecturerId?._id || entry.lecturerId)}</span>
+                              </div>
+                              {entry.venue && (
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <MapPin size={10} />
+                                  <span>{entry.venue}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <button onClick={() => openEditModal(entry)}
+                                className="p-1.5 rounded-lg bg-card/80 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/20 transition-all">
+                                <Pencil size={12} />
+                              </button>
+                              <button onClick={() => handleDelete(entry)}
+                                className="p-1.5 rounded-lg bg-card/80 text-muted-foreground hover:text-red-400 hover:bg-red-500/20 transition-all">
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <button
+                    onClick={() => openAddModal(DAYS[selectedDay])}
+                    className="w-full py-2.5 rounded-xl border border-dashed border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Plus size={14} /> Add to {DAYS[selectedDay].slice(0, 3)}
+                  </button>
+                </div>
+              </div>
+
+              <div className="hidden lg:block overflow-x-auto">
                 <div
                   className="grid min-w-[720px]"
                   style={{

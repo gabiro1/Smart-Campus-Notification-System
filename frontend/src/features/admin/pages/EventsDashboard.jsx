@@ -308,7 +308,7 @@ export default function EventsDashboard() {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <GlassCard padding="p-0" className="min-w-[600px]">
+          <GlassCard padding="p-0" className="min-w-0">
             <table className="w-full">
               <thead className="bg-card border-b border-border text-xs uppercase text-muted-foreground tracking-wider">
                 <tr>

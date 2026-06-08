@@ -127,7 +127,7 @@ export default function MessagesTab() {
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full bg-background text-foreground overflow-hidden font-sans rounded-t-[32px] border-t border-border relative">
       {/* LEFT PANEL */}
-      <div className="w-[340px] lg:w-[380px] border-r border-border flex flex-col bg-card shrink-0 z-10">
+      <div className="w-full lg:w-[340px] xl:w-[380px] border-r border-border flex flex-col bg-card shrink-0 z-10 lg:max-w-[380px]">
         <div className="p-6 border-b border-border space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-[12px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-2">

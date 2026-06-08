@@ -37,7 +37,7 @@ export default function FeedbackModal({ isOpen, onClose, eventName }) {
       onClick={onClose}
     >
       <div
-        className="bg-card border border-border rounded-lg w-full max-w-[420px] p-6"
+        className="bg-card border border-border rounded-lg w-full max-w-[90vw] sm:max-w-[420px] p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">

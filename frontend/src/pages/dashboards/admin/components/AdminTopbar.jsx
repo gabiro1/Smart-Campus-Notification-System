@@ -169,7 +169,7 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
       {showResults && (
         <div
           ref={searchResultsRef}
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[480px] max-h-96 overflow-y-auto bg-card border border-border rounded-xl shadow-xl z-50"
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[90vw] sm:w-[480px] max-h-96 overflow-y-auto bg-card border border-border rounded-xl shadow-xl z-50"
         >
           {loading ? (
             <div className="p-4 text-center text-muted-foreground text-sm">Searching...</div>

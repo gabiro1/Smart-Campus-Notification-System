@@ -10,7 +10,7 @@ export default function HodLayout() {
 
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       if (!mobile) setIsOpen(false);
     };
@@ -35,7 +35,7 @@ export default function HodLayout() {
         </button>
       )}
 
-      <div className={`flex-1 min-h-screen relative z-10 flex flex-col transition-all duration-300 ${collapsed ? 'ml-20' : 'ml-20 md:ml-64'}`}>
+      <div className={`flex-1 min-h-screen relative z-10 flex flex-col transition-all duration-300 ${isMobile ? 'ml-0' : collapsed ? 'ml-20' : 'ml-20 lg:ml-64'}`}>
         <main className="flex-1 flex flex-col w-full h-full relative pt-2">
           <Outlet />
         </main>

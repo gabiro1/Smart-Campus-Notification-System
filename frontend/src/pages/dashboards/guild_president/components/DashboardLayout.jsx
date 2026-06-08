@@ -40,7 +40,7 @@ export default function GuildLayout() {
         isMobile={isMobile}
       />
 
-      <main className="flex-1 ml-20 md:ml-72 min-h-screen relative z-10">
+      <main className={`flex-1 min-h-screen relative z-10 transition-all duration-300 ${isMobile ? 'ml-0' : 'ml-20 lg:ml-72'}`}>
         <header className="sticky top-0 z-40 h-16 flex items-center justify-between px-4 lg:px-8 border-b border-border bg-card/80 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-4">
             {isMobile && (
@@ -99,7 +99,7 @@ export default function GuildLayout() {
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="p-8 h-full overflow-y-auto custom-scrollbar"
+            className="p-4 lg:p-8 h-full overflow-y-auto custom-scrollbar"
           >
             <Outlet />
           </motion.div>

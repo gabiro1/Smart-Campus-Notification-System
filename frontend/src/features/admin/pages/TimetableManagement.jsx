@@ -44,6 +44,7 @@ export default function TimetableManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeWeek, setActiveWeek] = useState(0);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(0);
   const [formData, setFormData] = useState({
     dayOfWeek: "Monday",
     startTime: "08:00",
@@ -324,7 +325,51 @@ export default function TimetableManagement() {
                 )}
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="block lg:hidden">
+                <div className="flex gap-1 p-3 overflow-x-auto">
+                  {DAYS.map((day, di) => (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDay(di)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
+                        selectedDay === di
+                          ? `${DAY_COLORS[di].bg} ${DAY_COLORS[di].text} ${DAY_COLORS[di].border} border`
+                          : 'text-muted-foreground hover:text-foreground bg-accent/50 border border-transparent'
+                      }`}
+                    >
+                      {day.slice(0, 3)}
+                    </button>
+                  ))}
+                </div>
+                <div className="px-3 pb-3 space-y-2 max-h-[500px] overflow-y-auto">
+                  {dayEntries[DAYS[selectedDay]]?.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-8">No entries for {DAYS[selectedDay]}</p>
+                  ) : (
+                    dayEntries[DAYS[selectedDay]]?.map((entry) => (
+                      <div key={entry._id} className={`rounded-lg border ${DAY_COLORS[selectedDay].border} ${DAY_COLORS[selectedDay].bg} p-3`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold">
+                            <Clock size={10} className={DAY_COLORS[selectedDay].text} />
+                            <span className={DAY_COLORS[selectedDay].text}>{entry.startTime} - {entry.endTime}</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <button onClick={() => openEditModal(entry)} className="p-1 rounded text-muted-foreground hover:text-blue-400"><Pencil size={10} /></button>
+                            <button onClick={() => handleDelete(entry)} className="p-1 rounded text-muted-foreground hover:text-red-400"><Trash2 size={10} /></button>
+                          </div>
+                        </div>
+                        {entry.topic && <p className="text-xs font-semibold text-foreground mt-1">{entry.topic}</p>}
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{entry.lecturerId?.name || getLecturerName(entry.lecturerId?._id || entry.lecturerId)}</p>
+                        {entry.venue && <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5"><MapPin size={9} />{entry.venue}</p>}
+                      </div>
+                    ))
+                  )}
+                  <button onClick={() => openAddModal(DAYS[selectedDay])} className="w-full py-2 rounded-lg border border-dashed border-border text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
+                    + Add Entry
+                  </button>
+                </div>
+              </div>
+
+              <div className="hidden lg:block overflow-x-auto">
                 <div
                   className="grid min-w-[720px]"
                   style={{

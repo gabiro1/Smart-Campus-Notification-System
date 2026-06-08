@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
 import {
   Inbox, Building2, Users, AlertTriangle, Bot,
   Archive, FileText, ChevronLeft, ChevronRight,
-  MessageSquare, TicketCheck
+  MessageSquare, TicketCheck, Menu, X
 } from 'lucide-react';
 import communicationService from '../services/communicationService';
 
@@ -19,9 +19,22 @@ const SIDEBAR_ITEMS = [
 
 export default function CommunicationHub() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [unreadSummary, setUnreadSummary] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close mobile sidebar on navigation
+  useEffect(() => {
+    if (isMobile) setMobileOpen(false);
+  }, [location.pathname, isMobile]);
 
   useEffect(() => {
     if (location.pathname === '/student/communication' || location.pathname === '/student/communication/') {
@@ -49,15 +62,29 @@ export default function CommunicationHub() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-background">
-      <aside className={`${collapsed ? 'w-16' : 'w-64'} border-r border-border bg-card flex flex-col transition-all duration-200 shrink-0`}>
+      {isMobile && mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside className={`${
+        isMobile
+          ? `fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`
+          : collapsed ? 'w-16' : 'w-64'
+      } border-r border-border bg-card flex flex-col shrink-0`}>
         <div className="flex items-center justify-between p-4 border-b border-border">
           {!collapsed && <h2 className="text-lg font-semibold text-foreground">Communication</h2>}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground"
-          >
-            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </button>
+          {isMobile ? (
+            <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground">
+              <X size={18} />
+            </button>
+          ) : (
+            <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground">
+              {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+          )}
         </div>
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {SIDEBAR_ITEMS.map((item) => {
@@ -73,8 +100,8 @@ export default function CommunicationHub() {
                     : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                 }`}
               >
-                <item.icon size={collapsed ? 20 : 18} className="shrink-0" />
-                {!collapsed && (
+                <item.icon size={collapsed && !isMobile ? 20 : 18} className="shrink-0" />
+                {(!collapsed || isMobile) && (
                   <>
                     <span className="flex-1 truncate">{item.label}</span>
                     {count !== null && (
@@ -88,7 +115,7 @@ export default function CommunicationHub() {
             );
           })}
         </nav>
-        {!collapsed && (
+        {(!collapsed || isMobile) && (
           <div className="p-4 border-t border-border">
             <button
               onClick={() => navigate('/student/communication/inbox')}
@@ -101,7 +128,15 @@ export default function CommunicationHub() {
         )}
       </aside>
 
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden relative">
+        {isMobile && (
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="absolute top-3 left-3 z-30 p-2 rounded-lg bg-accent border border-border text-muted-foreground hover:text-foreground"
+          >
+            <Menu size={18} />
+          </button>
+        )}
         <Outlet />
       </main>
     </div>
