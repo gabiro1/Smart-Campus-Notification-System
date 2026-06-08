@@ -4,6 +4,7 @@ export default function InstallPrompt() {
   const [prompt, setPrompt] = useState(null)
   const [promptFired, setPromptFired] = useState(!!window.deferredPrompt)
   const [showFallback, setShowFallback] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
   const isInstalled = window.matchMedia('(display-mode: standalone)').matches
 
   useEffect(() => {
@@ -20,7 +21,6 @@ export default function InstallPrompt() {
       }
     }
     window.addEventListener('pwa-install-ready', handle)
-    // Show fallback install button after 30s if beforeinstallprompt never fired
     const timeout = setTimeout(() => {
       if (!window.deferredPrompt) setShowFallback(true)
     }, 30000)
@@ -36,40 +36,63 @@ export default function InstallPrompt() {
     if (outcome === 'accepted') setShowFallback(false)
   }
 
-  // Show native install button when beforeinstallprompt fired
-  if (promptFired && prompt) {
-    return (
-      <div className="fixed bottom-20 left-4 right-4 z-50 bg-blue-600 text-white p-4 rounded-lg flex justify-between items-center shadow-lg">
-        <span className="font-medium">Install UniNotify AI</span>
-        <button onClick={install} className="bg-white text-blue-600 px-4 py-2 rounded-md font-semibold text-sm">Install</button>
-      </div>
-    )
-  }
+  if ((!promptFired && !showFallback) || dismissed) return null
 
-  // Fallback button for users whose browsers don't fire beforeinstallprompt (iOS, first visit, etc.)
-  if (showFallback) {
-    return (
-      <div className="fixed bottom-20 left-4 right-4 z-50 bg-gray-900 text-white p-4 rounded-lg shadow-lg">
-        <p className="text-sm mb-2">Install UniNotify AI on your device for the best experience.</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              if (window.deferredPrompt) {
-                window.deferredPrompt.prompt()
-                window.deferredPrompt.userChoice.then((c) => { if (c.outcome === 'accepted') setShowFallback(false) })
-              } else {
-                setShowFallback(false)
-              }
-            }}
-            className="bg-blue-600 px-4 py-2 rounded-md font-semibold text-sm"
-          >
-            Install
-          </button>
-          <button onClick={() => setShowFallback(false)} className="px-3 py-2 text-gray-400 text-sm">Not now</button>
+  return (
+    <div className="fixed top-4 right-4 z-[9999] animate-in fade-in slide-in-from-top-2 duration-300">
+      <div className="backdrop-blur-2xl bg-gray-900/80 border border-white/20 rounded-2xl p-4 shadow-2xl w-72">
+        <button
+          onClick={() => { setDismissed(true); setShowFallback(false) }}
+          className="absolute top-2 right-2 text-white/50 hover:text-white/90 text-lg leading-none"
+          aria-label="Dismiss"
+        >
+          ✕
+        </button>
+
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-6m0 0V6m0 6H6m6 0h6" />
+            </svg>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-semibold text-sm">Install UniNotify AI</p>
+            <p className="text-white/60 text-xs mt-0.5">Add to home screen for quick access</p>
+
+            <div className="flex gap-2 mt-3">
+              {prompt ? (
+                <button
+                  onClick={install}
+                  className="bg-white text-gray-900 px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-white/90 transition-colors"
+                >
+                  Install
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (window.deferredPrompt) {
+                      window.deferredPrompt.prompt()
+                      window.deferredPrompt.userChoice.then((c) => { if (c.outcome === 'accepted') setShowFallback(false) })
+                    } else {
+                      setDismissed(true)
+                    }
+                  }}
+                  className="bg-white text-gray-900 px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-white/90 transition-colors"
+                >
+                  Install
+                </button>
+              )}
+              <button
+                onClick={() => { setDismissed(true); setShowFallback(false) }}
+                className="text-white/50 hover:text-white/90 text-xs transition-colors"
+              >
+                Later
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    )
-  }
-
-  return null
+    </div>
+  )
 }

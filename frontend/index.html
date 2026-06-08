@@ -36,10 +36,6 @@
 
     <!-- ================= EARLY PWA INSTALL CAPTURE (before React mounts) ================= -->
     <script>
-      // Register SW immediately (not on window.load) so it's ready for PWA criteria
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' });
-      }
       // Capture beforeinstallprompt for the InstallPrompt component
       window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();
