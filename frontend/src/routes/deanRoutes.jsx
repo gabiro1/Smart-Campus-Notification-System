@@ -1,17 +1,17 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import DeanOverview from "../pages/dashboards/dean/pages/SchoolOverview";
-import DeanApprovals from "../pages/dashboards/dean/pages/HoDApprovals";
-import DeanBroadcast from "../pages/dashboards/dean/pages/SchoolBroadcast";
-
-import DeanRoles from "../pages/dashboards/dean/pages/RoleManagement";
-import DeanAnnouncements from "../pages/dashboards/dean/pages/AllAnnouncements";
-import DeanSettings from "../pages/dashboards/dean/pages/SchoolSettings";
-import MessagesTab from "../features/communication/pages/MessagesTab";
-import CreatorDashboard from "../features/events/pages/CreatorDashboard";
-import EventForm from "../features/events/pages/EventForm";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
+const DeanOverview = lazy(() => import("../pages/dashboards/dean/pages/SchoolOverview"));
+const DeanApprovals = lazy(() => import("../pages/dashboards/dean/pages/HoDApprovals"));
+const DeanBroadcast = lazy(() => import("../pages/dashboards/dean/pages/SchoolBroadcast"));
+const DeanRoles = lazy(() => import("../pages/dashboards/dean/pages/RoleManagement"));
+const DeanAnnouncements = lazy(() => import("../pages/dashboards/dean/pages/AllAnnouncements"));
+const DeanSettings = lazy(() => import("../pages/dashboards/dean/pages/SchoolSettings"));
+const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
+const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const EventForm = lazy(() => import("../features/events/pages/EventForm"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 
 export const deanRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,

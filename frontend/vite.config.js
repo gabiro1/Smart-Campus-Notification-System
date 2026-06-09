@@ -76,8 +76,37 @@ export default defineConfig({
     target: 'esnext',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/') || id.includes('node_modules/scheduler')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
+            return 'vendor-router';
+          }
+          if (id.includes('node_modules/framer-motion')) {
+            return 'vendor-animations';
+          }
+          if (id.includes('node_modules/firebase')) {
+            return 'vendor-firebase';
+          }
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/chart.js') || id.includes('node_modules/d3-')) {
+            return 'vendor-charts';
+          }
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/@radix-ui') || id.includes('node_modules/cmdk') || id.includes('node_modules/vaul')) {
+            return 'vendor-ui';
+          }
+          if (id.includes('node_modules/@hello-pangea') || id.includes('node_modules/@dnd-kit')) {
+            return 'vendor-dnd';
+          }
+          if (id.includes('node_modules/socket.io-client') || id.includes('node_modules/@microsoft/signalr')) {
+            return 'vendor-realtime';
+          }
+          if (id.includes('node_modules/pdf-lib') || id.includes('node_modules/jspdf') || id.includes('node_modules/xlsx')) {
+            return 'vendor-documents';
+          }
+          if (id.includes('node_modules')) {
+            return 'vendor-other';
+          }
         }
       }
     }

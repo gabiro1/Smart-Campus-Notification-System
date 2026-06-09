@@ -1,11 +1,12 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import HrDashboard from "../features/hr/pages/HrDashboard";
-import HrWorkflowDashboard from "../features/hr/pages/StaffDrafts";
-import CreatorDashboard from "../features/events/pages/CreatorDashboard";
-import EventForm from "../features/events/pages/EventForm";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
+const HrDashboard = lazy(() => import("../features/hr/pages/HrDashboard"));
+const HrWorkflowDashboard = lazy(() => import("../features/hr/pages/StaffDrafts"));
+const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const EventForm = lazy(() => import("../features/events/pages/EventForm"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 
 export const hrRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,

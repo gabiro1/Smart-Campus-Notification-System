@@ -1,25 +1,24 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-// --- STUDENT IMPORTS ---
-import Dashboard from "../pages/dashboards/student/pages/Dashboard/Dashboard";
-import AnnouncementsPage from "../pages/dashboards/student/pages/announcement/AnnouncementsPage";
-import NotificationsPage from "../pages/dashboards/student/pages/Notifications/NotificationsPage";
-import EventsPage from "../pages/dashboards/student/Events/EventsPage";
-import BookmarksPage from "../pages/dashboards/student/Events/BookmarksPage";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
-import CreatorDashboard from "../features/events/pages/CreatorDashboard";
-import RemindersTab from "../pages/dashboards/student/pages/Reminder/RemindersTab";
-import TimeTable from "../pages/dashboards/student/component/TimeTable";
-import MessagesTab from "../features/communication/pages/MessagesTab";
-import Settings from "../pages/dashboards/student/pages/settings/Settings";
+const Dashboard = lazy(() => import("../pages/dashboards/student/pages/Dashboard/Dashboard"));
+const AnnouncementsPage = lazy(() => import("../pages/dashboards/student/pages/announcement/AnnouncementsPage"));
+const NotificationsPage = lazy(() => import("../pages/dashboards/student/pages/Notifications/NotificationsPage"));
+const EventsPage = lazy(() => import("../pages/dashboards/student/Events/EventsPage"));
+const BookmarksPage = lazy(() => import("../pages/dashboards/student/Events/BookmarksPage"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
+const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const RemindersTab = lazy(() => import("../pages/dashboards/student/pages/Reminder/RemindersTab"));
+const TimeTable = lazy(() => import("../pages/dashboards/student/component/TimeTable"));
+const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
+const Settings = lazy(() => import("../pages/dashboards/student/pages/settings/Settings"));
 
-// Communication Hub Imports
-import CommunicationHub from "../features/communication/pages/CommunicationHub";
-import InboxView from "../features/communication/pages/InboxView";
-import ThreadView from "../features/communication/pages/ThreadView";
-import ContactsPage from "../features/communication/pages/ContactsPage";
-import OfficeDirectory from "../features/communication/pages/OfficeDirectory";
+const CommunicationHub = lazy(() => import("../features/communication/pages/CommunicationHub"));
+const InboxView = lazy(() => import("../features/communication/pages/InboxView"));
+const ThreadView = lazy(() => import("../features/communication/pages/ThreadView"));
+const ContactsPage = lazy(() => import("../features/communication/pages/ContactsPage"));
+const OfficeDirectory = lazy(() => import("../features/communication/pages/OfficeDirectory"));
 
 export const studentRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,

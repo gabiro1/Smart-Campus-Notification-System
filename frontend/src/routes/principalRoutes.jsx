@@ -1,17 +1,17 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import SystemOverview from "../pages/dashboards/principal/pages/SystemOverview";
-import GlobalBroadcast from "../pages/dashboards/principal/pages/GlobalBroadcast";
-import PrincipalDepartments from "../pages/dashboards/principal/pages/PrincipalDepartments";
-import PrincipalApprovals from "../pages/dashboards/principal/pages/PrincipalApprovals";
-import ReportsAnalytics from "../pages/dashboards/principal/pages/ReportsAnalytics";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
-import CreatorDashboard from "../features/events/pages/CreatorDashboard";
-import EventForm from "../features/events/pages/EventForm";
-
-import RoleAssignments from "../features/admin/pages/RoleAssignmentsApproval";
-import ElectionApproval from "../pages/dashboards/principal/pages/ElectionApproval";
+const SystemOverview = lazy(() => import("../pages/dashboards/principal/pages/SystemOverview"));
+const GlobalBroadcast = lazy(() => import("../pages/dashboards/principal/pages/GlobalBroadcast"));
+const PrincipalDepartments = lazy(() => import("../pages/dashboards/principal/pages/PrincipalDepartments"));
+const PrincipalApprovals = lazy(() => import("../pages/dashboards/principal/pages/PrincipalApprovals"));
+const ReportsAnalytics = lazy(() => import("../pages/dashboards/principal/pages/ReportsAnalytics"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
+const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const EventForm = lazy(() => import("../features/events/pages/EventForm"));
+const RoleAssignments = lazy(() => import("../features/admin/pages/RoleAssignmentsApproval"));
+const ElectionApproval = lazy(() => import("../pages/dashboards/principal/pages/ElectionApproval"));
 
 export const principalRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,

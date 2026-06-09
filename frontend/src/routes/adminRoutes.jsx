@@ -1,29 +1,30 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import SystemOverview from "../features/admin/pages/SystemOverview";
-import EventsDashboard from "../features/admin/pages/EventsDashboard";
-import EditEventPage from "../features/admin/pages/EditEventPage";
-import UserManagement from "../features/admin/pages/UserManagement";
-import ComposeBroadcastModal from "../features/admin/pages/CreateEventPage";
-import CoreSettings from "../features/admin/pages/CoreSettings";
-import Maintenance from "../features/admin/pages/Maintenance";
-import Backups from "../features/admin/pages/Backups";
-import AdminNotifications from "../features/admin/pages/AdminNotifications";
-import SupportTickets from "../features/admin/pages/SupportTickets";
-import GovernancePage from "../pages/dashboards/shared/GovernancePage";
-import AcademicStructure from "../features/admin/pages/AcademicStructure";
-import SMSTestPage from "../features/admin/pages/SMSTestPage";
-import TimetableManagement from "../features/admin/pages/TimetableManagement";
-import HRAccounts from "../features/admin/pages/HRAccounts";
-import AuditLogs from "../features/admin/pages/AuditLogs";
-import EmergencyOverride from "../features/admin/pages/EmergencyOverride";
-import RoleManagement from "../features/admin/pages/RoleManagement";
-import CreatorDashboard from "../features/events/pages/CreatorDashboard";
-import EventForm from "../features/events/pages/EventForm";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
-import RoleAssignmentsApproval from "../features/admin/pages/RoleAssignmentsApproval";
-import SubmitCouncilElection from "../features/admin/pages/SubmitCouncilElection";
+const SystemOverview = lazy(() => import("../features/admin/pages/SystemOverview"));
+const EventsDashboard = lazy(() => import("../features/admin/pages/EventsDashboard"));
+const EditEventPage = lazy(() => import("../features/admin/pages/EditEventPage"));
+const UserManagement = lazy(() => import("../features/admin/pages/UserManagement"));
+const ComposeBroadcastModal = lazy(() => import("../features/admin/pages/CreateEventPage"));
+const CoreSettings = lazy(() => import("../features/admin/pages/CoreSettings"));
+const Maintenance = lazy(() => import("../features/admin/pages/Maintenance"));
+const Backups = lazy(() => import("../features/admin/pages/Backups"));
+const AdminNotifications = lazy(() => import("../features/admin/pages/AdminNotifications"));
+const SupportTickets = lazy(() => import("../features/admin/pages/SupportTickets"));
+const GovernancePage = lazy(() => import("../pages/dashboards/shared/GovernancePage"));
+const AcademicStructure = lazy(() => import("../features/admin/pages/AcademicStructure"));
+const SMSTestPage = lazy(() => import("../features/admin/pages/SMSTestPage"));
+const TimetableManagement = lazy(() => import("../features/admin/pages/TimetableManagement"));
+const HRAccounts = lazy(() => import("../features/admin/pages/HRAccounts"));
+const AuditLogs = lazy(() => import("../features/admin/pages/AuditLogs"));
+const EmergencyOverride = lazy(() => import("../features/admin/pages/EmergencyOverride"));
+const RoleManagement = lazy(() => import("../features/admin/pages/RoleManagement"));
+const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const EventForm = lazy(() => import("../features/events/pages/EventForm"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
+const RoleAssignmentsApproval = lazy(() => import("../features/admin/pages/RoleAssignmentsApproval"));
+const SubmitCouncilElection = lazy(() => import("../features/admin/pages/SubmitCouncilElection"));
 
 export const adminRoutes = [
   <Route key="index" index element={<Navigate to="overview" replace />} />,

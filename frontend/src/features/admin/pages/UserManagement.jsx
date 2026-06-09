@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -31,6 +31,8 @@ import {
   AlertCircle,
   KeyRound,
   Upload,
+  Hash,
+  BadgeCheck,
 } from "lucide-react";
 import GlassCard from "@/components/cards/GlassCard";
 import adminService from "../../../services/adminService";
@@ -76,25 +78,6 @@ export default function UserManagement() {
 
   const [allRoles, setAllRoles] = useState([]);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
-
-  const containerRef = useRef(null);
-  const [sidebarOffset, setSidebarOffset] = useState(0);
-
-  useEffect(() => {
-    const updateOffset = () => {
-      if (containerRef.current) {
-        setSidebarOffset(containerRef.current.getBoundingClientRect().left);
-      }
-    };
-    updateOffset();
-    const observer = new ResizeObserver(updateOffset);
-    if (containerRef.current) observer.observe(containerRef.current);
-    window.addEventListener("resize", updateOffset);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateOffset);
-    };
-  }, []);
 
   const getRoleInfo = useCallback((roleName) => {
     const idx = allRoles.findIndex(r => r.name === roleName);
@@ -163,18 +146,23 @@ export default function UserManagement() {
 
   const handleView = async (user) => {
     try {
-      const data = await adminService.getUser(user._id || user.id);
-      console.log("User data:", data);
-      setSelectedUser({ ...user, ...data });
+      const res = await adminService.getUser(user._id || user.id);
+      const detailUser = res?.user || res;
+      const detailStats = res?.stats;
+      const merged = { ...user, ...detailUser, stats: detailStats };
+      const isObjectId = (v) => typeof v === "string" && /^[0-9a-fA-F]{24}$/.test(v);
+      if (isObjectId(merged.school)) merged.school = user.school;
+      if (isObjectId(merged.department)) merged.department = user.department;
+      setSelectedUser(merged);
       setShowModal(true);
       if (isEditMode) {
         setEditData({
-          name: data.name || user.name,
-          email: data.email || user.email,
-          phoneNumber: data.phoneNumber || user.phoneNumber || "",
-          role: data.role || user.role || "student",
-          school: data.school || user.school || "",
-          department: data.department || user.department || "",
+          name: detailUser.name || user.name,
+          email: detailUser.email || user.email,
+          phoneNumber: detailUser.phoneNumber || user.phoneNumber || "",
+          role: detailUser.role || user.role || "student",
+          school: user.school || "",
+          department: user.department || "",
         });
       }
     } catch {
@@ -191,6 +179,10 @@ export default function UserManagement() {
         role: selectedUser.role,
         school: selectedUser.school || "",
         department: selectedUser.department || "",
+        registrationNumber: selectedUser.registrationNumber || "",
+        studentID: selectedUser.studentID || "",
+        level: selectedUser.level || "",
+        status: selectedUser.status || "ACTIVE",
       });
     }
     setIsEditMode(!isEditMode);
@@ -203,8 +195,10 @@ export default function UserManagement() {
       toast.success("User updated");
       fetchUsers();
       setIsEditMode(false);
-      const updated = await adminService.getUser(selectedUser._id || selectedUser.id);
-      setSelectedUser({ ...selectedUser, ...updated });
+      const res = await adminService.getUser(selectedUser._id || selectedUser.id);
+      const detailUser = res?.user || res;
+      const detailStats = res?.stats;
+      setSelectedUser({ ...selectedUser, ...detailUser, stats: detailStats });
     } catch {
       toast.error("Failed to update user");
     } finally {
@@ -244,7 +238,7 @@ export default function UserManagement() {
   }, [users, allRoles]);
 
   return (
-    <div ref={containerRef} className="p-4 lg:p-6 w-full text-foreground">
+    <div className="p-4 lg:p-6 w-full text-foreground">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -512,8 +506,7 @@ export default function UserManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ left: sidebarOffset, width: `calc(100% - ${sidebarOffset}px)` }}
-            className="fixed top-0 right-0 bottom-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start justify-center pt-12 sm:pt-16 p-2 sm:p-4 overflow-y-auto"
             onClick={() => setShowModal(false)}
           >
             <motion.div
@@ -543,6 +536,29 @@ export default function UserManagement() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                {selectedUser.role && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                    {selectedUser.role.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                  </span>
+                )}
+                {selectedUser.status && (
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
+                    selectedUser.status === "ACTIVE" ? "bg-green-500/15 text-green-400 border-green-500/30" :
+                    selectedUser.status === "PENDING" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" :
+                    selectedUser.status === "SUSPENDED" ? "bg-red-500/15 text-red-400 border-red-500/30" :
+                    "bg-muted text-muted-foreground border-border"
+                  }`}>
+                    {selectedUser.status}
+                  </span>
+                )}
+                {selectedUser.emailVerified && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                    <BadgeCheck size={12} /> Verified
+                  </span>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
                 <div className="bg-accent/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -560,20 +576,62 @@ export default function UserManagement() {
                     {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : "Unknown"}
                   </p>
                 </div>
+                {selectedUser.registrationNumber && (
+                <div className="bg-accent/50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Hash size={14} />
+                    <span className="text-xs uppercase">Reg Number</span>
+                  </div>
+                  <p className="font-medium text-foreground">{selectedUser.registrationNumber}</p>
+                </div>
+                )}
+                {selectedUser.studentID && (
+                <div className="bg-accent/50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <BadgeCheck size={14} />
+                    <span className="text-xs uppercase">Student ID</span>
+                  </div>
+                  <p className="font-medium text-foreground">{selectedUser.studentID}</p>
+                </div>
+                )}
+                {selectedUser.level && (
+                <div className="bg-accent/50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <GraduationCap size={14} />
+                    <span className="text-xs uppercase">Level</span>
+                  </div>
+                  <p className="font-medium text-foreground">{selectedUser.level}</p>
+                </div>
+                )}
                 <div className="bg-accent/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Building size={14} />
                     <span className="text-xs uppercase">School</span>
                   </div>
-                  <p className="font-medium text-foreground">{selectedUser.school || "Not assigned"}</p>
+                  <p className="font-medium text-foreground">
+                    {typeof selectedUser.school === "string" ? selectedUser.school : selectedUser.school?.name || "Not assigned"}
+                  </p>
                 </div>
                 <div className="bg-accent/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <GraduationCap size={14} />
+                    <Building size={14} />
                     <span className="text-xs uppercase">Department</span>
                   </div>
-                  <p className="font-medium text-foreground">{selectedUser.department || "Not assigned"}</p>
+                  <p className="font-medium text-foreground">
+                    {typeof selectedUser.department === "string" ? selectedUser.department : selectedUser.department?.name || "Not assigned"}
+                  </p>
                 </div>
+                {selectedUser.lastActiveAt && (
+                <div className="bg-accent/50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Clock size={14} />
+                    <span className="text-xs uppercase">Last Active</span>
+                  </div>
+                  <p className="font-medium text-foreground">
+                    {new Date(selectedUser.lastActiveAt).toLocaleDateString()}
+                  </p>
+                </div>
+                )}
               </div>
 
               {!isEditMode && (
@@ -583,14 +641,18 @@ export default function UserManagement() {
                     <Award size={14} />
                     <span className="text-xs uppercase">Events</span>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">{selectedUser.eventsCreated?.length || 0}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {selectedUser.stats?.eventsCreated ?? selectedUser.eventsCreated?.length ?? 0}
+                  </p>
                 </div>
                 <div className="bg-accent/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <Bell size={14} />
                     <span className="text-xs uppercase">Notifications</span>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">{selectedUser.notificationsReceived?.length || 0}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {selectedUser.stats?.notificationsReceived ?? selectedUser.notificationsReceived?.length ?? 0}
+                  </p>
                 </div>
               </div>
             )}
@@ -637,6 +699,56 @@ export default function UserManagement() {
                       {allRoles.map(r => (
                         <option key={r.name} value={r.name}>{r.displayName || r.name}</option>
                       ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase">Reg Number</label>
+                    <input
+                      type="text"
+                      value={editData.registrationNumber || ""}
+                      onChange={(e) => setEditData({ ...editData, registrationNumber: e.target.value })}
+                      className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase">Student ID</label>
+                    <input
+                      type="text"
+                      value={editData.studentID || ""}
+                      onChange={(e) => setEditData({ ...editData, studentID: e.target.value })}
+                      className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase">Level</label>
+                    <select
+                      value={editData.level || ""}
+                      onChange={(e) => setEditData({ ...editData, level: e.target.value })}
+                      className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
+                    >
+                      <option value="">Not set</option>
+                      <option value="Year 1">Year 1</option>
+                      <option value="Year 2">Year 2</option>
+                      <option value="Year 3">Year 3</option>
+                      <option value="Year 4">Year 4</option>
+                      <option value="Year 5">Year 5</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase">Status</label>
+                    <select
+                      value={editData.status || "ACTIVE"}
+                      onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                      className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="PENDING">Pending</option>
+                      <option value="SUSPENDED">Suspended</option>
+                      <option value="REJECTED">Rejected</option>
                     </select>
                   </div>
                 </div>
@@ -749,7 +861,6 @@ export default function UserManagement() {
         onClose={() => { setShowBulkUpload(false); }}
         entity="users"
         onComplete={() => fetchUsers()}
-        sidebarOffset={sidebarOffset}
       />
 
       <AnimatePresence>
@@ -758,8 +869,7 @@ export default function UserManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ left: sidebarOffset, width: `calc(100% - ${sidebarOffset}px)` }}
-            className="fixed top-0 right-0 bottom-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start justify-center pt-12 sm:pt-16 p-2 sm:p-4 overflow-y-auto"
             onClick={() => setShowNewUserModal(false)}
           >
             <motion.div

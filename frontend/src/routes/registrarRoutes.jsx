@@ -1,12 +1,13 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import RegistrarDashboard from "../pages/dashboards/registrar/pages/RegistrarDashboard";
-import NewStudent from "../pages/dashboards/registrar/pages/NewStudent";
-import StudentRecords from "../pages/dashboards/registrar/pages/StudentRecords";
-import EnrollmentStats from "../pages/dashboards/registrar/pages/EnrollmentStats";
-import RegistrarEvents from "../pages/dashboards/registrar/pages/RegistrarEvents";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
+const RegistrarDashboard = lazy(() => import("../pages/dashboards/registrar/pages/RegistrarDashboard"));
+const NewStudent = lazy(() => import("../pages/dashboards/registrar/pages/NewStudent"));
+const StudentRecords = lazy(() => import("../pages/dashboards/registrar/pages/StudentRecords"));
+const EnrollmentStats = lazy(() => import("../pages/dashboards/registrar/pages/EnrollmentStats"));
+const RegistrarEvents = lazy(() => import("../pages/dashboards/registrar/pages/RegistrarEvents"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 
 export const registrarRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,

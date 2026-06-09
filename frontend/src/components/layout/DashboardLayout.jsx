@@ -168,12 +168,12 @@ export default function DashboardLayout({ role = "student" }) {
           className="flex-1 flex flex-col h-full overflow-hidden bg-background"
           style={{
             transformOrigin: "90% center",
-            willChange: "transform",
+            willChange: isMobile && sidebarOpen ? "transform" : undefined,
             borderRadius: isMobile && sidebarOpen ? "32px" : "0px",
             boxShadow: isMobile && sidebarOpen ? "0 30px 60px rgba(0,0,0,0.5)" : "none",
             transform: isMobile && sidebarOpen
               ? "translateX(60%) scale(0.8) rotateY(-15deg)"
-              : "translateX(0) scale(1) rotateY(0deg)",
+              : undefined,
             transition: "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.5s ease, box-shadow 0.5s ease",
             pointerEvents: isMobile && sidebarOpen ? "none" : undefined,
           }}

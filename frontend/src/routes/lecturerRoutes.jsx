@@ -1,20 +1,21 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import LecturerOverview from "../pages/dashboards/lecturer/pages/Dashboard";
-import LecturerCreateAnnouncement from "../pages/dashboards/lecturer/pages/CreateAnnouncement";
-import LecturerAnnouncements from "../pages/dashboards/lecturer/pages/MyAnnouncements";
-import LecturerNotifications from "../pages/dashboards/lecturer/pages/Notifications";
-import LecturerClasses from "../pages/dashboards/lecturer/pages/MyClasses";
-import LecturerSettings from "../pages/dashboards/lecturer/Settings";
-import LecturerAnnouncementQA from "../pages/dashboards/lecturer/pages/AnnouncementQA";
-import MessagesTab from "../features/communication/pages/MessagesTab";
-import GovernancePage from "../pages/dashboards/shared/GovernancePage";
-import SupportPage from "../pages/dashboards/shared/SupportPage";
-import CreatorDashboard from "../features/events/pages/CreatorDashboard";
-import EventForm from "../features/events/pages/EventForm";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
-import LecturerTimetable from "../pages/dashboards/lecturer/pages/LecturerTimetable";
+const LecturerOverview = lazy(() => import("../pages/dashboards/lecturer/pages/Dashboard"));
+const LecturerCreateAnnouncement = lazy(() => import("../pages/dashboards/lecturer/pages/CreateAnnouncement"));
+const LecturerAnnouncements = lazy(() => import("../pages/dashboards/lecturer/pages/MyAnnouncements"));
+const LecturerNotifications = lazy(() => import("../pages/dashboards/lecturer/pages/Notifications"));
+const LecturerClasses = lazy(() => import("../pages/dashboards/lecturer/pages/MyClasses"));
+const LecturerSettings = lazy(() => import("../pages/dashboards/lecturer/Settings"));
+const LecturerAnnouncementQA = lazy(() => import("../pages/dashboards/lecturer/pages/AnnouncementQA"));
+const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
+const GovernancePage = lazy(() => import("../pages/dashboards/shared/GovernancePage"));
+const SupportPage = lazy(() => import("../pages/dashboards/shared/SupportPage"));
+const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const EventForm = lazy(() => import("../features/events/pages/EventForm"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
+const LecturerTimetable = lazy(() => import("../pages/dashboards/lecturer/pages/LecturerTimetable"));
 
 export const lecturerRoutes = [
   <Route key="index" index element={<Navigate to="console" replace />} />,

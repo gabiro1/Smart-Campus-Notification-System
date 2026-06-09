@@ -1,19 +1,20 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import DepartmentOverview from "../pages/dashboards/hod/pages/DepartmentOverview";
-import DepartmentBroadcast from "../pages/dashboards/hod/pages/DepartmentBroadcast";
-import AllAnnouncements from "../pages/dashboards/hod/pages/AllAnnouncements";
-import LecturerManagement from "../pages/dashboards/hod/pages/LecturerManagement";
-import DepartmentSettings from "../pages/dashboards/hod/pages/DepartmentSettings";
-import MessagesTab from "../features/communication/pages/MessagesTab";
-import GovernancePage from "../pages/dashboards/shared/GovernancePage";
-import NotificationsPage from "../pages/dashboards/lecturer/pages/Notifications";
-import CpApprovals from "../pages/dashboards/hod/pages/CpApprovals";
-import CreatorDashboard from "../features/events/pages/CreatorDashboard";
-import EventForm from "../features/events/pages/EventForm";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
-import HodTimetable from "../pages/dashboards/hod/pages/HodTimetable";
+const DepartmentOverview = lazy(() => import("../pages/dashboards/hod/pages/DepartmentOverview"));
+const DepartmentBroadcast = lazy(() => import("../pages/dashboards/hod/pages/DepartmentBroadcast"));
+const AllAnnouncements = lazy(() => import("../pages/dashboards/hod/pages/AllAnnouncements"));
+const LecturerManagement = lazy(() => import("../pages/dashboards/hod/pages/LecturerManagement"));
+const DepartmentSettings = lazy(() => import("../pages/dashboards/hod/pages/DepartmentSettings"));
+const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
+const GovernancePage = lazy(() => import("../pages/dashboards/shared/GovernancePage"));
+const NotificationsPage = lazy(() => import("../pages/dashboards/lecturer/pages/Notifications"));
+const CpApprovals = lazy(() => import("../pages/dashboards/hod/pages/CpApprovals"));
+const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const EventForm = lazy(() => import("../features/events/pages/EventForm"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
+const HodTimetable = lazy(() => import("../pages/dashboards/hod/pages/HodTimetable"));
 
 export const hodRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,

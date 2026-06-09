@@ -1,18 +1,18 @@
+import { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
-import GuildOverview from "../pages/dashboards/guild_president/pages/Overview";
-import GuildPostEvents from "../pages/dashboards/guild_president/pages/PostEvents";
-import GuildNotifications from "../pages/dashboards/guild_president/pages/Notifications";
-import GuildEngagement from "../pages/dashboards/guild_president/pages/Engagement";
-import GuildMembers from "../pages/dashboards/guild_president/pages/Members";
-import GuildSettings from "../pages/dashboards/guild_president/pages/Settings";
-import ClassRepProposals from "../pages/dashboards/guild_president/pages/ClassRepProposals";
-import MessagesTab from "../features/communication/pages/MessagesTab";
-
-import GuildCouncilDashboard from "../features/events/pages/GuildCouncilDashboard";
-import EventForm from "../features/events/pages/EventForm";
-import EventDetailsPage from "../features/events/pages/EventDetailsPage";
+const GuildOverview = lazy(() => import("../pages/dashboards/guild_president/pages/Overview"));
+const GuildPostEvents = lazy(() => import("../pages/dashboards/guild_president/pages/PostEvents"));
+const GuildNotifications = lazy(() => import("../pages/dashboards/guild_president/pages/Notifications"));
+const GuildEngagement = lazy(() => import("../pages/dashboards/guild_president/pages/Engagement"));
+const GuildMembers = lazy(() => import("../pages/dashboards/guild_president/pages/Members"));
+const GuildSettings = lazy(() => import("../pages/dashboards/guild_president/pages/Settings"));
+const ClassRepProposals = lazy(() => import("../pages/dashboards/guild_president/pages/ClassRepProposals"));
+const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
+const GuildCouncilDashboard = lazy(() => import("../features/events/pages/GuildCouncilDashboard"));
+const EventForm = lazy(() => import("../features/events/pages/EventForm"));
+const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 
 export const guildRoutes = [
   <Route key="index" index element={<Navigate to="overview" replace />} />,
