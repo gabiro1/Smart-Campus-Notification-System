@@ -9,16 +9,8 @@ import ResetPassword from "../../features/auth/pages/ResetPassword";
 import VerifyEmail from "../../features/auth/pages/VerifyEmail";
 import ForcePasswordChange from "../../features/auth/pages/ForcePasswordChange";
 
-// --- LAYOUTS ONLY ---
-import AdminLayout from "../../layouts/AdminLayout";
-import StudentLayout from "../../pages/dashboards/student/components/StudentDashboardLayout";
-import GuildLayout from "../../pages/dashboards/guild_president/components/DashboardLayout";
-import LecturerLayout from "../../pages/dashboards/lecturer/components/DashboardLayout";
-import HodLayout from "../../pages/dashboards/hod/components/DashboardLayout";
-import DeanLayout from "../../pages/dashboards/dean/components/DashboardLayout";
-import PrincipalLayout from "../../pages/dashboards/principal/components/DashboardLayout";
-import HrLayout from "../../pages/dashboards/hr/components/HrLayout";
-import RegistrarLayout from "../../pages/dashboards/registrar/components/RegistrarLayout";
+// --- UNIFIED LAYOUT ---
+import DashboardLayout from "../../components/layout/DashboardLayout";
 
 // --- MODULAR ROUTE ARRAYS ---
 import { publicRoutes } from "../publicRoutes";
@@ -59,40 +51,40 @@ export default function AppRoutes() {
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/force-password-change" element={<ForcePasswordChange />} />
 
-        {/* Protected Role-Based Layouts */}
-        <Route path="/student" element={<StudentLayout />}>
+        {/* Protected Role-Based Layouts - Unified DashboardLayout */}
+        <Route path="/student" element={<DashboardLayout role="student" />}>
           {studentRoutes}
         </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/admin" element={<DashboardLayout role="admin" />}>
           {adminRoutes}
         </Route>
 
-        <Route path="/hod" element={<HodLayout />}>
+        <Route path="/hod" element={<DashboardLayout role="hod" />}>
           {hodRoutes}
         </Route>
 
-        <Route path="/dean" element={<DeanLayout />}>
+        <Route path="/dean" element={<DashboardLayout role="dean" />}>
           {deanRoutes}
         </Route>
 
-        <Route path="/lecturer" element={<LecturerLayout />}>
+        <Route path="/lecturer" element={<DashboardLayout role="lecturer" />}>
           {lecturerRoutes}
         </Route>
 
-        <Route path="/guild" element={<GuildLayout />}>
+        <Route path="/guild" element={<DashboardLayout role="guild_president" />}>
           {guildRoutes}
         </Route>
 
-        <Route path="/principal" element={<PrincipalLayout />}>
+        <Route path="/principal" element={<DashboardLayout role="principal" />}>
           {principalRoutes}
         </Route>
 
-        <Route path="/hr" element={<HrLayout />}>
+        <Route path="/hr" element={<DashboardLayout role="hr" />}>
           {hrRoutes}
         </Route>
 
-        <Route path="/registrar" element={<RegistrarLayout />}>
+        <Route path="/registrar" element={<DashboardLayout role="registrar" />}>
           {registrarRoutes}
         </Route>
 

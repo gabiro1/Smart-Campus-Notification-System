@@ -14,6 +14,7 @@ import {
   BarChart3,
   ChevronRight,
 } from "lucide-react";
+import GreetingSection from "../../../components/dashboards/GreetingSection";
 import {
   XAxis,
   YAxis,
@@ -173,6 +174,9 @@ export default function SystemOverview() {
 
   return (
     <div className="p-4 lg:p-6 w-full text-foreground space-y-5">
+      {/* Greeting */}
+      <GreetingSection subtitle="Manage campus notifications, users, and system settings." />
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((stat, i) => (

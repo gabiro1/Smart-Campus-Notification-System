@@ -148,7 +148,7 @@ export default function AdminTopbar({ title = "Dashboard", onMenuClick, onCollap
         <h1 className="text-[15px] font-medium text-foreground hidden lg:block">{title}</h1>
       </div>
 
-      <div className="hidden md:flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-2 text-muted-foreground text-[13px] cursor-text hover:border-blue-500/50 transition-colors flex-1 max-w-sm relative">
+      <div className="hidden md:flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-2 text-muted-foreground text-[13px] cursor-text hover:border-blue-500/50 transition-colors flex-1 max-w-[200px] lg:max-w-sm relative">
         <Search size={14} className="shrink-0 opacity-50" />
         <input
           ref={searchInputRef}

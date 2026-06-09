@@ -436,7 +436,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
                       <div className="mt-2 space-y-1">
                         {attachments.map((file, i) => (
                           <div key={i} className="flex items-center justify-between px-3 py-2 bg-muted/50 border border-border rounded-lg text-sm">
-                            <span className="text-muted-foreground truncate max-w-[300px]">{file.name}</span>
+                            <span className="text-muted-foreground truncate max-w-[160px] sm:max-w-[300px]">{file.name}</span>
                             <button type="button" onClick={() => removeAttachment(i)} className="text-muted-foreground hover:text-red-400 transition-colors p-1">
                               <X size={13} />
                             </button>

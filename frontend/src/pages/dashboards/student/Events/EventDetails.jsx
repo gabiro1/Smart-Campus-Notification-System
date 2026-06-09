@@ -42,7 +42,7 @@ export default function EventDetails() {
             <h1 className="text-xl font-bold text-foreground mt-1">{event.title}</h1>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { icon: Calendar, label: "Date", value: event.date },
               { icon: Clock, label: "Time", value: event.time },

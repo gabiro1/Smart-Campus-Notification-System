@@ -61,7 +61,7 @@ export default function CommunicationHub() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background">
+    <div className="flex h-[calc(100vh-4rem)] min-h-[calc(100dvh-4rem)] bg-background">
       {isMobile && mobileOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"

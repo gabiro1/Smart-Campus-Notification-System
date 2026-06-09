@@ -191,7 +191,7 @@ export default function CreatorDashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none"
+        className="flex items-center gap-2 overflow-x-auto pb-1 lg:scrollbar-none"
       >
         {STATUS_TABS.map(tab => (
           <button

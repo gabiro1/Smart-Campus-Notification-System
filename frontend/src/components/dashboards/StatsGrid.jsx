@@ -1,18 +1,13 @@
-/**
- * Professional Stats Grid Component
- * Responsive grid layout for dashboard cards
- */
-
 import { motion } from "framer-motion";
 
 export default function StatsGrid({
   cards = [],
-  columns = 3,
-  gap = 3,
+  columns = 4,
+  gap = 4,
   animated = true,
-  delay = 0.1,
+  delay = 0.08,
 }) {
-  const gridClass = `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-${gap}`;
+  const gridClass = `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-${columns} gap-${gap}`;
 
   const containerVariants = {
     initial: { opacity: 0 },
@@ -20,14 +15,14 @@ export default function StatsGrid({
       opacity: 1,
       transition: {
         staggerChildren: delay,
-        delayChildren: 0.2,
+        delayChildren: 0.1,
       },
     },
   };
 
   const itemVariants = {
     initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } },
   };
 
   if (!animated) {
