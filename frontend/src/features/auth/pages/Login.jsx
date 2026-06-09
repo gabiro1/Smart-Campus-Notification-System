@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Lock, ArrowRight, Loader2, Eye, EyeOff, Sparkles, Bell, Zap, ShieldCheck } from "lucide-react";
@@ -14,9 +14,28 @@ const FEATURES = [
   { icon: ShieldCheck, text: "Verified sources only" },
 ];
 
+const roleRedirects = {
+  admin: "/admin/overview",
+  principal: "/principal/dashboard",
+  dean: "/dean/dashboard",
+  hod: "/hod",
+  lecturer: "/lecturer",
+  student: "/student/dashboard",
+  class_rep: "/student/dashboard",
+  guild_president: "/guild/overview",
+  hr: "/hr/dashboard",
+  registrar: "/registrar/dashboard",
+};
+
 export default function Login() {
-  const { login: startSession } = useAuth();
+  const { login: startSession, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate(roleRedirects[user.role] || `/${user.role}/dashboard`, { replace: true });
+    }
+  }, [user, navigate]);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -70,6 +89,8 @@ export default function Login() {
       }
       
       startSession(data.user, data.token);
+      const target = roleRedirects[data.user.role] || `/${data.user.role}/dashboard`;
+      navigate(target, { replace: true });
     } catch (error) {
       const message =
         error.message ||

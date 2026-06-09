@@ -172,7 +172,7 @@ export default function UniSidebar({
         initial={false}
         animate={{ width: sidebarWidth }}
         transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-        className="fixed left-0 top-0 h-screen z-30 bg-[#0a0a0a] border-r border-border overflow-hidden"
+        className="fixed left-0 top-0 h-screen z-30 bg-sidebar border-r border-sidebar overflow-hidden"
       >
         {sidebarContent}
       </motion.aside>
@@ -320,7 +320,15 @@ export default function UniSidebar({
             animate={{ x: 0 }}
             exit={{ x: -288 }}
             transition={{ type: "spring", damping: 28, stiffness: 250 }}
-            className="fixed left-0 top-0 h-screen z-50 w-72 bg-[#0a0a0a] border-r border-border flex flex-col rounded-r-2xl"
+            drag={isOpen ? "x" : false}
+            dragConstraints={{ left: -288, right: 0 }}
+            dragElastic={{ left: 0.7, right: 0 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.x < -80) {
+                setIsOpen(false);
+              }
+            }}
+            className="fixed left-0 top-0 h-screen z-50 w-72 bg-sidebar border-r border-sidebar flex flex-col rounded-r-2xl"
           >
             {mobileSidebarContent}
           </motion.aside>
