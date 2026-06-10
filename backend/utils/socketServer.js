@@ -149,6 +149,18 @@ export const emitToRole = (role, event, data) => {
   }
 };
 
+export const emitToUser = (userId, event, data) => {
+  if (io) {
+    const uid = userId?.toString();
+    if (uid) {
+      io.to(`user:${uid}`).emit(event, {
+        ...data,
+        _meta: { timestamp: Date.now() },
+      });
+    }
+  }
+};
+
 export const emitApprovalCounts = (pendingEvents, pendingAnnouncements) => {
   emitToRole("principal", "approval:counts", { pendingEvents, pendingAnnouncements });
 };

@@ -136,15 +136,15 @@ export const resetPasswordTokenSchema = Joi.object({
 // ==========================================
 
 export const eventCreationSchema = Joi.object({
-  title: Joi.string().trim().min(5).max(200).required()
+  title: Joi.string().trim().min(1).max(200).required()
     .messages({
-      'string.min': 'Title must be at least 5 characters.',
+      'string.min': 'Title must be at least 1 character.',
       'string.max': 'Title cannot exceed 200 characters.',
       'any.required': 'Title is required.'
     }),
-  description: Joi.string().trim().min(20).max(5000).required()
+  description: Joi.string().trim().min(1).max(5000).required()
     .messages({
-      'string.min': 'Description must be at least 20 characters.',
+      'string.min': 'Description must be at least 1 character.',
       'string.max': 'Description cannot exceed 5000 characters.',
       'any.required': 'Description is required.'
     }),
@@ -162,16 +162,17 @@ export const eventCreationSchema = Joi.object({
     .messages({ 'any.required': 'Venue is required.' }),
   startDate: Joi.date().iso().required()
     .messages({ 'any.required': 'Start date is required.' }),
-  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional()
+  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional().allow('')
     .messages({ 'date.min': 'End date must be after start date.' }),
   startTime: Joi.string().required()
     .messages({ 'any.required': 'Start time is required.' }),
   endTime: Joi.string().optional().allow(''),
   targetAudience: Joi.array().items(Joi.string().valid(
-    'whole_university', 'specific_college', 'department',
+    'whole_university', 'specific_college', 'specific_school', 'department',
     'academic_year', 'clubs', 'staff_only', 'invite_only'
   )).optional().default(['whole_university']),
   targetColleges: Joi.array().items(Joi.string()).optional(),
+  targetSchools: Joi.array().items(Joi.string()).optional(),
   targetDepartments: Joi.array().items(Joi.string()).optional(),
   targetAcademicYears: Joi.array().items(Joi.string()).optional(),
   targetClubs: Joi.array().items(Joi.string()).optional(),
@@ -216,6 +217,7 @@ export const eventUpdateSchema = Joi.object({
   endTime: Joi.string().optional().allow(''),
   targetAudience: Joi.array().items(Joi.string()).optional(),
   targetColleges: Joi.array().items(Joi.string()).optional(),
+  targetSchools: Joi.array().items(Joi.string()).optional(),
   targetDepartments: Joi.array().items(Joi.string()).optional(),
   targetAcademicYears: Joi.array().items(Joi.string()).optional(),
   targetClubs: Joi.array().items(Joi.string()).optional(),
@@ -358,13 +360,24 @@ export const validateBody = (schema) => {
       return next();
     }
 
-    const { error } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    // Convert empty strings to undefined for fewer validation issues
+    if (req.body && typeof req.body === 'object') {
+      for (const key of Object.keys(req.body)) {
+        if (req.body[key] === '') {
+          delete req.body[key];
+        }
+      }
+    }
+
+    console.log('VALIDATE BODY INPUT:', JSON.stringify(req.body, null, 2));
+    const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
 
     if (error) {
       const errors = error.details.map(detail => ({
         field: detail.path.join('.'),
         message: detail.message
       }));
+      console.log('VALIDATION ERRORS:', JSON.stringify(errors, null, 2));
 
       return res.status(400).json({
         success: false,
@@ -372,6 +385,7 @@ export const validateBody = (schema) => {
         errors
       });
     }
+    req.body = value;
 
     // Auto-sanitize string fields that might contain HTML
     // These fields are known to accept rich text

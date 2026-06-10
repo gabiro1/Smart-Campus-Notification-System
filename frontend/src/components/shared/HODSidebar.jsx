@@ -3,7 +3,6 @@ import {
   Radio,
   Files,
   Users,
-  BarChart3,
   Settings,
   Command,
   Mail,
@@ -43,7 +42,6 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       section: "Management",
       items: [
         { path: "/hod/lecturers", name: "Lecturers", icon: Users },
-        { path: "/hod/reports", name: "Analytics", icon: BarChart3 },
       ],
     },
     {

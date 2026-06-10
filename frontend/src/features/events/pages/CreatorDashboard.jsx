@@ -10,6 +10,7 @@ import {
 import eventService from '../../../services/eventService';
 import EventForm from './EventForm';
 import { useAuth } from '../../../context/AuthContext';
+import { useSocket } from '../../../context/SocketContext';
 
 const STATUS_TABS = [
   { key: 'all', label: 'All', icon: Layers },
@@ -38,6 +39,7 @@ const STATUS_STYLES = {
 export default function CreatorDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { socket } = useSocket();
   const canDirectPublish = ['principal', 'admin', 'guild_president'].includes(user?.role);
   const [activeTab, setActiveTab] = useState('all');
   const [events, setEvents] = useState([]);
@@ -68,22 +70,41 @@ export default function CreatorDashboard() {
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
 
+  useEffect(() => {
+    if (!socket) return;
+    const handleStatusChange = (data) => {
+      if (data.eventId) fetchEvents();
+    };
+    socket.on('event:statusChanged', handleStatusChange);
+    return () => { socket.off('event:statusChanged', handleStatusChange); };
+  }, [socket, fetchEvents]);
+
   const handleCreateDraft = async (data) => {
     try {
-      await eventService.createDraft(data);
+      const res = await eventService.createDraft(data);
+      const eventId = res.event?._id || res._id;
+      if (eventId && !canDirectPublish) {
+        await eventService.submitForReview(eventId);
+      }
       setShowForm(false);
       fetchEvents();
+      return eventId;
     } catch (err) {
-      console.error('Create draft failed:', err);
+      console.error('Create draft failed:', err.response?.data || err.message);
     }
   };
 
   const handleUpdateDraft = async (data) => {
     if (!editingEvent) return;
     try {
-      await eventService.updateDraft(editingEvent._id, data);
+      const res = await eventService.updateDraft(editingEvent._id, data);
+      const eventId = res.event?._id || res._id;
+      if (editingEvent.status === 'NEEDS_REVISION' && !canDirectPublish) {
+        await eventService.submitForReview(eventId);
+      }
       setEditingEvent(null);
       fetchEvents();
+      return eventId;
     } catch (err) {
       console.error('Update draft failed:', err);
     }
@@ -91,11 +112,7 @@ export default function CreatorDashboard() {
 
   const handleSubmit = async (id) => {
     try {
-      if (canDirectPublish) {
-        await eventService.createAndPublish({ id });
-      } else {
-        await eventService.submitForReview(id);
-      }
+      await eventService.submitForReview(id);
       fetchEvents();
     } catch (err) {
       console.error('Submit failed:', err);
@@ -104,9 +121,10 @@ export default function CreatorDashboard() {
 
   const handlePublishDraft = async (data) => {
     try {
-      await eventService.createAndPublish(data);
+      const res = await eventService.createAndPublish(data);
       setShowForm(false);
       fetchEvents();
+      return res.event?._id || res._id;
     } catch (err) {
       console.error('Publish failed:', err);
     }
@@ -353,21 +371,25 @@ export default function CreatorDashboard() {
                       <button onClick={() => { setEditingEvent(event); setShowForm(true); }} className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all" title="Edit">
                         <Edit3 size={12} />
                       </button>
-                      <button
-                        onClick={() => {
-                          if (canDirectPublish) {
-                            if (window.confirm('Publish this event directly?')) handleSubmit(event._id);
-                          } else {
-                            handleSubmit(event._id);
-                          }
-                        }}
-                        className={`p-1.5 rounded-md transition-all ${
-                          canDirectPublish ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10'
-                        }`}
-                        title={canDirectPublish ? 'Publish directly' : 'Submit for review'}
-                      >
-                        {canDirectPublish ? <ShieldCheck size={12} /> : <Send size={12} />}
-                      </button>
+                      {canDirectPublish ? (
+                        <button
+                          onClick={() => {
+                            if (window.confirm('This will publish the event immediately to all students. Continue?')) handleSubmit(event._id);
+                          }}
+                          className="p-1.5 rounded-md text-emerald-400 hover:bg-emerald-500/10 transition-all"
+                          title="Publish directly"
+                        >
+                          <ShieldCheck size={12} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleSubmit(event._id)}
+                          className="p-1.5 rounded-md text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"
+                          title="Submit for review"
+                        >
+                          <Send size={12} />
+                        </button>
+                      )}
                     </>
                   )}
                   {event.status === 'NEEDS_REVISION' && (
@@ -446,23 +468,25 @@ export default function CreatorDashboard() {
                         >
                           <Edit3 size={15} />
                         </button>
+                      {canDirectPublish ? (
                         <button
                           onClick={() => {
-                            if (canDirectPublish) {
-                              if (window.confirm('Publish this event directly?')) handleSubmit(event._id);
-                            } else {
-                              handleSubmit(event._id);
-                            }
+                            if (window.confirm('This will publish the event immediately to all students. Continue?')) handleSubmit(event._id);
                           }}
-                          className={`p-2 rounded-lg transition-all ${
-                            canDirectPublish
-                              ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10'
-                              : 'text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10'
-                          }`}
-                          title={canDirectPublish ? 'Publish directly' : 'Submit for review'}
+                          className="p-2 rounded-lg text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all"
+                          title="Publish directly"
                         >
-                          {canDirectPublish ? <ShieldCheck size={15} /> : <Send size={15} />}
+                          <ShieldCheck size={15} />
                         </button>
+                      ) : (
+                        <button
+                          onClick={() => handleSubmit(event._id)}
+                          className="p-2 rounded-lg text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"
+                          title="Submit for review"
+                        >
+                          <Send size={15} />
+                        </button>
+                      )}
                       </>
                     )}
                     {event.status === 'NEEDS_REVISION' && (

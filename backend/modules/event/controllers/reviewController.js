@@ -202,7 +202,7 @@ export const publishEvent = async (req, res) => {
 export const scheduleEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { scheduledDate } = req.body;
+    const { scheduledDate, comment } = req.body;
 
     if (!canReview(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
@@ -216,7 +216,7 @@ export const scheduleEvent = async (req, res) => {
 
     const updated = await transitionEventStatus(
       id, 'SCHEDULED', req.user.id,
-      { comment: `Scheduled for ${scheduledDate || event.startDate}`, metadata: { scheduledDate } }
+      { comment: comment || `Scheduled for ${scheduledDate || event.startDate}`, metadata: { scheduledDate } }
     );
 
     res.json({ success: true, message: 'Event scheduled', event: updated });

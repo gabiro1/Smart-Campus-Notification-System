@@ -1,11 +1,13 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, Clock, MapPin, Type, AlignLeft, Users, Phone,
   Link, Image, Upload, FileText, DollarSign, Target, Eye,
   MessageSquare, X, Loader2, ChevronRight, ChevronLeft,
-  Check, Building2, Hash, Globe, ShieldCheck
+  Check, Building2, Hash, Globe, ShieldCheck, Search,
+  ChevronDown, AlertCircle, RefreshCw, GraduationCap, UserPlus
 } from 'lucide-react';
+import apiClient from '../../../services/apiClient';
 
 const CATEGORIES = [
   { value: 'academic', label: 'Academic' },
@@ -23,20 +25,256 @@ const CATEGORIES = [
 ];
 
 const AUDIENCE_OPTIONS = [
-  { value: 'whole_university', label: 'Whole University' },
-  { value: 'specific_college', label: 'Specific College' },
-  { value: 'department', label: 'Department' },
-  { value: 'academic_year', label: 'Academic Year' },
-  { value: 'clubs', label: 'Clubs' },
-  { value: 'staff_only', label: 'Staff Only' },
-  { value: 'invite_only', label: 'Invite Only' }
+  { value: 'whole_university', label: 'Whole University', icon: Globe },
+  { value: 'specific_college', label: 'Specific College', icon: Building2 },
+  { value: 'specific_school', label: 'Specific School', icon: GraduationCap },
+  { value: 'department', label: 'Department', icon: Hash },
+  { value: 'academic_year', label: 'Academic Year', icon: Calendar },
+  { value: 'clubs', label: 'Clubs', icon: Users },
+  { value: 'staff_only', label: 'Staff Only', icon: ShieldCheck },
+  { value: 'invite_only', label: 'Invite Only', icon: UserPlus },
 ];
 
 const VISIBILITY_OPTIONS = [
   { value: 'public', label: 'Public (visible to all)' },
   { value: 'restricted', label: 'Restricted (targeted audience only)' },
-  { value: 'invite_only', label: 'Invite Only (private)' }
+  { value: 'invite_only', label: 'Invite Only (private)' },
 ];
+
+const AUDIENCE_DEPS = {
+  specific_college: ['college'],
+  specific_school: ['college', 'school'],
+  department: ['college', 'school', 'department'],
+  academic_year: ['year'],
+  clubs: ['clubs'],
+  invite_only: ['emails'],
+  whole_university: [],
+  staff_only: [],
+};
+
+function SearchableSelect({ label, options, value, onChange, placeholder, loading, error, onRetry }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const selected = options.find(o => o._id === value);
+  const filtered = options.filter(o =>
+    o.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={containerRef} className="relative space-y-1.5">
+      <label className="block text-xs font-medium text-muted-foreground tracking-wide uppercase">{label}</label>
+      <button
+        type="button"
+        onClick={() => { setOpen(p => !p); setSearch(''); }}
+        className={`w-full flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-sm transition-colors ${
+          open ? 'ring-1 ring-primary/30' : ''
+        }`}
+      >
+        <span className={selected ? 'text-foreground' : 'text-muted-foreground'}>
+          {selected ? selected.name : placeholder || 'Select...'}
+        </span>
+        <ChevronDown size={14} className={`text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-xl overflow-hidden"
+          >
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+              <Search size={14} className="text-muted-foreground shrink-0" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                autoFocus
+              />
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              {loading ? (
+                <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                  <Loader2 size={14} className="animate-spin" />
+                  Loading...
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center gap-2 py-4 text-sm">
+                  <AlertCircle size={16} className="text-red-400" />
+                  <span className="text-red-400">Failed to load</span>
+                  {onRetry && (
+                    <button
+                      type="button"
+                      onClick={onRetry}
+                      className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <RefreshCw size={12} /> Retry
+                    </button>
+                  )}
+                </div>
+              ) : filtered.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">No options found</p>
+              ) : (
+                filtered.map(opt => (
+                  <button
+                    key={opt._id}
+                    type="button"
+                    onClick={() => { onChange(opt._id); setOpen(false); }}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors hover:bg-white/5 ${
+                      value === opt._id ? 'bg-primary/10 text-primary' : 'text-foreground'
+                    }`}
+                  >
+                    {opt.name}
+                  </button>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function MultiClubSelect({ options, value, onChange, loading, error, onRetry }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const filtered = options.filter(o =>
+    o.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const selectedNames = options.filter(o => value.includes(o._id)).map(o => o.name);
+
+  return (
+    <div ref={containerRef} className="relative space-y-1.5">
+      <label className="block text-xs font-medium text-muted-foreground tracking-wide uppercase">
+        <span className="inline-flex items-center gap-1.5"><Users size={13} />Select Clubs</span>
+      </label>
+      <button
+        type="button"
+        onClick={() => { setOpen(p => !p); setSearch(''); }}
+        className={`w-full flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-sm transition-colors ${
+          open ? 'ring-1 ring-primary/30' : ''
+        }`}
+      >
+        <span className={selectedNames.length ? 'text-foreground' : 'text-muted-foreground'}>
+          {selectedNames.length ? selectedNames.join(', ') : 'Select clubs...'}
+        </span>
+        <ChevronDown size={14} className={`text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-xl overflow-hidden"
+          >
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+              <Search size={14} className="text-muted-foreground shrink-0" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search clubs..."
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                autoFocus
+              />
+            </div>
+            <div className="max-h-52 overflow-y-auto">
+              {loading ? (
+                <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                  <Loader2 size={14} className="animate-spin" />
+                  Loading...
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center gap-2 py-4 text-sm">
+                  <AlertCircle size={16} className="text-red-400" />
+                  <span className="text-red-400">Failed to load clubs</span>
+                  {onRetry && (
+                    <button
+                      type="button"
+                      onClick={onRetry}
+                      className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <RefreshCw size={12} /> Retry
+                    </button>
+                  )}
+                </div>
+              ) : filtered.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">No clubs found</p>
+              ) : (
+                filtered.map(opt => {
+                  const checked = value.includes(opt._id);
+                  return (
+                    <label
+                      key={opt._id}
+                      className="flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors hover:bg-white/5"
+                    >
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                        checked ? 'bg-primary border-primary' : 'border-border'
+                      }`}>
+                        {checked && <Check size={10} className="text-primary-foreground" />}
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          onChange(
+                            checked
+                              ? value.filter(id => id !== opt._id)
+                              : [...value, opt._id]
+                          );
+                        }}
+                        className="hidden"
+                      />
+                      <span className="text-sm text-foreground">{opt.name}</span>
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {options.filter(o => value.includes(o._id)).map(o => (
+            <span key={o._id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
+              {o.name}
+              <button type="button" onClick={() => onChange(value.filter(id => id !== o._id))} className="hover:text-primary-foreground">
+                <X size={11} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function EventForm({ initialData = null, onSubmit, onCancel, isDirectPublish = false }) {
   const [form, setForm] = useState({
@@ -53,6 +291,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
     endTime: '',
     targetAudience: ['whole_university'],
     targetColleges: [],
+    targetSchools: [],
     targetDepartments: [],
     targetAcademicYears: [],
     targetClubs: [],
@@ -77,6 +316,144 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
   const fileInputRef = useRef(null);
   const attachmentInputRef = useRef(null);
 
+  const [colleges, setColleges] = useState([]);
+  const [schools, setSchools] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [clubs, setClubs] = useState([]);
+  const [levels] = useState([
+    { _id: 'Year 1', name: 'Year 1' },
+    { _id: 'Year 2', name: 'Year 2' },
+    { _id: 'Year 3', name: 'Year 3' },
+    { _id: 'Year 4', name: 'Year 4' },
+    { _id: 'Year 5', name: 'Year 5' },
+  ]);
+
+  const [loadingColleges, setLoadingColleges] = useState(false);
+  const [loadingSchools, setLoadingSchools] = useState(false);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [loadingClubs, setLoadingClubs] = useState(false);
+  const [errorColleges, setErrorColleges] = useState(null);
+  const [errorSchools, setErrorSchools] = useState(null);
+  const [errorDepartments, setErrorDepartments] = useState(null);
+  const [errorClubs, setErrorClubs] = useState(null);
+
+  const fetchColleges = useCallback(async (retry) => {
+    if (!retry) setLoadingColleges(true);
+    setErrorColleges(null);
+    try {
+      const { data } = await apiClient.get('/dropdowns/colleges');
+      setColleges(Array.isArray(data) ? data : []);
+    } catch {
+      setErrorColleges('Failed to load colleges');
+    } finally {
+      setLoadingColleges(false);
+    }
+  }, []);
+
+  const fetchSchools = useCallback(async (collegeId) => {
+    setLoadingSchools(true);
+    setErrorSchools(null);
+    try {
+      const params = collegeId ? { collegeId } : {};
+      const { data } = await apiClient.get('/dropdowns/schools', { params });
+      setSchools(Array.isArray(data) ? data : []);
+    } catch {
+      setErrorSchools('Failed to load schools');
+    } finally {
+      setLoadingSchools(false);
+    }
+  }, []);
+
+  const fetchDepartments = useCallback(async (schoolId) => {
+    setLoadingDepartments(true);
+    setErrorDepartments(null);
+    try {
+      const params = schoolId ? { schoolId } : {};
+      const { data } = await apiClient.get('/dropdowns/departments', { params });
+      setDepartments(Array.isArray(data) ? data : []);
+    } catch {
+      setErrorDepartments('Failed to load departments');
+    } finally {
+      setLoadingDepartments(false);
+    }
+  }, []);
+
+  const fetchClubs = useCallback(async (retry) => {
+    if (!retry) setLoadingClubs(true);
+    setErrorClubs(null);
+    try {
+      const { data } = await apiClient.get('/dropdowns/clubs');
+      setClubs(Array.isArray(data) ? data : []);
+    } catch {
+      setErrorClubs('Failed to load clubs');
+    } finally {
+      setLoadingClubs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchColleges();
+    fetchClubs();
+  }, [fetchColleges, fetchClubs]);
+
+  const selectedAudiences = form.targetAudience || [];
+  const neededFields = new Set();
+  selectedAudiences.forEach(aud => {
+    (AUDIENCE_DEPS[aud] || []).forEach(f => neededFields.add(f));
+  });
+  const needsCollege = neededFields.has('college');
+  const needsSchool = neededFields.has('school');
+  const needsDepartment = neededFields.has('department');
+  const needsYear = neededFields.has('year');
+  const needsClubs = neededFields.has('clubs');
+  const needsEmails = neededFields.has('emails');
+
+  useEffect(() => {
+    if (needsCollege && colleges.length === 0 && !loadingColleges && !errorColleges) {
+      fetchColleges();
+    }
+  }, [needsCollege, colleges.length, loadingColleges, errorColleges, fetchColleges]);
+
+  useEffect(() => {
+    if (needsClubs && clubs.length === 0 && !loadingClubs && !errorClubs) {
+      fetchClubs();
+    }
+  }, [needsClubs, clubs.length, loadingClubs, errorClubs, fetchClubs]);
+
+  const selectedCollege = form.targetColleges?.[0] || '';
+  const selectedSchool = form.targetSchools?.[0] || '';
+
+  useEffect(() => {
+    if (selectedCollege && (needsSchool || needsDepartment)) {
+      fetchSchools(selectedCollege);
+    } else if (!selectedCollege) {
+      setSchools([]);
+    }
+  }, [selectedCollege, needsSchool, needsDepartment, fetchSchools]);
+
+  useEffect(() => {
+    if (selectedSchool && needsDepartment) {
+      fetchDepartments(selectedSchool);
+    } else if (!selectedSchool) {
+      setDepartments([]);
+    }
+  }, [selectedSchool, needsDepartment, fetchDepartments]);
+
+  const handleChange = (field, value) => {
+    setForm(prev => {
+      const updated = { ...prev, [field]: value };
+      if (field === 'targetColleges' && value !== prev.targetColleges) {
+        updated.targetSchools = [];
+        updated.targetDepartments = [];
+      }
+      if (field === 'targetSchools' && value !== prev.targetSchools) {
+        updated.targetDepartments = [];
+      }
+      return updated;
+    });
+    if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+  };
+
   const validate = () => {
     const errs = {};
     if (!form.title?.trim()) errs.title = 'Title is required';
@@ -86,14 +463,14 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
     if (!form.venue?.trim()) errs.venue = 'Venue is required';
     if (!form.startDate) errs.startDate = 'Start date is required';
     if (!form.startTime) errs.startTime = 'Start time is required';
-    if (form.targetAudience?.length === 0) errs.targetAudience = 'Select at least one audience';
+    if (selectedAudiences.length === 0) errs.targetAudience = 'Select at least one audience';
+    if (needsCollege && !selectedCollege) errs.targetColleges = 'Select a college';
+    if (needsSchool && !selectedSchool) errs.targetSchools = 'Select a school';
+    if (needsDepartment && form.targetDepartments?.length === 0) errs.targetDepartments = 'Select at least one department';
+    if (needsYear && form.targetAcademicYears?.length === 0) errs.targetAcademicYears = 'Select at least one year';
+    if (needsClubs && form.targetClubs?.length === 0) errs.targetClubs = 'Select at least one club';
     setErrors(errs);
     return Object.keys(errs).length === 0;
-  };
-
-  const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
   };
 
   const handlePoster = (e) => {
@@ -130,17 +507,26 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
         expectedAttendance: Number(form.expectedAttendance) || 0,
         budgetRequest: Number(form.budgetRequest) || 0
       };
-      await onSubmit(payload);
-      for (const file of attachments) {
-        try {
-          const { default: eventService } = await import('../../../services/eventService');
-          await eventService.uploadAttachment(file, null);
-        } catch (attachErr) {
-          console.error('Attachment upload failed:', attachErr);
+      const eventId = await onSubmit(payload);
+      if (eventId) {
+        for (const file of attachments) {
+          try {
+            const { default: eventService } = await import('../../../services/eventService');
+            await eventService.uploadAttachment(file, eventId);
+          } catch (attachErr) {
+            console.error('Attachment upload failed:', attachErr);
+          }
         }
       }
     } catch (err) {
-      console.error('Submit error:', err);
+      const serverErrors = err.response?.data;
+      console.error('Submit error:', JSON.stringify(serverErrors || err.message, null, 2));
+      if (serverErrors?.errors) {
+        const msgs = serverErrors.errors.map(e => `${e.field}: ${e.message}`).join('\n');
+        alert('Validation failed:\n' + msgs);
+      } else if (serverErrors?.message) {
+        alert('Error: ' + serverErrors.message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -206,6 +592,8 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
     { num: 3, label: 'Audience & Review', desc: 'Targeting & submission' }
   ];
 
+  const canProceedToStep3 = form.title?.trim() && form.description?.trim() && form.organizerName?.trim() && form.organizerRole?.trim();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -238,6 +626,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
             {steps.map((s, i) => (
               <div key={s.num} className="flex items-center flex-1">
                 <button
+                  type="button"
                   onClick={() => setStep(s.num)}
                   className="flex items-center gap-2 text-left"
                 >
@@ -328,9 +717,10 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
                     <label className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
                       <span className="inline-flex items-center gap-1.5"><Target size={13} />Target Audience</span>
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                       {AUDIENCE_OPTIONS.map(opt => {
                         const selected = form.targetAudience?.includes(opt.value);
+                        const Icon = opt.icon;
                         return (
                           <label
                             key={opt.value}
@@ -340,7 +730,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
                                 : 'border-border hover:border-primary/20 bg-card'
                             }`}
                           >
-                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
                               selected ? 'bg-primary border-primary' : 'border-border'
                             }`}>
                               {selected && <Check size={10} className="text-primary-foreground" />}
@@ -360,6 +750,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
                               }}
                               className="hidden"
                             />
+                            <Icon size={14} className={`shrink-0 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
                             <span className="text-sm text-foreground">{opt.label}</span>
                           </label>
                         );
@@ -373,7 +764,157 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <AnimatePresence>
+                    {(needsCollege || needsSchool || needsDepartment || needsYear || needsClubs || needsEmails) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                        className="space-y-4 overflow-hidden"
+                      >
+                        <div className="h-px bg-border/50" />
+
+                        {needsCollege && (
+                          <SearchableSelect
+                            label={needsSchool ? 'Select College' : 'Select College'}
+                            options={colleges}
+                            value={selectedCollege}
+                            onChange={val => handleChange('targetColleges', val ? [val] : [])}
+                            placeholder="Select College..."
+                            loading={loadingColleges}
+                            error={errorColleges}
+                            onRetry={() => fetchColleges(true)}
+                          />
+                        )}
+
+                        {needsSchool && selectedCollege && (
+                          <SearchableSelect
+                            label="Select School under selected College"
+                            options={schools}
+                            value={selectedSchool}
+                            onChange={val => handleChange('targetSchools', val ? [val] : [])}
+                            placeholder={loadingSchools ? 'Loading schools...' : 'Select School...'}
+                            loading={loadingSchools}
+                            error={errorSchools}
+                            onRetry={() => fetchSchools(selectedCollege)}
+                          />
+                        )}
+
+                        {needsSchool && !selectedCollege && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <AlertCircle size={11} />
+                            Select a college first to see available schools.
+                          </p>
+                        )}
+
+                        {needsDepartment && selectedSchool && (
+                          <SearchableSelect
+                            label="Select Department under selected School"
+                            options={departments}
+                            value={form.targetDepartments?.[0] || ''}
+                            onChange={val => handleChange('targetDepartments', val ? [val] : [])}
+                            placeholder={loadingDepartments ? 'Loading departments...' : 'Select Department...'}
+                            loading={loadingDepartments}
+                            error={errorDepartments}
+                            onRetry={() => fetchDepartments(selectedSchool)}
+                          />
+                        )}
+
+                        {needsDepartment && !selectedSchool && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <AlertCircle size={11} />
+                            Select a college and school first to see available departments.
+                          </p>
+                        )}
+
+                        {needsYear && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-medium text-muted-foreground tracking-wide uppercase">
+                              <span className="inline-flex items-center gap-1.5"><Calendar size={13} />Select Academic Years</span>
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {levels.map(lvl => {
+                                const checked = form.targetAcademicYears?.includes(lvl._id);
+                                return (
+                                  <label
+                                    key={lvl._id}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all ${
+                                      checked
+                                        ? 'border-primary/40 bg-primary/5'
+                                        : 'border-border hover:border-primary/20 bg-card'
+                                    }`}
+                                  >
+                                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                                      checked ? 'bg-primary border-primary' : 'border-border'
+                                    }`}>
+                                      {checked && <Check size={10} className="text-primary-foreground" />}
+                                    </div>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => {
+                                        handleChange('targetAcademicYears',
+                                          checked
+                                            ? form.targetAcademicYears.filter(y => y !== lvl._id)
+                                            : [...(form.targetAcademicYears || []), lvl._id]
+                                        );
+                                      }}
+                                      className="hidden"
+                                    />
+                                    <span className="text-sm text-foreground">{lvl.name}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            {errors.targetAcademicYears && (
+                              <p className="text-xs text-red-400 flex items-center gap-1 mt-1">
+                                <span className="w-1 h-1 rounded-full bg-red-400" />
+                                {errors.targetAcademicYears}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {needsClubs && (
+                          <MultiClubSelect
+                            options={clubs}
+                            value={form.targetClubs || []}
+                            onChange={val => handleChange('targetClubs', val)}
+                            loading={loadingClubs}
+                            error={errorClubs}
+                            onRetry={() => fetchClubs(true)}
+                          />
+                        )}
+
+                        {needsEmails && (
+                          <div className="space-y-1.5">
+                            <label className="block text-xs font-medium text-muted-foreground tracking-wide uppercase">
+                              <span className="inline-flex items-center gap-1.5"><UserPlus size={13} />Invite Users</span>
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Type name or email and press Add..."
+                                className="flex-1 rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 transition-colors"
+                              />
+                              <button
+                                type="button"
+                                className="px-3 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Invite-only email/user management coming soon.
+                            </p>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     {renderField('Visibility', 'visibilitySettings', <Eye size={13} />, 'select', VISIBILITY_OPTIONS)}
                     {renderField('Budget Request (RWF)', 'budgetRequest', <DollarSign size={13} />, 'number')}
                   </div>
@@ -472,7 +1013,18 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
               {step < 3 ? (
                 <button
                   type="button"
-                  onClick={() => setStep(s => s + 1)}
+                  onClick={() => {
+                    if (step === 1 && !canProceedToStep3) {
+                      setErrors({
+                        ...(!form.title?.trim() ? { title: 'Title is required' } : {}),
+                        ...(!form.description?.trim() ? { description: 'Description is required' } : {}),
+                        ...(!form.organizerName?.trim() ? { organizerName: 'Organizer name is required' } : {}),
+                        ...(!form.organizerRole?.trim() ? { organizerRole: 'Organizer role is required' } : {}),
+                      });
+                      return;
+                    }
+                    setStep(s => s + 1);
+                  }}
                   className="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-all shadow-sm"
                 >
                   Next

@@ -54,8 +54,8 @@ const eventService = {
     return res.data;
   },
 
-  scheduleEvent: async (id, scheduledDate) => {
-    const res = await apiClient.post(`/events/${id}/schedule`, { scheduledDate });
+  scheduleEvent: async (id, scheduledDate, comment = '') => {
+    const res = await apiClient.post(`/events/${id}/schedule`, { scheduledDate, comment });
     return res.data;
   },
 
@@ -251,6 +251,11 @@ const eventService = {
 
   markInterested: async (eventId) => {
     const res = await apiClient.post(`/events/${eventId}/interest`);
+    return res.data;
+  },
+
+  getAvailableTags: async () => {
+    const res = await apiClient.get('/events/tags/available');
     return res.data;
   }
 };

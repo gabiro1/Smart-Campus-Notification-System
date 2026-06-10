@@ -18,26 +18,26 @@ export const uploadPoster = async (req, res) => {
       }
     }
 
-    const attachment = await EventAttachment.create({
-      event: eventId || null,
-      uploadedBy: req.user.id,
-      fileName: req.file.filename,
-      originalName: req.file.originalname,
-      mimeType: req.file.mimetype,
-      fileSize: req.file.size,
-      filePath: `/uploads/posters/${req.file.filename}`,
-      isPoster: true
-    });
+    const filePath = `/uploads/posters/${req.file.filename}`;
 
     if (eventId) {
-      await Event.findByIdAndUpdate(eventId, { posterUrl: `/uploads/posters/${req.file.filename}` });
+      await EventAttachment.create({
+        event: eventId,
+        uploadedBy: req.user.id,
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        fileSize: req.file.size,
+        filePath,
+        isPoster: true
+      });
+      await Event.findByIdAndUpdate(eventId, { posterUrl: filePath });
     }
 
     res.json({
       success: true,
       message: 'Poster uploaded',
-      attachment,
-      posterUrl: `/uploads/posters/${req.file.filename}`
+      posterUrl: filePath
     });
   } catch (error) {
     console.error('Upload Poster Error:', error);
@@ -52,13 +52,15 @@ export const uploadAttachment = async (req, res) => {
     }
 
     const eventId = req.params.id;
-    if (eventId) {
-      const event = await Event.findById(eventId);
-      if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    if (!eventId) {
+      return res.status(400).json({ success: false, message: 'Event ID required for attachments' });
     }
 
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+
     const attachment = await EventAttachment.create({
-      event: eventId || null,
+      event: eventId,
       uploadedBy: req.user.id,
       fileName: req.file.filename,
       originalName: req.file.originalname,

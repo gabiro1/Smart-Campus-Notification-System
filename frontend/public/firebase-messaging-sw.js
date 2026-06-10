@@ -1,0 +1,34 @@
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyDWA0trlWcC2drKMJfTWQxCmfbTr1ysjKc",
+  authDomain: "smart-campus-notification.firebaseapp.com",
+  projectId: "smart-campus-notification",
+  storageBucket: "smart-campus-notification.firebasestorage.app",
+  messagingSenderId: "345617696590",
+  appId: "1:345617696590:web:a16cd0327034c67146801f",
+  measurementId: "G-73RG2WJSCC"
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('Received background message:', payload);
+
+  const notificationTitle = payload.notification?.title || 'New Notification';
+  const notificationOptions = {
+    body: payload.notification?.body || '',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    data: payload.data || {},
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data?.url || '/';
+  event.waitUntil(clients.openWindow(urlToOpen));
+});

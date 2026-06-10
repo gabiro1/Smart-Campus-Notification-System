@@ -22,21 +22,22 @@ const EventSchema = new mongoose.Schema({
 
   // --- SCHEDULE ---
   startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
+  endDate: { type: Date, default: null },
   startTime: { type: String, required: true },
-  endTime: { type: String, required: true },
+  endTime: { type: String, default: '' },
   venue: { type: String, required: true },
 
   // --- AUDIENCE TARGETING ---
   targetAudience: {
     type: [String],
     enum: [
-      'whole_university', 'specific_college', 'department',
+      'whole_university', 'specific_college', 'specific_school', 'department',
       'academic_year', 'clubs', 'staff_only', 'invite_only'
     ],
     default: ['whole_university']
   },
   targetColleges: [{ type: mongoose.Schema.Types.ObjectId, ref: 'College' }],
+  targetSchools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'School' }],
   targetDepartments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Department' }],
   targetAcademicYears: [{ type: String, enum: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'] }],
   targetClubs: [{ type: String }],

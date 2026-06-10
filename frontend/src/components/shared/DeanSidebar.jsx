@@ -4,10 +4,8 @@ import {
   Globe,
   CheckSquare,
   Radio,
-  BarChart3,
   Users,
   Files,
-  PieChart,
   GraduationCap,
   MessageSquare,
   Settings,
@@ -23,17 +21,15 @@ const navSections = [
   {
     label: "Operations",
     items: [
-      { path: "/dean/dashboard", label: "Command Center", icon: Activity },
+      { path: "/dean/dashboard", label: "School Overview", icon: Activity },
       { path: "/dean/approvals", label: "HoD Approvals", icon: CheckSquare },
       { path: "/dean/broadcast", label: "School Broadcast", icon: Radio },
-      { path: "/dean/analytics", label: "Analytics", icon: BarChart3 },
     ],
   },
   {
     label: "Communication",
     items: [
       { path: "/dean/announcements", label: "All Announcements", icon: Files },
-      { path: "/dean/reports", label: "Reports", icon: PieChart },
     ],
   },
   {

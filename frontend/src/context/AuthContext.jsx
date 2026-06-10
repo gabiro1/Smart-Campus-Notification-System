@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import jwt_decode from 'jwt-decode'
+import apiClient from '../services/apiClient'
 
 const AuthContext = createContext()
 
@@ -10,8 +11,8 @@ export const AuthProvider = ({ children }) => {
 
   const buildUser = useCallback((decoded, storedUser = {}) => ({
     id: decoded.id,
-    role: decoded.role,
-    department: decoded.department,
+    role: storedUser.role || decoded.role,
+    department: storedUser.department || decoded.department,
     name: storedUser.name || decoded.name,
     email: storedUser.email || decoded.email,
     hasCompletedOnboarding: storedUser.hasCompletedOnboarding,
@@ -27,6 +28,18 @@ export const AuthProvider = ({ children }) => {
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
         setToken(storedToken)
         setUser(buildUser(decoded, storedUser))
+
+        // Sync with server to catch stale JWT role (e.g., admin changed user's role)
+        apiClient.get('/users/profile').then(res => {
+          if (res.data?.success && res.data?.data) {
+            const profile = res.data.data
+            if (profile.role !== decoded.role) {
+              const freshUser = buildUser(decoded, { ...storedUser, ...profile })
+              setUser(freshUser)
+              localStorage.setItem('user', JSON.stringify({ ...storedUser, ...profile }))
+            }
+          }
+        }).catch(() => {})
       } catch {
         localStorage.removeItem('token')
         localStorage.removeItem('authToken')

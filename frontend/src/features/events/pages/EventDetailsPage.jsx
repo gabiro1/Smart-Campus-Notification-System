@@ -65,7 +65,8 @@ export default function EventDetailsPage() {
         case 'reject': res = await eventService.rejectEvent(id, comment); break;
         case 'revision': res = await eventService.requestRevision(id, comment); break;
         case 'publish': res = await eventService.publishApprovedEvent(id, comment); break;
-        case 'schedule': res = await eventService.scheduleEvent(id, comment); break;
+        case 'schedule': res = await eventService.scheduleEvent(id, event?.startDate || comment); break;
+        case 'submit': res = await eventService.submitForReview(id); break;
         case 'cancel': res = await eventService.cancelEvent(id, comment); break;
       }
       if (res?.event) setEvent(prev => ({ ...prev, ...res.event }));
@@ -452,10 +453,21 @@ export default function EventDetailsPage() {
                   Override
                 </h4>
                 <select
-                  onChange={e => {
-                    if (e.target.value && confirm(`Override status to ${e.target.value.replace(/_/g, ' ')}?`)) {
-                      handleAction('override');
+                  onChange={async e => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    if (!confirm(`Override status to ${val.replace(/_/g, ' ')}?`)) return;
+                    setActionLoading(true);
+                    try {
+                      const reason = window.prompt('Reason for override:') || '';
+                      const res = await eventService.overrideDecision(id, val, reason);
+                      if (res?.event) setEvent(prev => ({ ...prev, ...res.event }));
+                    } catch (err) {
+                      console.error('Override failed:', err);
+                    } finally {
+                      setActionLoading(false);
                     }
+                    e.target.value = '';
                   }}
                   className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 appearance-none cursor-pointer"
                 >

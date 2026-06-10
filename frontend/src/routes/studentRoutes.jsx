@@ -6,9 +6,9 @@ const Dashboard = lazy(() => import("../pages/dashboards/student/pages/Dashboard
 const AnnouncementsPage = lazy(() => import("../pages/dashboards/student/pages/announcement/AnnouncementsPage"));
 const NotificationsPage = lazy(() => import("../pages/dashboards/student/pages/Notifications/NotificationsPage"));
 const EventsPage = lazy(() => import("../pages/dashboards/student/Events/EventsPage"));
+const MyEventsPage = lazy(() => import("../pages/dashboards/student/Events/MyEventsPage"));
 const BookmarksPage = lazy(() => import("../pages/dashboards/student/Events/BookmarksPage"));
 const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
-const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
 const RemindersTab = lazy(() => import("../pages/dashboards/student/pages/Reminder/RemindersTab"));
 const TimeTable = lazy(() => import("../pages/dashboards/student/component/TimeTable"));
 const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
@@ -26,7 +26,7 @@ export const studentRoutes = [
     key="dash"
     path="dashboard"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <Dashboard />
       </ProtectedRoute>
     }
@@ -35,7 +35,7 @@ export const studentRoutes = [
     key="announcements"
     path="announcements"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <AnnouncementsPage />
       </ProtectedRoute>
     }
@@ -44,7 +44,7 @@ export const studentRoutes = [
     key="events"
     path="events"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <EventsPage />
       </ProtectedRoute>
     }
@@ -53,7 +53,7 @@ export const studentRoutes = [
     key="bookmarks"
     path="bookmarks"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <BookmarksPage />
       </ProtectedRoute>
     }
@@ -62,7 +62,7 @@ export const studentRoutes = [
     key="event-details"
     path="events/:eventId"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <EventDetailsPage />
       </ProtectedRoute>
     }
@@ -71,10 +71,8 @@ export const studentRoutes = [
     key="event-create"
     path="events/create"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
-        <div className="p-6 max-w-4xl mx-auto">
-          <CreatorDashboard />
-        </div>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
+        <MyEventsPage />
       </ProtectedRoute>
     }
   />,
@@ -82,7 +80,7 @@ export const studentRoutes = [
     key="reminders"
     path="reminders"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <RemindersTab />
       </ProtectedRoute>
     }
@@ -91,7 +89,7 @@ export const studentRoutes = [
     key="timetable"
     path="timetable"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <TimeTable />
       </ProtectedRoute>
     }
@@ -111,7 +109,7 @@ export const studentRoutes = [
     key="notifications"
     path="notifications"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <NotificationsPage />
       </ProtectedRoute>
     }
@@ -120,7 +118,7 @@ export const studentRoutes = [
     key="settings"
     path="settings"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <Settings />
       </ProtectedRoute>
     }
@@ -130,7 +128,7 @@ export const studentRoutes = [
     key="communication"
     path="communication"
     element={
-      <ProtectedRoute allowedRoles={["student", "class_rep"]}>
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <CommunicationHub />
       </ProtectedRoute>
     }

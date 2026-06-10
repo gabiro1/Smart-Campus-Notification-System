@@ -21,7 +21,8 @@ import {
   getBookmarkedEvents,
   studentCheckIn,
   interestInEvent,
-  rateEvent
+  rateEvent,
+  getAvailableTags
 } from '../controllers/eventController.js';
 
 import {
@@ -89,7 +90,7 @@ const attachmentUpload = multer({
 
 router.post('/draft',
   protect,
-  authorize('student', 'class_rep', 'lecturer', 'hod', 'dean', 'guild_president', 'principal', 'admin'),
+  authorize('student', 'class_rep', 'lecturer', 'hod', 'dean', 'guild_president', 'principal', 'admin', 'registrar'),
   validateBody(schemas.eventCreation),
   auditLog('event'),
   createDraft
@@ -97,7 +98,7 @@ router.post('/draft',
 
 router.put('/draft/:id',
   protect,
-  authorize('student', 'class_rep', 'lecturer', 'hod', 'dean', 'guild_president', 'principal', 'admin'),
+  authorize('student', 'class_rep', 'lecturer', 'hod', 'dean', 'guild_president', 'principal', 'admin', 'registrar'),
   validateBody(schemas.eventUpdate),
   auditLog('event', { captureChanges: true }),
   updateDraft
@@ -105,7 +106,7 @@ router.put('/draft/:id',
 
 router.post('/draft/:id/submit',
   protect,
-  authorize('student', 'class_rep', 'lecturer', 'hod', 'dean', 'guild_president', 'principal', 'admin'),
+  authorize('student', 'class_rep', 'lecturer', 'hod', 'dean', 'guild_president', 'principal', 'admin', 'registrar'),
   auditLog('event'),
   submitEvent
 );
@@ -207,21 +208,22 @@ router.get('/:id/audit',
 router.get('/feed', protect, getStudentFeed);
 router.get('/', protect, getEvents);
 router.get('/search', searchEvents);
+router.get('/tags/available', protect, getAvailableTags);
 
 /* ================= EVENT DETAILS & CRUD ================= */
 
 router.get('/bookmarks', protect, getBookmarkedEvents);
-router.get('/:id/stats', protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'dean', 'principal'), getEventStats);
+router.get('/:id/stats', protect, authorize('admin', 'guild_president', 'lecturer', 'hod', 'dean', 'principal', 'registrar'), getEventStats);
 router.get('/:id', protect, getEventDetails);
 router.get('/:id/calendar', protect, exportCalendar);
 router.post('/:id/cancel', protect, cancelEvent);
-router.delete('/:id', protect, authorize('admin', 'guild_president'), deleteEvent);
+router.delete('/:id', protect, deleteEvent);
 
 /* ================= FLYER PARSING ================= */
 
 router.post('/parse-flyer',
   protect,
-  authorize('guild_president', 'principal', 'lecturer', 'hod', 'admin'),
+  authorize('guild_president', 'principal', 'lecturer', 'hod', 'admin', 'registrar'),
   upload.single('flyer'),
   parseFlyer
 );

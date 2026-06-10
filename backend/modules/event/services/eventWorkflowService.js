@@ -7,10 +7,11 @@ import NotificationLog from '../../notification/models/NotificationLog.js';
 import { getTargetedUsers } from '../../../utils/notificationEngine.js';
 import { sendMulticastNotification } from '../../../config/firebaseAdmin.js';
 import { scheduleEventReminders, cancelEventReminders } from '../../../services/eventReminderScheduler.js';
+import { emitToRole, emitToUser } from '../../../utils/socketServer.js';
 
 const VALID_TRANSITIONS = {
-  DRAFT: ['PENDING_REVIEW', 'CANCELLED'],
-  PENDING_REVIEW: ['UNDER_REVIEW', 'CANCELLED'],
+  DRAFT: ['PENDING_REVIEW', 'PUBLISHED', 'CANCELLED'],
+  PENDING_REVIEW: ['UNDER_REVIEW', 'APPROVED', 'REJECTED', 'NEEDS_REVISION', 'CANCELLED'],
   UNDER_REVIEW: ['APPROVED', 'REJECTED', 'NEEDS_REVISION', 'CANCELLED'],
   NEEDS_REVISION: ['PENDING_REVIEW', 'CANCELLED'],
   APPROVED: ['SCHEDULED', 'PUBLISHED', 'CANCELLED', 'REJECTED'],
@@ -73,6 +74,54 @@ export async function transitionEventStatus(eventId, newStatus, userId, { commen
   }
 
   await event.save();
+
+  const statusMessages = {
+    APPROVED: { title: 'Event Approved', message: `Your event "${event.title}" has been approved and can now be scheduled or published.`, type: 'success' },
+    REJECTED: { title: 'Event Rejected', message: `Your event "${event.title}" was rejected. Reason: ${reason || comment || 'No reason provided'}`, type: 'warning' },
+    NEEDS_REVISION: { title: 'Revision Requested', message: `Your event "${event.title}" needs revision. Notes: ${comment || 'No details'}`, type: 'action' },
+    PUBLISHED: { title: 'Event Published', message: `Your event "${event.title}" is now live for all students.`, type: 'success' },
+    SCHEDULED: { title: 'Event Scheduled', message: `Your event "${event.title}" has been scheduled.`, type: 'info' },
+    CANCELLED: { title: 'Event Cancelled', message: `Your event "${event.title}" has been cancelled.`, type: 'warning' },
+  };
+
+  try {
+    emitToUser(event.createdBy, 'event:statusChanged', {
+      eventId: event._id,
+      title: event.title,
+      oldStatus,
+      newStatus,
+    });
+  } catch (err) {
+    console.error('[Socket] Failed to emit event:statusChanged:', err.message);
+  }
+
+  if (statusMessages[newStatus]) {
+    const { title, message, type } = statusMessages[newStatus];
+    try {
+      await NotificationLog.create({
+        referenceId: event._id,
+        studentId: event.createdBy,
+        recipientId: event.createdBy,
+        senderId: userId,
+        title,
+        message,
+        type,
+        status: 'unread',
+        priority: 'medium',
+      });
+      emitToUser(event.createdBy, 'notification:new', {
+        _id: `${event._id}_${newStatus}_${Date.now()}`,
+        title,
+        message,
+        body: message,
+        type,
+        data: { eventId: event._id, oldStatus, newStatus },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('[Workflow] Notification creation failed:', err.message);
+    }
+  }
 
   await EventStatusHistory.create({
     event: eventId,
@@ -152,7 +201,22 @@ export async function publishEventDirectly(eventData, userId) {
 }
 
 export async function submitForReview(eventId, userId) {
-  return transitionEventStatus(eventId, 'PENDING_REVIEW', userId, { reason: 'Submitted for review' });
+  const event = await transitionEventStatus(eventId, 'PENDING_REVIEW', userId, { reason: 'Submitted for review' });
+  try {
+    emitToRole('guild_president', 'event:submitted', {
+      eventId: event._id,
+      title: event.title,
+      message: `New event "${event.title}" submitted for review`,
+    });
+    emitToRole('principal', 'event:submitted', {
+      eventId: event._id,
+      title: event.title,
+      message: `New event "${event.title}" submitted for review`,
+    });
+  } catch (err) {
+    console.error('[Socket] Failed to emit event:submitted:', err.message);
+  }
+  return event;
 }
 
 async function broadcastPublishedEvent(event) {

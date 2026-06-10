@@ -5,9 +5,10 @@ import ProtectedRoute from "../components/layout/ProtectedRoute";
 const RegistrarDashboard = lazy(() => import("../pages/dashboards/registrar/pages/RegistrarDashboard"));
 const NewStudent = lazy(() => import("../pages/dashboards/registrar/pages/NewStudent"));
 const StudentRecords = lazy(() => import("../pages/dashboards/registrar/pages/StudentRecords"));
-const EnrollmentStats = lazy(() => import("../pages/dashboards/registrar/pages/EnrollmentStats"));
+
 const RegistrarEvents = lazy(() => import("../pages/dashboards/registrar/pages/RegistrarEvents"));
 const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
+const RegistrarSettings = lazy(() => import("../pages/dashboards/registrar/pages/RegistrarSettings"));
 
 export const registrarRoutes = [
   <Route key="index" index element={<Navigate to="dashboard" replace />} />,
@@ -38,16 +39,6 @@ export const registrarRoutes = [
       </ProtectedRoute>
     }
   />,
-  <Route
-    key="stats"
-    path="stats"
-    element={
-      <ProtectedRoute allowedRoles={["registrar", "admin"]}>
-        <EnrollmentStats />
-      </ProtectedRoute>
-    }
-  />,
-
   // ── EVENT APPLICATIONS ──
   <Route
     key="registrar-events"
@@ -64,6 +55,15 @@ export const registrarRoutes = [
     element={
       <ProtectedRoute allowedRoles={["registrar", "admin"]}>
         <EventDetailsPage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="registrar-settings"
+    path="settings"
+    element={
+      <ProtectedRoute allowedRoles={["registrar", "admin"]}>
+        <RegistrarSettings />
       </ProtectedRoute>
     }
   />,

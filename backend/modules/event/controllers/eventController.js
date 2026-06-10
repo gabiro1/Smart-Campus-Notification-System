@@ -88,8 +88,8 @@ export const updateDraft = async (req, res) => {
     if (event.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this event' });
     }
-    if (!['DRAFT', 'NEEDS_REVISION'].includes(event.status)) {
-      return res.status(400).json({ success: false, message: 'Can only edit drafts or events needing revision' });
+    if (['CANCELLED', 'EXPIRED', 'REJECTED'].includes(event.status)) {
+      return res.status(400).json({ success: false, message: 'Cannot edit a cancelled, expired or rejected event' });
     }
 
     Object.assign(event, req.body);
@@ -114,11 +114,14 @@ export const submitEvent = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
     if (canCreateDirectly(req.user.role)) {
-      const published = await publishEventDirectly(event.toObject(), req.user.id);
+      const updated = await transitionEventStatus(req.params.id, 'PUBLISHED', req.user.id, {
+        reason: 'Auto-approved and published (authorized role)'
+      });
+      try { await broadcastPublishedEvent(updated); } catch (e) {}
       return res.status(200).json({
         success: true,
         message: 'Event published directly (auto-approved role)',
-        event: published,
+        event: updated,
         autoApproved: true
       });
     }
@@ -698,5 +701,27 @@ export const studentCheckIn = async (req, res) => {
     res.json({ success: true, message: 'Check-in successful', checkedInAt: new Date() });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Check-in failed', error: error.message });
+  }
+};
+
+/* =========================================================
+   AVAILABLE TAGS (from published events)
+========================================================= */
+export const getAvailableTags = async (req, res) => {
+  try {
+    const tags = await Event.aggregate([
+      { $match: { status: { $in: ['published', 'approved'] } } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    const result = tags
+      .filter((t) => t._id && t._id.trim())
+      .map((t) => ({ name: t._id, count: t.count }));
+
+    res.json({ success: true, tags: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch tags', error: error.message });
   }
 };

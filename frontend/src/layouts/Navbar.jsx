@@ -114,6 +114,12 @@ export default function Navbar() {
                       <NavLink to="/registrar/courses" label="Courses" active={isActive("/registrar/courses")} />
                     </>
                   )}
+                  {user.role === "guild_president" && (
+                    <>
+                      <NavLink to="/guild/overview" label="Dashboard" active={isActive("/guild/overview")} />
+                      <NavLink to="/guild/events" label="Events" active={isActive("/guild/events")} />
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -361,6 +367,12 @@ export default function Navbar() {
                         <MobileMenuLink to="/registrar/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/registrar/classes" label="Classes" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/registrar/courses" label="Courses" onClick={() => setMobileMenuOpen(false)} />
+                      </>
+                    )}
+                    {user.role === "guild_president" && (
+                      <>
+                        <MobileMenuLink to="/guild/overview" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/guild/events" label="Events" onClick={() => setMobileMenuOpen(false)} />
                       </>
                     )}
                     <div className="pt-4 border-t space-y-1">

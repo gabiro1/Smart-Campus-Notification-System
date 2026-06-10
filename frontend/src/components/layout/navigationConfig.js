@@ -229,7 +229,6 @@ export const roleConfig = {
         label: "Management",
         items: [
           { icon: Users, label: "Lecturers", path: "/hod/lecturers" },
-          { icon: BarChart3, label: "Analytics", path: "/hod/reports" },
         ],
       },
       {
@@ -252,14 +251,12 @@ export const roleConfig = {
           { icon: Activity, label: "Command Center", path: "/dean/dashboard" },
           { icon: CheckSquare, label: "HoD Approvals", path: "/dean/approvals" },
           { icon: Radio, label: "School Broadcast", path: "/dean/broadcast" },
-          { icon: BarChart3, label: "Analytics", path: "/dean/analytics" },
         ],
       },
       {
         label: "Communication",
         items: [
           { icon: FileText, label: "All Announcements", path: "/dean/announcements" },
-          { icon: PieChart, label: "Reports", path: "/dean/reports" },
         ],
       },
       {
@@ -326,6 +323,7 @@ export const roleConfig = {
         label: "Main",
         items: [
           { icon: LayoutDashboard, label: "Overview", path: "/guild/overview" },
+          { icon: Shield, label: "Event Moderation", path: "/guild/events" },
           { icon: Megaphone, label: "Post Events", path: "/guild/post-events" },
           { icon: Bell, label: "Notifications", path: "/guild/notifications" },
           { icon: Activity, label: "Engagement", path: "/guild/engagement" },
@@ -363,13 +361,18 @@ export const roleConfig = {
         items: [
           { icon: UserPlus, label: "New Student", path: "/registrar/new-student" },
           { icon: Users, label: "Student Records", path: "/registrar/students" },
-          { icon: BarChart3, label: "Enrollment Stats", path: "/registrar/stats" },
         ],
       },
       {
         label: "Events",
         items: [
           { icon: Calendar, label: "Events", path: "/registrar/events" },
+        ],
+      },
+      {
+        label: "System",
+        items: [
+          { icon: Settings, label: "Settings", path: "/registrar/settings" },
         ],
       },
     ],

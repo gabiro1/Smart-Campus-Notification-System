@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clock, CheckCircle, XCircle, AlertTriangle, Calendar,
@@ -8,6 +9,7 @@ import {
   Flag, Filter
 } from 'lucide-react';
 import eventService from '../../../services/eventService';
+import { useSocket } from '../../../context/SocketContext';
 
 const REVIEW_TABS = [
   { key: 'pending', label: 'Pending', icon: Clock, status: 'PENDING_REVIEW' },
@@ -42,7 +44,120 @@ function ConflictBadge({ conflicts }) {
   );
 }
 
+const MODAL_COLORS = {
+  emerald: {
+    bg: 'bg-emerald-500/10', text: 'text-emerald-400',
+    btn: 'bg-emerald-600 hover:bg-emerald-500'
+  },
+  red: {
+    bg: 'bg-red-500/10', text: 'text-red-400',
+    btn: 'bg-red-600 hover:bg-red-500'
+  },
+  orange: {
+    bg: 'bg-orange-500/10', text: 'text-orange-400',
+    btn: 'bg-orange-600 hover:bg-orange-500'
+  },
+  purple: {
+    bg: 'bg-purple-500/10', text: 'text-purple-400',
+    btn: 'bg-purple-600 hover:bg-purple-500'
+  },
+  blue: {
+    bg: 'bg-blue-500/10', text: 'text-blue-400',
+    btn: 'bg-blue-600 hover:bg-blue-500'
+  }
+};
+
+const MODAL_CONFIGS = {
+  approve: { label: 'Approve Event', color: 'emerald', icon: CheckCircle, placeholder: 'Optional approval note...' },
+  reject: { label: 'Reject Event', color: 'red', icon: XCircle, placeholder: 'Reason for rejection (required)...', required: true },
+  revision: { label: 'Request Revision', color: 'orange', icon: AlertTriangle, placeholder: 'What needs to be changed (required)...', required: true },
+  publish: { label: 'Publish Event', color: 'emerald', icon: Send, placeholder: 'Optional publish note...' },
+  schedule: { label: 'Schedule Event', color: 'purple', icon: Calendar, placeholder: 'Schedule notes...' },
+  escalate: { label: 'Escalate Event', color: 'blue', icon: Flag, placeholder: 'Reason for escalation...' },
+};
+
+function ActionModal({ actionType, event, comment, loading, onCommentChange, onClose, onAction }) {
+  const config = MODAL_CONFIGS[actionType];
+  if (!config || !event) return null;
+
+  const colors = MODAL_COLORS[config.color] || MODAL_COLORS.blue;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center sm:p-4 bg-black/80 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="bg-card border border-border sm:rounded-xl shadow-2xl max-w-lg w-full h-full sm:h-auto overflow-y-auto sm:overflow-hidden"
+      >
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="p-5 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colors.bg}`}>
+              <config.icon size={18} className={colors.text} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">{config.label}</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">{event.title}</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Calendar size={12} />{new Date(event.startDate).toLocaleDateString()}</span>
+            <span className="inline-flex items-center gap-1"><Users size={12} />{event.organizerName}</span>
+          </div>
+          {actionType === 'schedule' && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Scheduled Date</label>
+              <input
+                type="date"
+                value={comment ? comment.split('T')[0] : event.startDate?.split('T')[0] || ''}
+                onChange={e => onCommentChange(e.target.value)}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">{config.required ? 'Reason *' : 'Comment'}</label>
+            <textarea
+              value={actionType === 'schedule' ? '' : comment}
+              onChange={e => onCommentChange(e.target.value)}
+              placeholder={config.placeholder}
+              rows={3}
+              className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none"
+              disabled={actionType === 'schedule'}
+            />
+          </div>
+        </div>
+        <div className="px-5 py-4 border-t border-border flex items-center justify-end gap-3 bg-muted/20">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onAction(actionType)}
+            disabled={loading || (config.required && !comment.trim())}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white ${colors.btn} transition-colors disabled:opacity-50 shadow-sm`}
+          >
+            {loading && <Loader2 size={14} className="animate-spin" />}
+            {config.label}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function GuildCouncilDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pending');
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +187,10 @@ export default function GuildCouncilDashboard() {
       }
       const res = await eventService.getReviewQueue(params);
       setEvents(res.events || []);
-      const statusRes = await eventService.getReviewQueueByStatus().catch(() => ({ statusGroups: [] }));
+      const statusRes = await eventService.getReviewQueueByStatus().catch(err => {
+        console.warn('Status counts fetch failed:', err?.response?.data || err.message);
+        return { statusGroups: [] };
+      });
       setStatusGroups(statusRes.statusGroups || []);
     } catch (err) {
       console.error('Queue fetch failed:', err);
@@ -86,7 +204,10 @@ export default function GuildCouncilDashboard() {
     try {
       const analyticsRes = await eventService.getDashboardAnalytics();
       setAnalytics(analyticsRes.analytics || analyticsRes);
-      const statusRes = await eventService.getReviewQueueByStatus().catch(() => ({ statusGroups: [] }));
+      const statusRes = await eventService.getReviewQueueByStatus().catch(err => {
+        console.warn('Status counts fetch failed:', err?.response?.data || err.message);
+        return { statusGroups: [] };
+      });
       setStatusGroups(statusRes.statusGroups || []);
     } catch (err) {
       console.error('Analytics fetch failed:', err);
@@ -94,6 +215,8 @@ export default function GuildCouncilDashboard() {
       setLoading(false);
     }
   }, []);
+
+  const { socket } = useSocket();
 
   useEffect(() => {
     if (activeTab === 'analytics') {
@@ -103,7 +226,16 @@ export default function GuildCouncilDashboard() {
     }
   }, [activeTab, fetchQueue, fetchAnalytics]);
 
-  const handleAction = async (action) => {
+  useEffect(() => {
+    if (!socket) return;
+    const handleEventSubmitted = () => {
+      if (activeTab !== 'analytics') fetchQueue();
+    };
+    socket.on('event:submitted', handleEventSubmitted);
+    return () => { socket.off('event:submitted', handleEventSubmitted); };
+  }, [socket, activeTab, fetchQueue]);
+
+  const handleAction = useCallback(async (action) => {
     if (!selectedEvent) return;
     setActionLoading(true);
     try {
@@ -123,7 +255,7 @@ export default function GuildCouncilDashboard() {
           await eventService.publishApprovedEvent(selectedEvent._id, actionComment);
           break;
         case 'schedule':
-          await eventService.scheduleEvent(selectedEvent._id, actionComment);
+          await eventService.scheduleEvent(selectedEvent._id, actionComment || selectedEvent.startDate, '');
           break;
         case 'escalate':
           await eventService.escalateEvent(selectedEvent._id, actionComment);
@@ -138,7 +270,7 @@ export default function GuildCouncilDashboard() {
     } finally {
       setActionLoading(false);
     }
-  };
+  }, [selectedEvent, actionComment, fetchQueue]);
 
   const getCountByStatus = (status) => {
     const group = statusGroups.find(s => s._id === status);
@@ -155,82 +287,7 @@ export default function GuildCouncilDashboard() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
   };
 
-  const ActionModal = () => {
-    if (!actionModal || !selectedEvent) return null;
 
-    const configs = {
-      approve: { label: 'Approve Event', color: 'emerald', icon: CheckCircle, placeholder: 'Optional approval note...' },
-      reject: { label: 'Reject Event', color: 'red', icon: XCircle, placeholder: 'Reason for rejection (required)...', required: true },
-      revision: { label: 'Request Revision', color: 'orange', icon: AlertTriangle, placeholder: 'What needs to be changed (required)...', required: true },
-      publish: { label: 'Publish Event', color: 'emerald', icon: Send, placeholder: 'Optional publish note...' },
-      schedule: { label: 'Schedule Event', color: 'purple', icon: Calendar, placeholder: 'Schedule notes...' },
-      escalate: { label: 'Escalate Event', color: 'blue', icon: Flag, placeholder: 'Reason for escalation...' },
-    };
-
-    const config = configs[actionModal];
-    if (!config) return null;
-
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center sm:p-4 bg-black/80 backdrop-blur-sm"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="bg-card border border-border sm:rounded-xl shadow-2xl max-w-lg w-full h-full sm:h-auto overflow-y-auto sm:overflow-hidden"
-        >
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-          <div className="p-5 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${config.color}-500/10`}>
-                <config.icon size={18} className={`text-${config.color}-400`} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">{config.label}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{selectedEvent.title}</p>
-              </div>
-            </div>
-          </div>
-          <div className="p-5 space-y-4">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1"><Calendar size={12} />{new Date(selectedEvent.startDate).toLocaleDateString()}</span>
-              <span className="inline-flex items-center gap-1"><Users size={12} />{selectedEvent.organizerName}</span>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">{config.required ? 'Reason *' : 'Comment'}</label>
-              <textarea
-                value={actionComment}
-                onChange={e => setActionComment(e.target.value)}
-                placeholder={config.placeholder}
-                rows={3}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none"
-              />
-            </div>
-          </div>
-          <div className="px-5 py-4 border-t border-border flex items-center justify-end gap-3 bg-muted/20">
-            <button
-              onClick={() => { setActionModal(null); setActionComment(''); }}
-              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => handleAction(actionModal)}
-              disabled={actionLoading || (config.required && !actionComment.trim())}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-${config.color}-600 hover:bg-${config.color}-500 transition-colors disabled:opacity-50 shadow-sm`}
-            >
-              {actionLoading && <Loader2 size={14} className="animate-spin" />}
-              {config.label}
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8 space-y-6">
@@ -487,7 +544,7 @@ export default function GuildCouncilDashboard() {
                             </button>
                           </>
                         )}
-                        <button className="inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-xs font-medium hover:text-foreground hover:bg-accent transition-all" title="View details">
+                        <button onClick={() => navigate(`/guild/events/${event._id}`)} className="inline-flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-xs font-medium hover:text-foreground hover:bg-accent transition-all" title="View details">
                           <ExternalLink size={12} /> <span className="hidden sm:inline">View</span>
                         </button>
                       </div>
@@ -501,7 +558,17 @@ export default function GuildCouncilDashboard() {
       )}
 
       <AnimatePresence>
-        {actionModal && <ActionModal />}
+        {actionModal && (
+          <ActionModal
+            actionType={actionModal}
+            event={selectedEvent}
+            comment={actionComment}
+            loading={actionLoading}
+            onCommentChange={setActionComment}
+            onClose={() => { setActionModal(null); setActionComment(''); }}
+            onAction={handleAction}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
