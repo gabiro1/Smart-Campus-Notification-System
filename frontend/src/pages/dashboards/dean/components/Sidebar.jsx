@@ -20,7 +20,6 @@ const routes = [
     badge: 5,
   },
   { path: "/dean/broadcast", name: "College Broadcast", icon: Radio },
-  { path: "/dean/roles", name: "Role Management", icon: Users },
   { path: "/dean/announcements", name: "All Announcements", icon: Files },
 ];
 

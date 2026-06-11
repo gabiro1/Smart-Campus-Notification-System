@@ -11,7 +11,7 @@ const MessagesTab = lazy(() => import("../features/communication/pages/MessagesT
 const GovernancePage = lazy(() => import("../pages/dashboards/shared/GovernancePage"));
 const NotificationsPage = lazy(() => import("../pages/dashboards/lecturer/pages/Notifications"));
 const CpApprovals = lazy(() => import("../pages/dashboards/hod/pages/CpApprovals"));
-const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
+const DepartmentEvents = lazy(() => import("../pages/dashboards/hod/pages/DepartmentEvents"));
 const EventForm = lazy(() => import("../features/events/pages/EventForm"));
 const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 const HodTimetable = lazy(() => import("../pages/dashboards/hod/pages/HodTimetable"));
@@ -115,9 +115,7 @@ export const hodRoutes = [
     path="events"
     element={
       <ProtectedRoute allowedRoles={["hod"]}>
-        <div className="p-6 max-w-5xl mx-auto">
-          <CreatorDashboard />
-        </div>
+        <DepartmentEvents />
       </ProtectedRoute>
     }
   />,

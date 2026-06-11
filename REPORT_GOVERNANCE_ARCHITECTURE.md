@@ -52,7 +52,6 @@ Communication
 └── Reports                        ← old name redirects to intelligence
 
 Governance (existing)
-├── Staff Oversight
 └── ...
 
 System

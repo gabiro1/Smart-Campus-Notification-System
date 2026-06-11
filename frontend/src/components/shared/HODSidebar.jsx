@@ -26,7 +26,7 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
     {
       section: "Operations Center",
       items: [
-        { path: "/hod/dashboard", name: "Command Center", icon: Gauge },
+        { path: "/hod/dashboard", name: "Department Overview", icon: Gauge },
         { path: "/hod/governance", name: "Approvals", icon: Scale },
       ],
     },

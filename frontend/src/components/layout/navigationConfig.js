@@ -213,7 +213,7 @@ export const roleConfig = {
       {
         label: "Operations Center",
         items: [
-          { icon: Gauge, label: "Command Center", path: "/hod/dashboard" },
+          { icon: Gauge, label: "Department Overview", path: "/hod/dashboard" },
           { icon: Scale, label: "Approvals", path: "/hod/governance" },
         ],
       },
@@ -222,6 +222,7 @@ export const roleConfig = {
         items: [
           { icon: Radio, label: "Broadcast", path: "/hod/broadcast" },
           { icon: FileText, label: "Announcements", path: "/hod/announcements" },
+          { icon: Calendar, label: "Events", path: "/hod/events" },
           { icon: Mail, label: "Messages", path: "/hod/messages" },
         ],
       },
@@ -257,12 +258,6 @@ export const roleConfig = {
         label: "Communication",
         items: [
           { icon: FileText, label: "All Announcements", path: "/dean/announcements" },
-        ],
-      },
-      {
-        label: "Governance",
-        items: [
-          { icon: UserCheck, label: "Staff Oversight", path: "/dean/roles" },
         ],
       },
       {

@@ -237,7 +237,7 @@ export default function NotificationCenter() {
                   {loadingDigest ? (
                     <>Generating...</>
                   ) : (
-                    <>📋 Digest</>
+                    <>Digest</>
                   )}
                 </button>
               </div>

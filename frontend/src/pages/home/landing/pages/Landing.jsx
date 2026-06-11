@@ -235,8 +235,7 @@ function HeroSection({ onAction }) {
           transition={{ delay: 0.2 }}
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-8 border border-primary/20"
         >
-          <Sparkles className="text-primary" size={16} />
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">
+          <span className="text-xs font-bold uppercase tracking-widest text-primary ">
             AI-Powered Campus Communication
           </span>
         </motion.div>
@@ -617,11 +616,11 @@ function CTASection() {
               light:bg-white/80 light:border light:border-slate-200/50
               dark:bg-neutral-900/60 dark:border dark:border-white/10"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-500/10 pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-transparent pointer-events-none" />
+            {/* <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-purple-500/10 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-transparent pointer-events-none" /> */}
 
             <div className="relative z-10 p-10 md:p-16">
-              <motion.div
+              {/* <motion.div
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -top-6 -right-6 w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full blur-sm opacity-40"
@@ -630,7 +629,7 @@ function CTASection() {
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                 className="absolute -bottom-8 -left-8 w-40 h-40 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-sm opacity-30"
-              />
+              /> */}
 
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-8">
@@ -794,27 +793,14 @@ function CTASection() {
                 </motion.div>
               </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.5 }}
-                className="mt-16 pt-8 border-t border-border"
-              >
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                  <CTACounter value="12K+" label="Active Users" />
-                  <CTACounter value="850K+" label="Alerts Sent" />
-                  <CTACounter value="99.9%" label="Uptime" />
-                  <CTACounter value="4.9" label="User Rating" suffix="/5" />
-                </div>
-              </motion.div>
+              
             </div>
           </motion.div>
 
-          <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%]">
+          {/* <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%]">
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[150px]" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[150px]" />
-          </div>
+          </div> */}
         </div>
       </div>
     </section>

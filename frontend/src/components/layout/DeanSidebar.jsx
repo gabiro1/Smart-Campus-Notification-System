@@ -25,12 +25,6 @@ const navSections = [
     ],
   },
   {
-    label: "Governance",
-    items: [
-      { path: "/dean/roles", label: "Staff Oversight", icon: UserCheck },
-    ],
-  },
-  {
     label: "Communication",
     items: [
       { path: "/dean/announcements", label: "All Announcements", icon: Files },

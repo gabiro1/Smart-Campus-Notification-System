@@ -5,7 +5,6 @@ import ProtectedRoute from "../components/layout/ProtectedRoute";
 const DeanOverview = lazy(() => import("../pages/dashboards/dean/pages/SchoolOverview"));
 const DeanApprovals = lazy(() => import("../pages/dashboards/dean/pages/HoDApprovals"));
 const DeanBroadcast = lazy(() => import("../pages/dashboards/dean/pages/SchoolBroadcast"));
-const DeanRoles = lazy(() => import("../pages/dashboards/dean/pages/RoleManagement"));
 const DeanAnnouncements = lazy(() => import("../pages/dashboards/dean/pages/AllAnnouncements"));
 const DeanSettings = lazy(() => import("../pages/dashboards/dean/pages/SchoolSettings"));
 const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
@@ -39,15 +38,6 @@ export const deanRoutes = [
     element={
       <ProtectedRoute allowedRoles={["dean"]}>
         <DeanBroadcast />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="roles"
-    path="roles"
-    element={
-      <ProtectedRoute allowedRoles={["dean"]}>
-        <DeanRoles />
       </ProtectedRoute>
     }
   />,

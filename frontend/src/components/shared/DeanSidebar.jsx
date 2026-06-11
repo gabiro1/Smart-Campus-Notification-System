@@ -33,12 +33,6 @@ const navSections = [
     ],
   },
   {
-    label: "Governance",
-    items: [
-      { path: "/dean/roles", label: "Staff Oversight", icon: UserCheck },
-    ],
-  },
-  {
     label: "System",
     items: [
       { path: "/dean/settings", label: "Settings", icon: Settings },
