@@ -28,8 +28,8 @@ function Particle({ index, total }) {
       style={{
         width: size,
         height: size,
-        backgroundColor: `hsl(${hue}, 80%, 60%)`,
-        boxShadow: `0 0 ${size * 3}px hsl(${hue}, 80%, 60% / 0.5)`,
+        backgroundColor: `hsl(${hue}, 100%, 70%)`,
+        boxShadow: `0 0 ${size * 5}px hsl(${hue}, 100%, 70% / 0.7)`,
         left: "50%",
         top: "50%",
         marginLeft: -size / 2,
@@ -190,8 +190,9 @@ function GridBackground() {
 function GlowCorners() {
   return (
     <>
-      <div className="absolute top-[-20%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[100px] animate-pulse-slow" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[100px] animate-pulse-slow" style={{ animationDelay: "2s" }} />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[120px] animate-pulse-slow" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: "2s" }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[30%] h-[30%] bg-blue-600/8 rounded-full blur-[80px] animate-pulse-slow" style={{ animationDelay: "1s" }} />
     </>
   );
 }
@@ -253,11 +254,12 @@ export default function NeuralFlowLoader({
   message,
 }) {
   const wrapperClass = fullPage
-    ? "fixed inset-0 z-[100] flex items-center justify-center bg-background"
-    : "flex items-center justify-center min-h-[400px] w-full bg-background";
+    ? "fixed inset-0 z-[100] flex items-center justify-center"
+    : "flex items-center justify-center min-h-[400px] w-full";
+  const bgStyle = { background: "linear-gradient(135deg, #0a0a1a 0%, #0d0d24 50%, #0a0a1a 100%)" };
 
   return (
-    <div className={wrapperClass}>
+    <div className={wrapperClass} style={bgStyle}>
       <GridBackground />
       <GlowCorners />
       <ScanLines />

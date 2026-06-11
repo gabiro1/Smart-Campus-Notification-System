@@ -37,6 +37,7 @@ function createIcon(size) {
 
   const raw = [];
   const cx = size / 2, cy = size / 2, r = Math.min(cx, cy) * 0.75;
+  const letterR = r * 0.40;
 
   for (let y = 0; y < size; y++) {
     raw.push(0);
@@ -48,13 +49,31 @@ function createIcon(size) {
       const fade = Math.max(0, Math.min(1, (edge - dist) / (size * 0.02)));
 
       if (isCircle) {
+        // Gradient background
         const grad = 0.7 + 0.3 * (1 - dist / r);
         const nx = dx / r, ny = dy / r;
         const light = Math.max(0, 0.5 + 0.5 * (-nx * 0.4 - ny * 0.6));
+        let rCol = Math.floor((40 + 60 * light * grad));
+        let gCol = Math.floor((100 + 100 * light * grad));
+        let bCol = Math.floor((200 + 55 * light * grad));
+
+        // Draw "U" letter in center
+        const ldx = x - cx, ldy = y - cy;
+        const lDist = Math.sqrt(ldx * ldx + ldy * ldy);
+        const lAngle = Math.atan2(ldy, ldx);
+        const leftArm = ldx < -letterR * 0.15 && ldy > -letterR * 0.7 && ldy < letterR * 0.7;
+        const rightArm = ldx > letterR * 0.15 && ldy > -letterR * 0.7 && ldy < letterR * 0.7;
+        const bottomCurve = lDist <= letterR * 0.5 && lDist >= letterR * 0.25 && ldy > 0 && Math.abs(ldx / letterR) < 0.6;
+        const isU = leftArm || rightArm || bottomCurve;
+
+        if (isU && lDist < letterR * 0.9) {
+          rCol = 255; gCol = 255; bCol = 255;
+        }
+
         raw.push(0xFF);
-        raw.push(Math.floor((40 + 60 * light * grad)));
-        raw.push(Math.floor((100 + 100 * light * grad)));
-        raw.push(Math.floor((200 + 55 * light * grad)));
+        raw.push(rCol);
+        raw.push(gCol);
+        raw.push(bCol);
         raw.push(Math.floor(255 * fade));
       } else {
         raw.push(0);
@@ -79,5 +98,6 @@ if (!fs.existsSync(iconsDir)) fs.mkdirSync(iconsDir, { recursive: true });
 
 fs.writeFileSync(path.join(iconsDir, 'icon-192x192.png'), createIcon(192));
 fs.writeFileSync(path.join(iconsDir, 'icon-512x512.png'), createIcon(512));
+fs.writeFileSync(path.join(iconsDir, 'icon-1024x1024.png'), createIcon(1024));
 
-console.log('Created icon-192x192.png and icon-512x512.png in public/icons/');
+console.log('Created icon-192x192.png, icon-512x512.png, icon-1024x1024.png in public/icons/');

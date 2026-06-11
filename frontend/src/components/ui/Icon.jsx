@@ -44,7 +44,7 @@ export default function Icon({
       className={className}
       style={style}
     >
-      <path d={d} />
+      {d ? <path d={d} /> : null}
     </svg>
   );
 }

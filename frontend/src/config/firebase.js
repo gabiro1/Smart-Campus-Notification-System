@@ -35,7 +35,13 @@ export const requestForToken = async () => {
       return null;
     }
   } catch (err) {
-    console.error('An error occurred while retrieving token. ', err);
+    if (err.code === 'messaging/permission-blocked') {
+      console.warn('Notification permission was denied. Enable notifications in browser settings to receive push alerts.');
+    } else if (err.code === 'messaging/notifications-not-supported') {
+      console.warn('Push notifications are not supported in this browser.');
+    } else {
+      console.error('An error occurred while retrieving token. ', err);
+    }
     return null;
   }
 };

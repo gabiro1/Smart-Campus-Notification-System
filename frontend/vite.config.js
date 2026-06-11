@@ -23,14 +23,14 @@ export default defineConfig({
         enabled: true,
         type: 'module'
       },
-      includeAssets: ['icons/icon-192x192.png', 'icons/icon-512x512.png'],
+      includeAssets: ['icons/icon-192x192.png', 'icons/icon-512x512.png', 'icons/icon-1024x1024.png'],
       manifest: {
         id: '/',
         name: 'UniNotify AI',
         short_name: 'UniNotify AI',
         description: 'AI-Based Event Alert and Reminder System',
-        theme_color: '#000000',
-        background_color: '#000000',
+        theme_color: '#0a0a1a',
+        background_color: '#0a0a1a',
         display: 'standalone',
         start_url: '/',
         scope: '/',
@@ -48,8 +48,15 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
+          },
+          {
+            src: '/icons/icon-1024x1024.png',
+            sizes: '1024x1024',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
-        ]
+        ],
+        splash_pages: null
       },
       injectManifest: {
         maximumFileSizeToCacheInBytes: 5000000
