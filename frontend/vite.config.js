@@ -77,6 +77,7 @@ export default defineConfig({
   },
 
   build: {
+    modulePreload: false,
     outDir: 'dist',
     emptyOutDir: true,
     chunkSizeWarningLimit: 2500,
@@ -96,23 +97,14 @@ export default defineConfig({
           if (id.includes('node_modules/firebase')) {
             return 'vendor-firebase';
           }
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/chart.js') || id.includes('node_modules/d3-')) {
-            return 'vendor-charts';
-          }
           if (id.includes('node_modules/lucide-react') || id.includes('node_modules/@radix-ui') || id.includes('node_modules/cmdk') || id.includes('node_modules/vaul')) {
             return 'vendor-ui';
-          }
-          if (id.includes('node_modules/@hello-pangea') || id.includes('node_modules/@dnd-kit')) {
-            return 'vendor-dnd';
           }
           if (id.includes('node_modules/socket.io-client') || id.includes('node_modules/@microsoft/signalr')) {
             return 'vendor-realtime';
           }
-          if (id.includes('node_modules/pdf-lib') || id.includes('node_modules/jspdf') || id.includes('node_modules/xlsx')) {
-            return 'vendor-documents';
-          }
-          if (id.includes('node_modules')) {
-            return 'vendor-other';
+          if (id.includes('node_modules/@tanstack') || id.includes('node_modules/axios') || id.includes('node_modules/jwt-decode') || id.includes('node_modules/react-hot-toast') || id.includes('node_modules/date-fns') || id.includes('node_modules/tailwind-merge') || id.includes('node_modules/clsx') || id.includes('node_modules/class-variance-authority') || id.includes('node_modules/dexie') || id.includes('node_modules/react-qr-code') || id.includes('node_modules/qrcode.react')) {
+            return 'vendor-common';
           }
         }
       }
