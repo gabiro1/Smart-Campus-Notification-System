@@ -399,19 +399,7 @@ export default function Features() {
                   transition={{ delay: 0.2 }}
                   className="text-center lg:text-right"
                 >
-                  <div className="inline-block">
-                    <Link
-                      to="/register"
-                      className="group inline-flex items-center gap-3 bg-blue-500 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-lg hover:bg-blue-600 transition-all duration-300"
-                    >
-                      Get Started Free
-                      <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
-                  
-                  <p className="mt-6 text-sm text-muted-foreground">
-                    No account required to start
-                  </p>
+                  {/* Get Started Free CTA hidden */}
 
                   <div className="mt-8 pt-8 border-t border-border">
                     <p className="text-sm text-muted-foreground mb-4">Already have an account?</p>

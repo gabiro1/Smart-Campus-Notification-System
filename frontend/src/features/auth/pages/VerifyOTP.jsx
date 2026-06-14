@@ -164,15 +164,7 @@ export default function VerifyOTP() {
               )}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-border">
-              <Link
-                to="/register"
-                className="flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
-              >
-                <ArrowLeft size={16} />
-                Back to Register
-              </Link>
-            </div>
+            {/* Back to Register link hidden */}
           </div>
         </motion.div>
       </main>

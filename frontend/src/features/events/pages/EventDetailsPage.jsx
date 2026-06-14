@@ -211,22 +211,7 @@ export default function EventDetailsPage() {
                   </div>
                 </div>
 
-                {(event.externalRegistrationLink || event.livestreamLink) && (
-                  <div className="flex flex-wrap items-center gap-3 mt-4">
-                    {event.externalRegistrationLink && (
-                      <a href={event.externalRegistrationLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-all shadow-sm">
-                        <ExternalLink size={14} />
-                        Register Externally
-                      </a>
-                    )}
-                    {event.livestreamLink && (
-                      <a href={event.livestreamLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-500 transition-all shadow-sm">
-                        <ExternalLink size={14} />
-                        Join Livestream
-                      </a>
-                    )}
-                  </div>
-                )}
+                {/* Register Externally / Join Livestream CTAs hidden */}
               </div>
             </motion.div>
 

@@ -279,20 +279,7 @@ export default function Register() {
 
                   <input type="hidden" name="role" value="student" />
 
-                  <button
-                    disabled={loading}
-                    type="submit"
-                    className="w-full bg-blue-500 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:bg-blue-600"
-                  >
-                    {loading ? (
-                      <Loader2 className="animate-spin" size={20} />
-                    ) : (
-                      <>
-                        Create Account
-                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </button>
+                  {/* Create Account CTA button hidden */}
 
                   {/* Hidden for now as per request */}
                   {false && (

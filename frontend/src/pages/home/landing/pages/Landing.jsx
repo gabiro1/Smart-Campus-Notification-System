@@ -687,13 +687,7 @@ function CTASection() {
                     transition={{ delay: 0.4 }}
                     className="flex flex-col sm:flex-row gap-4"
                   >
-                    <Link
-                      to="/register"
-                      className="group relative inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02]"
-                    >
-                      <span>Get Started Free</span>
-                      <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    {/* Get Started Free CTA hidden */}
                     <Link
                       to="/about"
                       className="group inline-flex items-center justify-center gap-3 bg-card border border-border text-foreground px-8 py-5 rounded-2xl font-bold text-lg hover:bg-accent transition-all"

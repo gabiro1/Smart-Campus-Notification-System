@@ -322,13 +322,7 @@ export default function Navbar() {
                       >
                         Login
                       </Link>
-                      <Link
-                        to="/register"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center font-bold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl"
-                      >
-                        Get Started
-                      </Link>
+                      {/* Get Started CTA hidden */}
                     </div>
                   </>
                 ) : (
