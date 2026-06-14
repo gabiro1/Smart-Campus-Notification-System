@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X, Send, Trash2, Bot, User } from "lucide-react";
 import Logo from "./ui/Logo";
 import apiClient from "../services/apiClient";
+import { useAuth } from "../context/AuthContext";
 
 export default function FloatingCopilot() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -15,6 +17,9 @@ export default function FloatingCopilot() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Only show for students
+  if (user?.role !== "student" && user?.role !== "class_rep") return null;
 
   // Auto-scroll to bottom of messages
   const scrollToBottom = () => {

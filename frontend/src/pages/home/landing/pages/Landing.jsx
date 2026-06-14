@@ -244,12 +244,12 @@ function HeroSection({ onAction }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 leading-[0.9]"
+          className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 Hide"
         >
-          Smart Alerts.
+         
           <br />
           <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
-            Zero Noise.
+            Smart Alerts.
           </span>
         </motion.h1>
 
@@ -260,7 +260,7 @@ function HeroSection({ onAction }) {
           className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed"
         >
           The ultimate bridge between University administration and students.
-          Get the news you need, exactly when you need it — powered by AI
+          Get the news you need, exactly when you need it powered by AI
           that learns your preferences.
         </motion.p>
 
@@ -294,7 +294,7 @@ function HeroSection({ onAction }) {
             onClick={() => onAction("/register")}
             className="group inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
           >
-            Join the Beta
+            Join
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </button>
           <button
@@ -370,7 +370,7 @@ function FeaturesSection() {
             Everything You Need
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Engineered to solve real campus communication problems. No noise, just signal.
+            Engineered to solve real campus communication problems.
           </p>
         </motion.div>
 

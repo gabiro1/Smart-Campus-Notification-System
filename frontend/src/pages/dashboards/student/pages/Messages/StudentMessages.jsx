@@ -554,7 +554,7 @@ export default function StudentMessages() {
                             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs text-foreground hover:bg-accent transition-colors"
                           >
                             <Trash2 size={13} className="text-red-400" />
-                            Delete conversation
+                            Delete Chat
                           </button>
                         </div>
                       </>

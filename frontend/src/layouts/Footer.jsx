@@ -67,7 +67,7 @@ export default function Footer() {
               <li><Link to="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</Link></li>
               <li><Link to="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">How It Works</Link></li>
               <li><Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</Link></li>
-              <li><Link to="/register" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Get Started</Link></li>
+              <li><Link to="/register" className="hidden text-sm text-muted-foreground hover:text-foreground transition-colors">Get Started</Link></li>
             </ul>
           </div>
 
@@ -156,7 +156,7 @@ export default function Footer() {
             <div className="text-center md:text-right">
               Final Year Project by{" "}
               <span className="text-foreground font-semibold">
-                Gabiro Jovial Fleuron
+                Group 16
               </span>
             </div>
 
