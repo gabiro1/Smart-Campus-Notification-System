@@ -33,8 +33,8 @@ const HERO_FEATURES = [
 ];
 
 const STATS = [
-  { value: "12K+", label: "Active Users", icon: Users },
-  { value: "850K+", label: "Alerts Delivered", icon: Bell },
+  { value: "5k+", label: "Active Users", icon: Users },
+  { value: "50k+", label: "Alerts Delivered", icon: Bell },
   { value: "99.9%", label: "Uptime", icon: Globe },
   { value: "120s", label: "SMS Fallback", icon: Clock },
 ];
@@ -291,13 +291,7 @@ function HeroSection({ onAction }) {
           transition={{ delay: 0.6 }}
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
-          <button
-            onClick={() => onAction("/register")}
-            className="group inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/25"
-          >
-            Join
-            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-          </button>
+
           <button
             onClick={() => onAction("/how-it-works")}
             className="group inline-flex items-center justify-center gap-2 bg-card border border-border text-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-accent transition-all"
@@ -786,7 +780,7 @@ function CTASection() {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">Delivered</p>
-                          <p className="text-lg font-bold text-foreground">850K+</p>
+                          <p className="text-lg font-bold text-foreground">50k+</p>
                         </div>
                       </div>
                     </motion.div>

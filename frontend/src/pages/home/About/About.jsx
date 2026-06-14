@@ -18,14 +18,14 @@ import Footer from "../../../layouts/Footer";
 const STATS = [
   {
     label: "Active students",
-    value: "12K+",
+    value: "5k+",
     trend: "+15% MoM",
     icon: <Users size={20} />,
     color: "blue",
   },
   {
     label: "Alerts delivered",
-    value: "850K",
+    value: "50k",
     trend: "99.9% Uptime",
     icon: <Zap size={20} />,
     color: "emerald",
@@ -39,7 +39,7 @@ const STATS = [
   },
   {
     label: "SMS Fallback",
-    value: "45K",
+    value: "4K",
     trend: "Offline Reach",
     icon: <Radio size={20} />,
     color: "amber",

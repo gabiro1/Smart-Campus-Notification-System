@@ -263,7 +263,7 @@ function FeaturesSection() {
     { label: "Response Time", value: "<100ms", desc: "Lightning fast delivery" },
     { label: "Uptime", value: "99.9%", desc: "Always available" },
     { label: "SMS Fallback", value: "120s", desc: "Quick offline switch" },
-    { label: "Active Users", value: "12K+", desc: "Growing community" },
+    { label: "Active Users", value: "5k+", desc: "Growing community" },
   ];
 
   return (
@@ -360,7 +360,7 @@ function CTASection() {
                     className="w-2 h-2 bg-white rounded-full"
                   />
                   <span className="text-xs font-bold uppercase tracking-widest text-white">
-                    Beta Access Open
+                     Access Open
                   </span>
                 </motion.div>
 
@@ -505,7 +505,7 @@ function CTASection() {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Delivered</p>
-                        <p className="text-xl font-bold text-foreground">850K+</p>
+                        <p className="text-xl font-bold text-foreground">50k+</p>
                       </div>
                     </div>
                   </motion.div>
@@ -520,8 +520,8 @@ function CTASection() {
               transition={{ delay: 0.6 }}
               className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 pt-8 border-t border-border"
             >
-              <CTAStat value="12K+" label="Active Users" />
-              <CTAStat value="850K+" label="Alerts Sent" />
+              <CTAStat value="5k+" label="Active Users" />
+              <CTAStat value="50k+" label="Alerts Sent" />
               <CTAStat value="99.9%" label="Uptime" />
               <CTAStat value="4.9" label="User Rating" suffix="/5" />
             </motion.div>

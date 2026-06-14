@@ -181,8 +181,8 @@ export default function Login() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4 pt-6">
                 {[
-                  { value: "12K+", label: "Users" },
-                  { value: "850K+", label: "Alerts" },
+                  { value: "5k+", label: "Users" },
+                  { value: "50k+", label: "Alerts" },
                   { value: "99.9%", label: "Uptime" },
                 ].map((stat, i) => (
                   <motion.div

@@ -59,8 +59,8 @@ const CORE_FEATURES = [
 ];
 
 const STATS = [
-  { icon: Users, value: "12K+", label: "Active Users" },
-  { icon: Bell, value: "850K+", label: "Alerts Delivered" },
+  { icon: Users, value: "5k+", label: "Active Users" },
+  { icon: Bell, value: "50k+", label: "Alerts Delivered" },
   { icon: Globe, value: "99.9%", label: "Uptime" },
   { icon: Clock, value: "120s", label: "SMS Fallback" },
 ];
