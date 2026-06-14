@@ -75,10 +75,10 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="font-bold text-foreground text-sm">Support</h4>
             <ul className="space-y-3">
-              <li><Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Help Center</Link></li>
-              <li><Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
-              <li><Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link></li>
+              <li><Link to="/help-center" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Help Center</Link></li>
+              <li><Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
+              <li><Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link></li>
             </ul>
           </div>
 
@@ -91,20 +91,14 @@ export default function Footer() {
 
                 {/* QR Code */}
                 <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm p-2">
-                  {appUrl ? (
-                    <QRCodeSVG
-                      value=""
-                      size={80}
-                      level="M"
-                      includeMargin={false}
-                      fgColor="#0f172a"
-                      bgColor="#ffffff"
-                    />
-                  ) : (
-                    <div className="text-xs text-muted-foreground">
-                      Loading...
-                    </div>
-                  )}
+                  <QRCodeSVG
+                    value="https://smart-campus-notification-system.vercel.app/"
+                    size={80}
+                    level="M"
+                    includeMargin={false}
+                    fgColor="#0f172a"
+                    bgColor="#ffffff"
+                  />
                 </div>
 
                 {/* Text */}

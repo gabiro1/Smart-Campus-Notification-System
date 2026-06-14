@@ -75,6 +75,7 @@ const FEATURES = [
     title: "Live Analytics",
     desc: "Lecturers see real-time engagement metrics on their broadcasts.",
     color: "cyan",
+    hidden: true,
   },
 ];
 
@@ -375,7 +376,7 @@ function FeaturesSection() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {FEATURES.map((feature, i) => {
+          {FEATURES.filter(f => !f.hidden).map((feature, i) => {
             const colors = colorMap[feature.color];
             return (
               <motion.div
@@ -637,7 +638,7 @@ function CTASection() {
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full shadow-lg shadow-blue-600/40"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full"
                   >
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
@@ -645,7 +646,7 @@ function CTASection() {
                       className="w-2 h-2 bg-white rounded-full"
                     />
                     <span className="text-xs font-bold uppercase tracking-widest text-white">
-                      Now accepting beta users
+                      Now accepting users
                     </span>
                   </motion.div>
 
@@ -694,7 +695,7 @@ function CTASection() {
                   >
                     <Link
                       to="/register"
-                      className="group relative inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-blue-600/40 hover:shadow-blue-600/60 transition-all duration-300 hover:scale-[1.02]"
+                      className="group relative inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-5 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02]"
                     >
                       <span>Get Started Free</span>
                       <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />

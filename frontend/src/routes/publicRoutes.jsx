@@ -12,6 +12,7 @@ const ResetPassword = lazy(() => import("../features/auth/pages/ResetPassword"))
 const VerifyOTP = lazy(() => import("../features/auth/pages/VerifyOTP"));
 const GoogleAuth = lazy(() => import("../features/auth/pages/GoogleAuth"));
 const InterestSelection = lazy(() => import("../features/auth/pages/InterestSelection"));
+const PlaceholderPage = lazy(() => import("../pages/error/PlaceholderPage"));
 
 export const publicRoutes = [
   <Route key="landing" path="/" element={<Landing />} />,
@@ -26,4 +27,10 @@ export const publicRoutes = [
   <Route key="verify-otp" path="/verify-otp" element={<VerifyOTP />} />,
   <Route key="google-auth" path="/google-auth" element={<GoogleAuth />} />,
   <Route key="interest-selection" path="/interest-selection" element={<InterestSelection />} />,
+  
+  // Placeholder pages for missing sections
+  <Route key="privacy" path="/privacy-policy" element={<PlaceholderPage title="Privacy Policy" />} />,
+  <Route key="terms" path="/terms-of-service" element={<PlaceholderPage title="Terms of Service" />} />,
+  <Route key="help" path="/help-center" element={<PlaceholderPage title="Help Center" />} />,
+  <Route key="contact" path="/contact" element={<PlaceholderPage title="Contact Us" />} />,
 ];

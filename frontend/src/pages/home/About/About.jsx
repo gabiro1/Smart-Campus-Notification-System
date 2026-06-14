@@ -88,7 +88,7 @@ const FAQS = [
   {
     question: "How do I install the PWA on my phone?",
     answer:
-      "Simply visit uninotify.ac.rw on your mobile browser and tap 'Add to Home Screen' when prompted. The app works offline and syncs when connectivity returns.",
+      "Simply visit https://smart-campus-notification-system.vercel.app/ on your mobile browser and tap 'Add to Home Screen' when prompted. The app works offline and syncs when connectivity returns.",
   },
 ];
 
