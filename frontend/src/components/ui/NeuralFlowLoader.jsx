@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const LOADING_MESSAGES = [
@@ -83,21 +83,9 @@ function OrbitingParticles() {
 }
 
 function CentralOrb() {
-  const [morph, setMorph] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMorph((p) => (p + 1) % 3);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
   const paths = [
-    // Circle
     "M0,-40 C22,-40 40,-22 40,0 C40,22 22,40 0,40 C-22,40 -40,22 -40,0 C-40,-22 -22,-40 0,-40",
-    // Hexagon
     "M0,-40 L34.6,-20 L34.6,20 L0,40 L-34.6,20 L-34.6,-20 Z",
-    // Wave/blob form
     "M0,-40 C18,-38 36,-24 38,-8 C40,8 32,28 18,36 C4,44 -16,38 -28,24 C-40,10 -38,-12 -28,-26 C-18,-40 -12,-42 0,-40",
   ];
 
@@ -116,11 +104,11 @@ function CentralOrb() {
       />
       <svg viewBox="-50 -50 100 100" className="w-full h-full relative z-10">
         <motion.path
-          d={paths[morph]}
           fill="none"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
+          initial={{ d: paths[0] }}
           animate={{
             d: paths,
             stroke: [
@@ -130,7 +118,7 @@ function CentralOrb() {
             ],
           }}
           transition={{
-            d: { duration: 2.5, ease: [0.34, 1.56, 0.64, 1] },
+            d: { duration: 7.5, repeat: Infinity, ease: "easeInOut" },
             stroke: { duration: 4, repeat: Infinity, ease: "easeInOut" },
           }}
           style={{ filter: "url(#glow)" }}
