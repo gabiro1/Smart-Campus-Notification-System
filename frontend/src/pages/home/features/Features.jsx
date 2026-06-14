@@ -13,6 +13,7 @@ import {
   Users,
   Globe,
   Clock,
+  LayoutGrid,
 } from "lucide-react";
 import Navbar from "../../../layouts/Navbar";
 import Footer from "../../../layouts/Footer";
