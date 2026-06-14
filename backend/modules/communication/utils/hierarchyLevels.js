@@ -10,7 +10,8 @@ export const HIERARCHY_LEVELS = {
 
 export const COMMUNICATION_DIRECTION = {
   student: {
-    lecturer:     { requires: 'course_enrollment',  mode: 'direct' },
+    student:      { requires: 'class_membership',    mode: 'direct' },
+    lecturer:     { requires: null,  mode: 'direct' },
     class_rep:    { requires: 'class_membership',    mode: 'direct' },
     hod:          { requires: 'escalation',          mode: 'escalation_only' },
     dean:         { requires: 'escalation',          mode: 'escalation_only' },
@@ -26,7 +27,7 @@ export const COMMUNICATION_DIRECTION = {
     office:       { requires: 'office_assignment',   mode: 'ticket_only' }
   },
   lecturer: {
-    student:      { requires: 'course_enrollment',   mode: 'direct' },
+    student:      { requires: null,   mode: 'direct' },
     class_rep:    { requires: 'course_enrollment',   mode: 'direct' },
     hod:          { requires: 'department',          mode: 'direct' },
     dean:         { requires: 'school',             mode: 'direct' },

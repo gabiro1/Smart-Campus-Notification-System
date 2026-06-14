@@ -403,7 +403,7 @@ export const sendNotification = async (req, res) => {
         // 3. Push Task (If token exists and enabled AND quiet hours allow)
         if (fcmToken && shouldSend('push') && canSendNow) {
             tasks.push(
-                sendPushNotification(fcmToken, personalizedTitle, personalizedMessage.substring(0, 80))
+                sendPushNotification(fcmToken, { title: personalizedTitle, body: personalizedMessage.substring(0, 80) })
                     .then(() => channels.push("Push_Notification"))
                     .catch((pushErr) => {
                         console.warn(`[Notification] Push failed for user ${targetUserId}:`, pushErr.message);

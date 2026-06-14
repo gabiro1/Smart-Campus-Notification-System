@@ -3,7 +3,6 @@ import { Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/layout/ProtectedRoute";
 
 const Dashboard = lazy(() => import("../pages/dashboards/student/pages/Dashboard/Dashboard"));
-const AnnouncementsPage = lazy(() => import("../pages/dashboards/student/pages/announcement/AnnouncementsPage"));
 const NotificationsPage = lazy(() => import("../pages/dashboards/student/pages/Notifications/NotificationsPage"));
 const EventsPage = lazy(() => import("../pages/dashboards/student/Events/EventsPage"));
 const MyEventsPage = lazy(() => import("../pages/dashboards/student/Events/MyEventsPage"));
@@ -11,8 +10,9 @@ const BookmarksPage = lazy(() => import("../pages/dashboards/student/Events/Book
 const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 const RemindersTab = lazy(() => import("../pages/dashboards/student/pages/Reminder/RemindersTab"));
 const TimeTable = lazy(() => import("../pages/dashboards/student/component/TimeTable"));
-const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
+const StudentMessages = lazy(() => import("../pages/dashboards/student/pages/Messages/StudentMessages"));
 const Settings = lazy(() => import("../pages/dashboards/student/pages/settings/Settings"));
+
 
 const CommunicationHub = lazy(() => import("../features/communication/pages/CommunicationHub"));
 const InboxView = lazy(() => import("../features/communication/pages/InboxView"));
@@ -28,15 +28,6 @@ export const studentRoutes = [
     element={
       <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <Dashboard />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="announcements"
-    path="announcements"
-    element={
-      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
-        <AnnouncementsPage />
       </ProtectedRoute>
     }
   />,
@@ -94,11 +85,14 @@ export const studentRoutes = [
       </ProtectedRoute>
     }
   />,
-  // Legacy routes → redirect to new Communication Hub
   <Route
     key="messages"
     path="messages"
-    element={<Navigate to="/student/communication/inbox" replace />}
+    element={
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
+        <StudentMessages />
+      </ProtectedRoute>
+    }
   />,
   <Route
     key="contacts"

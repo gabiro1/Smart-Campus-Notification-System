@@ -140,7 +140,19 @@ updateAnnouncement: async (announcementId, updateData) => {
     return response.data;
   },
 
-  // 14. AI: Generate professional announcement from raw draft
+  // 14. Lecturer: Get all questions from students
+  getLecturerQuestions: async () => {
+    const response = await apiClient.get('/announcements/lecturer-questions');
+    return response.data;
+  },
+
+  // 15. Lecturer: Reply to a student question
+  replyToQuestion: async (announcementId, questionId, content) => {
+    const response = await apiClient.post(`/announcements/${announcementId}/question/${questionId}/reply`, { content });
+    return response.data;
+  },
+
+  // 16. AI: Generate professional announcement from raw draft
   suggestAnnouncement: async (rawText) => {
     const response = await apiClient.post('/ai/suggest-announcement', {
       rawText,

@@ -59,7 +59,9 @@ const messageSchema = new mongoose.Schema({
     'sent', 'delivered', 'read', 'failed'
   ], default: 'sent' },
   deliveredAt: { type: Date },
-  readAt: { type: Date }
+  readAt: { type: Date },
+  edited: { type: Boolean, default: false },
+  editedAt: { type: Date }
 }, { timestamps: true });
 
 messageSchema.index({ threadId: 1, createdAt: 1 });

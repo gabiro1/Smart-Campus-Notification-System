@@ -14,6 +14,8 @@ export const emitNewMessage = async (message, threadId) => {
       unreadSummary[pid] = thread.unreadCount?.get(pid) || 0;
     }
 
+    const totalUnread = Object.values(unreadSummary).reduce((a, b) => a + b, 0);
+
     for (const participant of thread.participants) {
       const pid = participant._id.toString();
       const socketId = getReceiverSocketId(pid);
@@ -22,6 +24,11 @@ export const emitNewMessage = async (message, threadId) => {
           threadId: threadId.toString(),
           message,
           unreadCount: unreadSummary[pid] || 0
+        });
+        io.to(socketId).emit("unread:updated", {
+          total: totalUnread,
+          threadId: threadId.toString(),
+          count: unreadSummary[pid] || 0
         });
       }
     }
@@ -44,6 +51,28 @@ export const emitThreadUpdate = async (threadId, changes) => {
     });
   } catch (err) {
     console.error("Thread update socket error:", err.message);
+  }
+};
+
+export const emitMessageDeleted = async (threadId, messageId) => {
+  try {
+    io.to(`thread:${threadId}`).emit("message:deleted", {
+      threadId: threadId.toString(),
+      _id: messageId.toString()
+    });
+  } catch (err) {
+    console.error("Message delete socket error:", err.message);
+  }
+};
+
+export const emitMessageUpdated = async (threadId, message) => {
+  try {
+    io.to(`thread:${threadId}`).emit("message:updated", {
+      threadId: threadId.toString(),
+      message
+    });
+  } catch (err) {
+    console.error("Message update socket error:", err.message);
   }
 };
 

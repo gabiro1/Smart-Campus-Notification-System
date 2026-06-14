@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   PlusCircle,
   Users,
-  Megaphone,
   BarChart3,
   Scale,
   Headphones,
@@ -13,7 +12,6 @@ import {
   Settings,
   LogOut,
   Command,
-  MessageCircle,
   X,
   Clock,
 } from "lucide-react";
@@ -24,13 +22,10 @@ const mainItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/lecturer/console" },
   { icon: PlusCircle, label: "Create", path: "/lecturer/create" },
   { icon: Users, label: "My Classes", path: "/lecturer/classes" },
-  { icon: Megaphone, label: "Announcements", path: "/lecturer/announcements" },
-  { icon: MessageCircle, label: "Q&A", path: "/lecturer/qa" },
 ];
 
 const academicItems = [
   { icon: Clock, label: "Timetable", path: "/lecturer/timetable" },
-  { icon: BarChart3, label: "Analytics", path: "/lecturer/analytics" },
   { icon: Scale, label: "Governance", path: "/lecturer/governance" },
 ];
 

@@ -352,7 +352,7 @@ export const sendEventReminder = async (eventId, reminderType, eventTitle, event
       const pushPromises = [];
       for (const { title, body, tokens } of tokenGroups.values()) {
         pushPromises.push(
-          sendMulticastNotification(tokens, title, body).catch(err => {
+          sendMulticastNotification(tokens, { title, body }).catch(err => {
             console.error(`[Personalization] Reminder push failed for ${tokens.length} tokens:`, err.message);
           })
         );

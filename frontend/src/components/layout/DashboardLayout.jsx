@@ -1,16 +1,16 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import UniSidebar from "./UniSidebar";
 import UniHeader from "./UniHeader";
 import FloatingCopilot from "../FloatingCopilot";
 import EmergencyBanner from "../common/EmergencyBanner";
 import { useAuth } from "../../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
 import { getRoleConfig } from "./navigationConfig";
 
 const pageTitles = {
   "/student/dashboard": "Dashboard",
-  "/student/announcements": "Announcements",
   "/student/events": "Events",
   "/student/bookmarks": "Bookmarks",
   "/student/notifications": "Notifications",
@@ -41,10 +41,7 @@ const pageTitles = {
   "/lecturer/console": "Dashboard",
   "/lecturer/create": "Create Announcement",
   "/lecturer/classes": "My Classes",
-  "/lecturer/announcements": "Announcements",
-  "/lecturer/qa": "Q&A",
   "/lecturer/timetable": "Timetable",
-  "/lecturer/analytics": "Analytics",
   "/lecturer/governance": "Governance",
   "/lecturer/messages": "Messages",
   "/lecturer/notifications": "Notifications",
@@ -94,6 +91,7 @@ const pageTitles = {
 
 export default function DashboardLayout({ role = "student" }) {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -106,18 +104,38 @@ export default function DashboardLayout({ role = "student" }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    const fetchUnread = async () => {
+  const fetchUnread = useCallback(async () => {
+    try {
+      let total = 0;
+      const notifMod = await import("../../services/notificationService");
+      const notifData = await notifMod.default.getUnreadCount();
+      total += notifData?.unreadCount || 0;
       try {
-        const mod = await import("../../services/notificationService");
-        const data = await mod.default.getUnreadCount();
-        setUnreadCount(data?.unreadCount || 0);
+        const commMod = await import("../../features/communication/services/communicationService");
+        const msgData = await commMod.default.getUnreadSummary();
+        total += msgData?.total || 0;
       } catch {}
-    };
+      setUnreadCount(total);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     fetchUnread();
     const interval = setInterval(fetchUnread, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUnread]);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('notification:new', fetchUnread);
+    socket.on('unread:updated', fetchUnread);
+    socket.on('message:new', fetchUnread);
+    return () => {
+      socket.off('notification:new', fetchUnread);
+      socket.off('unread:updated', fetchUnread);
+      socket.off('message:new', fetchUnread);
+    };
+  }, [socket, fetchUnread]);
 
   const config = getRoleConfig(role);
 

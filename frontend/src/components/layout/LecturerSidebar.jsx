@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   PlusCircle,
   Users,
-  Megaphone,
   Scale,
   Headphones,
   Mail,
@@ -12,7 +11,6 @@ import {
   Settings,
   LogOut,
   Command,
-  MessageCircle,
   Calendar,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -22,8 +20,6 @@ const mainItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/lecturer/console" },
   { icon: PlusCircle, label: "Create", path: "/lecturer/create" },
   { icon: Users, label: "My Classes", path: "/lecturer/classes" },
-  { icon: Megaphone, label: "Announcements", path: "/lecturer/announcements" },
-  { icon: MessageCircle, label: "Q&A", path: "/lecturer/qa" },
   { icon: Calendar, label: "My Events", path: "/lecturer/events" },
 ];
 

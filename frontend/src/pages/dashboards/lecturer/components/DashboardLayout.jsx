@@ -116,7 +116,7 @@ export default function LecturerLayout() {
 
   const handleResultClick = (type, id) => {
     if (type === "announcement") {
-      navigate("/lecturer/announcements");
+      navigate("/lecturer/messages");
     } else if (type === "event") {
       navigate(`/lecturer/events/${id}`);
     }

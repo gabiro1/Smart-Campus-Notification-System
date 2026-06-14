@@ -3,8 +3,10 @@ import ConversationThread from "../model/ConversationThread.js";
 import User from "../../user/model/User.js";
 import CommunicationLog from "../model/CommunicationLog.js";
 import { verifyCommunicationPermission } from "../services/permissionGate.js";
-import { emitNewMessage, emitThreadUpdate } from "../services/messageDelivery.js";
-import { bucket } from "../../../config/firebaseAdmin.js";
+import { emitNewMessage, emitThreadUpdate, emitMessageUpdated, emitMessageDeleted } from "../services/messageDelivery.js";
+import path from "path";
+import fs from "fs";
+import { io, getReceiverSocketId } from "../../../utils/socketServer.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -27,15 +29,12 @@ export const sendMessage = async (req, res) => {
     if (thread.threadType !== "office_ticket" && thread.threadType !== "escalation") {
       for (const pId of thread.participants) {
         if (pId.toString() === senderId.toString()) continue;
-        const targetUser = await User.findById(pId);
-        if (targetUser) {
-          const permission = await verifyCommunicationPermission(req.user, targetUser);
-          if (!permission.allowed) {
-            return res.status(403).json({
-              message: permission.message,
-              suggestedMode: permission.suggestedMode
-            });
-          }
+        const permission = await verifyCommunicationPermission(req.user, pId.toString());
+        if (!permission.allowed) {
+          return res.status(403).json({
+            message: permission.message,
+            suggestedMode: permission.suggestedMode
+          });
         }
       }
     }
@@ -43,21 +42,19 @@ export const sendMessage = async (req, res) => {
     let fileData = null;
     if (req.file) {
       const file = req.file;
-      const fileName = `chats/${Date.now()}_${file.originalname}`;
-      const blob = bucket.file(fileName);
-      const blobStream = blob.createWriteStream({
-        metadata: { contentType: file.mimetype },
-      });
-      await new Promise((resolve, reject) => {
-        blobStream.on("error", reject);
-        blobStream.on("finish", resolve);
-        blobStream.end(file.buffer);
-      });
-      const [url] = await blob.getSignedUrl({
-        action: "read",
-        expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-      });
-      fileData = { url, name: file.originalname, size: file.size, mimeType: file.mimetype };
+      const chatDir = path.join(process.cwd(), "uploads", "chats");
+      if (!fs.existsSync(chatDir)) {
+        fs.mkdirSync(chatDir, { recursive: true });
+      }
+      const fileName = `${Date.now()}_${file.originalname}`;
+      const filePath = path.join(chatDir, fileName);
+      fs.writeFileSync(filePath, file.buffer);
+      fileData = {
+        url: `/uploads/chats/${fileName}`,
+        name: file.originalname,
+        size: file.size,
+        mimeType: file.mimetype,
+      };
     }
 
     const newMessage = await Message.create({
@@ -162,6 +159,13 @@ export const markAsRead = async (req, res) => {
       }
     );
 
+    if (io) {
+      const socketId = getReceiverSocketId(userId.toString());
+      if (socketId) {
+        io.to(socketId).emit("unread:updated", { threadId: threadId.toString(), count: 0 });
+      }
+    }
+
     res.json({ success: true });
   } catch (error) {
     console.error("Mark as read error:", error);
@@ -186,11 +190,45 @@ export const deleteMessage = async (req, res) => {
       outcome: 'success'
     });
 
+    await emitMessageDeleted(message.threadId.toString(), message._id);
     await Message.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
+    res.json({ success: true, _id: message._id });
   } catch (error) {
     console.error("Delete message error:", error);
     res.status(500).json({ message: "Failed to delete message" });
+  }
+};
+
+export const editMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) {
+      return res.status(400).json({ message: "Message content cannot be empty" });
+    }
+
+    const message = await Message.findById(req.params.id);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+    if (message.senderId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Can only edit own messages" });
+    }
+    if (message.messageType !== "text") {
+      return res.status(400).json({ message: "Can only edit text messages" });
+    }
+
+    message.content = content.trim();
+    message.edited = true;
+    message.editedAt = new Date();
+    await message.save();
+
+    const populated = await Message.findById(message._id)
+      .populate("senderId", "name role profilePicture");
+
+    await emitMessageUpdated(message.threadId.toString(), populated);
+
+    res.json(populated);
+  } catch (error) {
+    console.error("Edit message error:", error);
+    res.status(500).json({ message: "Failed to edit message" });
   }
 };
 

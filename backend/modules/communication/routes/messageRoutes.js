@@ -6,6 +6,7 @@ import {
   getMessages,
   markAsRead,
   deleteMessage,
+  editMessage,
   voteOnPoll,
   flagMessage
 } from "../controller/messageController.js";
@@ -17,6 +18,7 @@ router.get("/:threadId", protect, getMessages);
 router.patch("/read", protect, markAsRead);
 router.put("/:id/vote", protect, voteOnPoll);
 router.post("/:id/flag", protect, flagMessage);
+router.put("/:id", protect, editMessage);
 router.delete("/:id", protect, deleteMessage);
 
 export default router;

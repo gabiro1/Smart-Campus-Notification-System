@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
@@ -22,6 +22,7 @@ import {
 import { GlassCard, WidgetErrorBoundary } from "@/components/shared";
 import notificationService from "../../../../../services/notificationService";
 import copilotService from "../../../../../services/copilotService";
+import { useSocket } from "../../../../../context/SocketContext";
 import toast from "react-hot-toast";
 
 const formatTimeAgo = (dateString) => {
@@ -71,6 +72,7 @@ const tabs = [
 ];
 
 export default function NotificationsPage() {
+  const { socket } = useSocket();
   const [activeTab, setActiveTab] = useState("all");
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
@@ -82,7 +84,7 @@ export default function NotificationsPage() {
   const [digestPeriod, setDigestPeriod] = useState("weekly");
   const [generatingDigest, setGeneratingDigest] = useState(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
       const res = await notificationService.getNotifications({ page: 1, limit: 50 });
@@ -114,11 +116,62 @@ export default function NotificationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewNotification = (notif) => {
+      if (!notif?.title && !notif?.message) return;
+      const mappedType = mapNotificationType(notif.type);
+      const config = typeConfig[mappedType] || typeConfig.announcement;
+      const normalized = {
+        id: notif._id || `notif_${Date.now()}`,
+        type: mappedType,
+        title: notif.title || "Notification",
+        time: "Just now",
+        desc: notif.message || notif.body || notif.title || "",
+        unread: true,
+        icon: iconByType[mappedType] || Bell,
+        color: config.color,
+        bg: config.bg,
+        border: config.border,
+      };
+      setNotifications((prev) => {
+        const exists = prev.some((n) => n.id === normalized.id);
+        return exists ? prev : [normalized, ...prev];
+      });
+      setUnreadCount((prev) => prev + 1);
+      toast.custom(
+        (t) => (
+          <div className={`${t.visible ? "animate-enter" : "animate-leave"} max-w-md w-full mx-3 bg-[#111] shadow-2xl rounded-[15px] pointer-events-auto flex ring-1 ring-white/10 overflow-hidden border border-white/5`}>
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${normalized.bg}`}>
+                    <span className="font-black text-xs uppercase">{normalized.type?.[0] || 'N'}</span>
+                  </div>
+                </div>
+                <div className="ml-3 flex-1 text-left">
+                  <p className="text-sm font-bold text-white uppercase tracking-tight">{normalized.title}</p>
+                  <p className="mt-1 text-xs text-neutral-400 leading-relaxed">{normalized.desc}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-white/5">
+              <button onClick={() => toast.dismiss(t.id)} className="px-6 border border-transparent rounded-none rounded-r-[15px] flex items-center justify-center text-xs font-black text-neutral-500 hover:text-white transition-colors">CLOSE</button>
+            </div>
+          </div>
+        ),
+        { duration: 4000 }
+      );
+    };
+    socket.on("notification:new", handleNewNotification);
+    return () => { socket.off("notification:new", handleNewNotification); };
+  }, [socket]);
 
   useEffect(() => {
     if (activeTab === "digest") {
@@ -209,7 +262,7 @@ export default function NotificationsPage() {
         )}
       </header>
 
-      <div className="flex bg-black/40 p-1 rounded-xl border border-white/10 w-fit mx-4 lg:mx-6 overflow-x-auto">
+      <div className="flex bg-black/40 p-1 rounded-xl border border-white/10 w-full sm:w-fit mx-4 lg:mx-6 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}

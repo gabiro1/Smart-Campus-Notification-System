@@ -45,6 +45,7 @@ import hrRoutes from './modules/hr/routes/hrRoutes.js'; // HR module
 import registrarRoutes from './modules/registrar/routes/registrarRoutes.js'; // Registrar module
 import leadershipRoutes from './modules/student-leadership/routes/leadershipRoutes.js'; // Student Leadership Governance
 import roleRoutes from './modules/role/routes/roleRoutes.js'; // Role management
+import qaRoutes from './modules/qa/routes/qaRoutes.js'; // Standalone Q&A module
 
 // Communication Module Routes
 import contactRoutes from './modules/communication/routes/contactRoutes.js';
@@ -103,20 +104,19 @@ const generalRateLimiter = rateLimit({
   skip: () => process.env.SKIP_RATE_LIMIT === 'true' || process.env.NODE_ENV === 'test',
 });
 
-// Strict rate limiter for authentication endpoints: 5 attempts per 15 minutes
+// Rate limiter for auth endpoints: prevents DDoS only (per-account/IP lock handled in controller)
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Too many authentication attempts. Please try again after 15 minutes.'
+    message: 'Too many requests. Please try again later.'
   },
   skip: () => process.env.SKIP_RATE_LIMIT === 'true' || process.env.NODE_ENV === 'test',
-  // 💡 ADD THIS: Helps you debug in the network tab
   handler: (req, res, next, options) => {
-    console.warn(`Rate limit exceeded for IP: ${req.ip}`);
+    console.warn(`Auth rate limit exceeded for IP: ${req.ip}`);
     res.status(options.statusCode).send(options.message);
   }
 });
@@ -194,6 +194,7 @@ app.use('/api/hr', hrRoutes); // HR module
 app.use('/api/registrar', registrarRoutes); // Registrar module
 app.use('/api/roles', roleRoutes); // Role management
 app.use('/api/leadership', leadershipRoutes); // Student Leadership Governance
+app.use('/api/qa', qaRoutes); // Standalone Q&A module
 
 // Communication Module Routes
 app.use('/api/communication/contacts', contactRoutes);

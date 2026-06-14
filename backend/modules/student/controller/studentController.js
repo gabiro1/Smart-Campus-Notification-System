@@ -107,6 +107,26 @@ export const getStudentTimetable = async (req, res) => {
   }
 };
 
+export const getClassmates = async (req, res) => {
+  try {
+    const student = await User.findById(req.user.id);
+    if (!student || !student.classId) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    const classmates = await User.find({
+      classId: student.classId,
+      _id: { $ne: student._id },
+      role: { $in: ["student", "class_rep"] }
+    }).select("name email profilePicture role studentID");
+
+    res.status(200).json({ success: true, data: classmates });
+  } catch (error) {
+    console.error("Get Classmates Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 export const getStudentStats = async (req, res) => {
   try {
     const student = await User.findById(req.user.id).populate('classId', 'name');

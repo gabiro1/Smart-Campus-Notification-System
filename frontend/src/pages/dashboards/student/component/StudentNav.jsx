@@ -18,7 +18,7 @@ import {
 
 const navItems = [
   { label: "Dashboard", path: "/student/dashboard", icon: LayoutDashboard },
-  { label: "Announcements", path: "/student/announcements", icon: Bell },
+  { label: "Messages", path: "/student/messages", icon: Bell },
   { label: "Events", path: "/student/events", icon: Calendar },
   { label: "Bookmarks", path: "/student/bookmarks", icon: Bookmark },
   { label: "Notifications", path: "/student/notifications", icon: MessageSquare },

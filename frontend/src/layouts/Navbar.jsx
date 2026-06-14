@@ -78,7 +78,7 @@ export default function Navbar() {
                   {user.role === "student" && (
                     <>
                       <NavLink to="/student/dashboard" label="Dashboard" active={isActive("/student/dashboard")} />
-                      <NavLink to="/student/announcements" label="Alerts" active={isActive("/student/announcements")} />
+                      <NavLink to="/student/messages" label="Alerts" active={isActive("/student/messages")} />
                       <NavLink to="/student/events" label="Events" active={isActive("/student/events")} />
                     </>
                   )}
@@ -332,7 +332,7 @@ export default function Navbar() {
                     {user.role === "student" && (
                       <>
                         <MobileMenuLink to="/student/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
-                        <MobileMenuLink to="/student/announcements" label="Alerts" onClick={() => setMobileMenuOpen(false)} />
+                        <MobileMenuLink to="/student/messages" label="Alerts" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/student/events" label="Events" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/student/bookmarks" label="Bookmarks" onClick={() => setMobileMenuOpen(false)} />
                       </>

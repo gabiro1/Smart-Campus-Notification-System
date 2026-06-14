@@ -4,12 +4,10 @@ import ProtectedRoute from "../components/layout/ProtectedRoute";
 
 const LecturerOverview = lazy(() => import("../pages/dashboards/lecturer/pages/Dashboard"));
 const LecturerCreateAnnouncement = lazy(() => import("../pages/dashboards/lecturer/pages/CreateAnnouncement"));
-const LecturerAnnouncements = lazy(() => import("../pages/dashboards/lecturer/pages/MyAnnouncements"));
 const LecturerNotifications = lazy(() => import("../pages/dashboards/lecturer/pages/Notifications"));
 const LecturerClasses = lazy(() => import("../pages/dashboards/lecturer/pages/MyClasses"));
-const LecturerSettings = lazy(() => import("../pages/dashboards/lecturer/Settings"));
-const LecturerAnnouncementQA = lazy(() => import("../pages/dashboards/lecturer/pages/AnnouncementQA"));
-const MessagesTab = lazy(() => import("../features/communication/pages/MessagesTab"));
+const LecturerSettings = lazy(() => import("../pages/dashboards/lecturer/pages/Settings"));
+const LecturerMessages = lazy(() => import("../pages/dashboards/lecturer/pages/Messages/LecturerMessages"));
 const GovernancePage = lazy(() => import("../pages/dashboards/shared/GovernancePage"));
 const SupportPage = lazy(() => import("../pages/dashboards/shared/SupportPage"));
 const CreatorDashboard = lazy(() => import("../features/events/pages/CreatorDashboard"));
@@ -43,24 +41,6 @@ export const lecturerRoutes = [
     element={
       <ProtectedRoute allowedRoles={["lecturer"]}>
         <LecturerCreateAnnouncement />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="announcements"
-    path="announcements"
-    element={
-      <ProtectedRoute allowedRoles={["lecturer"]}>
-        <LecturerAnnouncements />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="qa"
-    path="qa"
-    element={
-      <ProtectedRoute allowedRoles={["lecturer"]}>
-        <LecturerAnnouncementQA />
       </ProtectedRoute>
     }
   />,
@@ -105,7 +85,7 @@ export const lecturerRoutes = [
     path="messages"
     element={
       <ProtectedRoute allowedRoles={["lecturer"]}>
-        <MessagesTab />
+        <LecturerMessages />
       </ProtectedRoute>
     }
   />,

@@ -44,6 +44,26 @@ export default function Login() {
     password: "",
   });
   const [isRegNumber, setIsRegNumber] = useState(false);
+  const [lockoutEnd, setLockoutEnd] = useState(null);
+
+  const isLocked = lockoutEnd && lockoutEnd > Date.now();
+
+  useEffect(() => {
+    if (!isLocked) return;
+    const interval = setInterval(() => {
+      const remaining = lockoutEnd - Date.now();
+      if (remaining <= 0) {
+        setLockoutEnd(null);
+        setErrorMsg("");
+        clearInterval(interval);
+        return;
+      }
+      const mins = Math.ceil(remaining / 60000);
+      const secs = Math.ceil((remaining % 60000) / 1000);
+      setErrorMsg(`Your account has been temporarily locked due to multiple failed login attempts. Please try again in ${mins}:${String(secs).padStart(2, '0')}.`);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lockoutEnd, isLocked]);
 
   const validate = () => {
     const val = formData.email.trim();
@@ -60,6 +80,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLocked) return;
 
     const validationError = validate();
     if (validationError) {
@@ -92,12 +113,14 @@ export default function Login() {
       const target = roleRedirects[data.user.role] || `/${data.user.role}/dashboard`;
       navigate(target, { replace: true });
     } catch (error) {
-      const message =
-        error.message ||
-        error.response?.data?.message ||
-        "Login failed. Try again.";
+      const response = error.response?.data;
+      const message = response?.message || error.message || "Login failed. Try again.";
       setErrorMsg(message);
       toast.error(message);
+
+      if (response?.lockedUntil) {
+        setLockoutEnd(new Date(response.lockedUntil).getTime());
+      }
     } finally {
       setLoading(false);
     }
@@ -213,8 +236,10 @@ export default function Login() {
                 </p>
 
                 {errorMsg && (
-                  <div className="mb-6 text-sm text-red-400 bg-red-500/10 p-4 rounded-xl border border-red-500/20">
-                    {errorMsg}
+                  <div className={`mb-6 text-sm p-4 rounded-xl border flex items-start gap-3 ${isLocked ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'}`}>
+                    {isLocked && <Lock size={16} className="mt-0.5 shrink-0" />}
+                    <span>{errorMsg}</span>
+
                   </div>
                 )}
 
@@ -225,7 +250,7 @@ export default function Login() {
                       name="email"
                       type="text"
                       required
-                      disabled={loading}
+                      disabled={loading || isLocked}
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="Registration number or email"
@@ -246,7 +271,7 @@ export default function Login() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       required
-                      disabled={loading}
+                      disabled={loading || isLocked}
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Password"
@@ -268,12 +293,17 @@ export default function Login() {
                   </div>
 
                   <button
-                    disabled={loading}
+                    disabled={loading || isLocked}
                     type="submit"
                     className="w-full bg-blue-500 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed hover:bg-blue-600"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={20} />
+                    ) : isLocked ? (
+                      <>
+                        <Lock size={20} />
+                        Account Locked
+                      </>
                     ) : (
                       <>
                         Sign in

@@ -11,6 +11,7 @@ import { shouldSendNow } from "../../../utils/quietHours.js";
 import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
 import { ensureCachedTranslation } from "../../../services/translationService.js";
 import { chat } from "../../../services/aiProvider.js";
+import { io } from "../../../utils/socketServer.js";
 
 // ==========================================
 // 1. CREATE ANNOUNCEMENT (The Engine)
@@ -183,17 +184,33 @@ export const createAnnouncement = async (req, res) => {
           console.error("❌ CRITICAL: Failed to save Notification Logs to DB:", logErr);
         }
 
+        // Emit real-time socket notification to each student
+        if (io) {
+          students.forEach(student => {
+            const variant = personalizedMap.get(student._id.toString()) || { title, message: content };
+            io.to(`user:${student._id}`).emit('notification:new', {
+              _id: `${newAnnouncement._id}_${student._id}`,
+              title: variant.title,
+              body: variant.message,
+              message: variant.message,
+              type: 'announcement',
+              referenceId: newAnnouncement._id,
+              priority: newAnnouncement.aiMetadata?.priority || 'medium',
+              timestamp: new Date().toISOString(),
+              read: false,
+            });
+          });
+        }
+
         // Send Push Notifications with quiet hours filtering
         const announcementPriority = newAnnouncement.aiMetadata?.priority || 'medium';
         const validRecipients = students.filter(u => {
           const hasToken = u.fcmToken && u.fcmToken.trim() !== "";
           if (!hasToken) return false;
-          // Check quiet hours: only send if canSendNow returns true
           return shouldSendNow(u, announcementPriority);
         });
 
         if (validRecipients.length > 0) {
-          // Group tokens by personalized variant to minimize API calls
           const tokenGroups = new Map();
           validRecipients.forEach(user => {
             const variant = personalizedMap.get(user._id.toString()) || { title, message: content };
@@ -202,11 +219,10 @@ export const createAnnouncement = async (req, res) => {
             tokenGroups.get(key).tokens.push(user.fcmToken);
           });
 
-          // Send each group as a multicast (max 500 tokens per batch)
           const pushPromises = [];
           for (const { title: pushTitle, body: pushBody, tokens } of tokenGroups.values()) {
             pushPromises.push(
-              sendMulticastNotification(tokens, pushTitle, pushBody).catch(err => {
+              sendMulticastNotification(tokens, { title: pushTitle, body: pushBody }).catch(err => {
                 console.error(`[Announcement] Push failed for ${tokens.length} tokens:`, err.message);
               })
             );

@@ -45,7 +45,7 @@ export const notificationWorker = new Worker(
           Object.entries(data).map(([k, v]) => [k, String(v)])
         );
 
-        await sendTopicNotification(topic, title, body, stringifiedData);
+        await sendTopicNotification(topic, { title, body, data: stringifiedData });
         console.log(`✅ FCM pushed to topic: ${topic}`);
       }
 

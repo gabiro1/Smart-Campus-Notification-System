@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { io as socketIO } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const SOCKET_URL = API_URL.replace('/api', '');
 
 let socket = null;
 

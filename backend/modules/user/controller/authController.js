@@ -1,4 +1,5 @@
 import User from '../model/User.js';
+import LoginAttempt from '../model/LoginAttempt.js';
 import Class from '../../class/model/Class.js';
 import Department from '../../department/model/Department.js';
 import AuditLog from '../../audit/models/AuditLog.js';
@@ -9,8 +10,8 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { generateURStudentID } from '../../../middleware/authMiddleware.js';
 
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_DURATION_MINUTES = 30;
+const ACCOUNT_LOCK_ATTEMPTS = 5;
+const ACCOUNT_LOCK_MINUTES = 15;
 
 const logAudit = async (adminId, action, targetId, targetType, description, metadata = {}, status = 'SUCCESS') => {
   try {
@@ -193,79 +194,112 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const ipAddress = req.ip || req.connection?.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
 
+    let identifier = email?.trim() || '';
     let query;
-    if (!email.includes('@')) {
-      const identifier = email.trim().toUpperCase();
+    if (!identifier.includes('@')) {
+      const idUpper = identifier.toUpperCase();
       query = {
         $or: [
-          { registrationNumber: identifier },
-          { studentID: identifier }
+          { registrationNumber: idUpper },
+          { studentID: idUpper }
         ]
       };
     } else {
-      query = { email: email.toLowerCase().trim() };
+      query = { email: identifier.toLowerCase() };
     }
 
+    // Step 1: Find user account
     const user = await User.findOne(query)
       .select('+password')
       .populate('department', 'name code')
       .populate('classId', 'name code level');
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      await LoginAttempt.create({
+        email: identifier.toLowerCase(),
+        ipAddress,
+        status: 'FAILED',
+        userAgent,
+        attemptedAt: new Date()
+      });
+      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
+    // Step 2: Check account-specific lock
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const minsLeft = Math.ceil((user.lockedUntil - new Date()) / 60000);
-      await logAudit(user._id, 'LOGIN', user._id, 'USER',
+      await logAudit(user._id, 'FAILED_LOGIN', user._id, 'USER',
         `Login blocked - account locked (${minsLeft}min remaining)`,
-        {}, 'FAILED'
+        { loginAttempts: user.loginAttempts, ipAddress }, 'FAILED'
       );
       return res.status(423).json({
         success: false,
-        message: `Account locked. Try again in ${minsLeft} minute(s).`,
-        lockedUntil: user.lockedUntil
+        message: `Your account has been temporarily locked due to multiple failed login attempts. Please try again in ${minsLeft} minute(s).`,
+        lockedUntil: user.lockedUntil,
+        lockType: 'account'
       });
     }
 
+    // Step 4: Validate password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
+      // Step 5: Handle failed attempt
       user.loginAttempts = (user.loginAttempts || 0) + 1;
 
-      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
-        user.lockedUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60 * 1000);
+      await LoginAttempt.create({
+        email: user.email,
+        ipAddress,
+        status: 'FAILED',
+        userAgent,
+        attemptedAt: new Date()
+      });
+
+      if (user.loginAttempts >= ACCOUNT_LOCK_ATTEMPTS) {
+        user.lockedUntil = new Date(Date.now() + ACCOUNT_LOCK_MINUTES * 60 * 1000);
         user.loginAttempts = 0;
         await user.save();
-        await logAudit(user._id, 'LOGIN', user._id, 'USER',
-          `Account locked after ${MAX_LOGIN_ATTEMPTS} failed attempts`,
-          { loginAttempts: MAX_LOGIN_ATTEMPTS }, 'FAILED'
+        await logAudit(user._id, 'ACCOUNT_LOCKED', user._id, 'USER',
+          `Account locked after ${ACCOUNT_LOCK_ATTEMPTS} failed attempts (${ACCOUNT_LOCK_MINUTES}min)`,
+          { loginAttempts: ACCOUNT_LOCK_ATTEMPTS, ipAddress, userAgent }, 'FAILED'
         );
         return res.status(423).json({
           success: false,
-          message: `Account locked due to ${MAX_LOGIN_ATTEMPTS} failed attempts. Try again in ${LOCK_DURATION_MINUTES} minutes.`
+          message: `Your account has been temporarily locked due to multiple failed login attempts. Please try again in ${ACCOUNT_LOCK_MINUTES} minutes.`,
+          lockedUntil: user.lockedUntil,
+          lockType: 'account'
         });
       }
 
       await user.save();
-      await logAudit(user._id, 'LOGIN', user._id, 'USER',
-        `Failed login attempt (${user.loginAttempts}/${MAX_LOGIN_ATTEMPTS})`,
-        { loginAttempts: user.loginAttempts }, 'FAILED'
+      await logAudit(user._id, 'FAILED_LOGIN', user._id, 'USER',
+        `Failed login attempt (${user.loginAttempts}/${ACCOUNT_LOCK_ATTEMPTS})`,
+        { loginAttempts: user.loginAttempts, ipAddress }, 'FAILED'
       );
 
-      const identifier = user.registrationNumber || user.email;
       return res.status(401).json({
         success: false,
-        message: `Invalid password for ${identifier}`,
-        attemptsRemaining: MAX_LOGIN_ATTEMPTS - user.loginAttempts
+        message: 'Invalid email or password.',
+        attemptsRemaining: ACCOUNT_LOCK_ATTEMPTS - user.loginAttempts
       });
     }
 
+    // Step 6: Successful login - reset counters
     user.loginAttempts = 0;
     user.lockedUntil = null;
     user.lastActiveAt = new Date();
     await user.save();
+
+    await LoginAttempt.create({
+      email: user.email,
+      ipAddress,
+      status: 'SUCCESS',
+      userAgent,
+      attemptedAt: new Date()
+    });
 
     let userData = {
       _id: user._id,
@@ -295,7 +329,8 @@ export const login = async (req, res) => {
     }
 
     await logAudit(user._id, 'LOGIN', user._id, 'USER',
-      `Successful login [${user.role}]`, {}
+      `Successful login [${user.role}]`,
+      { ipAddress, userAgent }
     );
 
     res.status(200).json({
@@ -1169,8 +1204,11 @@ export const unlockAccount = async (req, res) => {
     user.lockedUntil = null;
     await user.save();
 
-    await logAudit(req.user._id, 'UPDATE_USER', user._id, 'USER',
-      `Account unlocked by ${req.user.role}`
+    await logAudit(req.user._id, 'ACCOUNT_UNLOCKED', user._id, 'USER',
+      `Account unlocked by ${req.user.role || req.user.email}`,
+      { loginAttempts: user.loginAttempts,
+        ipAddress: req.ip || 'unknown',
+        userAgent: req.headers['user-agent'] || 'unknown' }
     );
 
     return res.status(200).json({

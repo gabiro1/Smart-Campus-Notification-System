@@ -50,7 +50,7 @@ export const roleConfig = {
         label: "Main",
         items: [
           { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard", end: true },
-          { icon: Bell, label: "Announcements", path: "/student/announcements" },
+          { icon: Mail, label: "Messages", path: "/student/messages", badge: true },
           { icon: Calendar, label: "Events", path: "/student/events" },
           { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
         ],
@@ -58,7 +58,7 @@ export const roleConfig = {
       {
         label: "Updates",
         items: [
-          { icon: MessageSquare, label: "Notifications", path: "/student/notifications" },
+          { icon: MessageSquare, label: "Notifications", path: "/student/notifications", badge: true },
           { icon: Clock, label: "Reminders", path: "/student/reminders" },
         ],
       },
@@ -87,7 +87,7 @@ export const roleConfig = {
         label: "Main",
         items: [
           { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard", end: true },
-          { icon: Bell, label: "Announcements", path: "/student/announcements" },
+          { icon: Mail, label: "Messages", path: "/student/messages", badge: true },
           { icon: Calendar, label: "Events", path: "/student/events" },
           { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
         ],
@@ -175,25 +175,21 @@ export const roleConfig = {
         label: "Main",
         items: [
           { icon: LayoutDashboard, label: "Dashboard", path: "/lecturer/console" },
-          { icon: PlusCircle, label: "Create", path: "/lecturer/create" },
           { icon: Users, label: "My Classes", path: "/lecturer/classes" },
-          { icon: Megaphone, label: "Announcements", path: "/lecturer/announcements" },
-          { icon: MessageSquare, label: "Q&A", path: "/lecturer/qa" },
         ],
       },
       {
         label: "Academic",
         items: [
           { icon: Clock, label: "Timetable", path: "/lecturer/timetable" },
-          { icon: BarChart3, label: "Analytics", path: "/lecturer/analytics" },
           { icon: Scale, label: "Governance", path: "/lecturer/governance" },
         ],
       },
       {
         label: "Communication",
         items: [
-          { icon: Mail, label: "Messages", path: "/lecturer/messages" },
-          { icon: Bell, label: "Notifications", path: "/lecturer/notifications" },
+          { icon: Mail, label: "Messages", path: "/lecturer/messages", badge: true },
+          { icon: Bell, label: "Notifications", path: "/lecturer/notifications", badge: true },
         ],
       },
       {

@@ -20,7 +20,7 @@ const sections = [
     label: "Main",
     items: [
       { path: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { path: "/student/announcements", label: "Announcements", icon: Bell },
+      { path: "/student/messages", label: "Messages", icon: Bell },
       { path: "/student/events", label: "Events", icon: Calendar },
       { path: "/student/bookmarks", label: "Bookmarks", icon: Bookmark },
     ],

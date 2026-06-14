@@ -54,7 +54,7 @@ const priorityStyles = {
 
 const statCardsConfig = [
   { label: "Upcoming Events", icon: Calendar, color: "text-blue-500", bg: "bg-blue-500/10", link: "/student/events", key: "events", detail: "Campus activities" },
-  { label: "Announcements", icon: Megaphone, color: "text-purple-500", bg: "bg-purple-500/10", link: "/student/announcements", key: "announcements", detail: "Latest updates" },
+  { label: "Messages", icon: Megaphone, color: "text-purple-500", bg: "bg-purple-500/10", link: "/student/messages", key: "announcements", detail: "Latest updates" },
   { label: "Bookmarks", icon: Bookmark, color: "text-amber-500", bg: "bg-amber-500/10", link: "/student/bookmarks", key: "savedCount", detail: "Saved events" },
   { label: "Active Now", icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10", link: "/student/events", key: "campusPulse", detail: "Campus engagement" },
 ];
@@ -62,7 +62,7 @@ const statCardsConfig = [
 const quickActions = [
   { label: "Browse Events", desc: "Discover campus activities", icon: Calendar, color: "text-blue-400", path: "/student/events" },
   { label: "My Bookmarks", desc: "Saved for later", icon: Bookmark, color: "text-amber-400", path: "/student/bookmarks" },
-  { label: "Announcements", desc: "Stay informed", icon: Megaphone, color: "text-purple-400", path: "/student/announcements" },
+  { label: "Messages", desc: "Stay informed", icon: Megaphone, color: "text-purple-400", path: "/student/messages" },
   { label: "Timetable", desc: "Class schedule", icon: Clock, color: "text-emerald-400", path: "/student/timetable" },
 ];
 
@@ -187,7 +187,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-6 pb-8 px-4 lg:px-0">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground tracking-tight">
@@ -262,7 +262,7 @@ export default function StudentDashboard() {
                     <p className="text-xs text-muted-foreground">Latest updates from departments</p>
                   </div>
                 </div>
-                <Link to="/student/announcements" className="text-xs font-medium text-blue-500 hover:text-blue-400 flex items-center gap-1">
+                <Link to="/student/messages" className="text-xs font-medium text-blue-500 hover:text-blue-400 flex items-center gap-1">
                   View all <ExternalLink size={11} />
                 </Link>
               </div>

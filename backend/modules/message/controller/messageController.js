@@ -214,6 +214,90 @@ export const getConversations = async (req, res) => {
   }
 };
 
+// @desc    Lecturer searches student by registration number
+// @route   GET /api/messages/search-student?regNo=XXX
+export const searchStudent = async (req, res) => {
+  try {
+    const { regNo } = req.query;
+    if (!regNo) {
+      return res.status(400).json({ message: "Registration number is required" });
+    }
+
+    const student = await User.findOne({
+      role: "student",
+      registrationNumber: { $regex: regNo.trim(), $options: "i" }
+    }).select("name email registrationNumber department level profilePicture");
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found with that registration number" });
+    }
+
+    res.status(200).json({ data: student });
+  } catch (error) {
+    console.error("Search Student Error:", error);
+    res.status(500).json({ message: "Failed to search student" });
+  }
+};
+
+// @desc    Student gets their course lecturers
+// @route   GET /api/messages/my-lecturers
+export const getMyLecturers = async (req, res) => {
+  try {
+    const user = req.user;
+    if (user.role !== "student") {
+      return res.status(403).json({ message: "Only students can access this endpoint" });
+    }
+
+    const classes = await Class.find({ students: user.id })
+      .populate("lecturers", "name email department profilePicture");
+
+    const Course = (await import("../../course/model/Course.js")).default;
+
+    const courses = await Course.find({ class: { $in: classes.map(c => c._id) } })
+      .populate("lecturer", "name email department profilePicture")
+      .select("name code lecturer");
+
+    const lecturerMap = new Map();
+
+    classes.forEach(cls => {
+      (cls.lecturers || []).forEach(lect => {
+        if (!lecturerMap.has(lect._id.toString())) {
+          lecturerMap.set(lect._id.toString(), { ...lect.toObject(), courses: [] });
+        }
+      });
+    });
+
+    courses.forEach(course => {
+      if (course.lecturer) {
+        const lectId = course.lecturer._id.toString();
+        if (!lecturerMap.has(lectId)) {
+          lecturerMap.set(lectId, { ...course.lecturer.toObject(), courses: [course.name] });
+        } else {
+          const existing = lecturerMap.get(lectId);
+          if (!existing.courses.includes(course.name)) {
+            existing.courses.push(course.name);
+          }
+        }
+      }
+    });
+
+    const lecturers = Array.from(lecturerMap.values()).map(lect => ({
+      _id: lect._id,
+      name: lect.name,
+      email: lect.email,
+      department: lect.department,
+      profilePicture: lect.profilePicture,
+      course: lect.courses?.[0] || "Course Lecturer",
+      courses: lect.courses || [],
+    }));
+
+    res.status(200).json({ data: lecturers });
+  } catch (error) {
+    console.error("My Lecturers Error:", error);
+    res.status(500).json({ message: "Failed to fetch your lecturers" });
+  }
+};
+
 // @desc    Get total unread messages for current user
 // @route   GET /api/messages/unread-count
 export const getUnreadCount = async (req, res) => {
