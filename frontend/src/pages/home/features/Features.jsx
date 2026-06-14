@@ -5,9 +5,7 @@ import {
   Cpu,
   Zap,
   ShieldCheck,
-  LayoutGrid,
   Smartphone,
-  BarChart3,
   ArrowRight,
   Sparkles,
   CheckCircle2,
@@ -49,12 +47,6 @@ const CORE_FEATURES = [
     title: "PWA Support",
     desc: "Install UniNotify on any device. Works seamlessly on low-bandwidth networks.",
     color: "cyan",
-  },
-  {
-    icon: BarChart3,
-    title: "Live Analytics",
-    desc: "Instant insights on message delivery, read status, and SMS fallback performance.",
-    color: "pink",
   },
 ];
 
