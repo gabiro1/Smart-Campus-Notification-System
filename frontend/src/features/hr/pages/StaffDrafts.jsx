@@ -286,7 +286,7 @@ function CreateDraftModal({ open, onClose, onSaved }) {
   return (
     <AnimatePresence>
       <ModalOverlay onClose={onClose}>
-        <ModalShell onClose={onClose} title="Create Staff Draft" icon={Plus}>
+        <ModalShell onClose={onClose} title="Add Staff Member" icon={Plus}>
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
             <Field label="Full Name" id="create-name">
               <input type="text" id="create-name" value={form.fullName} onChange={set("fullName")} required
@@ -327,7 +327,7 @@ function CreateDraftModal({ open, onClose, onSaved }) {
               >
                 {saving && <Loader2 size={14} className="animate-spin" />}
                 <Save size={14} />
-                Create Draft
+                Create & Activate
               </button>
             </div>
           </form>
@@ -714,7 +714,7 @@ export default function HrWorkflowDashboard({ defaultTab = "drafts" }) {
               <ActionBtn icon={Trash2} title="Delete" onClick={() => setDeleteTarget(r._id)} className="hover:text-red-400 text-red-500" />
             )}
             {WORKFLOW.canSubmit.includes(r.status) && (
-              <ActionBtn icon={loading ? Loader2 : Send} title="Submit for Approval"
+              <ActionBtn icon={loading ? Loader2 : Send} title="Create & Activate Account"
                 onClick={() => setSubmitConfirm(r)} disabled={loading}
                 className={loading ? "opacity-40" : "text-amber-500 hover:text-amber-400"}
               />
@@ -780,7 +780,7 @@ export default function HrWorkflowDashboard({ defaultTab = "drafts" }) {
       const title = activeTab === "drafts" ? "No drafts found" : "No assignments found";
       const desc = activeTab === "drafts"
         ? "Create your first staff draft to start the workflow"
-        : "Assignments will appear once drafts are submitted for approval";
+        : "Assignments will appear once drafts are activated";
       return (
         <GlassCard padding="p-0">
           <EmptyState icon={icon} title={title} description={desc}
@@ -842,7 +842,7 @@ export default function HrWorkflowDashboard({ defaultTab = "drafts" }) {
               className="px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20"
             >
               <Plus size={16} />
-              New Draft
+              Add Staff Member
             </motion.button>
           )}
         </div>
@@ -888,9 +888,9 @@ export default function HrWorkflowDashboard({ defaultTab = "drafts" }) {
 
       <ConfirmModal
         open={!!submitConfirm}
-        title="Submit for Approval"
-        message="This will change the draft status to PENDING and begin the approval process. Continue?"
-        confirmLabel="Submit"
+        title="Create & Activate Account"
+        message="This will immediately create the user account and activate the assigned role — no approval is required. A setup email will be sent to the staff member. Continue?"
+        confirmLabel="Activate"
         variant="warning"
         onConfirm={handleSubmitApproval}
         onCancel={() => setSubmitConfirm(null)}

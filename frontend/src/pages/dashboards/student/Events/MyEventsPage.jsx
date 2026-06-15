@@ -67,8 +67,14 @@ export default function MyEventsPage() {
       toast.success("Event application submitted for review!");
       fetchMyEvents();
       return eventId;
-    } catch {
-      toast.error("Failed to submit event application");
+    } catch (err) {
+      const serverErrors = err.response?.data;
+      if (serverErrors?.errors?.length) {
+        toast.error(serverErrors.errors.map(e => e.message).join(', '));
+      } else {
+        toast.error(serverErrors?.message || "Failed to submit event application");
+      }
+      throw err;
     }
   };
 
@@ -82,7 +88,13 @@ export default function MyEventsPage() {
       toast.success("Event updated successfully!");
       fetchMyEvents();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update event");
+      const serverErrors = err.response?.data;
+      if (serverErrors?.errors?.length) {
+        toast.error(serverErrors.errors.map(e => e.message).join(', '));
+      } else {
+        toast.error(serverErrors?.message || "Failed to update event");
+      }
+      throw err;
     }
   };
 

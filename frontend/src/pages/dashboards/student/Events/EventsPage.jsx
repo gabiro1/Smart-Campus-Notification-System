@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Calendar, Loader2, Plus, Sparkles,
+  Calendar, Loader2, Plus, Sparkles, Heart, X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import EventShowcaseCard from "@/components/cards/EventShowcaseCard";
 import eventService from "../../../../services/eventService";
+import { useAuth } from "../../../../context/AuthContext";
 
 const CATEGORIES = [
   "all", "academic", "cultural", "sports", "social",
@@ -40,10 +41,16 @@ function SkeletonCard() {
   );
 }
 
+const INTERESTS_DISMISSED_KEY = "events_interests_prompt_dismissed";
+
 export default function EventsPage() {
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("all");
+  const [showInterestsPrompt, setShowInterestsPrompt] = useState(
+    () => localStorage.getItem(INTERESTS_DISMISSED_KEY) !== "true"
+  );
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -90,6 +97,44 @@ export default function EventsPage() {
           <span className="hidden sm:inline">Apply for Event</span>
         </Link>
       </header>
+
+      {showInterestsPrompt && (!user?.interests || user.interests.length === 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-4 lg:px-6"
+        >
+          <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-sky-500/20 bg-sky-500/5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center shrink-0">
+                <Heart size={15} className="text-sky-400" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                <span className="text-foreground font-medium">Personalize your feed</span> — pick your interests
+                (e.g. cultural, sports, tech) and matching events will show up first.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                to="/student/settings"
+                className="px-3 py-1.5 bg-sky-500 hover:bg-sky-400 rounded-lg text-xs font-medium text-white transition-colors whitespace-nowrap"
+              >
+                Set Interests
+              </Link>
+              <button
+                onClick={() => {
+                  localStorage.setItem(INTERESTS_DISMISSED_KEY, "true");
+                  setShowInterestsPrompt(false);
+                }}
+                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Dismiss"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <div className="flex bg-black/40 p-1 rounded-xl border border-white/10 mx-4 lg:mx-6 overflow-x-auto scrollbar-hide">
         {CATEGORIES.map((cat) => (
@@ -166,6 +211,7 @@ export default function EventsPage() {
                       description={event.description}
                       date={formatEventDate(event.startDate)}
                       guests={guestsCount}
+                      badge={event.aiMatchScore > 0 ? "For You" : undefined}
                     />
                   </Link>
                 </motion.div>

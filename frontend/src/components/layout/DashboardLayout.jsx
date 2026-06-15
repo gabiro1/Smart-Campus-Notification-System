@@ -137,6 +137,11 @@ export default function DashboardLayout({ role = "student" }) {
     };
   }, [socket, fetchUnread]);
 
+  useEffect(() => {
+    window.addEventListener('notifications:updated', fetchUnread);
+    return () => window.removeEventListener('notifications:updated', fetchUnread);
+  }, [fetchUnread]);
+
   const config = getRoleConfig(role);
 
   // Find page title from config or lookup

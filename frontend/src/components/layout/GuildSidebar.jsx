@@ -16,10 +16,12 @@ import {
   ShieldCheck,
   CalendarCheck,
   PlusCircle,
+  GraduationCap,
 } from "lucide-react";
 import Logo from "../ui/Logo";
 
 const guildItems = [
+  { icon: GraduationCap, label: "Student Dashboard", path: "/student/dashboard" },
   { icon: LayoutDashboard, label: "Overview", path: "/guild/overview" },
   { icon: ShieldCheck, label: "Event Moderation", path: "/guild/events" },
   { icon: PlusCircle, label: "Publish Event", path: "/guild/events/publish" },

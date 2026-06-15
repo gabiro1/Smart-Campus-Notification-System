@@ -38,6 +38,7 @@ import {
   Gauge,
   GitBranch,
   Command,
+  Crown,
 } from "lucide-react";
 
 export const roleConfig = {
@@ -144,6 +145,7 @@ export const roleConfig = {
         items: [
           { icon: Users, label: "HR Accounts", path: "/admin/hr-accounts" },
           { icon: Vote, label: "Council Election", path: "/admin/council-election" },
+          { icon: Crown, label: "Guild Council", path: "/admin/guild-council" },
           { icon: AlertTriangle, label: "Emergency Override", path: "/admin/emergency" },
         ],
       },

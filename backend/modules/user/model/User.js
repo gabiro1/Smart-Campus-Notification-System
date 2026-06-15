@@ -81,6 +81,18 @@ const userSchema = new mongoose.Schema({
     index: true
   },
 
+  // ==========================================
+  // GUILD COUNCIL POSITION (e.g. "Guild President", "Secretary")
+  // Assigned directly by admin via registration number. Holding the
+  // "Guild President" position also elevates `role` to 'guild_president'.
+  // ==========================================
+  guildPosition: {
+    type: String,
+    default: null,
+    trim: true,
+    index: true
+  },
+
   loginAttempts: {
     type: Number,
     default: 0,

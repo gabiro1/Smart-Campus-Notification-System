@@ -93,7 +93,7 @@ export default function NotificationsPage() {
 
       const mapped = list.map((n) => {
         const mappedType = mapNotificationType(n.type);
-        const isUnread = n.status === "unread" || !n.read;
+        const isUnread = n.status ? n.status === "unread" : !n.read;
         const config = typeConfig[mappedType] || typeConfig.announcement;
         return {
           id: n._id,
@@ -204,11 +204,16 @@ export default function NotificationsPage() {
     }
   };
 
+  const notifyUnreadChanged = () => {
+    window.dispatchEvent(new Event("notifications:updated"));
+  };
+
   const handleMarkAllRead = async () => {
     try {
       await notificationService.markAllAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
       setUnreadCount(0);
+      notifyUnreadChanged();
       toast.success("All marked as read");
     } catch {
       toast.error("Failed to mark all as read");
@@ -220,6 +225,7 @@ export default function NotificationsPage() {
       await notificationService.markAsRead(id);
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, unread: false } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
+      notifyUnreadChanged();
     } catch {
       toast.error("Failed to mark as read");
     }
@@ -228,8 +234,14 @@ export default function NotificationsPage() {
   const handleDelete = async (id) => {
     try {
       await notificationService.deleteNotification(id);
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      setNotifications((prev) => {
+        const target = prev.find((n) => n.id === id);
+        if (target?.unread) {
+          setUnreadCount((c) => Math.max(0, c - 1));
+        }
+        return prev.filter((n) => n.id !== id);
+      });
+      notifyUnreadChanged();
       toast.success("Notification deleted");
     } catch {
       toast.error("Failed to delete");

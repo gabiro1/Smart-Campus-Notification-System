@@ -41,6 +41,38 @@ const VISIBILITY_OPTIONS = [
   { value: 'invite_only', label: 'Invite Only (private)' },
 ];
 
+const FIELD_LABELS = {
+  title: 'Event Title',
+  description: 'Description',
+  organizerName: 'Organizer Name',
+  organizerRole: 'Organizer Role',
+  venue: 'Venue',
+  startDate: 'Start Date',
+  startTime: 'Start Time',
+  targetAudience: 'Target Audience',
+  targetColleges: 'College',
+  targetSchools: 'School',
+  targetDepartments: 'Department',
+  targetAcademicYears: 'Academic Year',
+  targetClubs: 'Clubs',
+};
+
+const FIELD_STEP = {
+  title: 1,
+  description: 1,
+  organizerName: 1,
+  organizerRole: 1,
+  venue: 2,
+  startDate: 2,
+  startTime: 2,
+  targetAudience: 3,
+  targetColleges: 3,
+  targetSchools: 3,
+  targetDepartments: 3,
+  targetAcademicYears: 3,
+  targetClubs: 3,
+};
+
 const AUDIENCE_DEPS = {
   specific_college: ['college'],
   specific_school: ['college', 'school'],
@@ -312,6 +344,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
   const [attachments, setAttachments] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
   const [step, setStep] = useState(1);
   const fileInputRef = useRef(null);
   const attachmentInputRef = useRef(null);
@@ -470,7 +503,19 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
     if (needsYear && form.targetAcademicYears?.length === 0) errs.targetAcademicYears = 'Select at least one year';
     if (needsClubs && form.targetClubs?.length === 0) errs.targetClubs = 'Select at least one club';
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+
+    const errFields = Object.keys(errs);
+    if (errFields.length > 0) {
+      const earliestStep = Math.min(...errFields.map(f => FIELD_STEP[f] || 3));
+      setStep(earliestStep);
+      setSubmitError(
+        `Please fix the following before submitting: ${errFields.map(f => FIELD_LABELS[f] || f).join(', ')}`
+      );
+    } else {
+      setSubmitError(null);
+    }
+
+    return errFields.length === 0;
   };
 
   const handlePoster = (e) => {
@@ -492,6 +537,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!validate()) return;
     setSubmitting(true);
     try {
@@ -521,11 +567,29 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
     } catch (err) {
       const serverErrors = err.response?.data;
       console.error('Submit error:', JSON.stringify(serverErrors || err.message, null, 2));
-      if (serverErrors?.errors) {
-        const msgs = serverErrors.errors.map(e => `${e.field}: ${e.message}`).join('\n');
-        alert('Validation failed:\n' + msgs);
+
+      if (serverErrors?.errors?.length) {
+        const fieldErrs = {};
+        serverErrors.errors.forEach(e => {
+          if (e.field) fieldErrs[e.field] = e.message;
+        });
+        setErrors(prev => ({ ...prev, ...fieldErrs }));
+
+        const errFields = Object.keys(fieldErrs);
+        if (errFields.length > 0) {
+          const earliestStep = Math.min(...errFields.map(f => FIELD_STEP[f] || 3));
+          setStep(earliestStep);
+        }
+
+        setSubmitError(
+          serverErrors.errors.map(e => `${FIELD_LABELS[e.field] || e.field || ''}: ${e.message}`).join(' | ')
+        );
       } else if (serverErrors?.message) {
-        alert('Error: ' + serverErrors.message);
+        setSubmitError(serverErrors.message);
+      } else if (err.message === 'Network Error' || !err.response) {
+        setSubmitError('Network error: could not reach the server. Please check your connection and try again.');
+      } else {
+        setSubmitError('Something went wrong while submitting the event. Please try again.');
       }
     } finally {
       setSubmitting(false);
@@ -535,7 +599,9 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
   const renderField = (label, field, icon, type = 'text', options = null) => (
     <div className="space-y-1.5">
       <label className="block text-xs font-medium text-muted-foreground tracking-wide uppercase">
-        <span className="inline-flex items-center gap-1.5">{icon}{label}</span>
+        <span className="inline-flex items-center gap-1.5">
+          {icon}{label}{FIELD_LABELS[field] && <span className="text-red-400">*</span>}
+        </span>
       </label>
       {options ? (
         <select
@@ -656,6 +722,22 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
 
         <form onSubmit={handleSubmit}>
           <div className="p-6">
+            <AnimatePresence>
+              {submitError && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mb-4 flex items-start gap-2.5 px-3.5 py-3 rounded-lg border border-red-500/30 bg-red-500/10 text-sm text-red-400">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                    <span>{submitError}</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div
@@ -715,7 +797,7 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
                 >
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-                      <span className="inline-flex items-center gap-1.5"><Target size={13} />Target Audience</span>
+                      <span className="inline-flex items-center gap-1.5"><Target size={13} />Target Audience<span className="text-red-400">*</span></span>
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                       {AUDIENCE_OPTIONS.map(opt => {
@@ -1015,14 +1097,19 @@ export default function EventForm({ initialData = null, onSubmit, onCancel, isDi
                   type="button"
                   onClick={() => {
                     if (step === 1 && !canProceedToStep3) {
-                      setErrors({
+                      const stepErrors = {
                         ...(!form.title?.trim() ? { title: 'Title is required' } : {}),
                         ...(!form.description?.trim() ? { description: 'Description is required' } : {}),
                         ...(!form.organizerName?.trim() ? { organizerName: 'Organizer name is required' } : {}),
                         ...(!form.organizerRole?.trim() ? { organizerRole: 'Organizer role is required' } : {}),
-                      });
+                      };
+                      setErrors(prev => ({ ...prev, ...stepErrors }));
+                      setSubmitError(
+                        `Please fill in the required fields: ${Object.keys(stepErrors).map(f => FIELD_LABELS[f] || f).join(', ')}`
+                      );
                       return;
                     }
+                    setSubmitError(null);
                     setStep(s => s + 1);
                   }}
                   className="inline-flex items-center gap-1.5 px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-all shadow-sm"

@@ -13,6 +13,7 @@ import userRoutes from './modules/user/routes/userRoutes.js';
 import eventRoutes from './modules/event/routes/eventRoutes.js';
 import notificationRoutes from './modules/notification/routes/notificationRoutes.js';
 import reminderRoutes from './modules/reminder/routes/reminderRoutes.js';
+import guildPositionRoutes from './modules/guild/routes/guildPositionRoutes.js';
 import adminRoutes from './modules/admin/routes/adminRoutes.js';
 import settingsRoutes from './modules/settings/routes/settingsRoutes.js';
 import backupRoutes from './modules/backup/routes/backupRoutes.js';
@@ -194,6 +195,7 @@ app.use('/api/hr', hrRoutes); // HR module
 app.use('/api/registrar', registrarRoutes); // Registrar module
 app.use('/api/roles', roleRoutes); // Role management
 app.use('/api/leadership', leadershipRoutes); // Student Leadership Governance
+app.use('/api/guild-positions', guildPositionRoutes); // Guild Council position assignment
 app.use('/api/qa', qaRoutes); // Standalone Q&A module
 
 // Communication Module Routes

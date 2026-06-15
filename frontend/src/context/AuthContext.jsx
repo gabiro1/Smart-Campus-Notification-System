@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
     hasCompletedOnboarding: storedUser.hasCompletedOnboarding,
     mustChangePassword: storedUser.mustChangePassword,
     registrationNumber: storedUser.registrationNumber,
+    guildPosition: storedUser.guildPosition ?? decoded.guildPosition ?? null,
   }), [])
 
   useEffect(() => {
@@ -33,7 +34,7 @@ export const AuthProvider = ({ children }) => {
         apiClient.get('/users/profile').then(res => {
           if (res.data?.success && res.data?.data) {
             const profile = res.data.data
-            if (profile.role !== decoded.role) {
+            if (profile.role !== decoded.role || profile.guildPosition !== storedUser.guildPosition) {
               const freshUser = buildUser(decoded, { ...storedUser, ...profile })
               setUser(freshUser)
               localStorage.setItem('user', JSON.stringify({ ...storedUser, ...profile }))

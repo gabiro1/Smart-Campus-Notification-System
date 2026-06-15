@@ -25,6 +25,7 @@ const EventForm = lazy(() => import("../features/events/pages/EventForm"));
 const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 const RoleAssignmentsApproval = lazy(() => import("../features/admin/pages/RoleAssignmentsApproval"));
 const SubmitCouncilElection = lazy(() => import("../features/admin/pages/SubmitCouncilElection"));
+const GuildCouncilManagement = lazy(() => import("../features/admin/pages/GuildCouncilManagement"));
 
 export const adminRoutes = [
   <Route key="index" index element={<Navigate to="overview" replace />} />,
@@ -227,6 +228,15 @@ export const adminRoutes = [
     element={
       <ProtectedRoute allowedRoles={["admin"]}>
         <SubmitCouncilElection />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="guild-council"
+    path="guild-council"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <GuildCouncilManagement />
       </ProtectedRoute>
     }
   />,

@@ -1,4 +1,4 @@
-import { CalendarDays, Heart, Users, Share2 } from "lucide-react";
+import { CalendarDays, Heart, Users, Share2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function EventShowcaseCard({
@@ -12,6 +12,7 @@ export default function EventShowcaseCard({
   onShare,
   onReadMore,
   className,
+  badge,
 }) {
   return (
     <article
@@ -20,7 +21,13 @@ export default function EventShowcaseCard({
         className,
       )}
     >
-      <div className="w-full md:w-[35%] h-52 md:h-auto shrink-0 bg-slate-800">
+      <div className="relative w-full md:w-[35%] h-52 md:h-auto shrink-0 bg-slate-800">
+        {badge && (
+          <span className="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-sky-500/90 text-white shadow-lg">
+            <Sparkles size={11} />
+            {badge}
+          </span>
+        )}
         {image ? (
           <img
             src={image}

@@ -91,6 +91,7 @@ export default function CreatorDashboard() {
       return eventId;
     } catch (err) {
       console.error('Create draft failed:', err.response?.data || err.message);
+      throw err;
     }
   };
 
@@ -106,7 +107,8 @@ export default function CreatorDashboard() {
       fetchEvents();
       return eventId;
     } catch (err) {
-      console.error('Update draft failed:', err);
+      console.error('Update draft failed:', err.response?.data || err.message);
+      throw err;
     }
   };
 
@@ -115,7 +117,7 @@ export default function CreatorDashboard() {
       await eventService.submitForReview(id);
       fetchEvents();
     } catch (err) {
-      console.error('Submit failed:', err);
+      console.error('Submit failed:', err.response?.data || err.message);
     }
   };
 
@@ -126,7 +128,8 @@ export default function CreatorDashboard() {
       fetchEvents();
       return res.event?._id || res._id;
     } catch (err) {
-      console.error('Publish failed:', err);
+      console.error('Publish failed:', err.response?.data || err.message);
+      throw err;
     }
   };
 

@@ -14,11 +14,13 @@ import {
   RefreshCw,
   Loader2,
   AlertTriangle,
+  Crown,
 } from "lucide-react";
 import { useAuth } from "../../../../../context/AuthContext";
 import dashboardService from "../../../../../services/dashboardService";
 import announcementService from "../../../../../services/announcementService";
 import eventService from "../../../../../services/eventService";
+import notificationService from "../../../../../services/notificationService";
 
 function Skeleton({ className = "" }) {
   return <div className={`animate-pulse rounded-lg bg-accent/50 ${className}`} />;
@@ -84,11 +86,12 @@ export default function StudentDashboard() {
     setError(null);
 
     try {
-      const [summaryRes, statsRes, announcementsRes, eventsList] = await Promise.allSettled([
+      const [summaryRes, statsRes, announcementsRes, eventsList, notificationsRes] = await Promise.allSettled([
         dashboardService.getStudentSummary(),
         dashboardService.getStudentDashboardStats(),
         announcementService.getAllAnnouncements(),
         eventService.getFeed(1, 5),
+        notificationService.getNotifications({ limit: 5 }),
       ]);
 
       const newStats = {};
@@ -122,16 +125,46 @@ export default function StudentDashboard() {
         }
       }
 
+      const feedItems = [];
+
       if (announcementsRes.status === "fulfilled" && Array.isArray(announcementsRes.value)) {
-        setAnnouncements(
-          announcementsRes.value.slice(0, 3).map((a) => ({
+        feedItems.push(
+          ...announcementsRes.value.map((a) => ({
             _id: a._id,
             title: a.title,
             dept: a.lecturer?.name || a.department || "Academic Office",
             time: formatRelativeTime(a.createdAt),
             priority: a.priority?.toLowerCase?.() || "medium",
+            createdAt: a.createdAt,
           }))
         );
+      }
+
+      if (notificationsRes.status === "fulfilled" && Array.isArray(notificationsRes.value?.notifications)) {
+        feedItems.push(
+          ...notificationsRes.value.notifications.map((n) => ({
+            _id: n._id,
+            title: n.title,
+            dept: n.type === "announcement" ? "Announcement" : "Notification",
+            time: formatRelativeTime(n.createdAt),
+            priority: n.priority?.toLowerCase?.() || "medium",
+            createdAt: n.createdAt,
+          }))
+        );
+      }
+
+      if (feedItems.length > 0) {
+        const seen = new Set();
+        const merged = feedItems
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .filter((item) => {
+            const key = `${item.title}|${item.createdAt}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .slice(0, 3);
+        setAnnouncements(merged);
       }
 
       if (Array.isArray(eventsList.value)) {
@@ -190,9 +223,17 @@ export default function StudentDashboard() {
     <div className="space-y-6 pb-8 px-4 lg:px-0">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">
-            Welcome back, {firstName}
-          </h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">
+              Welcome back, {firstName}
+            </h1>
+            {user?.guildPosition && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <Crown size={12} />
+                {user.guildPosition}
+              </span>
+            )}
+          </div>
           <p className="text-muted-foreground text-sm mt-1">
             Student dashboard · Stay up to date with campus life
           </p>
@@ -206,6 +247,15 @@ export default function StudentDashboard() {
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
             {refreshing ? "Refreshing..." : "Refresh"}
           </button>
+          {user?.role === "guild_president" && (
+            <Link
+              to="/guild/overview"
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-xl text-sm font-semibold hover:bg-amber-500/20 transition-colors"
+            >
+              <Crown size={15} />
+              Guild Council
+            </Link>
+          )}
           <Link
             to="/student/events/create"
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"

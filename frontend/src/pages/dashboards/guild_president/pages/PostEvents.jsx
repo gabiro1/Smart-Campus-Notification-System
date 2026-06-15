@@ -68,7 +68,13 @@ export default function GuildPostEvents() {
       toast.success("Event published successfully!");
       fetchEvents();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to publish event");
+      const serverErrors = err.response?.data;
+      if (serverErrors?.errors?.length) {
+        toast.error(serverErrors.errors.map(e => e.message).join(', '));
+      } else {
+        toast.error(serverErrors?.message || "Failed to publish event");
+      }
+      throw err;
     }
   };
 
@@ -80,7 +86,13 @@ export default function GuildPostEvents() {
       toast.success("Event updated successfully!");
       fetchEvents();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update event");
+      const serverErrors = err.response?.data;
+      if (serverErrors?.errors?.length) {
+        toast.error(serverErrors.errors.map(e => e.message).join(', '));
+      } else {
+        toast.error(serverErrors?.message || "Failed to update event");
+      }
+      throw err;
     }
   };
 
