@@ -201,7 +201,7 @@ export default function LecturerClasses() {
                       <p className="text-sm font-medium text-foreground truncate">{s.name}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {s.email && <span className="flex items-center gap-1"><Mail size={10} />{s.email}</span>}
-                        {s.studentID && <span>• {s.studentID}</span>}
+                        {s.registrationNumber && <span>• {s.registrationNumber}</span>}
                       </div>
                     </div>
                   </div>

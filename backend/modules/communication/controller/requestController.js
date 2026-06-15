@@ -38,7 +38,7 @@ export const submitRequest = async (req, res) => {
       submittedBy: req.user._id,
       submitterInfo: {
         name: req.user.name,
-        studentId: req.user.studentID,
+        registrationNumber: req.user.registrationNumber,
         email: req.user.email,
         department: req.user.department?.toString(),
         level: req.user.level
@@ -77,7 +77,7 @@ export const submitRequest = async (req, res) => {
     });
 
     const populated = await StructuredRequest.findById(request._id)
-      .populate("submittedBy", "name role studentID")
+      .populate("submittedBy", "name role registrationNumber")
       .populate("targetOffice", "name code");
 
     res.status(201).json(populated);
@@ -115,7 +115,7 @@ export const getMyRequests = async (req, res) => {
 export const getRequest = async (req, res) => {
   try {
     const request = await StructuredRequest.findById(req.params.id)
-      .populate("submittedBy", "name role studentID email")
+      .populate("submittedBy", "name role registrationNumber email")
       .populate("targetOffice", "name code")
       .populate("approvedBy", "name role");
     if (!request) return res.status(404).json({ message: "Request not found" });

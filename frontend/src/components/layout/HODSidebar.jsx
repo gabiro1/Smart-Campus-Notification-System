@@ -119,7 +119,7 @@ export default function HODSidebar({ collapsed, onToggleCollapse, ...props }) {
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <Logo />
+          <Logo to="/" />
           {!collapsed && (
             <div>
               <h2 className="text-sm font-bold text-foreground tracking-wide">{deptName}</h2>

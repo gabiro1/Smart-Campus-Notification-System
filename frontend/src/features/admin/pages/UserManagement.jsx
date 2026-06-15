@@ -180,7 +180,6 @@ export default function UserManagement() {
         school: selectedUser.school || "",
         department: selectedUser.department || "",
         registrationNumber: selectedUser.registrationNumber || "",
-        studentID: selectedUser.studentID || "",
         level: selectedUser.level || "",
         status: selectedUser.status || "ACTIVE",
       });
@@ -585,15 +584,6 @@ export default function UserManagement() {
                   <p className="font-medium text-foreground">{selectedUser.registrationNumber}</p>
                 </div>
                 )}
-                {selectedUser.studentID && (
-                <div className="bg-accent/50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <BadgeCheck size={14} />
-                    <span className="text-xs uppercase">Student ID</span>
-                  </div>
-                  <p className="font-medium text-foreground">{selectedUser.studentID}</p>
-                </div>
-                )}
                 {selectedUser.level && (
                 <div className="bg-accent/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -713,17 +703,6 @@ export default function UserManagement() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground uppercase">Student ID</label>
-                    <input
-                      type="text"
-                      value={editData.studentID || ""}
-                      onChange={(e) => setEditData({ ...editData, studentID: e.target.value })}
-                      className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
                     <label className="text-xs text-muted-foreground uppercase">Level</label>
                     <select
                       value={editData.level || ""}
@@ -738,6 +717,8 @@ export default function UserManagement() {
                       <option value="Year 5">Year 5</option>
                     </select>
                   </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-muted-foreground uppercase">Status</label>
                     <select

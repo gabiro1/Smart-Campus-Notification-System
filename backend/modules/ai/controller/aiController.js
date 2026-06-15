@@ -80,6 +80,230 @@ ${rawText}`;
 };
 
 /**
+ * AI Announcement Summarizer
+ * Accepts long announcement text and returns a concise 1-2 sentence summary.
+ */
+export const summarizeAnnouncement = async (req, res) => {
+  try {
+    const { title, content } = req.body;
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide announcement content to summarize.',
+      });
+    }
+
+    const systemPrompt = `You are an AI assistant for a university campus system.
+Your task is to summarize announcements into 1-2 concise sentences.
+
+RULES:
+- Output ONLY the summary text. No explanations, no markdown, no JSON.
+- Capture the key information: what changed, when, where, action required.
+- Be extremely concise — 1-2 sentences maximum.
+- Use a neutral, factual tone.
+- If the announcement is already short (under 50 words), return it as-is.
+- Never add information not present in the original.`;
+
+    const userMessage = `Summarize this announcement:\n\nTitle: ${title || 'N/A'}\n\nContent:\n${content}`;
+
+    const timeoutMs = 10000;
+
+    try {
+      const result = await chat({
+        systemPrompt,
+        userMessage,
+        tier: 'FAST',
+        maxTokens: 200,
+        temperature: 0.3,
+        timeoutMs,
+      });
+
+      const cleaned = result.replace(/^```+|```+$/g, '').trim();
+
+      return res.status(200).json({
+        success: true,
+        summary: cleaned,
+        originalLength: content.length,
+        summaryLength: cleaned.length,
+      });
+    } catch (apiError) {
+      console.error('[AI Summarize] API error:', apiError.message);
+
+      if (apiError.message.includes('timeout') || apiError.message.includes('AbortError')) {
+        return res.status(504).json({
+          success: false,
+          message: 'AI service timeout. Please try again.',
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'AI service unavailable. Please try again later.',
+      });
+    }
+  } catch (error) {
+    console.error('[AI Summarize] Unexpected error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to summarize announcement.',
+    });
+  }
+};
+
+/**
+ * AI Announcement Improver
+ * Fixes grammar, spelling, and tone while preserving the original message.
+ */
+export const improveText = async (req, res) => {
+  try {
+    const { text } = req.body;
+
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide text to improve.',
+      });
+    }
+
+    const systemPrompt = `You are an expert academic writing assistant for a university.
+Your task is to improve the grammar, spelling, and clarity of the user's text while preserving their original message, tone, and intent.
+
+RULES:
+- Output ONLY the improved text. No explanations, no markdown, no JSON.
+- Fix all grammar, spelling, and punctuation errors.
+- Improve clarity and flow without changing the core message.
+- Preserve the author's voice and intent — do not rewrite into something different.
+- Keep approximately the same length as the original.
+- Do NOT expand short notes into a full announcement (that's a different tool).
+- If the text is already well-written, make minimal changes.
+- Never add information not present in the original.`;
+
+    const userMessage = `Improve the grammar and clarity of this text:\n\n${text}`;
+
+    const timeoutMs = 10000;
+
+    try {
+      const result = await chat({
+        systemPrompt,
+        userMessage,
+        tier: 'FAST',
+        maxTokens: 600,
+        temperature: 0.2,
+        timeoutMs,
+      });
+
+      const cleaned = result.replace(/^```+|```+$/g, '').trim();
+
+      return res.status(200).json({
+        success: true,
+        improved: cleaned,
+        originalLength: text.length,
+        improvedLength: cleaned.length,
+      });
+    } catch (apiError) {
+      console.error('[AI Improve] API error:', apiError.message);
+
+      if (apiError.message.includes('timeout') || apiError.message.includes('AbortError')) {
+        return res.status(504).json({
+          success: false,
+          message: 'AI service timeout. Please try again.',
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'AI service unavailable. Please try again later.',
+      });
+    }
+  } catch (error) {
+    console.error('[AI Improve] Unexpected error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to improve text.',
+    });
+  }
+};
+
+/**
+ * AI Priority Detector
+ * Analyzes announcement text and detects priority level.
+ */
+export const detectPriority = async (req, res) => {
+  try {
+    const { title, content } = req.body;
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide announcement content to analyze.',
+      });
+    }
+
+    const systemPrompt = `You are a priority classifier for a university campus notification system.
+Analyze the announcement and respond ONLY with valid JSON. No explanation, no markdown.
+
+JSON format:
+{
+  "priority": "critical|high|medium|low",
+  "reasoning": "one sentence why this priority was assigned",
+  "indicators": ["list of keywords or phrases that indicate this priority"]
+}
+
+CRITERIA:
+- critical: Life safety, campus closure, security threat, system outage
+- high: Exam changes, deadline changes, urgent meetings, venue changes with short notice
+- medium: Regular academic updates, assignment reminders, event announcements, schedule changes with adequate notice
+- low: General information, newsletters, non-urgent notices, social events`;
+
+    const userMessage = `Title: "${title || 'N/A'}"\nContent: "${content}"`;
+
+    const timeoutMs = 8000;
+
+    try {
+      const result = await chat({
+        systemPrompt,
+        userMessage,
+        tier: 'FAST',
+        maxTokens: 200,
+        temperature: 0.1,
+        timeoutMs,
+      });
+
+      const cleaned = result.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+
+      return res.status(200).json({
+        success: true,
+        priority: parsed.priority || 'medium',
+        reasoning: parsed.reasoning || '',
+        indicators: parsed.indicators || [],
+      });
+    } catch (apiError) {
+      console.error('[AI Priority] API error:', apiError.message);
+
+      if (apiError.message.includes('timeout') || apiError.message.includes('AbortError')) {
+        return res.status(504).json({
+          success: false,
+          message: 'AI service timeout. Please try again.',
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'AI service unavailable. Please try again later.',
+      });
+    }
+  } catch (error) {
+    console.error('[AI Priority] Unexpected error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to detect priority.',
+    });
+  }
+};
+
+/**
  * AI Text Paraphraser & Polisher
  * Accepts text and returns a polished, professional version.
  */

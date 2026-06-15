@@ -13,17 +13,6 @@ const FILTERS = [
   { key: 'unread', label: 'Unread' },
 ];
 
-function getTypeIcon(type) {
-  switch (type) {
-    case 'course_discussion': return '📚';
-    case 'office_ticket': return '🎫';
-    case 'structured_request': return '📋';
-    case 'escalation': return '⚡';
-    case 'announcement_reply': return '📢';
-    default: return '💬';
-  }
-}
-
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
@@ -86,40 +75,40 @@ export default function InboxView() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-border bg-card">
+      <div className="p-4 border-b border-white/5 bg-white/[0.02] backdrop-blur-xl">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Inbox size={20} className="text-primary" />
-            <h1 className="text-lg font-semibold text-foreground">Inbox</h1>
+            <Inbox size={20} className="text-blue-400" />
+            <h1 className="text-lg font-semibold text-white">Inbox</h1>
             {pagination && (
-              <span className="text-xs text-muted-foreground">{pagination.total} conversations</span>
+              <span className="text-xs text-neutral-500">{pagination.total} conversations</span>
             )}
           </div>
-          <button onClick={fetchConversations} className="p-2 rounded-lg hover:bg-accent text-muted-foreground">
+          <button onClick={fetchConversations} className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white">
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
           <input
             type="text"
             placeholder="Search conversations..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full pl-9 pr-4 py-2 bg-muted border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full pl-9 pr-4 py-2 bg-white/[0.02] border border-white/10 rounded-lg text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 backdrop-blur-xl"
           />
         </div>
       </div>
 
-      <div className="flex gap-1 px-4 py-2 bg-muted/30 border-b border-border overflow-x-auto">
+      <div className="flex gap-1 px-4 py-2 bg-white/[0.01] border-b border-white/5 overflow-x-auto">
         {FILTERS.map((f) => (
           <button
             key={f.key}
             onClick={() => { setFilter(f.key); setPage(1); }}
             className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
               filter === f.key
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card text-muted-foreground hover:bg-accent hover:text-foreground'
+                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                : 'bg-white/[0.02] text-neutral-500 hover:bg-white/[0.04] hover:text-white border border-white/5'
             }`}
           >
             {f.label}
@@ -130,10 +119,10 @@ export default function InboxView() {
       <div className="flex-1 overflow-y-auto">
         {loading && conversations.length === 0 ? (
           <div className="flex items-center justify-center h-32">
-            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="animate-spin w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full" />
           </div>
         ) : conversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-48 text-neutral-500">
             <Inbox size={40} className="mb-2 opacity-40" />
             <p className="text-sm">No conversations found</p>
           </div>
@@ -145,42 +134,41 @@ export default function InboxView() {
               <div
                 key={conv._id}
                 onClick={() => handleSelect(conv)}
-                className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-border transition-colors hover:bg-accent/50 ${
-                  unread > 0 ? 'bg-primary/5' : ''
+                className={`flex items-start gap-3 px-4 py-3 cursor-pointer border-b border-white/5 transition-colors hover:bg-white/[0.02] ${
+                  unread > 0 ? 'bg-blue-500/[0.03]' : ''
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 ${
-                  unread > 0 ? 'bg-primary/20' : 'bg-muted'
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 border border-white/10 ${
+                  unread > 0 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/[0.02] text-neutral-400'
                 }`}>
                   {otherParticipant?.name?.charAt(0) || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`text-sm truncate ${unread > 0 ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                    <span className={`text-sm truncate ${unread > 0 ? 'font-semibold text-white' : 'text-white'}`}>
                       {otherParticipant?.name || 'Unknown'}
                     </span>
-                    <span className="text-xs text-muted-foreground shrink-0">
+                    <span className="text-xs text-neutral-500 shrink-0">
                       {timeAgo(conv.lastMessageAt || conv.updatedAt)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs">{getTypeIcon(conv.threadType)}</span>
-                    <span className="text-xs text-muted-foreground capitalize">{conv.context?.name || conv.threadType?.replace('_', ' ')}</span>
+                    <span className="text-xs text-neutral-500 capitalize">{conv.context?.name || conv.threadType?.replace('_', ' ')}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                  <p className="text-xs text-neutral-500 truncate mt-0.5">
                     {conv.lastMessage?.content || 'No messages yet'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {unread > 0 && (
-                    <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground min-w-[20px] text-center">
+                    <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-blue-500 text-white min-w-[20px] text-center">
                       {unread > 9 ? '9+' : unread}
                     </span>
                   )}
                   {conv.urgency === 'high' || conv.urgency === 'critical' ? (
-                    <AlertCircle size={14} className="text-red-500" />
+                    <AlertCircle size={14} className="text-red-400" />
                   ) : null}
-                  <ChevronRight size={14} className="text-muted-foreground" />
+                  <ChevronRight size={14} className="text-neutral-500" />
                 </div>
               </div>
             );
@@ -189,19 +177,19 @@ export default function InboxView() {
       </div>
 
       {pagination && pagination.pages > 1 && (
-        <div className="flex items-center justify-between p-3 border-t border-border bg-card">
+        <div className="flex items-center justify-between p-3 border-t border-white/5 bg-white/[0.02] backdrop-blur-xl">
           <button
             disabled={page <= 1}
             onClick={() => setPage(p => p - 1)}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent text-foreground disabled:opacity-40 hover:bg-accent/80"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.02] border border-white/10 text-white disabled:opacity-40 hover:bg-white/[0.04]"
           >
             Previous
           </button>
-          <span className="text-xs text-muted-foreground">{page} / {pagination.pages}</span>
+          <span className="text-xs text-neutral-500">{page} / {pagination.pages}</span>
           <button
             disabled={page >= pagination.pages}
             onClick={() => setPage(p => p + 1)}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent text-foreground disabled:opacity-40 hover:bg-accent/80"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.02] border border-white/10 text-white disabled:opacity-40 hover:bg-white/[0.04]"
           >
             Next
           </button>

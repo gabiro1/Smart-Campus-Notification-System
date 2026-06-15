@@ -28,7 +28,7 @@ export default function Sidebar({
       <div className={`h-14 flex items-center ${navCollapsed ? 'justify-center px-2' : 'px-4'} border-b border-border shrink-0`}>
         {brand || (
           <div className="flex items-center gap-2.5">
-            <Logo />
+            <Logo to="/" />
             {!navCollapsed && (
               <div>
                 <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify AI</h2>

@@ -64,7 +64,7 @@ export default function DeanSidebar(props) {
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <Logo />
+          <Logo to="/" />
           <div>
             <h2 className="text-sm font-bold text-foreground tracking-wide">UniCore OS</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Dean Portal</p>

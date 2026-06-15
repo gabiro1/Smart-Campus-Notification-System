@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { GlassCard, WidgetErrorBoundary } from "@/components/shared";
-import { Search, Megaphone, Loader2, RefreshCw, AlertTriangle } from "lucide-react";
+import { Search, Megaphone, Loader2, RefreshCw, AlertTriangle, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import announcementService from "../../../../../services/announcementService";
+import toast from "react-hot-toast";
 
 const priorityColors = {
   high: "bg-red-500/10 text-red-400 border-red-500/20",
@@ -29,6 +30,9 @@ export default function AnnouncementsPage() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [summarizingId, setSummarizingId] = useState(null);
+  const [summaries, setSummaries] = useState({});
+  const [expandedSummary, setExpandedSummary] = useState(null);
 
   const fetchAnnouncements = async () => {
     setLoading(true);
@@ -41,6 +45,27 @@ export default function AnnouncementsPage() {
       setAnnouncements([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSummarize = async (id, title, content) => {
+    if (summaries[id]) {
+      setExpandedSummary(expandedSummary === id ? null : id);
+      return;
+    }
+    setSummarizingId(id);
+    try {
+      const res = await announcementService.summarizeAnnouncement(title, content);
+      if (res?.success && res?.summary) {
+        setSummaries((prev) => ({ ...prev, [id]: res.summary }));
+        setExpandedSummary(id);
+      } else {
+        toast.error("Failed to generate summary");
+      }
+    } catch {
+      toast.error("AI summarization failed");
+    } finally {
+      setSummarizingId(null);
     }
   };
 
@@ -145,7 +170,7 @@ export default function AnnouncementsPage() {
                   <div className="w-9 h-9 rounded-xl bg-background border border-border flex items-center justify-center shrink-0 mt-0.5">
                     <Megaphone size={16} className="text-muted-foreground" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
                       <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${priorityColors[item.priority] || priorityColors.medium}`}>
@@ -153,10 +178,39 @@ export default function AnnouncementsPage() {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{item.content || item.body || ""}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs text-muted-foreground">{item.lecturer?.name || item.department || "Academic Office"}</span>
-                      <span className="text-xs text-border">·</span>
-                      <span className="text-xs text-muted-foreground/60">{item.createdAt ? formatDate(item.createdAt) : ""}</span>
+
+                    {/* AI Summary */}
+                    {expandedSummary === item._id && summaries[item._id] && (
+                      <div className="mt-2 p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Sparkles size={11} className="text-emerald-400" />
+                          <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">AI Summary</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{summaries[item._id]}</p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{item.lecturer?.name || item.department || "Academic Office"}</span>
+                        <span className="text-xs text-border">·</span>
+                        <span className="text-xs text-muted-foreground/60">{item.createdAt ? formatDate(item.createdAt) : ""}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleSummarize(item._id, item.title, item.content || item.body || "")}
+                        disabled={summarizingId === item._id}
+                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/5 text-emerald-400/70 border border-emerald-500/10 text-[10px] font-medium hover:bg-emerald-500/15 hover:text-emerald-300 transition-colors disabled:opacity-40"
+                      >
+                        {summarizingId === item._id ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : summaries[item._id] ? (
+                          expandedSummary === item._id ? <ChevronUp size={10} /> : <ChevronDown size={10} />
+                        ) : (
+                          <Sparkles size={10} />
+                        )}
+                        {summaries[item._id] ? (expandedSummary === item._id ? "Hide Summary" : "Show Summary") : "Summarize"}
+                      </button>
                     </div>
                   </div>
                 </div>

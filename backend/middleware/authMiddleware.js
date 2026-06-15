@@ -14,7 +14,7 @@ export const ROLE_HIERARCHY = {
   admin: 9,
 };
 
-export const generateURStudentID = async () => {
+export const generateURRegistrationNumber = async () => {
   let isUnique = false;
   let newID = "";
 
@@ -22,7 +22,7 @@ export const generateURStudentID = async () => {
     const year = new Date().getFullYear().toString().slice(-2);
     const randomSequence = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
     newID = `${year}2${randomSequence}`;
-    const existingUser = await User.findOne({ studentID: newID });
+    const existingUser = await User.findOne({ registrationNumber: newID });
     if (!existingUser) {
       isUnique = true;
     }

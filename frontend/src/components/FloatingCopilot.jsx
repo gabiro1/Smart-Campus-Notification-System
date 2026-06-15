@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, X, Send, Trash2, Bot, User } from "lucide-react";
+import { Sparkles, X, Send, Trash2, Bot, User, ExternalLink, Calendar } from "lucide-react";
 import Logo from "./ui/Logo";
 import apiClient from "../services/apiClient";
 import { useAuth } from "../context/AuthContext";
 
 export default function FloatingCopilot() {
   const { user } = useAuth();
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -16,10 +17,8 @@ export default function FloatingCopilot() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sources, setSources] = useState(null);
   const messagesEndRef = useRef(null);
-
-  // Only show for students
-  if (user?.role !== "student" && user?.role !== "class_rep") return null;
 
   // Auto-scroll to bottom of messages
   const scrollToBottom = () => {
@@ -37,6 +36,7 @@ export default function FloatingCopilot() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
+    setSources(null);
 
     try {
       // Fetch user from localStorage for auth
@@ -52,6 +52,9 @@ export default function FloatingCopilot() {
           ...prev,
           { role: "ai", content: response.data.reply },
         ]);
+        if (response.data.sources) {
+          setSources(response.data.sources);
+        }
       } else {
         throw new Error("Invalid response");
       }
@@ -84,6 +87,9 @@ export default function FloatingCopilot() {
       },
     ]);
   };
+
+  // Must be AFTER all hooks, BEFORE the JSX return
+  if (!user) return null;
 
   return (
     <>
@@ -175,6 +181,36 @@ export default function FloatingCopilot() {
                   </div>
                 </motion.div>
               ))}
+
+              {/* Sources Panel */}
+              {sources && !isLoading && (sources.announcements?.length > 0 || sources.events?.length > 0) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/[0.03] border border-white/5 rounded-xl p-3 space-y-2"
+                >
+                  <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Sources</p>
+                  {sources.announcements?.map((a, i) => (
+                    <div key={`a-${i}`} className="flex items-start gap-2 text-xs text-neutral-400">
+                      <ExternalLink size={10} className="mt-0.5 shrink-0 text-blue-400" />
+                      <div>
+                        <span className="text-neutral-300">{a.title}</span>
+                        {a.course && <span className="text-neutral-600"> · {a.course}</span>}
+                      </div>
+                    </div>
+                  ))}
+                  {sources.events?.map((e, i) => (
+                    <div key={`e-${i}`} className="flex items-start gap-2 text-xs text-neutral-400">
+                      <Calendar size={10} className="mt-0.5 shrink-0 text-emerald-400" />
+                      <div>
+                        <span className="text-neutral-300">{e.title}</span>
+                        {e.venue && <span className="text-neutral-600"> · {e.venue}</span>}
+                        {e.date && <span className="text-neutral-600"> · {new Date(e.date).toLocaleDateString()}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
 
               {isLoading && (
                 <motion.div

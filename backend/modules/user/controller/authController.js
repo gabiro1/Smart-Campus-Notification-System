@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
-import { generateURStudentID } from '../../../middleware/authMiddleware.js';
+import { generateURRegistrationNumber } from '../../../middleware/authMiddleware.js';
 
 const ACCOUNT_LOCK_ATTEMPTS = 5;
 const ACCOUNT_LOCK_MINUTES = 15;
@@ -201,12 +201,7 @@ export const login = async (req, res) => {
     let query;
     if (!identifier.includes('@')) {
       const idUpper = identifier.toUpperCase();
-      query = {
-        $or: [
-          { registrationNumber: idUpper },
-          { studentID: idUpper }
-        ]
-      };
+      query = { registrationNumber: idUpper };
     } else {
       query = { email: identifier.toLowerCase() };
     }
@@ -318,8 +313,7 @@ export const login = async (req, res) => {
     }
 
     if (user.role === 'student') {
-      userData.studentID = user.studentID;
-      userData.registrationNumber = user.registrationNumber || user.studentID;
+      userData.registrationNumber = user.registrationNumber;
       userData.level = user.level;
       userData.interests = user.interests;
       userData.classInfo = user.classId;
@@ -618,7 +612,7 @@ export const completeOnboarding = async (req, res) => {
       phoneNumber: user.phoneNumber,
       profilePicture: user.profilePicture,
       languagePreference: user.languagePreference,
-      studentID: user.studentID,
+      registrationNumber: user.registrationNumber,
       level: user.level,
       interests: user.interests,
       classInfo: user.classId,
@@ -696,7 +690,7 @@ export const enrollStudent = async (req, res) => {
     });
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const newStudentID = await generateURStudentID(); 
+    const registrationNumber = await generateURRegistrationNumber(); 
 
     const student = await User.create({
       name,
@@ -704,7 +698,7 @@ export const enrollStudent = async (req, res) => {
       password: hashedPassword,
       phoneNumber,
       role: "student",
-      studentID: newStudentID,
+      registrationNumber,
       classId: classId,
       department: targetClass.department,
       level: targetClass.level,
@@ -726,7 +720,7 @@ export const enrollStudent = async (req, res) => {
       message: "Student enrolled successfully",
       student: {
         _id: student._id,
-        studentID: student.studentID, 
+        registrationNumber: student.registrationNumber, 
         name: student.name,
         email: student.email,
         role: student.role,
@@ -1103,7 +1097,7 @@ export const googleAuth = async (req, res) => {
     };
 
     if (user.role === 'student') {
-      userData.studentID = user.studentID;
+      userData.registrationNumber = user.registrationNumber;
       userData.level = user.level;
       userData.interests = user.interests;
       userData.classInfo = populatedUser.classId;

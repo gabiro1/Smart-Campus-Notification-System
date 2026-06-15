@@ -178,7 +178,7 @@ export default function Navbar() {
                     <Search size={14} />
                   </motion.button>
 
-                  {(user.role === "student" || user.role === "principal") && (
+                  {false && (
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
@@ -332,7 +332,6 @@ export default function Navbar() {
                         <MobileMenuLink to="/student/dashboard" label="Dashboard" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/student/messages" label="Alerts" onClick={() => setMobileMenuOpen(false)} />
                         <MobileMenuLink to="/student/events" label="Events" onClick={() => setMobileMenuOpen(false)} />
-                        <MobileMenuLink to="/student/bookmarks" label="Bookmarks" onClick={() => setMobileMenuOpen(false)} />
                       </>
                     )}
                     {(user.role === "hod" || user.role === "lecturer") && (

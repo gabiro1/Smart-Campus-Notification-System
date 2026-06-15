@@ -1,47 +1,83 @@
 import apiClient from './apiClient';
 
 const reminderService = {
-  // Get all reminders for the logged-in user
-  getReminders: async (page = 1, limit = 50) => {
-    const response = await apiClient.get('/reminders', {
-      params: { page, limit },
-    });
+  getReminders: async (params = {}) => {
+    const response = await apiClient.get('/reminders', { params });
     return response.data;
   },
 
-  // Create a new reminder
-  createReminder: async (reminderData) => {
-    const response = await apiClient.post('/reminders', reminderData);
+  getReminderById: async (id) => {
+    const response = await apiClient.get(`/reminders/${id}`);
     return response.data;
   },
 
-  // Update a reminder
-  updateReminder: async (reminderId, reminderData) => {
-    const response = await apiClient.put(`/reminders/${reminderId}`, reminderData);
+  createReminder: async (data) => {
+    const response = await apiClient.post('/reminders', data);
     return response.data;
   },
 
-  // Delete a reminder
-  deleteReminder: async (reminderId) => {
-    const response = await apiClient.delete(`/reminders/${reminderId}`);
+  updateReminder: async (id, data) => {
+    const response = await apiClient.put(`/reminders/${id}`, data);
     return response.data;
   },
 
-  // Mark as completed
-  completeReminder: async (reminderId) => {
-    const response = await apiClient.post(`/reminders/${reminderId}/complete`);
+  deleteReminder: async (id) => {
+    const response = await apiClient.delete(`/reminders/${id}`);
     return response.data;
   },
 
-  // Mark as incomplete
-  uncompleteReminder: async (reminderId) => {
-    const response = await apiClient.post(`/reminders/${reminderId}/uncomplete`);
+  cancelReminder: async (id, reason) => {
+    const response = await apiClient.post(`/reminders/${id}/cancel`, { reason });
     return response.data;
   },
 
-  // Get due reminders
+  completeReminder: async (id) => {
+    const response = await apiClient.post(`/reminders/${id}/complete`);
+    return response.data;
+  },
+
+  uncompleteReminder: async (id) => {
+    const response = await apiClient.post(`/reminders/${id}/uncomplete`);
+    return response.data;
+  },
+
   getDueReminders: async () => {
     const response = await apiClient.get('/reminders/due');
+    return response.data;
+  },
+
+  getReminderTimeline: async () => {
+    const response = await apiClient.get('/reminders/timeline');
+    return response.data;
+  },
+
+  getReminderStats: async () => {
+    const response = await apiClient.get('/reminders/stats');
+    return response.data;
+  },
+
+  getReminderRecipients: async (id) => {
+    const response = await apiClient.get(`/reminders/${id}/recipients`);
+    return response.data;
+  },
+
+  getReminderPreferences: async () => {
+    const response = await apiClient.get('/reminders/preferences');
+    return response.data;
+  },
+
+  updateReminderPreferences: async (data) => {
+    const response = await apiClient.put('/reminders/preferences', data);
+    return response.data;
+  },
+
+  bulkCompleteReminders: async (ids) => {
+    const response = await apiClient.post('/reminders/bulk/complete', { ids });
+    return response.data;
+  },
+
+  bulkDeleteReminders: async (ids) => {
+    const response = await apiClient.post('/reminders/bulk/delete', { ids });
     return response.data;
   },
 };

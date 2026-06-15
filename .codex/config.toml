@@ -1,6 +1,0 @@
-[mcp_servers.ruflo]
-command = "npx"
-args = [
-    "-y",
-    "ruflo@latest",
-]

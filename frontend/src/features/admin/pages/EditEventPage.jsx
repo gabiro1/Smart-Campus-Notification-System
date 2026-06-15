@@ -142,13 +142,13 @@ export default function EditEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12">
+    <div className="min-h-screen p-8 lg:p-12 text-white">
       <ThemedToaster />
 
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate("/admin/events")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 text-sm font-bold uppercase tracking-widest"
+          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8 text-sm font-bold uppercase tracking-widest bg-white/[0.02] border border-white/10 px-4 py-2 rounded-lg w-fit backdrop-blur-xl"
         >
           <ArrowLeft size={16} /> Back to Events
         </button>
@@ -158,10 +158,10 @@ export default function EditEventPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
-            <CalendarDays className="text-amber-500" size={36} /> Edit Event
+          <h1 className="text-4xl font-black tracking-tight text-white flex items-center gap-3">
+            <CalendarDays className="text-amber-400" size={36} /> Edit Event
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-neutral-400 mt-2">
             Modify the details of an existing calendar event.
           </p>
         </motion.div>
@@ -169,216 +169,217 @@ export default function EditEventPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-border rounded-[24px] p-8 shadow-2xl"
+          className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative overflow-hidden"
         >
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ... EXACT SAME FORM INPUTS AS CreateEventPage.jsx ... */}
-            {/* I am compressing this section for brevity, just copy the exact inputs from CreateEventPage */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                Event Title *
-              </label>
-              <input
-                required
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                className="w-full bg-background border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-foreground"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="relative z-10">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                  Date *
+                <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  Event Title *
                 </label>
                 <input
                   required
-                  type="date"
-                  value={formData.date}
+                  value={formData.title}
                   onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
+                    setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full bg-background border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-foreground [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                  className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white placeholder:text-neutral-600 transition-colors"
                 />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                    Date *
+                  </label>
+                  <input
+                    required
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, date: e.target.value })
+                    }
+                    className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white transition-colors [&::-webkit-calendar-picker-indicator]:invert"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                    Time *
+                  </label>
+                  <input
+                    required
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) =>
+                      setFormData({ ...formData, time: e.target.value })
+                    }
+                    className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white transition-colors [&::-webkit-calendar-picker-indicator]:invert"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                  Time *
+                <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  Location *
                 </label>
                 <input
                   required
-                  type="time"
-                  value={formData.time}
+                  value={formData.location}
                   onChange={(e) =>
-                    setFormData({ ...formData, time: e.target.value })
+                    setFormData({ ...formData, location: e.target.value })
                   }
-                  className="w-full bg-background border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm transition-colors text-foreground [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                  className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white placeholder:text-neutral-600 transition-colors"
                 />
               </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                Location *
-              </label>
-              <input
-                required
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                className="w-full bg-background border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                Description *
-              </label>
-              <textarea
-                required
-                rows="4"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full bg-background border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-foreground"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                AI Match Tags (Comma separated)
-              </label>
-              <input
-                value={formData.tags}
-                onChange={(e) =>
-                  setFormData({ ...formData, tags: e.target.value })
-                }
-                className="w-full bg-background border border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-              />
-            </div>
-
-            <hr className="border-border my-8" />
-
-            <div className="bg-blue-500/[0.02] border border-blue-500/10 p-6 rounded-2xl relative">
-              {loadingStructure && (
-                <div className="absolute inset-0 z-10 bg-card/80 backdrop-blur-sm flex items-center justify-center">
-                  <Activity className="animate-spin text-blue-500" size={24} />
-                </div>
-              )}
-              <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                <AlertTriangle size={18} className="text-blue-500" /> Target
-                Audience
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                    College
-                  </label>
-                  <select
-                    value={formData.targetCollege}
-                    onChange={handleCollegeChange}
-                    className="w-full bg-background border border-border p-4 rounded-xl outline-none text-sm text-foreground"
-                  >
-                    <option value="">All Colleges</option>
-                    {Object.keys(academicStructure).map((college) => (
-                      <option key={college} value={college}>
-                        {college}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                    School
-                  </label>
-                  <select
-                    value={formData.targetSchool}
-                    onChange={handleSchoolChange}
-                    disabled={!formData.targetCollege}
-                    className="w-full bg-background border border-border p-4 rounded-xl outline-none text-sm text-foreground disabled:opacity-50"
-                  >
-                    <option value="">
-                      {formData.targetCollege
-                        ? "All Schools"
-                        : "Select a College First"}
-                    </option>
-                    {availableSchools.map((school) => (
-                      <option key={school} value={school}>
-                        {school}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  Description *
+                </label>
+                <textarea
+                  required
+                  rows="4"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm resize-none text-white placeholder:text-neutral-600 transition-colors"
+                />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                    Department
-                  </label>
-                  <select
-                    value={formData.targetDept}
-                    onChange={(e) =>
-                      setFormData({ ...formData, targetDept: e.target.value })
-                    }
-                    disabled={!formData.targetSchool}
-                    className="w-full bg-background border border-border p-4 rounded-xl outline-none text-sm text-foreground disabled:opacity-50"
-                  >
-                    <option value="">
-                      {formData.targetSchool
-                        ? "All Departments"
-                        : "Select a School First"}
-                    </option>
-                    {availableDepartments.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider pl-1">
-                    Academic Level
-                  </label>
-                  <select
-                    value={formData.targetLevel}
-                    onChange={(e) =>
-                      setFormData({ ...formData, targetLevel: e.target.value })
-                    }
-                    className="w-full bg-background border border-border p-4 rounded-xl outline-none text-sm text-foreground"
-                  >
-                    <option value="">All Levels</option>
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <option key={level} value={level}>
-                        Level {level}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
 
-            <div className="pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-amber-600 text-foreground py-4 rounded-xl font-black tracking-widest uppercase text-sm hover:bg-amber-700 disabled:opacity-50 flex justify-center items-center gap-3"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Activity className="animate-spin" size={20} /> Updating...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle size={20} /> Save Changes
-                  </>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                  AI Match Tags (Comma separated)
+                </label>
+                <input
+                  value={formData.tags}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tags: e.target.value })
+                  }
+                  className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white placeholder:text-neutral-600 transition-colors"
+                />
+              </div>
+
+              <hr className="border-white/5 my-8" />
+
+              <div className="bg-white/[0.02] border border-white/10 p-6 rounded-2xl relative">
+                {loadingStructure && (
+                  <div className="absolute inset-0 z-10 bg-neutral-900/80 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+                    <Activity className="animate-spin text-blue-400" size={24} />
+                  </div>
                 )}
-              </button>
-            </div>
-          </form>
+                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                  <AlertTriangle size={18} className="text-blue-400" /> Target
+                  Audience
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider">
+                      College
+                    </label>
+                    <select
+                      value={formData.targetCollege}
+                      onChange={handleCollegeChange}
+                      className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl outline-none text-sm text-white cursor-pointer transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">All Colleges</option>
+                      {Object.keys(academicStructure).map((college) => (
+                        <option key={college} value={college} className="bg-neutral-900">
+                          {college}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider">
+                      School
+                    </label>
+                    <select
+                      value={formData.targetSchool}
+                      onChange={handleSchoolChange}
+                      disabled={!formData.targetCollege}
+                      className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50 transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">
+                        {formData.targetCollege
+                          ? "All Schools"
+                          : "Select a College First"}
+                      </option>
+                      {availableSchools.map((school) => (
+                        <option key={school} value={school} className="bg-neutral-900">
+                          {school}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider">
+                      Department
+                    </label>
+                    <select
+                      value={formData.targetDept}
+                      onChange={(e) =>
+                        setFormData({ ...formData, targetDept: e.target.value })
+                      }
+                      disabled={!formData.targetSchool}
+                      className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50 transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">
+                        {formData.targetSchool
+                          ? "All Departments"
+                          : "Select a School First"}
+                      </option>
+                      {availableDepartments.map((dept) => (
+                        <option key={dept} value={dept} className="bg-neutral-900">
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-neutral-500 tracking-wider">
+                      Academic Level
+                    </label>
+                    <select
+                      value={formData.targetLevel}
+                      onChange={(e) =>
+                        setFormData({ ...formData, targetLevel: e.target.value })
+                      }
+                      className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl outline-none text-sm text-white cursor-pointer transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">All Levels</option>
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <option key={level} value={level} className="bg-neutral-900">
+                          Level {level}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-amber-600 hover:bg-amber-500 text-white py-4 rounded-xl font-black tracking-widest uppercase text-sm disabled:opacity-50 flex justify-center items-center gap-3 shadow-lg transition-colors"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Activity className="animate-spin" size={20} /> Updating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={20} /> Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </motion.div>
       </div>
     </div>

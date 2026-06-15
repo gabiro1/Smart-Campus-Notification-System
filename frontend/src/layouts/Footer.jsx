@@ -35,13 +35,7 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="lg:col-span-1 space-y-6">
-            <Link to="/">
-              <img
-                src="/logo/Uninotify.png"
-                alt="UniNotify AI"
-                className="h-9 w-auto object-contain dark:brightness-0 dark:invert"
-              />
-            </Link>
+            <Logo to="/" />
 
             <p className="text-muted-foreground text-sm leading-relaxed">
               AI-powered campus notifications for the University of Rwanda. Stay informed, stay connected.

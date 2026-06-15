@@ -7,10 +7,11 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, AlertTriangle, CheckCircle, XCircle, ChevronDown, Loader2, Megaphone, Building2, Sparkles, Wand2 } from 'lucide-react';
+import { Send, AlertTriangle, CheckCircle, XCircle, ChevronDown, Loader2, Megaphone, Building2, Sparkles, Wand2, Brain, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
 import governanceService from '../../services/governanceService';
 import copilotService from '../../services/copilotService';
+import announcementService from '../../services/announcementService';
 
 // ============================================================
 // CONSTANTS
@@ -72,6 +73,9 @@ export default function AnnouncementForm({ onSuccess }) {
     
     // AI Polish state
     const [aiPolishing, setAIPolishing] = useState(false);
+    const [improving, setImproving] = useState(false);
+    const [detectedPriority, setDetectedPriority] = useState(null);
+    const [detectingPriority, setDetectingPriority] = useState(false);
 
     useEffect(() => {
         if (form.targetScope === 'department') {
@@ -132,6 +136,56 @@ Respond in this JSON format only: {"title": "polished title", "content": "polish
         }
     };
 
+    // AI Improve — fix grammar, spelling, clarity
+    const handleImprove = async () => {
+        if (!form.content.trim()) {
+            return toast.error('Write some content first, then AI can improve it');
+        }
+        setImproving(true);
+        try {
+            const res = await announcementService.improveText(form.content);
+            const improved = res?.improved || "";
+            if (improved) {
+                setForm((f) => ({ ...f, content: improved }));
+                toast.success('Content improved!');
+            } else {
+                toast.error('Improvement returned empty result');
+            }
+        } catch {
+            toast.error('AI improvement failed. Please try again.');
+        } finally {
+            setImproving(false);
+        }
+    };
+
+    // AI Priority Detection
+    const handleDetectPriority = async () => {
+        if (!form.content.trim() && !form.title.trim()) return;
+        setDetectingPriority(true);
+        try {
+            const res = await announcementService.detectPriority(form.title, form.content);
+            if (res?.success && res?.priority) {
+                setDetectedPriority(res);
+            }
+        } catch {
+            // Silent fail
+        } finally {
+            setDetectingPriority(false);
+        }
+    };
+
+    // Auto-detect priority when content changes (debounced)
+    useEffect(() => {
+        if (!form.content.trim() || form.content.length < 20) {
+            setDetectedPriority(null);
+            return;
+        }
+        const timer = setTimeout(() => {
+            handleDetectPriority();
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [form.content]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.title.trim() || !form.content.trim() || !form.targetScope) {
@@ -185,23 +239,38 @@ Respond in this JSON format only: {"title": "polished title", "content": "polish
                             <Sparkles size={18} className="text-purple-400" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-white">AI Polish Assistant</p>
-                            <p className="text-xs text-neutral-500">Write your announcement, then let AI polish it to sound more professional</p>
+                            <p className="text-sm font-medium text-white">AI Writing Assistant</p>
+                            <p className="text-xs text-neutral-500">Let AI improve grammar or polish your writing</p>
                         </div>
                     </div>
-                    <button
-                        type="button"
-                        onClick={handleAIPolish}
-                        disabled={aiPolishing || (!form.title.trim() && !form.content.trim())}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {aiPolishing ? (
-                            <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                            <Wand2 size={16} />
-                        )}
-                        Polish My Writing
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={handleImprove}
+                            disabled={improving || !form.content.trim()}
+                            className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {improving ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                                <Brain size={16} />
+                            )}
+                            Improve
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleAIPolish}
+                            disabled={aiPolishing || (!form.title.trim() && !form.content.trim())}
+                            className="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {aiPolishing ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                                <Wand2 size={16} />
+                            )}
+                            Polish
+                        </button>
+                    </div>
                 </div>
 
                 {/* TITLE */}
@@ -223,13 +292,34 @@ Respond in this JSON format only: {"title": "polished title", "content": "polish
                     <label className="block text-[11px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                         Content <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                        rows={5}
-                        placeholder="Write the detailed announcement content here..."
-                        value={form.content}
-                        onChange={(e) => handleChange('content', e.target.value)}
-                        className="w-full bg-background border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-600 resize-none"
-                    />
+                    <div className="relative">
+                        <textarea
+                            rows={5}
+                            placeholder="Write the detailed announcement content here..."
+                            value={form.content}
+                            onChange={(e) => handleChange('content', e.target.value)}
+                            className="w-full bg-background border border-white/10 text-white rounded-[10px] px-4 py-3 text-sm outline-none focus:border-blue-500/50 transition-colors placeholder:text-neutral-600 resize-none"
+                        />
+                        {detectedPriority && (
+                            <div className={`absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-semibold ${
+                                detectedPriority.priority === 'critical' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                                detectedPriority.priority === 'high' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' :
+                                detectedPriority.priority === 'low' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                            }`}>
+                                {detectingPriority ? (
+                                    <Loader2 size={10} className="animate-spin" />
+                                ) : (
+                                    <>
+                                        <ShieldAlert size={10} />
+                                        {detectedPriority.priority === 'critical' ? 'Critical' :
+                                         detectedPriority.priority === 'high' ? 'High' :
+                                         detectedPriority.priority === 'low' ? 'Low' : 'Medium'} Priority
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* PRIORITY + SCOPE ROW */}

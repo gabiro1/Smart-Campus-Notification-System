@@ -113,7 +113,7 @@ createUser: async (userData) => {
 
   // Test SMS (for debugging) - uses mock mode
   testSMS: async (phoneNumber) => {
-    const response = await apiClient.post('/messages/mock', {
+    const response = await apiClient.post('/sms/mock', {
       phoneNumber,
     });
     return response.data;

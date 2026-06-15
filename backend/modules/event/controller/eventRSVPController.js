@@ -127,32 +127,27 @@ export const scanAttendance = asyncHandler(async (req, res) => {
     }
   }
   
-  // Try to find student - first by _id (parsed), then by studentId field, then by email
+  // Try to find student - first by _id (parsed), then by registrationNumber field, then by email
   let student = null;
   try {
-    student = await User.findById(parsedStudentId).select('name email studentId studentID');
+    student = await User.findById(parsedStudentId).select('name email registrationNumber');
     console.log("Found by _id:", student?.name);
   } catch (e) {
     console.log("Not valid ObjectId, trying other methods");
   }
   
   if (!student) {
-    student = await User.findOne({ studentId: parsedStudentId }).select('name email studentId studentID');
-    console.log("Found by studentId:", student?.name);
+    student = await User.findOne({ registrationNumber: parsedStudentId }).select('name email registrationNumber');
+    console.log("Found by registrationNumber:", student?.name);
   }
   
   if (!student) {
-    student = await User.findOne({ studentID: parsedStudentId }).select('name email studentId studentID');
-    console.log("Found by studentID:", student?.name);
-  }
-  
-  if (!student) {
-    student = await User.findOne({ email: parsedStudentId }).select('name email studentId studentID');
+    student = await User.findOne({ email: parsedStudentId }).select('name email registrationNumber');
     console.log("Found by email:", student?.name);
   }
   
   if (!student) {
-    student = await User.findOne({ name: parsedStudentId }).select('name email studentId studentID');
+    student = await User.findOne({ name: parsedStudentId }).select('name email registrationNumber');
     console.log("Found by name:", student?.name);
   }
 

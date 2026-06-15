@@ -4,7 +4,7 @@ import Department from '../../department/model/Department.js';
 import AuditLog from '../../audit/models/AuditLog.js';
 import Counter, { getNextSequence } from '../../../models/Counter.js';
 import bcrypt from 'bcryptjs';
-import { generateURStudentID } from '../../../middleware/authMiddleware.js';
+import { generateURRegistrationNumber } from '../../../middleware/authMiddleware.js';
 
 const YY = () => new Date().getFullYear().toString().slice(-2);
 
@@ -63,7 +63,6 @@ export const createStudent = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const studentID = await generateURStudentID();
 
     let resolvedDepartment = department || null;
     let resolvedLevel = level || null;
@@ -91,7 +90,6 @@ export const createStudent = async (req, res) => {
       name: name.trim(), email: email.toLowerCase().trim(), password: hashedPassword,
       phoneNumber: phoneNumber || '',
       role: 'student',
-      studentID,
       registrationNumber,
       mustChangePassword: true,
       status: 'ACTIVE',
@@ -121,7 +119,6 @@ export const createStudent = async (req, res) => {
         _id: populated._id,
         name: populated.name,
         email: populated.email,
-        studentID: populated.studentID,
         registrationNumber: populated.registrationNumber,
         role: populated.role,
         classInfo: populated.classId,
@@ -180,9 +177,9 @@ export const importStudents = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(s.password || 'Student@123', 12);
-        const studentID = await generateURStudentID();
 
         let deptId = s.department;
+        let level = s.level;
 
         if (s.classId) {
           const cls = await Class.findById(s.classId).populate('department', 'code');
@@ -197,7 +194,7 @@ export const importStudents = async (req, res) => {
         const student = await User.create({
           name: s.name, email: s.email, password: hashedPassword,
           phoneNumber: s.phoneNumber || '',
-          role: 'student', studentID, registrationNumber: regNumber,
+          role: 'student', registrationNumber: regNumber,
           mustChangePassword: true,
           status: 'ACTIVE',
           createdBy: req.user._id,
@@ -237,7 +234,6 @@ export const getStudents = async (req, res) => {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
-        { studentID: { $regex: search, $options: 'i' } },
         { registrationNumber: { $regex: search, $options: 'i' } }
       ];
     }

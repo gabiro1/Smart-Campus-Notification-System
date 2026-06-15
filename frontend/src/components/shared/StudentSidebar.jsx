@@ -22,7 +22,7 @@ const sections = [
       { path: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { path: "/student/messages", label: "Messages", icon: Bell },
       { path: "/student/events", label: "Events", icon: Calendar },
-      { path: "/student/bookmarks", label: "Bookmarks", icon: Bookmark },
+      // { path: "/student/bookmarks", label: "Bookmarks", icon: Bookmark },
     ],
   },
   {
@@ -74,7 +74,7 @@ export default function StudentSidebar({ collapsed, onToggleCollapse, ...props }
       menuItems={menuItems}
       brand={
         <div className="flex items-center gap-3">
-          <Logo />
+          <Logo to="/" />
           {!collapsed && (
             <div>
               <h2 className="text-sm font-bold text-foreground tracking-wide">UniNotify</h2>

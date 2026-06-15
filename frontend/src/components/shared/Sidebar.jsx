@@ -37,7 +37,7 @@ export default function Sidebar({
             <div className="flex-1 min-w-0">
               {brand || (
                 <div className="flex items-center gap-2.5">
-                  <Logo />
+                  <Logo to="/" />
                   <div>
                     <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify AI</h2>
                     <p className="text-[10px] text-muted-foreground">Smart Campus Notification</p>

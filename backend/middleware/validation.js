@@ -251,20 +251,63 @@ export const eventUpdateSchema = Joi.object({
 
 export const reminderCreationSchema = Joi.object({
   title: Joi.string().trim().min(1).max(200).required(),
-  note: Joi.string().optional().allow('').max(1000),
-  dueDate: Joi.date().iso().required(),
-  priority: Joi.string().valid('low', 'medium', 'high').optional().default('medium'),
-  category: Joi.string().valid('general', 'event', 'academic', 'assignment', 'exam', 'personal').optional().default('general'),
-  referenceId: Joi.string().optional()
+  description: Joi.string().optional().allow('').max(2000),
+  sourceType: Joi.string().valid('event', 'exam', 'assignment', 'meeting', 'admin_deadline', 'personal').optional().default('personal'),
+  sourceId: Joi.string().optional().allow(null, ''),
+  priority: Joi.string().valid('low', 'medium', 'high', 'critical').optional().default('medium'),
+  scheduledTime: Joi.date().iso().required(),
+  dueDate: Joi.date().iso().optional().allow(null),
+  isRecurring: Joi.boolean().optional().default(false),
+  recurrencePattern: Joi.string().valid('daily', 'weekly', 'monthly', 'yearly').optional().allow(null),
+  recurrenceEnd: Joi.date().iso().optional().allow(null),
+  deliveryChannels: Joi.object({
+    push: Joi.boolean().optional(),
+    email: Joi.boolean().optional(),
+    sms: Joi.boolean().optional()
+  }).optional(),
+  targetAudience: Joi.string().valid('self', 'class', 'department', 'school', 'college').optional().default('self'),
+  targetId: Joi.string().optional().allow(null, '')
 });
 
 export const reminderUpdateSchema = Joi.object({
   title: Joi.string().trim().min(1).max(200).optional(),
-  note: Joi.string().optional().allow('').max(1000),
-  dueDate: Joi.date().iso().optional(),
-  priority: Joi.string().valid('low', 'medium', 'high').optional(),
-  category: Joi.string().valid('general', 'event', 'academic', 'assignment', 'exam', 'personal').optional(),
+  description: Joi.string().optional().allow('').max(2000),
+  sourceType: Joi.string().valid('event', 'exam', 'assignment', 'meeting', 'admin_deadline', 'personal').optional(),
+  sourceId: Joi.string().optional().allow(null, ''),
+  priority: Joi.string().valid('low', 'medium', 'high', 'critical').optional(),
+  scheduledTime: Joi.date().iso().optional(),
+  dueDate: Joi.date().iso().optional().allow(null),
+  status: Joi.string().valid('pending', 'scheduled', 'cancelled').optional(),
+  isRecurring: Joi.boolean().optional(),
+  recurrencePattern: Joi.string().valid('daily', 'weekly', 'monthly', 'yearly').optional().allow(null),
+  recurrenceEnd: Joi.date().iso().optional().allow(null),
+  deliveryChannels: Joi.object({
+    push: Joi.boolean().optional(),
+    email: Joi.boolean().optional(),
+    sms: Joi.boolean().optional()
+  }).optional(),
+  targetAudience: Joi.string().valid('self', 'class', 'department', 'school', 'college').optional(),
+  targetId: Joi.string().optional().allow(null, ''),
   completed: Joi.boolean().optional()
+});
+
+export const reminderPreferenceUpdateSchema = Joi.object({
+  inAppEnabled: Joi.boolean().optional(),
+  pushEnabled: Joi.boolean().optional(),
+  emailEnabled: Joi.boolean().optional(),
+  smsEnabled: Joi.boolean().optional(),
+  reminderFrequency: Joi.string().valid('at_time', '5min', '15min', '30min', '1hour', '2hours', '1day', '1week').optional(),
+  quietHoursStart: Joi.string().allow(null, '').optional(),
+  quietHoursEnd: Joi.string().allow(null, '').optional(),
+  maxDailyReminders: Joi.number().integer().min(1).max(200).optional(),
+  categories: Joi.object({
+    event: Joi.boolean().optional(),
+    exam: Joi.boolean().optional(),
+    assignment: Joi.boolean().optional(),
+    meeting: Joi.boolean().optional(),
+    admin_deadline: Joi.boolean().optional(),
+    personal: Joi.boolean().optional()
+  }).optional()
 });
 
 // ==========================================
@@ -459,6 +502,7 @@ export const schemas = {
   eventUpdate: eventUpdateSchema,
   reminderCreation: reminderCreationSchema,
   reminderUpdate: reminderUpdateSchema,
+  reminderPreferenceUpdate: reminderPreferenceUpdateSchema,
   messageSend: messageSendSchema,
   pollVote: pollVoteSchema,
   announcementCreation: announcementCreationSchema,

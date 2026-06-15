@@ -62,7 +62,7 @@ export const createTicket = async (req, res) => {
     });
 
     const populated = await Ticket.findById(ticket._id)
-      .populate("submittedBy", "name role studentID")
+      .populate("submittedBy", "name role registrationNumber")
       .populate("office", "name code type")
       .populate("assignedTo", "name role");
 
@@ -141,7 +141,7 @@ export const getAssignedTickets = async (req, res) => {
     if (office) query.office = office;
 
     const tickets = await Ticket.find(query)
-      .populate("submittedBy", "name role studentID")
+      .populate("submittedBy", "name role registrationNumber")
       .populate("office", "name code type")
       .sort({ slaDeadline: 1 })
       .skip((page - 1) * limit)
@@ -161,7 +161,7 @@ export const getAssignedTickets = async (req, res) => {
 export const getTicket = async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id)
-      .populate("submittedBy", "name role studentID email")
+      .populate("submittedBy", "name role registrationNumber email")
       .populate("office", "name code type description")
       .populate("assignedTo", "name role")
       .populate("resolvedBy", "name role")

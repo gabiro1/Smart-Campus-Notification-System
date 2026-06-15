@@ -8,7 +8,6 @@ import {
   Activity,
   CheckCircle,
   AlertTriangle,
-  CalendarDays,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import ThemedToaster from "../../../components/ui/ThemedToaster";
@@ -136,14 +135,14 @@ export default function CreateEventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8 lg:p-12">
+    <div className="min-h-screen p-8 lg:p-12 text-white">
       <ThemedToaster />
 
       <div className="max-w-5xl mx-auto">
         {/* Back Arrow Navigation */}
         <button
           onClick={() => navigate("/admin/events")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 text-xs font-bold uppercase tracking-widest bg-accent hover:bg-accent px-4 py-2 rounded-lg w-fit"
+          className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8 text-xs font-bold uppercase tracking-widest bg-white/[0.02] border border-white/10 px-4 py-2 rounded-lg w-fit backdrop-blur-xl"
         >
           <ArrowLeft size={16} /> Back
         </button>
@@ -153,8 +152,8 @@ export default function CreateEventPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <h1 className="text-4xl font-black tracking-tight">Create Event</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-4xl font-black tracking-tight text-white">Create Event</h1>
+          <p className="text-neutral-400 mt-2">
             Publish an event to the campus calendar.
           </p>
         </motion.div>
@@ -165,9 +164,10 @@ export default function CreateEventPage() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="p-[1px] rounded-[24px] bg-gradient-to-b from-blue-500/30 via-purple-500/10 to-transparent shadow-2xl sticky top-8"
+              className="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative overflow-hidden sticky top-8"
             >
-              <div className="bg-card rounded-[23px] p-8 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[300px]">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              <div className="relative z-10 p-8 flex flex-col items-center justify-center text-center min-h-[300px]">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -190,17 +190,17 @@ export default function CreateEventPage() {
                     <div className="w-16 h-16 bg-purple-500/10 border border-purple-500/20 rounded-2xl flex items-center justify-center text-purple-400 mb-6">
                       <Sparkles size={28} />
                     </div>
-                    <h3 className="font-bold text-foreground mb-2 text-lg">
+                    <h3 className="font-bold text-white mb-2 text-lg">
                       AI Flyer Auto-Fill
                     </h3>
-                    <p className="text-xs text-muted-foreground mb-8 leading-relaxed">
+                    <p className="text-xs text-neutral-400 mb-8 leading-relaxed">
                       Upload a poster. Our AI will automatically extract
                       details.
                     </p>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="bg-accent hover:bg-accent text-foreground px-6 py-3 rounded-xl font-bold transition-all w-full flex justify-center gap-2"
+                      className="bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-3 rounded-xl font-bold transition-all w-full flex justify-center gap-2 backdrop-blur-xl"
                     >
                       <UploadCloud size={18} /> Select Image
                     </button>
@@ -214,168 +214,171 @@ export default function CreateEventPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="xl:col-span-2 bg-card border-border rounded-[24px] p-8 shadow-2xl"
+            className="xl:col-span-2 bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative overflow-hidden"
           >
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
-                  Event Title *
-                </label>
-                <input
-                  required
-                  placeholder="e.g. ICT Competition"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-1.5 md:col-span-1">
-                  <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
-                    Date *
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="relative z-10">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                    Event Title *
                   </label>
                   <input
                     required
-                    type="date"
-                    value={formData.date}
+                    placeholder="e.g. ICT Competition"
+                    value={formData.title}
                     onChange={(e) =>
-                      setFormData({ ...formData, date: e.target.value })
+                      setFormData({ ...formData, title: e.target.value })
                     }
-                    className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                    className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white placeholder:text-neutral-600 transition-colors"
                   />
                 </div>
-                <div className="space-y-1.5 md:col-span-1">
-                  <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
-                    Time *
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-1.5 md:col-span-1">
+                    <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                      Date *
+                    </label>
+                    <input
+                      required
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) =>
+                        setFormData({ ...formData, date: e.target.value })
+                      }
+                      className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white transition-colors [&::-webkit-calendar-picker-indicator]:invert"
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-1">
+                    <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                      Time *
+                    </label>
+                    <input
+                      required
+                      type="time"
+                      value={formData.time}
+                      onChange={(e) =>
+                        setFormData({ ...formData, time: e.target.value })
+                      }
+                      className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white transition-colors [&::-webkit-calendar-picker-indicator]:invert"
+                    />
+                  </div>
+                  <div className="space-y-1.5 md:col-span-1">
+                    <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                      Location *
+                    </label>
+                    <input
+                      required
+                      placeholder="e.g. Main Hall"
+                      value={formData.location}
+                      onChange={(e) =>
+                        setFormData({ ...formData, location: e.target.value })
+                      }
+                      className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm text-white placeholder:text-neutral-600 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase text-neutral-500 tracking-wider">
+                    Description *
                   </label>
-                  <input
+                  <textarea
                     required
-                    type="time"
-                    value={formData.time}
+                    rows="4"
+                    value={formData.description}
                     onChange={(e) =>
-                      setFormData({ ...formData, time: e.target.value })
+                      setFormData({ ...formData, description: e.target.value })
                     }
-                    className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                    className="w-full bg-white/[0.02] border border-white/10 p-4 rounded-xl focus:border-blue-500/50 outline-none text-sm resize-none text-white placeholder:text-neutral-600 transition-colors"
                   />
                 </div>
-                <div className="space-y-1.5 md:col-span-1">
-                  <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
-                    Location *
-                  </label>
-                  <input
-                    required
-                    placeholder="e.g. Main Hall"
-                    value={formData.location}
-                    onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
-                    }
-                    className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm text-foreground"
-                  />
+
+                <hr className="border-white/5 my-8" />
+
+                <div className="bg-white/[0.02] border border-white/10 p-6 rounded-2xl relative">
+                  <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                    <AlertTriangle size={18} className="text-blue-400" /> Target
+                    Audience
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <select
+                      value={formData.targetCollege}
+                      onChange={handleCollegeChange}
+                      className="bg-white/[0.02] border border-white/10 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">All Colleges</option>
+                      {Object.keys(academicStructure).map((c) => (
+                        <option key={c} value={c} className="bg-neutral-900">
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={formData.targetSchool}
+                      onChange={handleSchoolChange}
+                      disabled={!formData.targetCollege}
+                      className="bg-white/[0.02] border border-white/10 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50 transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">All Schools</option>
+                      {availableSchools.map((s) => (
+                        <option key={s} value={s} className="bg-neutral-900">
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={formData.targetDept}
+                      onChange={(e) =>
+                        setFormData({ ...formData, targetDept: e.target.value })
+                      }
+                      disabled={!formData.targetSchool}
+                      className="bg-white/[0.02] border border-white/10 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer disabled:opacity-50 transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">All Departments</option>
+                      {availableDepartments.map((d) => (
+                        <option key={d} value={d} className="bg-neutral-900">
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={formData.targetLevel}
+                      onChange={(e) =>
+                        setFormData({ ...formData, targetLevel: e.target.value })
+                      }
+                      className="bg-white/[0.02] border border-white/10 p-3.5 rounded-xl outline-none text-sm text-white cursor-pointer transition-colors focus:border-blue-500/50"
+                    >
+                      <option value="" className="bg-neutral-900">All Levels</option>
+                      <option value="1" className="bg-neutral-900">Year 1</option>
+                      <option value="2" className="bg-neutral-900">Year 2</option>
+                      <option value="3" className="bg-neutral-900">Year 3</option>
+                      <option value="4" className="bg-neutral-900">Year 4</option>
+                      <option value="5" className="bg-neutral-900">Year 5</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
-                  Description *
-                </label>
-                <textarea
-                  required
-                  rows="4"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="w-full bg-background border-border p-4 rounded-xl focus:border-blue-500 outline-none text-sm resize-none text-foreground"
-                />
-              </div>
-
-              <hr className="border-border my-8" />
-
-              <div className="bg-blue-500/[0.02] border border-blue-500/10 p-6 rounded-2xl">
-                <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
-                  <AlertTriangle size={18} className="text-blue-500" /> Target
-                  Audience
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <select
-                    value={formData.targetCollege}
-                    onChange={handleCollegeChange}
-                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer"
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || isParsingAI}
+                    className="w-full bg-blue-600 text-white py-4 rounded-xl font-black tracking-widest uppercase text-sm hover:bg-blue-700 disabled:opacity-50 flex justify-center gap-3 shadow-lg transition-colors"
                   >
-                    <option value="">All Colleges</option>
-                    {Object.keys(academicStructure).map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={formData.targetSchool}
-                    onChange={handleSchoolChange}
-                    disabled={!formData.targetCollege}
-                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer disabled:opacity-50"
-                  >
-                    <option value="">All Schools</option>
-                    {availableSchools.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={formData.targetDept}
-                    onChange={(e) =>
-                      setFormData({ ...formData, targetDept: e.target.value })
-                    }
-                    disabled={!formData.targetSchool}
-                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer disabled:opacity-50"
-                  >
-                    <option value="">All Departments</option>
-                    {availableDepartments.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={formData.targetLevel}
-                    onChange={(e) =>
-                      setFormData({ ...formData, targetLevel: e.target.value })
-                    }
-                    className="bg-background border-border p-3.5 rounded-xl outline-none text-sm text-foreground cursor-pointer"
-                  >
-                    <option value="">All Levels</option>
-                    <option value="1">Year 1</option>
-                    <option value="2">Year 2</option>
-                    <option value="3">Year 3</option>
-                    <option value="4">Year 4</option>
-                    <option value="5">Year 5</option>
-                  </select>
+                    {isSubmitting ? (
+                      <>
+                        <Activity className="animate-spin" size={20} /> Saving
+                        Event...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle size={20} /> Publish Event
+                      </>
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || isParsingAI}
-                  className="w-full bg-blue-600 text-white py-4 rounded-xl font-black tracking-widest uppercase text-sm hover:bg-blue-700 disabled:opacity-50 flex justify-center gap-3"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Activity className="animate-spin" size={20} /> Saving
-                      Event...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={20} /> Publish Event
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </motion.div>
         </div>
       </div>

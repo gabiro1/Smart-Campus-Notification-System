@@ -196,7 +196,7 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
             >
               <div className="h-14 flex items-center justify-between px-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2.5">
-            <Logo />
+            <Logo to="/" />
             <div>
               <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify</h2>
               <p className="text-[10px] text-muted-foreground">Admin Console</p>
@@ -289,7 +289,7 @@ export default function AdminSidebar({ isOpen, setIsOpen, isMobile, collapsed })
         }`}
       >
         <div className="flex items-center gap-2.5">
-          <Logo />
+          <Logo to="/" />
           {!collapsed && (
             <div>
               <h2 className="text-[13px] font-semibold text-foreground leading-tight">UniNotify</h2>

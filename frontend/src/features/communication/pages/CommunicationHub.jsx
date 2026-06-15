@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
 import {
   Inbox, Building2, Users, AlertTriangle, Bot,
   Archive, FileText, ChevronLeft, ChevronRight,
-  MessageSquare, TicketCheck, Menu, X
+  MessageSquare, Menu, X
 } from 'lucide-react';
 import communicationService from '../services/communicationService';
 
@@ -61,10 +61,10 @@ export default function CommunicationHub() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] min-h-[calc(100dvh-4rem)] bg-background">
+    <div className="flex h-[calc(100vh-4rem)] min-h-[calc(100dvh-4rem)] bg-transparent">
       {isMobile && mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -73,15 +73,15 @@ export default function CommunicationHub() {
         isMobile
           ? `fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`
           : collapsed ? 'w-16' : 'w-64'
-      } border-r border-border bg-card flex flex-col shrink-0`}>
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          {!collapsed && <h2 className="text-lg font-semibold text-foreground">Communication</h2>}
+      } bg-white/[0.02] backdrop-blur-xl border-r border-white/10 flex flex-col shrink-0`}>
+        <div className="flex items-center justify-between p-4 border-b border-white/5">
+          {!collapsed && <h2 className="text-lg font-semibold text-white">Communication</h2>}
           {isMobile ? (
-            <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground">
+            <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-neutral-400">
               <X size={18} />
             </button>
           ) : (
-            <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground">
+            <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white">
               {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
             </button>
           )}
@@ -96,8 +96,8 @@ export default function CommunicationHub() {
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    ? 'bg-blue-500/10 text-blue-400 font-medium border border-blue-500/20'
+                    : 'text-neutral-400 hover:bg-white/[0.04] hover:text-white border border-transparent'
                 }`}
               >
                 <item.icon size={collapsed && !isMobile ? 20 : 18} className="shrink-0" />
@@ -105,7 +105,7 @@ export default function CommunicationHub() {
                   <>
                     <span className="flex-1 truncate">{item.label}</span>
                     {count !== null && (
-                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-primary/10 text-primary">
+                      <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-500/10 text-blue-400">
                         {count > 99 ? '99+' : count}
                       </span>
                     )}
@@ -116,10 +116,10 @@ export default function CommunicationHub() {
           })}
         </nav>
         {(!collapsed || isMobile) && (
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-white/5">
             <button
               onClick={() => navigate('/student/communication/inbox')}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-400 hover:text-white hover:bg-white/[0.04] rounded-lg transition-colors"
             >
               <MessageSquare size={16} />
               <span>View all messages</span>
@@ -132,7 +132,7 @@ export default function CommunicationHub() {
         {isMobile && (
           <button
             onClick={() => setMobileOpen(true)}
-            className="absolute top-3 left-3 z-30 p-2 rounded-lg bg-accent border border-border text-muted-foreground hover:text-foreground"
+            className="absolute top-3 left-3 z-30 p-2 rounded-lg bg-white/[0.02] border border-white/10 text-neutral-400 hover:text-white backdrop-blur-xl"
           >
             <Menu size={18} />
           </button>

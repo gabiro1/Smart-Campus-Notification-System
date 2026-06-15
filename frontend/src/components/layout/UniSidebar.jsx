@@ -13,7 +13,7 @@ export default function UniSidebar({
   onToggleCollapse,
   role = "student",
   user = {},
-  unreadCount = 0,
+  unreadCounts = { notifications: 0, messages: 0 },
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export default function UniSidebar({
       <div className={`h-16 flex items-center border-b border-border shrink-0 ${collapsed ? "justify-center px-3" : "px-5"}`}>
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="shrink-0">
-            <Logo size="sm" />
+            <Logo size="sm" to="/" />
           </div>
           <AnimatePresence initial={false}>
             {!collapsed && (
@@ -111,9 +111,9 @@ export default function UniSidebar({
                   {!collapsed && (
                     <span className="flex-1 text-left text-[13px] truncate">{item.label}</span>
                   )}
-                  {!collapsed && item.badge && unreadCount > 0 && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">
-                      {unreadCount > 99 ? "99+" : unreadCount}
+                  {!collapsed && item.badge && unreadCounts[item.badge] > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white min-w-[20px] text-center">
+                      {unreadCounts[item.badge] > 99 ? "99+" : unreadCounts[item.badge]}
                     </span>
                   )}
                 </button>
@@ -190,7 +190,7 @@ export default function UniSidebar({
         className="h-16 flex items-center px-5 border-b border-border shrink-0"
       >
         <div className="flex items-center gap-3">
-          <Logo size="sm" />
+          <Logo size="sm" to="/" />
           <div>
             <h2 className="text-sm font-bold text-foreground tracking-tight">
               Uni<span className="text-blue-500">Notify</span>
@@ -250,9 +250,9 @@ export default function UniSidebar({
                       <item.icon size={18} />
                     </div>
                     <span className="flex-1 text-left text-[13px] truncate">{item.label}</span>
-                    {item.badge && unreadCount > 0 && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">
-                        {unreadCount > 99 ? "99+" : unreadCount}
+                    {item.badge && unreadCounts[item.badge] > 0 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500 text-white min-w-[20px] text-center">
+                        {unreadCounts[item.badge] > 99 ? "99+" : unreadCounts[item.badge]}
                       </span>
                     )}
                   </button>

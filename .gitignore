@@ -5,3 +5,4 @@ backend/config/FirebaseServc/*.json
 
 node_modules/
 thesis/
+.aider*

@@ -1,11 +1,13 @@
 /**
  * copilot.controller.js
  * Academic Copilot — RAG-powered assistant for students
- * Returns structured, user-friendly notifications.
+ * Returns structured, user-friendly responses with announcement search.
  */
 
 import { chat } from '../../services/aiProvider.js';
 import NotificationLog from '../notification/models/NotificationLog.js';
+import Announcement from '../announcement/model/Announcement.js';
+import Event from '../event/model/Event.js';
 
 /**
  * POST /api/copilot
@@ -38,7 +40,6 @@ export const askCopilot = async (req, res) => {
     try {
       const recentNotifs = await NotificationLog.find({
         studentId: user._id,
-        status: 'unread',
       })
         .sort({ createdAt: -1 })
         .limit(5)
@@ -48,47 +49,113 @@ export const askCopilot = async (req, res) => {
         type: n.type?.toUpperCase() || 'NOTICE',
         title: n.title,
         content: n.message,
+        date: n.createdAt,
       }));
     } catch (err) {
       console.warn('[Copilot] Could not fetch notifications:', err.message);
     }
 
+    // ─────────────────────────────
+    // STEP 2: SEARCH ANNOUNCEMENTS & EVENTS (RAG)
+    // ─────────────────────────────
+    let relevantAnnouncements = [];
+    let relevantEvents = [];
+
+    try {
+      // Use text search on announcements if query has relevant keywords
+      const searchTerms = query
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+        .join(' ');
+
+      if (searchTerms.length > 0) {
+        // Find active announcements matching the query
+        const matched = await Announcement.find(
+          { $text: { $search: searchTerms }, status: 'Active' },
+          { score: { $meta: 'textScore' } }
+        )
+          .populate('course', 'name code')
+          .sort({ score: { $meta: 'textScore' } })
+          .limit(3)
+          .lean();
+
+        relevantAnnouncements = matched.map((a) => ({
+          title: a.title,
+          content: a.content.substring(0, 300),
+          course: a.course?.name || 'General',
+          date: a.createdAt,
+        }));
+
+        // Also search events
+        const matchedEvents = await Event.find(
+          { $text: { $search: searchTerms }, status: 'PUBLISHED' },
+          { score: { $meta: 'textScore' } }
+        )
+          .sort({ score: { $meta: 'textScore' } })
+          .limit(2)
+          .lean();
+
+        relevantEvents = matchedEvents.map((e) => ({
+          title: e.title,
+          description: e.description?.substring(0, 300) || '',
+          date: e.startDate,
+          venue: e.venue,
+        }));
+      }
+    } catch (err) {
+      console.warn('[Copilot] Could not search announcements:', err.message);
+    }
+
+    // If no unread notifications, show empty state
     if (notifications.length === 0) {
       notifications.push({
         type: 'INFO',
         title: 'No recent notifications',
         content: 'You have no unread notifications at the moment.',
+        date: null,
       });
     }
 
     // ─────────────────────────────
-    // STEP 2: BUILD SYSTEM PROMPT
+    // STEP 3: BUILD SYSTEM PROMPT WITH RAG CONTEXT
     // ─────────────────────────────
     const notificationText = notifications
       .map((n) => `- [${n.type}] ${n.title}: ${n.content}`)
       .join('\n');
 
+    const announcementText = relevantAnnouncements.length > 0
+      ? '\nRELEVANT ANNOUNCEMENTS:\n' + relevantAnnouncements
+          .map((a) => `- "${a.title}" (${a.course}): ${a.content.substring(0, 200)}`)
+          .join('\n')
+      : '';
+
+    const eventText = relevantEvents.length > 0
+      ? '\nRELEVANT EVENTS:\n' + relevantEvents
+          .map((e) => `- "${e.title}" at ${e.venue || 'TBD'} on ${e.date ? new Date(e.date).toLocaleDateString() : 'TBD'}`)
+          .join('\n')
+      : '';
+
     const systemPrompt = `You are "UniNotify AI", the official academic copilot for a smart campus system.
-Use the context below to answer the student's query.
+Your job is to answer the student's question using the context provided below.
 
 STUDENT:
 Name: ${user.name}
 Role: ${user.role}
 
 RECENT NOTIFICATIONS:
-${notificationText}
+${notificationText}${announcementText}${eventText}
 
 INSTRUCTIONS:
 1. Be friendly, professional, and concise.
 2. Address the student by their first name.
-3. Use the notifications as the only source for answers.
-4. Format the reply for readability: greeting, summary of notifications, next steps.
-5. If the query cannot be answered from the context, politely say you don't know and suggest checking the notice board or contacting the department.
-6. Keep your response under 5 sentences.`;
-
+3. Use the provided context (notifications, announcements, events) to answer the query.
+4. If relevant announcement or event sources were found, reference them by title so the student knows where the info came from.
+5. If the query cannot be answered from the context, politely say you don't know and suggest checking the notice board, asking their lecturer, or visiting the department office.
+6. Keep your response under 5 sentences unless the question requires a detailed answer.`;
 
     // ─────────────────────────────
-    // STEP 3: CALL AI PROVIDER
+    // STEP 4: CALL AI PROVIDER
     // ─────────────────────────────
     let aiReply;
     try {
@@ -96,7 +163,7 @@ INSTRUCTIONS:
         systemPrompt,
         userMessage: query.trim(),
         tier: 'CAPABLE',
-        maxTokens: 400,
+        maxTokens: 500,
         temperature: 0.4,
       });
     } catch (err) {
@@ -105,19 +172,23 @@ INSTRUCTIONS:
     }
 
     // ─────────────────────────────
-    // STEP 4: STRUCTURE RESPONSE
+    // STEP 5: STRUCTURE RESPONSE
     // ─────────────────────────────
-    // We return the AI reply directly as a string for the message bubble,
-    // and include metadata for any advanced UI features.
     const responsePayload = {
       success: true,
-      reply: aiReply, 
-      metadata: {
-        greeting: "Hello!",
-        systemMessage: "Here are your latest updates:",
-        notifications,
-        nextSteps: "Let me know if you want more details!"
-      }
+      reply: aiReply,
+      sources: {
+        announcements: relevantAnnouncements.map((a) => ({
+          title: a.title,
+          course: a.course,
+          date: a.date,
+        })),
+        events: relevantEvents.map((e) => ({
+          title: e.title,
+          date: e.date,
+          venue: e.venue,
+        })),
+      },
     };
 
     return res.status(200).json(responsePayload);

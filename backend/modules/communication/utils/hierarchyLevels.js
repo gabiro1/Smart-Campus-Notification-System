@@ -10,9 +10,9 @@ export const HIERARCHY_LEVELS = {
 
 export const COMMUNICATION_DIRECTION = {
   student: {
-    student:      { requires: 'class_membership',    mode: 'direct' },
+    student:      { requires: null,                  mode: 'direct' },
     lecturer:     { requires: null,  mode: 'direct' },
-    class_rep:    { requires: 'class_membership',    mode: 'direct' },
+    class_rep:    { requires: null,                  mode: 'direct' },
     hod:          { requires: 'escalation',          mode: 'escalation_only' },
     dean:         { requires: 'escalation',          mode: 'escalation_only' },
     principal:    { requires: 'escalation',          mode: 'escalation_only' },
@@ -20,14 +20,14 @@ export const COMMUNICATION_DIRECTION = {
     office:       { requires: 'office_assignment',   mode: 'ticket_only' }
   },
   class_rep: {
-    student:      { requires: 'class_membership',    mode: 'direct' },
+    student:      { requires: null,                  mode: 'direct' },
     lecturer:     { requires: 'course_enrollment',   mode: 'direct' },
     hod:          { requires: 'department',          mode: 'request_only' },
     dean:         { requires: 'escalation',          mode: 'escalation_only' },
     office:       { requires: 'office_assignment',   mode: 'ticket_only' }
   },
   lecturer: {
-    student:      { requires: null,   mode: 'direct' },
+    student:      { requires: null,                  mode: 'direct' },
     class_rep:    { requires: 'course_enrollment',   mode: 'direct' },
     hod:          { requires: 'department',          mode: 'direct' },
     dean:         { requires: 'school',             mode: 'direct' },
@@ -37,7 +37,7 @@ export const COMMUNICATION_DIRECTION = {
   },
   hod: {
     lecturer:     { requires: 'department',          mode: 'direct' },
-    student:      { requires: 'escalation',          mode: 'escalation_only' },
+    student:      { requires: null,                  mode: 'direct' },
     class_rep:    { requires: 'department',          mode: 'request_only' },
     dean:         { requires: 'school',             mode: 'direct' },
     principal:    { requires: 'escalation',          mode: 'escalation_only' },
@@ -48,7 +48,7 @@ export const COMMUNICATION_DIRECTION = {
     hod:          { requires: 'school',             mode: 'direct' },
     lecturer:     { requires: 'school',             mode: 'direct' },
     principal:    { requires: 'college',            mode: 'direct' },
-    student:      { requires: 'escalation',          mode: 'escalation_only' },
+    student:      { requires: null,                  mode: 'direct' },
     admin:        { requires: 'admin_override',      mode: 'direct' },
     office:       { requires: 'office_assignment',   mode: 'direct' }
   },
@@ -56,7 +56,7 @@ export const COMMUNICATION_DIRECTION = {
     dean:         { requires: 'college',            mode: 'direct' },
     hod:          { requires: 'college',            mode: 'direct' },
     admin:        { requires: 'system',             mode: 'direct' },
-    student:      { requires: 'escalation',          mode: 'escalation_only' },
+    student:      { requires: null,                  mode: 'direct' },
     office:       { requires: 'office_assignment',   mode: 'direct' }
   },
   admin: {

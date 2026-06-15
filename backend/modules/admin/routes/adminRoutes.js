@@ -43,8 +43,14 @@ import { validateBody, schemas } from '../../../middleware/validation.js';
 import { auditLog } from '../../../middleware/auditMiddleware.js';
 import upload from '../../../middleware/uploadMiddleware.js';
 
-// All admin routes require authentication and admin, principal, or hod role
-router.use(protect, authorize('admin', 'principal', 'hod'));
+// All admin routes require authentication
+router.use(protect);
+
+// Hierarchy is public to all authenticated users (used by NewConversationModal and event forms)
+router.get('/hierarchy', getAcademicHierarchy);
+
+// All remaining admin routes require admin, principal, or hod role
+router.use(authorize('admin', 'principal', 'hod'));
 
 /**
  * @route   GET /api/admin/metrics
@@ -138,8 +144,6 @@ router.get('/departments-stats', getDepartmentStats);
 router.get('/engagement', getEngagementByDepartment);
 
 router.post('/users', validateBody(schemas.adminUserCreation), auditLog('user'), createUser);
-
-router.get('/hierarchy', getAcademicHierarchy);
 
 // Settings routes
 router.get('/settings', getSystemSettings);

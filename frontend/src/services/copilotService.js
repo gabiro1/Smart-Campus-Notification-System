@@ -68,6 +68,33 @@ const copilotService = {
       throw new Error(error.response?.data?.message || 'Failed to generate announcement');
     }
   },
+
+  improveText: async (text) => {
+    try {
+      const response = await apiClient.post('/ai/improve', { text });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to improve text');
+    }
+  },
+
+  summarizeAnnouncement: async (title, content) => {
+    try {
+      const response = await apiClient.post('/ai/summarize', { title, content });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to summarize');
+    }
+  },
+
+  detectPriority: async (title, content) => {
+    try {
+      const response = await apiClient.post('/ai/detect-priority', { title, content });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to detect priority');
+    }
+  },
 };
 
 export default copilotService;

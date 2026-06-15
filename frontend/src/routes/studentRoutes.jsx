@@ -6,7 +6,6 @@ const Dashboard = lazy(() => import("../pages/dashboards/student/pages/Dashboard
 const NotificationsPage = lazy(() => import("../pages/dashboards/student/pages/Notifications/NotificationsPage"));
 const EventsPage = lazy(() => import("../pages/dashboards/student/Events/EventsPage"));
 const MyEventsPage = lazy(() => import("../pages/dashboards/student/Events/MyEventsPage"));
-const BookmarksPage = lazy(() => import("../pages/dashboards/student/Events/BookmarksPage"));
 const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetailsPage"));
 const RemindersTab = lazy(() => import("../pages/dashboards/student/pages/Reminder/RemindersTab"));
 const TimeTable = lazy(() => import("../pages/dashboards/student/component/TimeTable"));
@@ -37,15 +36,6 @@ export const studentRoutes = [
     element={
       <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <EventsPage />
-      </ProtectedRoute>
-    }
-  />,
-  <Route
-    key="bookmarks"
-    path="bookmarks"
-    element={
-      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
-        <BookmarksPage />
       </ProtectedRoute>
     }
   />,

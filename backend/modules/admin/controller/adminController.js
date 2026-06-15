@@ -113,12 +113,27 @@ export const createUser = async (req, res) => {
     }
 };
 
+// Helper: relative time string for dashboard displays
+const timeAgo = (date) => {
+    if (!date) return '\u2014';
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins} min ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hr ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} days ago`;
+    return new Date(date).toLocaleDateString();
+};
+
 // @desc    Get dashboard metrics with trends and hourly volume
 export const getDashboardMetrics = async (req, res) => {
     try {
         const now = new Date();
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
         const [
             totalUsers,
@@ -134,7 +149,11 @@ export const getDashboardMetrics = async (req, res) => {
             usersByRole,
             usersBySchool,
             hourlyVolume,
-            notificationRead
+            notificationRead,
+            recentNotifications,
+            recentBroadcasts,
+            dailyVolume,
+            typeDistribution
         ] = await Promise.all([
             User.countDocuments(),
             Event.countDocuments(),
@@ -159,7 +178,43 @@ export const getDashboardMetrics = async (req, res) => {
                 { $group: { _id: { $hour: '$createdAt' }, count: { $sum: 1 } } },
                 { $sort: { _id: 1 } }
             ]),
-            NotificationLog.countDocuments({ status: 'read' })
+            NotificationLog.countDocuments({ status: 'read' }),
+            // NEW: Recent notifications grouped by title with recipient count
+            NotificationLog.aggregate([
+                { $sort: { createdAt: -1 } },
+                { $group: {
+                    _id: '$title',
+                    title: { $first: '$title' },
+                    type: { $first: '$type' },
+                    priority: { $first: '$priority' },
+                    createdAt: { $first: '$createdAt' },
+                    recipients: { $sum: 1 }
+                }},
+                { $sort: { createdAt: -1 } },
+                { $limit: 5 }
+            ]),
+            // NEW: Recent announcements/broadcasts
+            Announcement.find()
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .populate('course', 'name')
+                .populate('targetClass', 'name')
+                .lean(),
+            // NEW: Daily notification volume for last 7 days
+            NotificationLog.aggregate([
+                { $match: { createdAt: { $gte: sevenDaysAgo } } },
+                { $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    sent: { $sum: 1 },
+                    read: { $sum: { $cond: [{ $eq: ['$status', 'read'] }, 1, 0] } }
+                }},
+                { $sort: { _id: 1 } }
+            ]),
+            // NEW: Type distribution for categories
+            NotificationLog.aggregate([
+                { $group: { _id: '$type', count: { $sum: 1 } } },
+                { $sort: { count: -1 } }
+            ])
         ]);
 
         // Build hourly volume array for all 24 hours
@@ -177,6 +232,94 @@ export const getDashboardMetrics = async (req, res) => {
 
         // Find peak hour
         const peakHour = volumeByHour.reduce((max, h) => h.count > max.count ? h : max, { count: 0 });
+
+        // ==========================================
+        // FORMAT RECENT NOTIFICATIONS
+        // ==========================================
+        // Group notification logs by title so we can count recipients per broadcast
+        const formattedRecentNotifications = (recentNotifications || []).map((n) => ({
+            id: n._id,
+            title: n.title || 'Untitled',
+            type: n.priority === 'critical' ? 'urgent'
+                : ['success', 'warning'].includes(n.type) ? n.type
+                : 'info',
+            time: timeAgo(n.createdAt),
+            recipients: n.recipients || 1,
+            dot: n.priority === 'critical' ? 'bg-red-500'
+                : n.type === 'success' ? 'bg-green-500'
+                : n.type === 'warning' ? 'bg-amber-500'
+                : 'bg-blue-500'
+        }));
+
+        // ==========================================
+        // FORMAT RECENT BROADCASTS (Announcements)
+        // ==========================================
+        const categoryMap = {
+            'General': 'General',
+            'Urgent': 'Urgent',
+            'Assignment': 'Academic',
+            'Event': 'Events'
+        };
+        const statusMap = {
+            'Active': 'sent',
+            'Scheduled': 'pending',
+            'Draft': 'draft',
+            'Archived': 'archived'
+        };
+        const formattedRecentBroadcasts = (recentBroadcasts || []).map((a) => ({
+            title: a.title || 'Untitled',
+            category: categoryMap[a.type] || a.type || 'General',
+            audience: a.course?.name || a.targetClass?.name || 'All Users',
+            status: statusMap[a.status] || a.status?.toLowerCase() || 'sent',
+            time: a.scheduledAt ? timeAgo(a.scheduledAt) : timeAgo(a.createdAt)
+        }));
+
+        // ==========================================
+        // FORMAT DAILY VOLUME (Last 7 Days for Chart)
+        // ==========================================
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dailyMap = {};
+        (dailyVolume || []).forEach((d) => {
+            dailyMap[d._id] = { sent: d.sent, read: d.read };
+        });
+        const formattedDailyVolume = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+            const key = date.toISOString().slice(0, 10);
+            const dayName = dayNames[date.getDay()];
+            const data = dailyMap[key] || { sent: 0, read: 0 };
+            formattedDailyVolume.push({
+                day: dayName,
+                sent: data.sent,
+                read: data.read
+            });
+        }
+
+        // ==========================================
+        // FORMAT TYPE DISTRIBUTION (Categories)
+        // ==========================================
+        const typeColorMap = {
+            'info': 'bg-blue-500',
+            'warning': 'bg-amber-500',
+            'success': 'bg-green-500',
+            'event': 'bg-purple-500',
+            'action': 'bg-red-500',
+            'announcement': 'bg-blue-500'
+        };
+        const typeLabelMap = {
+            'info': 'Info',
+            'warning': 'Alerts',
+            'success': 'Success',
+            'event': 'Events',
+            'action': 'Actions',
+            'announcement': 'Announcements'
+        };
+        const totalByType = (typeDistribution || []).reduce((sum, t) => sum + t.count, 0);
+        const formattedTypeDistribution = (typeDistribution || []).map((t) => ({
+            label: typeLabelMap[t._id] || t._id || 'Other',
+            percent: totalByType > 0 ? Math.round((t.count / totalByType) * 100) : 0,
+            color: typeColorMap[t._id] || 'bg-blue-500'
+        }));
 
         res.json({
             metrics: {
@@ -205,7 +348,12 @@ export const getDashboardMetrics = async (req, res) => {
                 total: totalNotifications,
                 read: notificationRead,
                 unread: totalNotifications - notificationRead
-            }
+            },
+            // NEW REAL DATA
+            recentNotifications: formattedRecentNotifications,
+            recentBroadcasts: formattedRecentBroadcasts,
+            dailyVolume: formattedDailyVolume,
+            typeDistribution: formattedTypeDistribution
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

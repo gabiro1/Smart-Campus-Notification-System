@@ -132,12 +132,6 @@ const userSchema = new mongoose.Schema({
     ref: 'User',
     default: null
   },
-  studentID: {
-    type: String,
-    unique: true,
-    sparse: true, // Allows null/undefined for staff while keeping uniqueness for students
-    trim: true
-  },
 
   // ==========================================
   // CLASS REPRESENTATIVE FIELDS (NEW)

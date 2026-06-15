@@ -14,6 +14,7 @@ import eventRoutes from './modules/event/routes/eventRoutes.js';
 import notificationRoutes from './modules/notification/routes/notificationRoutes.js';
 import reminderRoutes from './modules/reminder/routes/reminderRoutes.js';
 import guildPositionRoutes from './modules/guild/routes/guildPositionRoutes.js';
+import './workers/reminderWorker.js'; // 👷 Start the Reminder Worker
 import adminRoutes from './modules/admin/routes/adminRoutes.js';
 import settingsRoutes from './modules/settings/routes/settingsRoutes.js';
 import backupRoutes from './modules/backup/routes/backupRoutes.js';

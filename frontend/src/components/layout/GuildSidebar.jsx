@@ -50,7 +50,7 @@ export default function GuildSidebar(props) {
       width="w-72"
       brand={
         <div className="space-y-2">
-          <Logo />
+          <Logo to="/" />
           <button className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-accent transition-all group">
             <div className="w-9 h-9 flex-shrink-0 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center font-bold border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
               {user?.name?.charAt(0) || 'G'}

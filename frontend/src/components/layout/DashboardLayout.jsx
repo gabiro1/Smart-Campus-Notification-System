@@ -12,7 +12,6 @@ import { getRoleConfig } from "./navigationConfig";
 const pageTitles = {
   "/student/dashboard": "Dashboard",
   "/student/events": "Events",
-  "/student/bookmarks": "Bookmarks",
   "/student/notifications": "Notifications",
   "/student/reminders": "Reminders",
   "/student/timetable": "Timetable",
@@ -96,7 +95,7 @@ export default function DashboardLayout({ role = "student" }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCounts, setUnreadCounts] = useState({ notifications: 0, messages: 0 });
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -106,16 +105,16 @@ export default function DashboardLayout({ role = "student" }) {
 
   const fetchUnread = useCallback(async () => {
     try {
-      let total = 0;
       const notifMod = await import("../../services/notificationService");
       const notifData = await notifMod.default.getUnreadCount();
-      total += notifData?.unreadCount || 0;
+      const nCount = notifData?.unreadCount || 0;
+      let mCount = 0;
       try {
         const commMod = await import("../../features/communication/services/communicationService");
         const msgData = await commMod.default.getUnreadSummary();
-        total += msgData?.total || 0;
+        mCount = msgData?.total || 0;
       } catch {}
-      setUnreadCount(total);
+      setUnreadCounts({ notifications: nCount, messages: mCount });
     } catch {}
   }, []);
 
@@ -176,7 +175,7 @@ export default function DashboardLayout({ role = "student" }) {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         role={role}
         user={user || {}}
-        unreadCount={unreadCount}
+        unreadCounts={unreadCounts}
       />
 
       {/* Main Content Area with 3D Parallax effect on mobile */}

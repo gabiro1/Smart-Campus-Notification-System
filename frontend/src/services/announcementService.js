@@ -160,7 +160,25 @@ updateAnnouncement: async (announcementId, updateData) => {
     return response.data;
   },
 
-  // 15. Analytics: Get read receipt stats for an announcement
+  // 17. AI: Summarize a long announcement into 1-2 sentences
+  summarizeAnnouncement: async (title, content) => {
+    const response = await apiClient.post('/ai/summarize', { title, content });
+    return response.data;
+  },
+
+  // 18. AI: Improve grammar, spelling, and clarity
+  improveText: async (text) => {
+    const response = await apiClient.post('/ai/improve', { text });
+    return response.data;
+  },
+
+  // 19. AI: Detect priority level of announcement content
+  detectPriority: async (title, content) => {
+    const response = await apiClient.post('/ai/detect-priority', { title, content });
+    return response.data;
+  },
+
+  // 20. Analytics: Get read receipt stats for an announcement
   getAnnouncementAnalytics: async (announcementId) => {
     const response = await apiClient.get(`/analytics/announcements/${announcementId}`);
     return response.data;

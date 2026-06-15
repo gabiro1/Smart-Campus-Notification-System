@@ -146,7 +146,7 @@ export default function StudentSettings() {
     }
   };
 
-  const studentId = user?.studentID || user?.registrationNumber || "";
+  const registrationNumber = user?.registrationNumber || "";
 
   return (
     <div className="p-4 lg:p-6 w-full text-foreground">
@@ -202,7 +202,7 @@ export default function StudentSettings() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="text-lg md:text-xl font-semibold text-foreground truncate">{user?.name || "Student"}</h3>
-                      <p className="text-sm text-muted-foreground">{studentId}</p>
+                      <p className="text-sm text-muted-foreground">{registrationNumber}</p>
                       <p className="text-sm text-blue-400 truncate">{user?.email || ""}</p>
                     </div>
                   </div>
@@ -234,10 +234,10 @@ export default function StudentSettings() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground uppercase">Student ID</label>
+                      <label className="text-xs text-muted-foreground uppercase">Registration Number</label>
                       <input
                         type="text"
-                        defaultValue={studentId}
+                        defaultValue={registrationNumber}
                         disabled
                         className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-muted-foreground cursor-not-allowed"
                       />

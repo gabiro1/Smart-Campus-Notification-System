@@ -88,7 +88,7 @@ export default function UniMobileDrawer({ isOpen, onClose, role = "student", use
             {/* Header */}
             <div className="h-16 flex items-center justify-between px-5 border-b border-border shrink-0">
               <div className="flex items-center gap-3">
-                <Logo size="sm" />
+                <Logo size="sm" to="/" />
                 <div>
                   <h2 className="text-sm font-bold text-foreground leading-tight">
                     UniNotify

@@ -107,7 +107,7 @@ export default function StudentRecords() {
                   <tr className="border-b border-border bg-accent/50">
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Name</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Email</th>
-                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Student ID</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">Reg Number</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Level</th>
                     <th className="text-left px-4 py-3 font-medium text-muted-foreground">Status</th>
                     <th className="text-right px-4 py-3 font-medium text-muted-foreground">Actions</th>
@@ -133,7 +133,7 @@ export default function StudentRecords() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{s.email}</td>
-                        <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{s.studentID || "-"}</td>
+                        <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{s.registrationNumber || "-"}</td>
                         <td className="px-4 py-3 capitalize text-muted-foreground">{s.level || "-"}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -223,7 +223,7 @@ export default function StudentRecords() {
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground"><Mail size={14} /> {viewTarget.email}</div>
                   {viewTarget.phoneNumber && <div className="flex items-center gap-2 text-muted-foreground"><Phone size={14} /> {viewTarget.phoneNumber}</div>}
-                  {viewTarget.studentID && <div className="flex items-center gap-2 text-muted-foreground"><Hash size={14} /> {viewTarget.studentID}</div>}
+                  {viewTarget.registrationNumber && <div className="flex items-center gap-2 text-muted-foreground"><Hash size={14} /> {viewTarget.registrationNumber}</div>}
                   {viewTarget.level && <div className="flex items-center gap-2 text-muted-foreground"><GraduationCap size={14} /> {viewTarget.level}</div>}
                   {viewTarget.department?.name && <div className="flex items-center gap-2 text-muted-foreground"><Building2 size={14} /> {viewTarget.department.name}</div>}
                   <div className="flex items-center gap-2 text-muted-foreground"><Calendar size={14} /> Created {format(new Date(viewTarget.createdAt), "MMM d, yyyy")}</div>

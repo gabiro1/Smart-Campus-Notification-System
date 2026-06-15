@@ -252,7 +252,7 @@ export default function ClassRepProposals() {
                     >
                       <option value="">Select a student...</option>
                       {students.map(s => (
-                        <option key={s._id} value={s._id}>{s.name} ({s.email || s.studentID})</option>
+                        <option key={s._id} value={s._id}>{s.name} ({s.email || s.registrationNumber})</option>
                       ))}
                     </select>
                   </div>

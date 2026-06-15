@@ -10,7 +10,6 @@ import {
   Settings,
   HelpCircle,
   LogOut,
-  Bookmark,
   Clock,
   BookOpen,
   MessageSquare,
@@ -51,15 +50,14 @@ export const roleConfig = {
         label: "Main",
         items: [
           { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard", end: true },
-          { icon: Mail, label: "Messages", path: "/student/messages", badge: true },
+          { icon: Mail, label: "Messages", path: "/student/messages", badge: 'messages' },
           { icon: Calendar, label: "Events", path: "/student/events" },
-          { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
         ],
       },
       {
         label: "Updates",
         items: [
-          { icon: MessageSquare, label: "Notifications", path: "/student/notifications", badge: true },
+          { icon: MessageSquare, label: "Notifications", path: "/student/notifications", badge: 'notifications' },
           { icon: Clock, label: "Reminders", path: "/student/reminders" },
         ],
       },
@@ -88,15 +86,14 @@ export const roleConfig = {
         label: "Main",
         items: [
           { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard", end: true },
-          { icon: Mail, label: "Messages", path: "/student/messages", badge: true },
+          { icon: Mail, label: "Messages", path: "/student/messages", badge: 'messages' },
           { icon: Calendar, label: "Events", path: "/student/events" },
-          { icon: Bookmark, label: "Bookmarks", path: "/student/bookmarks" },
         ],
       },
       {
         label: "Updates",
         items: [
-          { icon: MessageSquare, label: "Notifications", path: "/student/notifications" },
+          { icon: MessageSquare, label: "Notifications", path: "/student/notifications", badge: 'notifications' },
           { icon: Clock, label: "Reminders", path: "/student/reminders" },
         ],
       },
@@ -125,7 +122,7 @@ export const roleConfig = {
         label: "Core",
         items: [
           { icon: LayoutDashboard, label: "Overview", path: "/admin/overview", end: true },
-          { icon: Bell, label: "Notifications", path: "/admin/notifications", badge: true },
+          { icon: Bell, label: "Notifications", path: "/admin/notifications", badge: 'notifications' },
           { icon: Radio, label: "Events", path: "/admin/events" },
         ],
       },
@@ -190,8 +187,8 @@ export const roleConfig = {
       {
         label: "Communication",
         items: [
-          { icon: Mail, label: "Messages", path: "/lecturer/messages", badge: true },
-          { icon: Bell, label: "Notifications", path: "/lecturer/notifications", badge: true },
+          { icon: Mail, label: "Messages", path: "/lecturer/messages", badge: 'messages' },
+          { icon: Bell, label: "Notifications", path: "/lecturer/notifications", badge: 'notifications' },
         ],
       },
       {
@@ -255,6 +252,7 @@ export const roleConfig = {
       {
         label: "Communication",
         items: [
+          { icon: Mail, label: "Messages", path: "/dean/messages", badge: 'messages' },
           { icon: FileText, label: "All Announcements", path: "/dean/announcements" },
         ],
       },

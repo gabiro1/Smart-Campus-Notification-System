@@ -18,7 +18,7 @@ export const resolveReachableContacts = async (userId) => {
   if (hasFreshCache) {
     const contactIds = cached.map(c => c.contact);
     const contactUsers = await User.find({ _id: { $in: contactIds } })
-      .select("name role department profilePicture studentID");
+      .select("name role department profilePicture registrationNumber");
     const userMap = Object.fromEntries(contactUsers.map(u => [u._id.toString(), u]));
     return cached.map(c => ({
       _id: c.contact,
@@ -343,7 +343,7 @@ export const resolveReachableContacts = async (userId) => {
 
   const contactIds = uniqueContacts.map(c => c.contact);
   const contactUsers = await User.find({ _id: { $in: contactIds } })
-    .select("name role department profilePicture studentID");
+    .select("name role department profilePicture registrationNumber");
   const userMap = Object.fromEntries(contactUsers.map(u => [u._id.toString(), u]));
 
   return uniqueContacts

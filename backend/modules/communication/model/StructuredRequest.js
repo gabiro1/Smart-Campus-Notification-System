@@ -10,7 +10,7 @@ const structuredRequestSchema = new mongoose.Schema({
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   submitterInfo: {
     name: { type: String },
-    studentId: { type: String },
+    registrationNumber: { type: String },
     email: { type: String },
     phone: { type: String },
     department: { type: String },

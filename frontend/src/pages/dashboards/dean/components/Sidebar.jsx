@@ -8,8 +8,11 @@ import {
   Settings,
   X,
   GraduationCap,
+  Mail,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import communicationService from "../../../../features/communication/services/communicationService";
 
 const routes = [
   { path: "/dean", name: "College Overview", icon: Globe },
@@ -17,13 +20,53 @@ const routes = [
     path: "/dean/approvals",
     name: "HoD Approvals",
     icon: CheckSquare,
-    badge: 5,
+    badge: 'approvals',
   },
   { path: "/dean/broadcast", name: "College Broadcast", icon: Radio },
   { path: "/dean/announcements", name: "All Announcements", icon: Files },
+  { path: "/dean/messages", name: "Messages", icon: Mail, badge: 'messages' },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen, isMobile }) {
+  const [unreadCounts, setUnreadCounts] = useState({ messages: 0, approvals: 0 });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const msgData = await communicationService.getUnreadSummary();
+        setUnreadCounts({
+          messages: msgData?.total || 0,
+          approvals: 5,
+        });
+      } catch {
+        setUnreadCounts(prev => ({ ...prev, messages: 0 }));
+      }
+    };
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000);
+
+    // Also listen for socket events for real-time badge updates
+    let sock = null;
+    (async () => {
+      try {
+        const { io } = await import("socket.io-client");
+        const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace('/api', '');
+        const token = localStorage.getItem("token");
+        sock = io(API_URL, {
+          auth: { token },
+          transports: ["websocket", "polling"],
+        });
+        sock.on("unread:updated", () => fetchCounts());
+        sock.on("message:new", () => fetchCounts());
+      } catch {}
+    })();
+
+    return () => {
+      clearInterval(interval);
+      sock?.disconnect();
+    };
+  }, []);
+
   const sidebarContent = (
     <div className="flex flex-col h-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-r border-white/10 w-64">
       {/* Brand Header */}
@@ -86,9 +129,9 @@ export default function Sidebar({ isOpen, setIsOpen, isMobile }) {
                   />
                   <span className="text-sm font-medium">{route.name}</span>
                 </div>
-                {route.badge && (
+                {route.badge && unreadCounts[route.badge] > 0 && (
                   <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.4)]">
-                    {route.badge}
+                    {unreadCounts[route.badge] > 99 ? '99+' : unreadCounts[route.badge]}
                   </span>
                 )}
               </>
