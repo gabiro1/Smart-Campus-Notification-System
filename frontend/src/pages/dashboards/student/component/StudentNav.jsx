@@ -6,7 +6,6 @@ import {
   Bell,
   MessageSquare,
   Bookmark,
-  BookOpen,
   Users,
   Clock,
   Settings,
@@ -14,6 +13,8 @@ import {
   ChevronRight,
   X,
   Sparkles,
+  Rss,
+  HelpCircle,
 } from "lucide-react";
 
 const navItems = [
@@ -21,10 +22,10 @@ const navItems = [
   { label: "Messages", path: "/student/messages", icon: Bell },
   { label: "Events", path: "/student/events", icon: Calendar },
   // { label: "Bookmarks", path: "/student/bookmarks", icon: Bookmark },
+  { label: "Feed", path: "/student/feed", icon: Rss },
+  { label: "Questions", path: "/student/questions", icon: HelpCircle },
   { label: "Notifications", path: "/student/notifications", icon: MessageSquare },
   { label: "Timetable", path: "/student/timetable", icon: Clock },
-  { label: "Academic", path: "/student/academic", icon: BookOpen },
-  { label: "Clubs", path: "/student/clubs", icon: Users },
   { label: "Settings", path: "/student/settings", icon: Settings },
 ];
 

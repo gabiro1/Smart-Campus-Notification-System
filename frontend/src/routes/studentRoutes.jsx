@@ -10,6 +10,8 @@ const EventDetailsPage = lazy(() => import("../features/events/pages/EventDetail
 const RemindersTab = lazy(() => import("../pages/dashboards/student/pages/Reminder/RemindersTab"));
 const TimeTable = lazy(() => import("../pages/dashboards/student/component/TimeTable"));
 const StudentMessages = lazy(() => import("../pages/dashboards/student/pages/Messages/StudentMessages"));
+const StudentFeedPage = lazy(() => import("../pages/dashboards/student/pages/Messages/StudentFeedPage"));
+const StudentQAPage = lazy(() => import("../pages/dashboards/student/pages/Messages/StudentQAPage"));
 const Settings = lazy(() => import("../pages/dashboards/student/pages/settings/Settings"));
 
 
@@ -81,6 +83,24 @@ export const studentRoutes = [
     element={
       <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
         <StudentMessages />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="feed"
+    path="feed"
+    element={
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
+        <StudentFeedPage />
+      </ProtectedRoute>
+    }
+  />,
+  <Route
+    key="questions"
+    path="questions"
+    element={
+      <ProtectedRoute allowedRoles={["student", "class_rep", "guild_president"]}>
+        <StudentQAPage />
       </ProtectedRoute>
     }
   />,

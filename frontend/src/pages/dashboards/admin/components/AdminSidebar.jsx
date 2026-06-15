@@ -51,7 +51,6 @@ const navSections = [
     label: "Administration",
     items: [
       { icon: User, label: "HR Accounts", path: "/admin/hr-accounts" },
-      { icon: ScrollText, label: "Council Election", path: "/admin/council-election" },
       { icon: AlertTriangle, label: "Emergency Override", path: "/admin/emergency" },
     ],
   },

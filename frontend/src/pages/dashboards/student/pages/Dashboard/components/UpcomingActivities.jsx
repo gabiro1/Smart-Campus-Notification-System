@@ -52,7 +52,22 @@ function getRelativeDay(dateStr) {
   return target.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function UpcomingActivities() {
+const DAY_ORDER = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function getTodayClasses(timetable) {
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  return timetable.filter((e) => e.dayOfWeek === today);
+}
+
+function getUpcomingWeek(timetable) {
+  const todayIndex = new Date().getDay();
+  return timetable.filter((e) => {
+    const dayIdx = DAY_ORDER.indexOf(e.dayOfWeek);
+    return dayIdx >= todayIndex;
+  });
+}
+
+export default function UpcomingActivities({ timetable = [] }) {
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,6 +95,10 @@ export default function UpcomingActivities() {
   const overdue = active.filter(r => new Date(r.scheduledTime) < new Date());
   const upcoming = active.filter(r => new Date(r.scheduledTime) >= new Date());
 
+  const todayClasses = getTodayClasses(timetable);
+  const weekClasses = getUpcomingWeek(timetable).slice(0, 3);
+  const hasClasses = todayClasses.length > 0 || weekClasses.length > 0;
+
   return (
     <WidgetErrorBoundary name="UpcomingActivities">
       <GlassCard delay={0.2}>
@@ -91,7 +110,9 @@ export default function UpcomingActivities() {
             <div>
               <h2 className="text-sm font-semibold text-foreground">Upcoming Activities</h2>
               <p className="text-xs text-muted-foreground">
-                {active.length > 0 ? `${active.length} active` : "No upcoming activities"}
+                {active.length > 0 || hasClasses
+                  ? `${active.length} reminders${hasClasses ? ` · ${weekClasses.length + todayClasses.length} classes` : ""}`
+                  : "No upcoming activities"}
               </p>
             </div>
           </div>
@@ -102,6 +123,34 @@ export default function UpcomingActivities() {
             View all
           </Link>
         </div>
+
+        {hasClasses && (
+          <div className="mb-3">
+            <p className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1.5 px-1">
+              {todayClasses.length > 0 ? "Today's Classes" : "Upcoming Classes"}
+            </p>
+            <div className="space-y-1.5">
+              {(todayClasses.length > 0 ? todayClasses : weekClasses).slice(0, 2).map((cls, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors border border-emerald-500/10"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <BookOpen size={13} className="text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{cls.subject}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-muted-foreground">{cls.time}</span>
+                      <span className="text-xs text-border">·</span>
+                      <span className="text-xs text-muted-foreground truncate">{cls.room}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="space-y-2">
@@ -115,12 +164,12 @@ export default function UpcomingActivities() {
               </div>
             ))}
           </div>
-        ) : active.length === 0 ? (
+        ) : active.length === 0 && !hasClasses ? (
           <div className="py-6 text-center">
             <CheckCircle size={32} className="mx-auto text-muted-foreground/30 mb-2" />
             <p className="text-xs text-muted-foreground">All caught up!</p>
           </div>
-        ) : (
+        ) : active.length > 0 ? (
           <div className="space-y-2">
             {overdue.length > 0 && (
               <div className="mb-2">
@@ -134,7 +183,7 @@ export default function UpcomingActivities() {
               <ReminderRow key={r._id} reminder={r} />
             ))}
           </div>
-        )}
+        ) : null}
       </GlassCard>
     </WidgetErrorBoundary>
   );

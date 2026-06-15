@@ -75,12 +75,12 @@ function getRelativeDay(dateStr) {
 }
 
 const TIMELINE_TABS = [
-  { key: "overdue", label: "Overdue", icon: AlertTriangle, color: "text-red-400" },
+  { key: "all", label: "All", icon: Bell, color: "text-zinc-400" },
   { key: "today", label: "Today", icon: Clock, color: "text-amber-400" },
   { key: "tomorrow", label: "Tomorrow", icon: ArrowRight, color: "text-blue-400" },
   { key: "upcoming", label: "Upcoming", icon: Calendar, color: "text-purple-400" },
+  { key: "overdue", label: "Overdue", icon: AlertTriangle, color: "text-red-400" },
   { key: "completed", label: "Completed", icon: CheckCheck, color: "text-emerald-400" },
-  { key: "all", label: "All", icon: Bell, color: "text-zinc-400" },
 ];
 
 function getDefaultDateTime() {
@@ -337,14 +337,14 @@ export default function RemindersTab() {
               </button>
             </>
           )}
-          <button
+         {/* {false ( <button
             onClick={fetchReminders}
             disabled={loading}
             className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 bg-black/40 border border-white/10 rounded-lg"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             <span className="hidden sm:inline">Refresh</span>
-          </button>
+          </button>)} */}
           <button
             onClick={() => setShowNewForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"

@@ -115,7 +115,7 @@ export default function GuildOverview() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto p-8">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -127,13 +127,13 @@ export default function GuildOverview() {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {statCards.map((card, i) => (
           <StatCard key={card.title} {...card} delay={i * 0.05} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-5">
         {QUICK_ACTIONS.map((action, i) => (
           <motion.button
             key={action.label}
@@ -154,7 +154,7 @@ export default function GuildOverview() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <GlassCard className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-foreground">Active Guild Council</h2>

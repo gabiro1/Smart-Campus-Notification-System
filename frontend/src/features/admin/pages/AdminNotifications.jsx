@@ -21,6 +21,7 @@ import GlassCard from "@/components/cards/GlassCard";
 import notificationService from "../../../services/notificationService";
 import copilotService from "../../../services/copilotService";
 import toast from "react-hot-toast";
+import NotificationDetailModal from "../../../components/common/NotificationDetailModal";
 
 const formatTimeAgo = (dateString) => {
   if (!dateString) return "Unknown";
@@ -42,6 +43,7 @@ export default function AdminNotifications() {
   
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   // Digest state
   const [digestLoading, setDigestLoading] = useState(false);
@@ -218,7 +220,8 @@ export default function AdminNotifications() {
                         delay: index * 0.1,
                         ease: "easeOut",
                       }}
-                      className="relative pl-12 sm:pl-16 md:pl-20 pr-1 sm:pr-2 group"
+                      className="relative pl-12 sm:pl-16 md:pl-20 pr-1 sm:pr-2 group cursor-pointer"
+                      onClick={() => setSelectedNotification(note)}
                     >
                       <div
                         className={`absolute left-1 sm:left-2 md:left-4 top-3 sm:top-4 w-8 sm:w-9 h-8 sm:h-9 rounded-full flex items-center justify-center border z-10 transition-transform duration-300 group-hover:scale-110 ${note.bg} ${note.border} ${note.unread ? "shadow-[0_0_15px_rgba(59,130,246,0.4)]" : "shadow-lg"}`}
@@ -386,6 +389,15 @@ export default function AdminNotifications() {
           )}
         </motion.div>
       )}
+
+      <NotificationDetailModal
+        notification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+        onMarkAsRead={(id) => {
+          handleMarkAsRead(id);
+          setSelectedNotification(null);
+        }}
+      />
     </div>
   );
 }

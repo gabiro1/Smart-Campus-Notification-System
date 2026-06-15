@@ -102,8 +102,8 @@ export default function GuildPostEvents() {
       await eventService.deleteEvent(eventId);
       toast.success("Event deleted");
       fetchEvents();
-    } catch {
-      toast.error("Failed to delete event");
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Failed to delete event");
     }
   };
 

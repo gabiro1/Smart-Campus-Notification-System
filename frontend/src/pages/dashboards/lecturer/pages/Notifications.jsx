@@ -9,6 +9,7 @@ import { GlassCard } from "@/components/shared";
 import notificationService from "../../../../services/notificationService";
 import { useSocket } from "../../../../context/SocketContext";
 import toast from "react-hot-toast";
+import NotificationDetailModal from "../../../../components/common/NotificationDetailModal";
 
 const formatTimeAgo = (dateString) => {
   if (!dateString) return "Unknown";
@@ -70,6 +71,7 @@ export default function LecturerNotifications() {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -279,7 +281,8 @@ export default function LecturerNotifications() {
                     delay: index * 0.1,
                     ease: "easeOut",
                   }}
-                  className="relative pl-12 sm:pl-16 md:pl-20 pr-1 sm:pr-2 group"
+                  className="relative pl-12 sm:pl-16 md:pl-20 pr-1 sm:pr-2 group cursor-pointer"
+                  onClick={() => setSelectedNotification(note)}
                 >
                   {/* Timeline icon */}
                   <div
@@ -357,6 +360,15 @@ export default function LecturerNotifications() {
           </div>
         )}
       </div>
+
+      <NotificationDetailModal
+        notification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+        onMarkAsRead={(id) => {
+          handleMarkAsRead(id);
+          setSelectedNotification(null);
+        }}
+      />
     </div>
   );
 }

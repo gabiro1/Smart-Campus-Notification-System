@@ -106,8 +106,8 @@ export default function MyEventsPage() {
       toast.success("Event deleted");
       setSelectedEvent(null);
       fetchMyEvents();
-    } catch {
-      toast.error("Failed to delete event");
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Failed to delete event");
     } finally {
       setDeleting(null);
     }

@@ -129,6 +129,7 @@ export default function StudentDashboard() {
   const [stats, setStats] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
+  const [timetable, setTimetable] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -166,6 +167,9 @@ export default function StudentDashboard() {
               _id: m._id,
             })),
           );
+        }
+        if (d.schedule?.length) {
+          setTimetable(d.schedule);
         }
       }
 
@@ -223,7 +227,6 @@ export default function StudentDashboard() {
 
       if (remindersRes.status === "fulfilled" && remindersRes.value?.pagination) {
         newStats.reminders = remindersRes.value.pagination.total ?? 0;
-      }
       }
 
       if (Array.isArray(eventsList.value)) {
@@ -363,7 +366,7 @@ export default function StudentDashboard() {
       </WidgetErrorBoundary>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <UpcomingActivities />
+        <UpcomingActivities timetable={timetable} />
 
         <WidgetErrorBoundary name="RecentAnnouncements">
           {loading ? (

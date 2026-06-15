@@ -90,6 +90,7 @@ export default function FloatingCopilot() {
 
   // Must be AFTER all hooks, BEFORE the JSX return
   if (!user) return null;
+  if (!["student", "guild_president"].includes(user.role)) return null;
 
   return (
     <>

@@ -8,11 +8,11 @@ import {
   Bookmark,
   MessageSquare,
   Clock,
-  BookOpen,
   Users,
   Settings,
   LogOut,
 } from "lucide-react";
+import { Rss } from "lucide-react";
 import Logo from "../ui/Logo";
 
 const sections = [
@@ -26,6 +26,13 @@ const sections = [
     ],
   },
   {
+    label: "Community",
+    items: [
+      { path: "/student/feed", label: "Feed", icon: Rss },
+      { path: "/student/questions", label: "Questions", icon: HelpCircle },
+    ],
+  },
+  {
     label: "Updates",
     items: [
       { path: "/student/notifications", label: "Notifications", icon: MessageSquare },
@@ -36,8 +43,6 @@ const sections = [
     label: "Resources",
     items: [
       { path: "/student/timetable", label: "Timetable", icon: Clock },
-      { path: "/student/academic", label: "Academic", icon: BookOpen },
-      { path: "/student/clubs", label: "Clubs", icon: Users },
     ],
   },
   {

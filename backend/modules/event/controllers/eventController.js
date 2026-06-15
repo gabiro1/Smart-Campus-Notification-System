@@ -377,13 +377,18 @@ export const deleteEvent = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    try { await cancelEventReminders(event._id); } catch (e) {}
+    try {
+      await cancelEventReminders(event._id);
+    } catch (reminderErr) {
+      console.warn('[deleteEvent] Failed to cancel reminders, continuing:', reminderErr);
+    }
 
     await EventAttachment.deleteMany({ event: event._id });
     await Event.findByIdAndDelete(event._id);
 
     res.json({ success: true, message: 'Event deleted' });
   } catch (error) {
+    console.error('[deleteEvent] Error deleting event:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

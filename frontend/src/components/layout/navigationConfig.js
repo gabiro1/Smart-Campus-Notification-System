@@ -38,6 +38,7 @@ import {
   GitBranch,
   Command,
   Crown,
+  Rss,
 } from "lucide-react";
 
 export const roleConfig = {
@@ -62,11 +63,16 @@ export const roleConfig = {
         ],
       },
       {
+        label: "Community",
+        items: [
+          { icon: Rss, label: "Feed", path: "/student/feed" },
+          { icon: HelpCircle, label: "Questions", path: "/student/questions" },
+        ],
+      },
+      {
         label: "Resources",
         items: [
           { icon: Clock, label: "Timetable", path: "/student/timetable" },
-          { icon: BookOpen, label: "Academic", path: "/student/academic" },
-          { icon: Users, label: "Clubs", path: "/student/clubs" },
         ],
       },
       {
@@ -98,11 +104,16 @@ export const roleConfig = {
         ],
       },
       {
+        label: "Community",
+        items: [
+          { icon: Rss, label: "Feed", path: "/student/feed" },
+          { icon: HelpCircle, label: "Questions", path: "/student/questions" },
+        ],
+      },
+      {
         label: "Resources",
         items: [
           { icon: Clock, label: "Timetable", path: "/student/timetable" },
-          { icon: BookOpen, label: "Academic", path: "/student/academic" },
-          { icon: Users, label: "Clubs", path: "/student/clubs" },
         ],
       },
       {
@@ -141,7 +152,6 @@ export const roleConfig = {
         label: "Administration",
         items: [
           { icon: Users, label: "HR Accounts", path: "/admin/hr-accounts" },
-          { icon: Vote, label: "Council Election", path: "/admin/council-election" },
           { icon: Crown, label: "Guild Council", path: "/admin/guild-council" },
           { icon: AlertTriangle, label: "Emergency Override", path: "/admin/emergency" },
         ],

@@ -9,8 +9,9 @@ import {
   CheckCheck,
   Activity,
 } from "lucide-react";
-import notificationService from "../../services/notificationService"; // Adjust path if needed
+import notificationService from "../../services/notificationService";
 import toast from "react-hot-toast";
+import NotificationDetailModal from "./NotificationDetailModal";
 
 export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +20,7 @@ export default function NotificationCenter() {
   const [loading, setLoading] = useState(false);
   const [digest, setDigest] = useState(null);
   const [loadingDigest, setLoadingDigest] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   const dropdownRef = useRef(null);
 
@@ -289,9 +291,10 @@ export default function NotificationCenter() {
                     return (
                       <div
                         key={notif._id}
-                        onClick={() =>
-                          handleMarkAsRead(notif._id, notif.status)
-                        }
+                        onClick={() => {
+                          setSelectedNotification(notif);
+                          setIsOpen(false);
+                        }}
                         className={`p-4 hover:bg-white/[0.03] transition-colors cursor-pointer flex gap-4 ${isUnread ? "bg-white/[0.02]" : "opacity-60 hover:opacity-100"}`}
                       >
                         {/* Icon */}
@@ -336,6 +339,12 @@ export default function NotificationCenter() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <NotificationDetailModal
+        notification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+        onMarkAsRead={handleMarkAsRead}
+      />
     </div>
   );
 }
