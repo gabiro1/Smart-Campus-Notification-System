@@ -59,7 +59,7 @@ const THEMES = [
 ];
 
 export default function StudentSettings() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("account");
   const [saving, setSaving] = useState(false);
@@ -67,6 +67,7 @@ export default function StudentSettings() {
   const [selectedInterests, setSelectedInterests] = useState(
     Array.isArray(user?.interests) ? user.interests.map((i) => i.toLowerCase()) : []
   );
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || user?.phone || "");
 
   const [customInterest, setCustomInterest] = useState("");
   const [availableTags, setAvailableTags] = useState([]);
@@ -76,6 +77,22 @@ export default function StudentSettings() {
       if (res?.tags) setAvailableTags(res.tags);
     }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (user?.phoneNumber || user?.phone) {
+      setPhoneNumber(user.phoneNumber || user.phone || "");
+    }
+    if (!user?.notificationPreferences) return;
+    const prefs = user.notificationPreferences;
+    setSettings((prev) => ({
+      ...prev,
+      pushNotifications: prefs.push ?? prev.pushNotifications,
+      emailNotifications: prefs.email ?? prev.emailNotifications,
+      smsNotifications: prefs.sms ?? prev.smsNotifications,
+      eventReminders: prefs.categories?.reminders?.push ?? prev.eventReminders,
+      announcementAlerts: prefs.categories?.events?.push ?? prev.announcementAlerts,
+    }));
+  }, [user]);
 
   const toggleInterest = (interestId) => {
     if (selectedInterests.includes(interestId)) {
@@ -106,11 +123,11 @@ export default function StudentSettings() {
 
   const [settings, setSettings] = useState({
     theme: "system",
-    pushNotifications: true,
-    emailNotifications: true,
-    smsNotifications: false,
-    eventReminders: true,
-    announcementAlerts: true,
+    pushNotifications: user?.notificationPreferences?.push ?? true,
+    emailNotifications: user?.notificationPreferences?.email ?? true,
+    smsNotifications: user?.notificationPreferences?.sms ?? false,
+    eventReminders: user?.notificationPreferences?.categories?.reminders?.push ?? true,
+    announcementAlerts: user?.notificationPreferences?.categories?.events?.push ?? true,
     quietHoursEnabled: false,
     quietHoursStart: "22:00",
     quietHoursEnd: "07:00",
@@ -119,7 +136,20 @@ export default function StudentSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await authService.updateProfile({ interests: selectedInterests });
+      const newPrefs = {
+        push: settings.pushNotifications,
+        email: settings.emailNotifications,
+        sms: settings.smsNotifications,
+        categories: {
+          reminders: { push: settings.eventReminders },
+          events: { push: settings.announcementAlerts },
+        },
+      };
+      await Promise.all([
+        authService.updateProfile({ interests: selectedInterests, phoneNumber }),
+        authService.updateNotificationPreferences(newPrefs),
+      ]);
+      updateUser({ notificationPreferences: newPrefs, interests: selectedInterests, phoneNumber });
       if (settings.theme === "dark" && !isDarkMode) {
         toggleTheme();
       } else if (settings.theme === "light" && isDarkMode) {
@@ -228,10 +258,12 @@ export default function StudentSettings() {
                       <label className="text-xs text-muted-foreground uppercase">Phone Number</label>
                       <input
                         type="tel"
-                        defaultValue={user?.phone || user?.phoneNumber || ""}
-                        placeholder="+1234567890"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="+250780259327"
                         className="w-full bg-accent border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-blue-500/50"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">Required for SMS notifications. Use E.164 format e.g. +250780259327</p>
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground uppercase">Registration Number</label>

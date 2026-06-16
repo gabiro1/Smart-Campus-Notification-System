@@ -120,11 +120,35 @@ export const sendSMSViaTwilio = async (to, body) => {
   }
 
   const client = getTwilioClient();
-  const messageResult = await client.messages.create({
-    body,
-    from: twilioFromNumber,
-    to: cleanedPhone
-  });
+
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('📤 [SMS] Sending via Twilio...');
+  console.log(`   From : ${twilioFromNumber}`);
+  console.log(`   To   : ${cleanedPhone}`);
+  console.log(`   Body : ${body.substring(0, 80)}${body.length > 80 ? '...' : ''}`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+  let messageResult;
+  try {
+    messageResult = await client.messages.create({
+      body,
+      from: twilioFromNumber,
+      to: cleanedPhone
+    });
+  } catch (twilioErr) {
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error('❌ [SMS] Twilio error:');
+    console.error(`   Code    : ${twilioErr.code}`);
+    console.error(`   Message : ${twilioErr.message}`);
+    console.error(`   Status  : ${twilioErr.status}`);
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    throw twilioErr;
+  }
+
+  console.log('✅ [SMS] Delivered!');
+  console.log(`   SID    : ${messageResult.sid}`);
+  console.log(`   Status : ${messageResult.status}`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
   // Track usage asynchronously (don't block on quota update)
   trackSMSUsage().catch(err => console.error('[SMS] Quota tracking error:', err.message));

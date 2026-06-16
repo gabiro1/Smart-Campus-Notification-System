@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Send, Sparkles, RefreshCw, Loader2, AlertCircle, Check,
   X, FileText, Image, Paperclip, Clock, ChevronDown, Globe,
-  School, Users, BookOpen, Brain, ShieldAlert
+  School, Users, BookOpen, Brain, ShieldAlert, Info
 } from "lucide-react";
 import { GlassCard } from "@/components/shared";
 import announcementService from "@/services/announcementService";
@@ -35,6 +35,7 @@ export default function LecturerCreateAnnouncement() {
   const [paraphrasing, setParaphrasing] = useState(false);
   const [improving, setImproving] = useState(false);
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const [courseError, setCourseError] = useState(null);
   const [selectedTone, setSelectedTone] = useState("formal");
   const [detectedPriority, setDetectedPriority] = useState(null);
   const [detectingPriority, setDetectingPriority] = useState(false);
@@ -45,8 +46,10 @@ export default function LecturerCreateAnnouncement() {
         const res = await announcementService.getMyCourses();
         const list = Array.isArray(res) ? res : res?.data || res?.courses || [];
         setCourses(list);
-      } catch {
+        setCourseError(null);
+      } catch (err) {
         setCourses([]);
+        setCourseError(err?.message || "Failed to load courses. Please refresh and try again.");
       } finally {
         setLoadingCourses(false);
       }
@@ -269,8 +272,29 @@ export default function LecturerCreateAnnouncement() {
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Target Course</label>
               {loadingCourses ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Loading courses...</div>
+              ) : courseError ? (
+                <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                  <AlertCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-400">Failed to load courses</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{courseError}</p>
+                  </div>
+                </div>
               ) : courses.length === 0 ? (
-                <p className="text-sm text-amber-400">No courses assigned to you yet.</p>
+                <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                  <Info size={16} className="text-amber-400 mt-0.5 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-amber-400">No courses assigned to you yet</p>
+                    <p className="text-xs text-muted-foreground">
+                      You cannot publish announcements until a course is assigned to your account.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="text-foreground font-medium">How to fix:</span> Ask your Admin or HOD to go to{" "}
+                      <span className="text-blue-400 font-medium">Admin Panel → Academic Structure → Lecturers tab</span>,
+                      find your name, and assign a course to you.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}
                   className="w-full bg-accent/50 border border-border rounded-xl px-4 py-3 text-foreground text-sm focus:outline-none focus:border-blue-500/50">
@@ -315,7 +339,7 @@ export default function LecturerCreateAnnouncement() {
         </GlassCard>
 
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={() => { setTitle(""); setContent(""); setSelectedClass(""); setAttachments([]); setScheduledAt(""); }}
+          <button type="button" onClick={() => { setTitle(""); setContent(""); setSelectedCourse(""); setAttachments([]); setScheduledAt(""); }}
             className="px-6 py-3 bg-accent/50 border border-border rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Clear
           </button>

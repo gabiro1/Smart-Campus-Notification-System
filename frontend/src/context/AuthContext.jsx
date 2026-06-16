@@ -19,6 +19,10 @@ export const AuthProvider = ({ children }) => {
     mustChangePassword: storedUser.mustChangePassword,
     registrationNumber: storedUser.registrationNumber,
     guildPosition: storedUser.guildPosition ?? decoded.guildPosition ?? null,
+    phoneNumber: storedUser.phoneNumber ?? null,
+    notificationPreferences: storedUser.notificationPreferences ?? null,
+    interests: storedUser.interests ?? [],
+    interestWeights: storedUser.interestWeights ?? {},
   }), [])
 
   useEffect(() => {
@@ -30,15 +34,13 @@ export const AuthProvider = ({ children }) => {
         setToken(storedToken)
         setUser(buildUser(decoded, storedUser))
 
-        // Sync with server to catch stale JWT role (e.g., admin changed user's role)
+        // Sync with server on every load to get fresh profile data (role, preferences, etc.)
         apiClient.get('/users/profile').then(res => {
           if (res.data?.success && res.data?.data) {
             const profile = res.data.data
-            if (profile.role !== decoded.role || profile.guildPosition !== storedUser.guildPosition) {
-              const freshUser = buildUser(decoded, { ...storedUser, ...profile })
-              setUser(freshUser)
-              localStorage.setItem('user', JSON.stringify({ ...storedUser, ...profile }))
-            }
+            const merged = { ...storedUser, ...profile }
+            setUser(buildUser(decoded, merged))
+            localStorage.setItem('user', JSON.stringify(merged))
           }
         }).catch(() => {})
       } catch {

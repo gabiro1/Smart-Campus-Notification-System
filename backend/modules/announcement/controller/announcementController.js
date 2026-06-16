@@ -12,6 +12,7 @@ import { sendMulticastNotification } from "../../../config/firebaseAdmin.js";
 import { ensureCachedTranslation } from "../../../services/translationService.js";
 import { chat } from "../../../services/aiProvider.js";
 import { io } from "../../../utils/socketServer.js";
+import { sendSMSViaTwilio } from "../../../services/smsService.js";
 
 // ==========================================
 // 1. CREATE ANNOUNCEMENT (The Engine)
@@ -131,7 +132,7 @@ export const createAnnouncement = async (req, res) => {
       // Include role in selection for persona-based rewriting
       // Also fetch fcmToken, quietHours, and languagePreference for push/translation
       const students = await User.find({ classId: targetClass })
-        .select('_id role fcmToken quietHours languagePreference')
+        .select('_id role fcmToken quietHours languagePreference phoneNumber notificationPreferences')
         .lean();
 
       if (students.length > 0) {
@@ -230,6 +231,33 @@ export const createAnnouncement = async (req, res) => {
           await Promise.all(pushPromises);
           dispatched = true;
           console.log(`✅ Announcement: Sent push to ${validRecipients.length} devices (filtered by quiet hours)`);
+        }
+
+        // SMS: send to students who have phoneNumber + SMS preference enabled (or critical priority)
+        const announcementPriorityLevel = newAnnouncement.aiMetadata?.priority || 'medium';
+        console.log(`[Announcement SMS] Priority: ${announcementPriorityLevel}, Total students: ${students.length}`);
+        students.forEach(s => {
+          console.log(`[Announcement SMS] Student ${s._id}: phoneNumber=${s.phoneNumber || 'MISSING'}, sms=${s.notificationPreferences?.sms ?? 'NOT SET'}, quietHours=${JSON.stringify(s.quietHours)}`);
+        });
+        const smsRecipients = students.filter(s => {
+          if (!s.phoneNumber) return false;
+          if (!shouldSendNow(s, announcementPriorityLevel)) return false;
+          const prefs = s.notificationPreferences || {};
+          // critical priority bypasses preference check
+          if (announcementPriorityLevel === 'critical') return true;
+          return prefs.sms === true;
+        });
+
+        if (smsRecipients.length > 0) {
+          const smsPromises = smsRecipients.map(student => {
+            const variant = personalizedMap.get(student._id.toString()) || { title, message: content };
+            const smsText = `${variant.title}: ${variant.message.substring(0, 140)}`;
+            return sendSMSViaTwilio(student.phoneNumber, smsText)
+              .then(result => console.log(`[Announcement SMS] Sent to ${student.phoneNumber} (SID: ${result.sid})`))
+              .catch(err => console.warn(`[Announcement SMS] Failed for ${student.phoneNumber}:`, err.message));
+          });
+          await Promise.allSettled(smsPromises);
+          console.log(`✅ Announcement: SMS dispatched to ${smsRecipients.length} students`);
         }
       } else {
         console.warn(`⚠️ No students found for class ID: ${targetClass}. Database logs skipped.`);
